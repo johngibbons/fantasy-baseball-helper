@@ -1,0 +1,172 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Player {
+  id                 Int       @id
+  fullName           String
+  firstName          String
+  lastName           String
+  primaryNumber      String?
+  birthDate          DateTime?
+  currentAge         Int?
+  birthCity          String?
+  birthStateProvince String?
+  birthCountry       String?
+  height             String?
+  weight             Int?
+  active             Boolean   @default(true)
+  primaryPosition    String?
+  useName            String?
+  mlbDebutDate       DateTime?
+  batSide            String?
+  pitchHand          String?
+  nameSlug           String?
+  strikeZoneTop      Float?
+  strikeZoneBottom   Float?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  stats       PlayerStats[]
+  rosterSlots RosterSlot[]
+
+  @@map("players")
+}
+
+model PlayerStats {
+  id                   Int      @id @default(autoincrement())
+  playerId             Int
+  season               String
+  gamesPlayed          Int?
+  atBats               Int?
+  runs                 Int?
+  hits                 Int?
+  doubles              Int?
+  triples              Int?
+  homeRuns             Int?
+  rbi                  Int?
+  stolenBases          Int?
+  caughtStealing       Int?
+  baseOnBalls          Int?
+  strikeOuts           Int?
+  battingAverage       Float?
+  onBasePercentage     Float?
+  sluggingPercentage   Float?
+  onBasePlusSlugging   Float?
+  totalBases           Int?
+  hitByPitch           Int?
+  intentionalWalks     Int?
+  groundIntoDoublePlay Int?
+  leftOnBase           Int?
+  plateAppearances     Int?
+  babip                Float?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  player      Player       @relation(fields: [playerId], references: [id])
+  rosterSlots RosterSlot[]
+
+  @@unique([playerId, season])
+  @@map("player_stats")
+}
+
+model League {
+  id         String    @id
+  name       String
+  platform   String // "ESPN" or "YAHOO"
+  externalId String // League ID from the platform
+  season     String
+  teamCount  Int?
+  isActive   Boolean   @default(true)
+  settings   Json? // League settings (scoring, roster, etc)
+  lastSyncAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  teams Team[]
+  users UserLeague[]
+
+  @@unique([platform, externalId, season])
+  @@map("leagues")
+}
+
+model Team {
+  id            String   @id @default(cuid())
+  leagueId      String
+  externalId    String // Team ID from the platform
+  name          String
+  ownerName     String?
+  wins          Int?     @default(0)
+  losses        Int?     @default(0)
+  ties          Int?     @default(0)
+  pointsFor     Float?   @default(0)
+  pointsAgainst Float?   @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  league      League       @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  rosterSlots RosterSlot[]
+
+  @@unique([leagueId, externalId])
+  @@map("teams")
+}
+
+model RosterSlot {
+  id              String    @id @default(cuid())
+  teamId          String
+  playerId        Int
+  season          String
+  position        String // "C", "1B", "OF", "UTIL", "BENCH", etc
+  acquisitionType String? // "DRAFT", "WAIVER", "FREE_AGENT", "TRADE"
+  acquisitionDate DateTime?
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  team        Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  player      Player       @relation(fields: [playerId], references: [id])
+  playerStats PlayerStats? @relation(fields: [playerId, season], references: [playerId, season])
+
+  @@unique([teamId, playerId, season])
+  @@map("roster_slots")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  espnSwid     String? // ESPN authentication cookie
+  espnS2       String? // ESPN authentication cookie
+  yahooToken   String? // Yahoo OAuth token
+  yahooRefresh String? // Yahoo refresh token
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  leagues UserLeague[]
+
+  @@map("users")
+}
+
+model UserLeague {
+  id       String @id @default(cuid())
+  userId   String
+  leagueId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  league League @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, leagueId])
+  @@map("user_leagues")
+}
