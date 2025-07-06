@@ -191,7 +191,7 @@ export default function LeagueConnection({ onLeagueConnected }: LeagueConnection
         <ol className="text-sm text-blue-700 space-y-1">
           <li>1. Go to your ESPN fantasy league in a web browser</li>
           <li>2. Open Developer Tools (F12) → Storage/Application → Cookies</li>
-          <li>3. Find cookies named "swid" and "espn_s2"</li>
+          <li>3. Find cookies named &quot;swid&quot; and &quot;espn_s2&quot;</li>
           <li>4. Copy their values (without quotes) and paste below</li>
           <li>5. Your League ID is in the URL: /fba/league?leagueId=<strong>XXXXXX</strong></li>
         </ol>
@@ -299,7 +299,7 @@ export default function LeagueConnection({ onLeagueConnected }: LeagueConnection
       <div className="mb-6 p-4 bg-yellow-50 rounded-lg">
         <h3 className="font-semibold text-yellow-800 mb-2">Yahoo OAuth Setup Required:</h3>
         <p className="text-sm text-yellow-700">
-          Yahoo requires OAuth authentication. For now, you'll need to get an access token manually from the Yahoo Developer Console. 
+          Yahoo requires OAuth authentication. For now, you&apos;ll need to get an access token manually from the Yahoo Developer Console. 
           Full OAuth flow will be implemented in a future update.
         </p>
       </div>

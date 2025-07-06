@@ -102,10 +102,10 @@ export default function Home() {
                     <div className="bg-blue-50 p-4 rounded-lg">
                       <h3 className="font-semibold text-blue-800 mb-2">🚀 Try searching:</h3>
                       <ul className="text-sm text-blue-700 space-y-1">
-                        <li>• "Mike Trout" - Angels superstar</li>
-                        <li>• "Aaron Judge" - Yankees slugger</li>
-                        <li>• "Mookie Betts" - Dodgers star</li>
-                        <li>• "Francisco Lindor" - Mets SS</li>
+                        <li>• &quot;Mike Trout&quot; - Angels superstar</li>
+                        <li>• &quot;Aaron Judge&quot; - Yankees slugger</li>
+                        <li>• &quot;Mookie Betts&quot; - Dodgers star</li>
+                        <li>• &quot;Francisco Lindor&quot; - Mets SS</li>
                         <li>• Any active MLB player</li>
                       </ul>
                     </div>

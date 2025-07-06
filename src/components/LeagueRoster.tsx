@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface League {
   id: string
@@ -47,11 +47,7 @@ export default function LeagueRoster({ league }: LeagueRosterProps) {
   const [rosterLoading, setRosterLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchTeams()
-  }, [league.id])
-
-  const fetchTeams = async () => {
+  const fetchTeams = useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/leagues/${league.id}/teams`)
@@ -67,7 +63,11 @@ export default function LeagueRoster({ league }: LeagueRosterProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [league.id])
+
+  useEffect(() => {
+    fetchTeams()
+  }, [fetchTeams])
 
   const fetchRoster = async (team: Team) => {
     try {
