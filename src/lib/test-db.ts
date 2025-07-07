@@ -1,18 +1,28 @@
-import { PrismaClient } from '../../prisma/generated/test-client'
 import { execSync } from 'child_process'
 import { join } from 'path'
 
-const prisma = new PrismaClient()
+// Use regular Prisma client for tests, with test database URL
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.NODE_ENV === 'test' 
+        ? 'file:./test.db' 
+        : process.env.DATABASE_URL
+    }
+  }
+})
 
 export async function setupTestDb() {
-  // Generate test client
-  execSync('npx prisma generate --schema=prisma/schema.test.prisma', {
+  // Generate main client (same schema)
+  execSync('npx prisma generate', {
     cwd: join(process.cwd()),
     stdio: 'inherit'
   })
 
-  // Push schema to test database
-  execSync('npx prisma db push --schema=prisma/schema.test.prisma', {
+  // Push main schema to test database
+  execSync('npx prisma db push', {
     cwd: join(process.cwd()),
     stdio: 'inherit'
   })

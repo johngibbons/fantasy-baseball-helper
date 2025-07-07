@@ -29,8 +29,8 @@ jobs:
 
     - name: Setup test database
       run: |
-        npx prisma generate --schema=prisma/schema.test.prisma
-        npx prisma db push --schema=prisma/schema.test.prisma
+        npx prisma generate
+        npx prisma db push
 
     - name: Run linting
       run: npm run lint
