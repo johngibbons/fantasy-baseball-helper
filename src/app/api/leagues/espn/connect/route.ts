@@ -2,6 +2,46 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ESPNApi } from '@/lib/espn-api'
 import { prisma } from '@/lib/prisma'
 
+function generateTeamName(espnTeam: any): string {
+  // Try multiple strategies to get a meaningful team name
+  
+  // Strategy 1: Use location + nickname
+  const locationName = espnTeam.location?.trim()
+  const nickname = espnTeam.nickname?.trim()
+  
+  if (locationName && nickname) {
+    return `${locationName} ${nickname}`
+  }
+  
+  // Strategy 2: Use just nickname if it exists
+  if (nickname) {
+    return nickname
+  }
+  
+  // Strategy 3: Use just location if it exists
+  if (locationName) {
+    return locationName
+  }
+  
+  // Strategy 4: Use abbreviation if it exists
+  if (espnTeam.abbrev?.trim()) {
+    return `Team ${espnTeam.abbrev.trim()}`
+  }
+  
+  // Strategy 5: Use owner name if available
+  if (espnTeam.owners?.[0]?.trim()) {
+    return `${espnTeam.owners[0].trim()}'s Team`
+  }
+  
+  // Strategy 6: Use team ID as last resort
+  if (espnTeam.id) {
+    return `Team ${espnTeam.id}`
+  }
+  
+  // Fallback
+  return 'Unknown Team'
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('ESPN connect endpoint called')
@@ -116,7 +156,7 @@ export async function POST(request: NextRequest) {
           }
         },
         update: {
-          name: `${espnTeam.location || ''} ${espnTeam.nickname || ''}`.trim() || 'Unknown Team',
+          name: generateTeamName(espnTeam),
           ownerName: espnTeam.owners?.[0] || null,
           wins: espnTeam.record?.overall?.wins || 0,
           losses: espnTeam.record?.overall?.losses || 0,
@@ -127,7 +167,7 @@ export async function POST(request: NextRequest) {
         create: {
           leagueId: league.id,
           externalId: espnTeam.id?.toString() || '0',
-          name: `${espnTeam.location || ''} ${espnTeam.nickname || ''}`.trim() || 'Unknown Team',
+          name: generateTeamName(espnTeam),
           ownerName: espnTeam.owners?.[0] || null,
           wins: espnTeam.record?.overall?.wins || 0,
           losses: espnTeam.record?.overall?.losses || 0,

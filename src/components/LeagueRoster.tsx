@@ -199,7 +199,11 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
               >
                 <div className="flex justify-between items-start">
                   <div>
-                    <h4 className="font-semibold text-gray-900">{team.name}</h4>
+                    <h4 className="font-semibold text-gray-900">
+                      {team.name && team.name.trim() && team.name !== 'Unknown Team' 
+                        ? team.name 
+                        : `Team ${team.id.slice(-3)}`}
+                    </h4>
                     {team.ownerName && (
                       <p className="text-sm text-gray-600">Manager: {team.ownerName}</p>
                     )}
