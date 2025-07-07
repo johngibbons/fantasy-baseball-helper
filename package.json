@@ -13,7 +13,9 @@
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:all": "npm run test && npm run test:e2e"
+    "test:all": "npm run test && npm run test:e2e",
+    "seed:dev": "tsx scripts/seed-dev-data.ts",
+    "db:reset": "prisma db push --force-reset && npm run seed:dev"
   },
   "keywords": [],
   "author": "",
@@ -49,6 +51,7 @@
     "supertest": "^7.1.1",
     "tailwindcss": "^4.1.11",
     "ts-jest": "^29.4.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
 }
