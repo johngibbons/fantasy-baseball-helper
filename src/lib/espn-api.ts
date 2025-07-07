@@ -9,10 +9,16 @@ export interface ESPNLeague {
     name: string
     size: number
   }
-  status: {
-    currentMatchupPeriod: number
-    finalScoringPeriod: number
+  status?: {
+    currentMatchupPeriod?: number
+    finalScoringPeriod?: number
+    isActive?: boolean
+    latestScoringPeriod?: number
   }
+  currentMatchupPeriod?: number
+  finalScoringPeriod?: number
+  isActive?: boolean
+  latestScoringPeriod?: number
 }
 
 export interface ESPNTeam {

@@ -20,7 +20,17 @@ export async function POST(request: NextRequest) {
       { game: 'FLB', season: '2025' }
     ]
 
-    const results = []
+    interface TestResult {
+      testCase: { game: string; season: string }
+      url: string
+      status?: number
+      success?: boolean
+      dataPreview?: string
+      parsedKeys?: string[]
+      error?: string
+    }
+
+    const results: TestResult[] = []
 
     for (const testCase of testCases) {
       const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/${testCase.game}/seasons/${testCase.season}/segments/0/leagues/${leagueId}`
@@ -35,23 +45,25 @@ export async function POST(request: NextRequest) {
 
         const data = await response.text()
         
-        results.push({
+        const result: TestResult = {
           testCase,
           url,
           status: response.status,
           success: response.ok,
           dataPreview: data.substring(0, 200) + (data.length > 200 ? '...' : '')
-        })
+        }
 
         if (response.ok) {
           // If successful, try to parse and return the full data
           try {
             const parsedData = JSON.parse(data)
-            results[results.length - 1].parsedKeys = Object.keys(parsedData)
+            result.parsedKeys = Object.keys(parsedData)
           } catch (e) {
             // data might not be JSON
           }
         }
+
+        results.push(result)
       } catch (error) {
         results.push({
           testCase,
