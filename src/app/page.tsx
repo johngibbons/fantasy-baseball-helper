@@ -148,7 +148,10 @@ export default function Home() {
               )}
 
               {selectedLeague ? (
-                <LeagueRoster league={selectedLeague} />
+                <LeagueRoster 
+                  league={selectedLeague} 
+                  onBack={() => setSelectedLeague(null)}
+                />
               ) : (
                 <LeagueConnection onLeagueConnected={handleLeagueConnected} />
               )}

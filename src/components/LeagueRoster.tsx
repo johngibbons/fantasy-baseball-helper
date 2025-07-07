@@ -37,9 +37,10 @@ interface RosterPlayer {
 
 interface LeagueRosterProps {
   league: League
+  onBack?: () => void
 }
 
-export default function LeagueRoster({ league }: LeagueRosterProps) {
+export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
   const [teams, setTeams] = useState<Team[]>([])
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
   const [roster, setRoster] = useState<RosterPlayer[]>([])
@@ -50,16 +51,22 @@ export default function LeagueRoster({ league }: LeagueRosterProps) {
   const fetchTeams = useCallback(async () => {
     try {
       setLoading(true)
+      setError(null)
+      console.log('Fetching teams for league:', league.id)
+      
       const response = await fetch(`/api/leagues/${league.id}/teams`)
       const data = await response.json()
 
+      console.log('Teams API response:', { ok: response.ok, status: response.status, data })
+
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch teams')
+        throw new Error(data.error || `Failed to fetch teams: ${response.status}`)
       }
 
-      setTeams(data.teams)
+      setTeams(data.teams || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      console.error('Error fetching teams:', err)
+      setError(err instanceof Error ? err.message : 'An error occurred while fetching teams')
     } finally {
       setLoading(false)
     }
@@ -130,13 +137,24 @@ export default function LeagueRoster({ league }: LeagueRosterProps) {
     return (
       <div className="bg-white rounded-lg shadow-lg p-6">
         <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button
-            onClick={fetchTeams}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-          >
-            Try Again
-          </button>
+          <div className="text-red-600 mb-4">
+            <h3 className="font-semibold mb-2">Error Loading League Data</h3>
+            <p className="text-sm">{error}</p>
+          </div>
+          <div className="space-x-4">
+            <button
+              onClick={fetchTeams}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              Refresh Page
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -145,7 +163,17 @@ export default function LeagueRoster({ league }: LeagueRosterProps) {
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{league.name}</h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-2xl font-bold text-gray-900">{league.name}</h2>
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
+            >
+              ← Back to Leagues
+            </button>
+          )}
+        </div>
         <div className="flex items-center gap-4 text-sm text-gray-600">
           <span className="flex items-center">
             <div className={`w-3 h-3 rounded-full mr-2 ${league.platform === 'ESPN' ? 'bg-red-500' : 'bg-purple-500'}`}></div>
