@@ -3,10 +3,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { leagueId: string; teamId: string } }
+  { params }: { params: Promise<{ leagueId: string; teamId: string }> }
 ) {
   try {
-    const { teamId } = params
+    const { teamId } = await params
 
     const rosterSlots = await prisma.rosterSlot.findMany({
       where: {
