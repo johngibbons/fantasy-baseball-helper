@@ -28,18 +28,43 @@ function generateTeamName(espnTeam: any): string {
     return `Team ${espnTeam.abbrev.trim()}`
   }
   
-  // Strategy 5: Use owner name if available
-  if (espnTeam.owners?.[0]?.trim()) {
-    return `${espnTeam.owners[0].trim()}'s Team`
-  }
-  
-  // Strategy 6: Use team ID as last resort
+  // Strategy 5: Use team ID as last resort
   if (espnTeam.id) {
     return `Team ${espnTeam.id}`
   }
   
   // Fallback
   return 'Unknown Team'
+}
+
+function generateOwnerName(espnTeam: any): string | null {
+  // ESPN API sometimes returns owner IDs instead of names
+  // Try to extract meaningful owner information
+  
+  const rawOwner = espnTeam.owners?.[0]
+  
+  if (!rawOwner) {
+    return null
+  }
+  
+  const trimmedOwner = rawOwner.trim()
+  
+  // Check if it looks like a GUID/ID (common patterns)
+  const isGuidPattern = /^[\{\(]?[A-F0-9]{8}[-]?[A-F0-9]{4}[-]?[A-F0-9]{4}[-]?[A-F0-9]{4}[-]?[A-F0-9]{12}[\}\)]?$/i
+  const isShortIdPattern = /^[A-Z0-9]{8,}$/i
+  
+  if (isGuidPattern.test(trimmedOwner) || isShortIdPattern.test(trimmedOwner)) {
+    // This looks like an ID, not a readable name
+    return null
+  }
+  
+  // Check for other non-readable patterns
+  if (trimmedOwner.length < 2 || trimmedOwner.includes('$') || trimmedOwner.includes('#')) {
+    return null
+  }
+  
+  // If it passes our checks, assume it's a readable name
+  return trimmedOwner
 }
 
 export async function POST(request: NextRequest) {
@@ -157,7 +182,7 @@ export async function POST(request: NextRequest) {
         },
         update: {
           name: generateTeamName(espnTeam),
-          ownerName: espnTeam.owners?.[0] || null,
+          ownerName: generateOwnerName(espnTeam),
           wins: espnTeam.record?.overall?.wins || 0,
           losses: espnTeam.record?.overall?.losses || 0,
           ties: espnTeam.record?.overall?.ties || 0,
@@ -168,7 +193,7 @@ export async function POST(request: NextRequest) {
           leagueId: league.id,
           externalId: espnTeam.id?.toString() || '0',
           name: generateTeamName(espnTeam),
-          ownerName: espnTeam.owners?.[0] || null,
+          ownerName: generateOwnerName(espnTeam),
           wins: espnTeam.record?.overall?.wins || 0,
           losses: espnTeam.record?.overall?.losses || 0,
           ties: espnTeam.record?.overall?.ties || 0,

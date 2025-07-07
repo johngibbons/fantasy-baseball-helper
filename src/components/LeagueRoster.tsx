@@ -40,6 +40,30 @@ interface LeagueRosterProps {
   onBack?: () => void
 }
 
+// Helper function to clean up manager names that might be IDs
+function cleanManagerName(ownerName: string | null): string | null {
+  if (!ownerName) return null
+  
+  const trimmed = ownerName.trim()
+  
+  // Check if it looks like a GUID/ID (common patterns)
+  const isGuidPattern = /^[\{\(]?[A-F0-9]{8}[-]?[A-F0-9]{4}[-]?[A-F0-9]{4}[-]?[A-F0-9]{4}[-]?[A-F0-9]{12}[\}\)]?$/i
+  const isShortIdPattern = /^[A-Z0-9]{8,}$/i
+  
+  if (isGuidPattern.test(trimmed) || isShortIdPattern.test(trimmed)) {
+    // This looks like an ID, not a readable name
+    return null
+  }
+  
+  // Check for other non-readable patterns
+  if (trimmed.length < 2 || trimmed.includes('$') || trimmed.includes('#')) {
+    return null
+  }
+  
+  // If it passes our checks, return the cleaned name
+  return trimmed
+}
+
 export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
   const [teams, setTeams] = useState<Team[]>([])
   const [selectedTeam, setSelectedTeam] = useState<Team | null>(null)
@@ -204,8 +228,8 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
                         ? team.name 
                         : `Team ${team.id.slice(-3)}`}
                     </h4>
-                    {team.ownerName && (
-                      <p className="text-sm text-gray-600">Manager: {team.ownerName}</p>
+                    {cleanManagerName(team.ownerName) && (
+                      <p className="text-sm text-gray-600">Manager: {cleanManagerName(team.ownerName)}</p>
                     )}
                   </div>
                   <div className="text-right text-sm">
