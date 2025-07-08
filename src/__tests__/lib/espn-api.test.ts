@@ -39,7 +39,7 @@ describe('ESPN API', () => {
       const result = await ESPNApi.getLeague('123456', '2024', mockSettings)
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/2024/segments/0/leagues/123456',
+        'https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/2024/segments/0/leagues/123456?view=mSettings',
         {
           headers: {
             'Cookie': 'swid=test_swid; espn_s2=test_espn_s2',

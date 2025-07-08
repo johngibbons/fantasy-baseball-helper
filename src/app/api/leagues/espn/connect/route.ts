@@ -147,7 +147,13 @@ export async function POST(request: NextRequest) {
         currentMatchupPeriod: espnLeague.status?.currentMatchupPeriod || espnLeague.currentMatchupPeriod || 0,
         finalScoringPeriod: espnLeague.status?.finalScoringPeriod || espnLeague.finalScoringPeriod || 0,
         isActive: espnLeague.status?.isActive ?? espnLeague.isActive ?? true,
-        latestScoringPeriod: espnLeague.status?.latestScoringPeriod || espnLeague.latestScoringPeriod || 0
+        latestScoringPeriod: espnLeague.status?.latestScoringPeriod || espnLeague.latestScoringPeriod || 0,
+        // Store scoring configuration
+        scoringSettings: espnLeague.settings?.scoringSettings || null,
+        // Store roster settings for position requirements
+        rosterSettings: espnLeague.settings?.rosterSettings || null,
+        // Store acquisition settings for waivers/trading rules  
+        acquisitionSettings: espnLeague.settings?.acquisitionSettings || null
       }
     }
 

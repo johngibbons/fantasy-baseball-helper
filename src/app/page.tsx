@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import PlayerSearch from '@/components/PlayerSearch'
 import PlayerStats from '@/components/PlayerStats'
 import LeagueConnection from '@/components/LeagueConnection'
@@ -20,6 +20,23 @@ export default function Home() {
   const [selectedPlayer, setSelectedPlayer] = useState<MLBPlayer | null>(null)
   const [connectedLeagues, setConnectedLeagues] = useState<League[]>([])
   const [selectedLeague, setSelectedLeague] = useState<League | null>(null)
+
+  // Load existing leagues on component mount
+  useEffect(() => {
+    const loadExistingLeagues = async () => {
+      try {
+        const response = await fetch('/api/leagues')
+        if (response.ok) {
+          const leagues = await response.json()
+          setConnectedLeagues(leagues)
+        }
+      } catch (error) {
+        console.error('Error loading existing leagues:', error)
+      }
+    }
+
+    loadExistingLeagues()
+  }, [])
 
   const handleLeagueConnected = (leagueData: any) => {
     if (Array.isArray(leagueData)) {

@@ -55,7 +55,8 @@ export class ESPNApi {
 
   static async getLeague(leagueId: string, season: string, settings: ESPNLeagueSettings): Promise<ESPNLeague> {
     // ESPN Fantasy Baseball game code is 'flb'
-    const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/${season}/segments/0/leagues/${leagueId}`
+    // Request settings view to get scoring configuration
+    const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/${season}/segments/0/leagues/${leagueId}?view=mSettings`
     
     console.log('ESPN API URL:', url)
     
@@ -73,6 +74,12 @@ export class ESPNApi {
 
     const data = await response.json()
     console.log('ESPN API response data keys:', Object.keys(data))
+    
+    // Log scoring settings if available
+    if (data.settings?.scoringSettings) {
+      console.log('ESPN Scoring Settings:', JSON.stringify(data.settings.scoringSettings, null, 2))
+    }
+    
     return data
   }
 

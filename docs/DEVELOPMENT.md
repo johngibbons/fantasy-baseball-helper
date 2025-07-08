@@ -6,24 +6,22 @@
 
 To avoid having to re-import your league data every time you refresh the page during development:
 
-1. **Seed development data** (one-time setup):
-   ```bash
-   npm run seed:dev
-   ```
+1. **Import your real ESPN league** (one-time setup):
+   - Start the dev server: `npm run dev`
+   - Go to League Integration tab
+   - Connect your ESPN league with your credentials
+   - **Your real league data is now saved locally and will persist!**
 
-2. **Your data will now persist!** The seeded league includes:
-   - League: "JUICED (Dev League)" 
-   - 10 teams with realistic names and stats
-   - 5 sample MLB players
-   - Proper manager names (no more cryptic IDs)
+2. **Your data will now persist!** Your imported league includes:
+   - Your actual ESPN league name and settings
+   - All real teams with actual names and stats
+   - Real manager names (no more cryptic IDs)
+   - Actual roster data with real players
 
 ### 📊 Available Development Commands
 
 ```bash
-# Seed development data
-npm run seed:dev
-
-# Reset database and reseed (if you want to start fresh)
+# Reset database (if you want to start fresh and re-import your league)
 npm run db:reset
 
 # Standard development server
@@ -42,9 +40,9 @@ npm run test:watch
 ### 🔄 Development Workflow
 
 1. **Start development server**: `npm run dev`
-2. **Access your persistent league**: Go to League Integration tab → Your "JUICED (Dev League)" should already be there
+2. **Access your persistent league**: Go to League Integration tab → Your imported ESPN league should already be there
 3. **Make changes to code**
-4. **Refresh page** → Your data persists! No need to re-import
+4. **Refresh page** → Your real data persists! No need to re-import
 5. **Write tests first** when adding new features (TDD approach)
 6. **Run tests** before committing: `npm test`
 
@@ -88,7 +86,7 @@ All tests are configured to run in CI/CD pipeline automatically.
 
 ### 💡 Pro Tips
 
-1. **Use the seeded data** for consistent development experience
+1. **Use your real ESPN data** for consistent development experience
 2. **Write tests first** for new features (TDD)
 3. **Keep tests running** in watch mode during development
 4. **Use Prisma Studio** to inspect database state
@@ -97,7 +95,7 @@ All tests are configured to run in CI/CD pipeline automatically.
 ### 🐛 Troubleshooting
 
 **Issue**: Page shows no leagues after refresh
-**Solution**: Run `npm run seed:dev` to create persistent development data
+**Solution**: Re-import your ESPN league through the League Integration tab
 
 **Issue**: Tests failing after schema changes  
 **Solution**: Update test data structures to match new schema

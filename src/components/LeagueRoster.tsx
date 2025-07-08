@@ -228,9 +228,9 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
                         ? team.name 
                         : `Team ${team.id.slice(-3)}`}
                     </h4>
-                    {cleanManagerName(team.ownerName) && (
-                      <p className="text-sm text-gray-600">Manager: {cleanManagerName(team.ownerName)}</p>
-                    )}
+                    <p className="text-sm text-gray-600">
+                      Manager: {cleanManagerName(team.ownerName) || 'Unknown Manager'}
+                    </p>
                   </div>
                   <div className="text-right text-sm">
                     {team.wins !== null && team.losses !== null && (
