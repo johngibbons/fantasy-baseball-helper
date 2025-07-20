@@ -6,7 +6,20 @@ export async function GET(
   { params }: { params: Promise<{ leagueId: string; teamId: string }> }
 ) {
   try {
-    const { teamId } = await params
+    const { leagueId, teamId } = await params
+
+    // Get the league to determine the season
+    const league = await prisma.league.findUnique({
+      where: { id: leagueId }
+    })
+
+    if (!league) {
+      return NextResponse.json({ 
+        error: 'League not found' 
+      }, { status: 404 })
+    }
+
+    console.log('Fetching roster for:', { leagueId, teamId, season: league.season })
 
     const rosterSlots = await prisma.rosterSlot.findMany({
       where: {
@@ -17,7 +30,7 @@ export async function GET(
         player: true,
         playerStats: {
           where: {
-            season: '2024' // TODO: Make this dynamic based on league season
+            season: league.season
           }
         }
       },
@@ -26,6 +39,14 @@ export async function GET(
         { player: { fullName: 'asc' } }
       ]
     })
+
+    console.log('Found roster slots:', rosterSlots.length)
+    console.log('Roster slots data:', rosterSlots.map(slot => ({
+      playerId: slot.playerId,
+      playerName: slot.player.fullName,
+      position: slot.position,
+      season: slot.season
+    })))
 
     const roster = rosterSlots.map(slot => ({
       id: slot.player.id,

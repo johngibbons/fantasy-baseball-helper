@@ -217,7 +217,92 @@ export async function POST(request: NextRequest) {
       if (teamRoster && Array.isArray(teamRoster)) {
         for (const rosterEntry of teamRoster) {
           try {
-            // Map lineup slot IDs to position names
+            // Create or update player record if player data is available
+            if (rosterEntry.player) {
+              const espnPlayer = rosterEntry.player
+              
+              // Map ESPN position IDs to readable positions
+              const positionIdMap: { [key: number]: string } = {
+                0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS', 5: 'OF', 
+                6: 'OF', 7: 'OF', 8: 'DH', 9: 'SP', 10: 'RP', 11: 'P'
+              }
+              
+              const primaryPosition = positionIdMap[espnPlayer.defaultPositionId] || 'UTIL'
+              
+              await prisma.player.upsert({
+                where: { id: espnPlayer.id },
+                update: {
+                  fullName: espnPlayer.fullName,
+                  firstName: espnPlayer.firstName,
+                  lastName: espnPlayer.lastName,
+                  primaryPosition: primaryPosition,
+                  active: true
+                },
+                create: {
+                  id: espnPlayer.id,
+                  fullName: espnPlayer.fullName,
+                  firstName: espnPlayer.firstName,
+                  lastName: espnPlayer.lastName,
+                  primaryPosition: primaryPosition,
+                  active: true
+                }
+              })
+
+              // Create player stats if available
+              if (espnPlayer.stats && espnPlayer.stats.length > 0) {
+                for (const statPeriod of espnPlayer.stats) {
+                  if (statPeriod.stats) {
+                    await prisma.playerStats.upsert({
+                      where: {
+                        playerId_season: {
+                          playerId: espnPlayer.id,
+                          season: season
+                        }
+                      },
+                      update: {
+                        gamesPlayed: statPeriod.stats.gamesPlayed || 0,
+                        atBats: statPeriod.stats.atBats || 0,
+                        runs: statPeriod.stats.runs || 0,
+                        hits: statPeriod.stats.hits || 0,
+                        doubles: statPeriod.stats.doubles || 0,
+                        triples: statPeriod.stats.triples || 0,
+                        homeRuns: statPeriod.stats.homeRuns || 0,
+                        rbi: statPeriod.stats.rbi || 0,
+                        stolenBases: statPeriod.stats.stolenBases || 0,
+                        caughtStealing: statPeriod.stats.caughtStealing || 0,
+                        baseOnBalls: statPeriod.stats.baseOnBalls || 0,
+                        strikeOuts: statPeriod.stats.strikeOuts || 0,
+                        battingAverage: statPeriod.stats.battingAverage || 0,
+                        onBasePercentage: statPeriod.stats.onBasePercentage || 0,
+                        sluggingPercentage: statPeriod.stats.sluggingPercentage || 0
+                      },
+                      create: {
+                        playerId: espnPlayer.id,
+                        season: season,
+                        gamesPlayed: statPeriod.stats.gamesPlayed || 0,
+                        atBats: statPeriod.stats.atBats || 0,
+                        runs: statPeriod.stats.runs || 0,
+                        hits: statPeriod.stats.hits || 0,
+                        doubles: statPeriod.stats.doubles || 0,
+                        triples: statPeriod.stats.triples || 0,
+                        homeRuns: statPeriod.stats.homeRuns || 0,
+                        rbi: statPeriod.stats.rbi || 0,
+                        stolenBases: statPeriod.stats.stolenBases || 0,
+                        caughtStealing: statPeriod.stats.caughtStealing || 0,
+                        baseOnBalls: statPeriod.stats.baseOnBalls || 0,
+                        strikeOuts: statPeriod.stats.strikeOuts || 0,
+                        battingAverage: statPeriod.stats.battingAverage || 0,
+                        onBasePercentage: statPeriod.stats.onBasePercentage || 0,
+                        sluggingPercentage: statPeriod.stats.sluggingPercentage || 0
+                      }
+                    })
+                    break // Only use the first stat period for now
+                  }
+                }
+              }
+            }
+
+            // Map lineup slot IDs to position names for roster slots
             const positionMap: { [key: number]: string } = {
               0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS', 5: 'OF', 6: 'OF', 7: 'OF',
               8: 'UTIL', 9: 'SP', 10: 'SP', 11: 'RP', 12: 'RP', 13: 'P', 20: 'BENCH'

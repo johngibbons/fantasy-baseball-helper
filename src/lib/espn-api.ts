@@ -8,6 +8,9 @@ export interface ESPNLeague {
   settings: {
     name: string
     size: number
+    scoringSettings?: any
+    rosterSettings?: any
+    acquisitionSettings?: any
   }
   status?: {
     currentMatchupPeriod?: number
@@ -43,6 +46,17 @@ export interface ESPNRosterEntry {
   lineupSlotId: number
   acquisitionType: string
   acquisitionDate: number
+  player?: ESPNPlayer
+}
+
+export interface ESPNPlayer {
+  id: number
+  fullName: string
+  firstName: string
+  lastName: string
+  eligibleSlots: number[]
+  defaultPositionId: number
+  stats?: any[]
 }
 
 export class ESPNApi {
@@ -99,7 +113,10 @@ export class ESPNApi {
   }
 
   static async getRosters(leagueId: string, season: string, settings: ESPNLeagueSettings): Promise<{ [teamId: number]: ESPNRosterEntry[] }> {
-    const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/${season}/segments/0/leagues/${leagueId}?view=mRoster`
+    // Use multiple views to get comprehensive roster and player data
+    const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/${season}/segments/0/leagues/${leagueId}?view=mRoster&view=kona_player_info`
+    
+    console.log('ESPN Roster API URL:', url)
     
     const response = await fetch(url, {
       headers: this.getHeaders(settings)
@@ -112,18 +129,50 @@ export class ESPNApi {
     const data = await response.json()
     const rosters: { [teamId: number]: ESPNRosterEntry[] } = {}
     
+    console.log('ESPN roster response teams count:', data.teams?.length || 0)
+    
     if (data.teams) {
       data.teams.forEach((team: any) => {
+        console.log(`Processing team ${team.id}, roster entries:`, team.roster?.entries?.length || 0)
+        
         if (team.roster && team.roster.entries) {
-          rosters[team.id] = team.roster.entries.map((entry: any) => ({
-            playerId: entry.playerId,
-            lineupSlotId: entry.lineupSlotId,
-            acquisitionType: entry.acquisitionType,
-            acquisitionDate: entry.acquisitionDate
-          }))
+          rosters[team.id] = team.roster.entries.map((entry: any) => {
+            // Extract player data if available in the entry
+            let player: ESPNPlayer | null = null
+            
+            if (entry.playerPoolEntry && entry.playerPoolEntry.player) {
+              const espnPlayer = entry.playerPoolEntry.player
+              player = {
+                id: espnPlayer.id,
+                fullName: espnPlayer.fullName,
+                firstName: espnPlayer.firstName,
+                lastName: espnPlayer.lastName,
+                eligibleSlots: espnPlayer.eligibleSlots || [],
+                defaultPositionId: espnPlayer.defaultPositionId,
+                stats: espnPlayer.stats
+              }
+              console.log(`Found player data for ${player.fullName} (ID: ${player.id})`)
+            } else {
+              console.log(`No player data found for playerId ${entry.playerId}`)
+            }
+            
+            return {
+              playerId: entry.playerId,
+              lineupSlotId: entry.lineupSlotId,
+              acquisitionType: entry.acquisitionType,
+              acquisitionDate: entry.acquisitionDate,
+              player: player
+            }
+          })
         }
       })
     }
+    
+    console.log('Final rosters object keys:', Object.keys(rosters))
+    Object.entries(rosters).forEach(([teamId, teamRoster]) => {
+      const playersWithData = teamRoster.filter(entry => entry.player !== null).length
+      console.log(`Team ${teamId}: ${teamRoster.length} total entries, ${playersWithData} with player data`)
+    })
     
     return rosters
   }

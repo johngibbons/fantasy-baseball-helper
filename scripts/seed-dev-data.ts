@@ -107,11 +107,73 @@ async function seedDevData() {
 
     console.log('✅ Created sample players')
 
+    // Add some sample stats for players first (required for roster slots)
+    console.log('Creating player stats...')
+    for (const playerData of playersData) {
+      await prisma.playerStats.upsert({
+        where: {
+          playerId_season: {
+            playerId: playerData.id,
+            season: '2025'
+          }
+        },
+        update: {},
+        create: {
+          playerId: playerData.id,
+          season: '2025',
+          gamesPlayed: Math.floor(Math.random() * 50) + 100,
+          atBats: Math.floor(Math.random() * 100) + 400,
+          runs: Math.floor(Math.random() * 50) + 50,
+          hits: Math.floor(Math.random() * 100) + 120,
+          homeRuns: Math.floor(Math.random() * 30) + 15,
+          rbi: Math.floor(Math.random() * 50) + 60,
+          stolenBases: Math.floor(Math.random() * 20) + 5,
+          battingAverage: 0.250 + Math.random() * 0.100,
+          onBasePercentage: 0.300 + Math.random() * 0.100,
+          sluggingPercentage: 0.400 + Math.random() * 0.200
+        }
+      })
+    }
+
+    // Create roster slots to connect players to teams
+    console.log('Creating roster slots...')
+    const teams = await prisma.team.findMany({
+      where: { leagueId: league.id }
+    })
+
+    // Assign players to teams with different positions
+    for (let i = 0; i < teams.length && i < playersData.length; i++) {
+      const team = teams[i]
+      const player = playersData[i]
+      
+      await prisma.rosterSlot.upsert({
+        where: {
+          teamId_playerId_season: {
+            teamId: team.id,
+            playerId: player.id,
+            season: '2025'
+          }
+        },
+        update: {},
+        create: {
+          teamId: team.id,
+          playerId: player.id,
+          season: '2025',
+          position: player.position === 'OF' ? 'OF' : player.position,
+          acquisitionType: 'DRAFT',
+          acquisitionDate: new Date('2025-03-01'),
+          isActive: true
+        }
+      })
+    }
+
+    console.log('✅ Created roster slots and player stats')
+
     console.log('\n🎉 Development data seeded successfully!')
     console.log('📊 Created:')
     console.log(`   • 1 League: ${league.name}`)
     console.log(`   • ${teamsData.length} Teams with realistic stats`)
-    console.log(`   • ${playersData.length} Sample players`)
+    console.log(`   • ${playersData.length} Sample players with roster slots and stats`)
     console.log('\n💡 Your league data will now persist between server restarts!')
 
   } catch (error) {

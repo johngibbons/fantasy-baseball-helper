@@ -71,6 +71,9 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
   const [loading, setLoading] = useState(true)
   const [rosterLoading, setRosterLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [syncing, setSyncing] = useState(false)
+  const [showSyncModal, setShowSyncModal] = useState(false)
+  const [syncCredentials, setSyncCredentials] = useState({ swid: '', espn_s2: '' })
 
   const fetchTeams = useCallback(async () => {
     try {
@@ -117,6 +120,61 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setRosterLoading(false)
+    }
+  }
+
+  const syncRoster = async () => {
+    try {
+      console.log('🔄 Starting sync process...')
+      console.log('League ID:', league.id)
+      console.log('Credentials provided:', { 
+        swid: syncCredentials.swid ? 'Present' : 'Missing', 
+        espn_s2: syncCredentials.espn_s2 ? 'Present' : 'Missing' 
+      })
+      
+      setSyncing(true)
+      setError(null)
+      
+      console.log('Making sync API request...')
+      const response = await fetch(`/api/leagues/${league.id}/sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(syncCredentials)
+      })
+      
+      console.log('Sync API response status:', response.status)
+
+      const data = await response.json()
+      console.log('Sync API response data:', data)
+
+      if (!response.ok) {
+        console.error('Sync API error:', data.error)
+        throw new Error(data.error || 'Failed to sync roster data')
+      }
+
+      console.log('✅ Sync successful! Refreshing data...')
+      
+      // Refresh teams and rosters after successful sync
+      await fetchTeams()
+      if (selectedTeam) {
+        await fetchRoster(selectedTeam)
+      }
+
+      setShowSyncModal(false)
+      setSyncCredentials({ swid: '', espn_s2: '' })
+      
+      // Show success message briefly
+      const successMessage = `Successfully synced ${data.playersProcessed} players!`
+      console.log(successMessage)
+      setError(null)
+      
+    } catch (err) {
+      console.error('❌ Error syncing roster:', err)
+      setError(err instanceof Error ? err.message : 'An error occurred while syncing')
+    } finally {
+      setSyncing(false)
     }
   }
 
@@ -189,14 +247,30 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-2xl font-bold text-gray-900">{league.name}</h2>
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              ← Back to Leagues
-            </button>
-          )}
+          <div className="flex gap-2">
+            {league.platform === 'ESPN' && (
+              <button
+                onClick={() => {
+                  console.log('🔵 Sync button clicked!')
+                  console.log('Current showSyncModal state:', showSyncModal)
+                  setShowSyncModal(true)
+                  console.log('Set showSyncModal to true')
+                }}
+                disabled={syncing}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {syncing ? 'Syncing...' : 'Sync Rosters'}
+              </button>
+            )}
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                ← Back to Leagues
+              </button>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-4 text-sm text-gray-600">
           <span className="flex items-center">
@@ -313,6 +387,100 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
           )}
         </div>
       </div>
+
+      {/* Sync Modal */}
+      {showSyncModal && (
+        <div 
+          style={{ 
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          onClick={() => {
+            console.log('Modal backdrop clicked')
+            setShowSyncModal(false)
+          }}
+        >
+          <div 
+            style={{
+              backgroundColor: 'white',
+              padding: '20px',
+              borderRadius: '8px',
+              maxWidth: '400px',
+              width: '100%',
+              margin: '20px'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Sync ESPN Roster Data
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Enter your ESPN credentials to sync the latest roster data from your league.
+            </p>
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="swid" className="block text-sm font-medium text-gray-700 mb-1">
+                  ESPN SWID
+                </label>
+                <input
+                  id="swid"
+                  type="text"
+                  value={syncCredentials.swid}
+                  onChange={(e) => setSyncCredentials(prev => ({ ...prev, swid: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter your SWID"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="espn_s2" className="block text-sm font-medium text-gray-700 mb-1">
+                  ESPN S2
+                </label>
+                <input
+                  id="espn_s2"
+                  type="password"
+                  value={syncCredentials.espn_s2}
+                  onChange={(e) => setSyncCredentials(prev => ({ ...prev, espn_s2: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter your ESPN S2 cookie"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowSyncModal(false)
+                  setSyncCredentials({ swid: '', espn_s2: '' })
+                }}
+                disabled={syncing}
+                className="px-4 py-2 text-gray-600 hover:text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  console.log('🟢 Modal sync button clicked!')
+                  syncRoster()
+                }}
+                disabled={syncing || !syncCredentials.swid || !syncCredentials.espn_s2}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {syncing ? 'Syncing...' : 'Sync Rosters'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
