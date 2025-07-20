@@ -98,7 +98,7 @@ describe('LeagueRoster League-Specific Stats Display', () => {
           { statId: 21, points: 1, isReverseItem: false }, // RBI
           { statId: 23, points: 1, isReverseItem: false }, // Stolen Bases
           { statId: 8, points: 1, isReverseItem: false },  // Walks (hitters)
-          { statId: 17, points: 1, isReverseItem: false }, // Batting Average
+          { statId: 17, points: 1, isReverseItem: false }, // Total Bases (corrected)
           { statId: 47, points: 1, isReverseItem: true },  // ERA (lower is better)
           { statId: 41, points: 1, isReverseItem: true },  // WHIP (lower is better)
           { statId: 63, points: 1, isReverseItem: false }, // Wins
@@ -159,7 +159,7 @@ describe('LeagueRoster League-Specific Stats Display', () => {
       expect(screen.getByText('Juan Soto')).toBeInTheDocument()
     })
 
-    // For position players, should show league-scored stats: R, RBI, SB, BB, AVG
+    // For position players, should show league-scored stats: R, RBI, SB, BB, TB
     // Should NOT show HR (not in scoring settings)
     expect(screen.getByText('70')).toBeInTheDocument() // Runs
     expect(screen.getByText('R')).toBeInTheDocument() // Runs label
@@ -169,8 +169,8 @@ describe('LeagueRoster League-Specific Stats Display', () => {
     expect(screen.getByText('SB')).toBeInTheDocument() // SB label
     expect(screen.getByText('80')).toBeInTheDocument() // Walks
     expect(screen.getByText('BB')).toBeInTheDocument() // Walks label
-    expect(screen.getByText('0.257')).toBeInTheDocument() // Batting Average
-    expect(screen.getByText('AVG')).toBeInTheDocument() // AVG label
+    expect(screen.getByText('234')).toBeInTheDocument() // Total Bases
+    expect(screen.getByText('TB')).toBeInTheDocument() // TB label
 
     // Should NOT show HR since it's not in the scoring settings
     expect(screen.queryByText('HR')).not.toBeInTheDocument()
@@ -178,9 +178,9 @@ describe('LeagueRoster League-Specific Stats Display', () => {
     // For pitchers, should show league-scored stats: ERA, WHIP, W, K, SV
     expect(screen.getByText('Max Fried')).toBeInTheDocument()
     expect(screen.getByText('2.43')).toBeInTheDocument() // ERA
-    expect(screen.getByText('ERA')).toBeInTheDocument() // ERA label
+    expect(screen.getByText('ERA*')).toBeInTheDocument() // ERA label with reverse indicator
     expect(screen.getByText('1.01')).toBeInTheDocument() // WHIP
-    expect(screen.getByText('WHIP')).toBeInTheDocument() // WHIP label
+    expect(screen.getByText('WHIP*')).toBeInTheDocument() // WHIP label with reverse indicator
     expect(screen.getByText('11')).toBeInTheDocument() // Wins
     expect(screen.getByText('W')).toBeInTheDocument() // Wins label
     expect(screen.getByText('113')).toBeInTheDocument() // Strikeouts
@@ -302,6 +302,6 @@ describe('LeagueRoster League-Specific Stats Display', () => {
 
     // Category league should show all 5 hitting categories
     const statGrids = screen.getAllByText('Juan Soto')[0].closest('.border')?.querySelectorAll('.grid > div')
-    expect(statGrids?.length).toBe(5) // R, RBI, SB, BB, AVG
+    expect(statGrids?.length).toBe(5) // R, RBI, SB, BB, TB
   })
 })

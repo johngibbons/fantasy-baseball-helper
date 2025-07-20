@@ -247,22 +247,41 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
     return colorMap[position] || 'bg-gray-100 text-gray-800'
   }
 
-  // ESPN stat ID to database field mapping
-  const statIdToFieldMap: { [key: number]: { field: keyof RosterPlayer['stats'], label: string, decimals?: number } } = {
-    // Hitting stats
-    20: { field: 'runs', label: 'R' },
-    21: { field: 'rbi', label: 'RBI' },
+  // Comprehensive ESPN stat ID to database field and category mapping
+  const statIdToFieldMap: { [key: number]: { field: keyof RosterPlayer['stats'], label: string, decimals?: number, isPitcherStat?: boolean } } = {
+    // Position Player Stats
+    0: { field: 'atBats', label: 'AB' },
+    1: { field: 'hits', label: 'H' },
+    2: { field: 'battingAverage', label: 'AVG', decimals: 3 },
+    3: { field: 'doubles', label: '2B' },
+    4: { field: 'triples', label: '3B' },
     5: { field: 'homeRuns', label: 'HR' },
-    23: { field: 'stolenBases', label: 'SB' },
     8: { field: 'baseOnBalls', label: 'BB' },
-    17: { field: 'battingAverage', label: 'AVG', decimals: 3 },
+    9: { field: 'onBasePercentage', label: 'OBP', decimals: 3 },
+    10: { field: 'strikeOuts', label: 'SO' },
+    17: { field: 'totalBases', label: 'TB' }, // Total Bases - your league category
+    18: { field: 'sluggingPercentage', label: 'SLG', decimals: 3 },
+    20: { field: 'runs', label: 'R' }, // Runs - your league category
+    21: { field: 'rbi', label: 'RBI' }, // RBI - your league category
+    23: { field: 'stolenBases', label: 'SB' }, // Stolen Bases - your league category
     
-    // Pitching stats (mapped to our repurposed fields)
-    47: { field: 'onBasePercentage', label: 'ERA', decimals: 2 },
-    41: { field: 'sluggingPercentage', label: 'WHIP', decimals: 2 },
-    63: { field: 'runs', label: 'W' }, // Wins mapped to runs field for pitchers
-    48: { field: 'strikeOuts', label: 'K' },
-    83: { field: 'doubles', label: 'SV' } // Saves mapped to doubles field for pitchers
+    // Pitcher Stats (mapped to repurposed fields since we don't have separate pitcher schema)
+    32: { field: 'gamesPlayed', label: 'G', isPitcherStat: true }, // Games Pitched
+    33: { field: 'atBats', label: 'GS', isPitcherStat: true }, // Games Started (repurposed)
+    34: { field: 'totalBases', label: 'IP', decimals: 1, isPitcherStat: true }, // Innings Pitched (repurposed)
+    39: { field: 'baseOnBalls', label: 'BB', isPitcherStat: true }, // Walks Allowed
+    41: { field: 'sluggingPercentage', label: 'WHIP', decimals: 2, isPitcherStat: true }, // WHIP - your league category
+    47: { field: 'onBasePercentage', label: 'ERA', decimals: 2, isPitcherStat: true }, // ERA - your league category 
+    48: { field: 'strikeOuts', label: 'K', isPitcherStat: true }, // Strikeouts - your league category
+    53: { field: 'runs', label: 'W', isPitcherStat: true }, // Wins (repurposed)
+    54: { field: 'hits', label: 'L', isPitcherStat: true }, // Losses (repurposed)
+    57: { field: 'doubles', label: 'SV', isPitcherStat: true }, // Saves (repurposed)
+    63: { field: 'runs', label: 'W', isPitcherStat: true }, // Alternative Wins mapping
+    83: { field: 'doubles', label: 'SV', isPitcherStat: true }, // Alternative Saves mapping
+    
+    // Special categories that might need custom handling
+    // QS (Quality Starts) - may need research for ESPN stat ID
+    // SVHD (Saves + Holds) - may need composite calculation
   }
 
   const getLeagueStats = (player: RosterPlayer, isPitcherPlayer: boolean) => {
@@ -285,16 +304,31 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
       }
     }
 
-    // Filter league scoring items to only relevant stats for this player type
-    const pitcherStatIds = [47, 41, 63, 48, 83] // ERA, WHIP, W, K, SV
+    // Get stats that are actually configured as categories in this league
     const relevantStats = leagueSettings.scoringItems
-      .filter(item => {
-        const isPitcherStat = pitcherStatIds.includes(item.statId)
-        return isPitcherPlayer ? isPitcherStat : !isPitcherStat
+      .map(item => {
+        const statMapping = statIdToFieldMap[item.statId]
+        if (!statMapping) {
+          console.warn(`Unknown ESPN stat ID: ${item.statId}. Please add mapping for this category.`)
+          return null
+        }
+        
+        // Determine if this stat is for pitchers vs position players
+        const isStatForPitcher = statMapping.isPitcherStat || false
+        
+        // Only include stats relevant to this player type
+        if (isPitcherPlayer !== isStatForPitcher) {
+          return null
+        }
+        
+        return {
+          ...statMapping,
+          points: item.points,
+          isReverseItem: item.isReverseItem // For categories where lower is better (ERA, WHIP)
+        }
       })
-      .map(item => ({ ...statIdToFieldMap[item.statId], points: item.points }))
-      .filter(stat => stat && stat.field) // Remove any undefined mappings
-      .slice(0, isPitcherPlayer ? 4 : 5) // Limit display: 4 for pitchers, 5 for hitters
+      .filter(stat => stat !== null) // Remove null entries (unmapped or wrong player type)
+      .slice(0, 6) // Limit display to prevent UI overflow
 
     return relevantStats
   }
@@ -465,9 +499,12 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
                               {statsToShow.map((stat, index) => {
                                 const value = player.stats && player.stats[stat.field as keyof typeof player.stats]
                                 const formattedValue = formatStat(value as number, stat.decimals || 0)
+                                // For category leagues, show if it's a reverse category (lower is better)
                                 const label = showPointValues && stat.points 
                                   ? `${stat.label} (${stat.points})` 
-                                  : stat.label
+                                  : stat.isReverseItem 
+                                    ? `${stat.label}*` // Add asterisk for reverse categories like ERA, WHIP
+                                    : stat.label
                                 
                                 return (
                                   <div key={index} className="text-center">
