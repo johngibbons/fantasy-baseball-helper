@@ -2,12 +2,26 @@
 
 import { useState, useEffect, useCallback } from 'react'
 
+interface ScoringItem {
+  statId: number
+  points: number
+  isReverseItem: boolean
+}
+
+interface ScoringSettings {
+  scoringType: string
+  scoringItems: ScoringItem[]
+}
+
 interface League {
   id: string
   name: string
   platform: string
   season: string
   teamCount: number
+  settings?: {
+    scoringSettings?: ScoringSettings
+  }
 }
 
 interface Team {
@@ -85,6 +99,20 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
   const [syncing, setSyncing] = useState(false)
   const [showSyncModal, setShowSyncModal] = useState(false)
   const [syncCredentials, setSyncCredentials] = useState({ swid: '', espn_s2: '' })
+  const [leagueSettings, setLeagueSettings] = useState<ScoringSettings | null>(null)
+
+  const fetchLeagueSettings = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/leagues/${league.id}/settings`)
+      const data = await response.json()
+      
+      if (response.ok && data.scoringSettings) {
+        setLeagueSettings(data.scoringSettings)
+      }
+    } catch (err) {
+      console.warn('Could not fetch league settings:', err)
+    }
+  }, [league.id])
 
   const fetchTeams = useCallback(async () => {
     try {
@@ -111,8 +139,9 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
   }, [league.id])
 
   useEffect(() => {
+    fetchLeagueSettings()
     fetchTeams()
-  }, [fetchTeams])
+  }, [fetchLeagueSettings, fetchTeams])
 
   const fetchRoster = async (team: Team) => {
     try {
@@ -167,7 +196,8 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
 
       console.log('✅ Sync successful! Refreshing data...')
       
-      // Refresh teams and rosters after successful sync
+      // Refresh league settings, teams and rosters after successful sync
+      await fetchLeagueSettings()
       await fetchTeams()
       if (selectedTeam) {
         await fetchRoster(selectedTeam)
@@ -215,6 +245,62 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
       'BENCH': 'bg-gray-100 text-gray-600'
     }
     return colorMap[position] || 'bg-gray-100 text-gray-800'
+  }
+
+  // ESPN stat ID to database field mapping
+  const statIdToFieldMap: { [key: number]: { field: keyof RosterPlayer['stats'], label: string, decimals?: number } } = {
+    // Hitting stats
+    20: { field: 'runs', label: 'R' },
+    21: { field: 'rbi', label: 'RBI' },
+    5: { field: 'homeRuns', label: 'HR' },
+    23: { field: 'stolenBases', label: 'SB' },
+    8: { field: 'baseOnBalls', label: 'BB' },
+    17: { field: 'battingAverage', label: 'AVG', decimals: 3 },
+    
+    // Pitching stats (mapped to our repurposed fields)
+    47: { field: 'onBasePercentage', label: 'ERA', decimals: 2 },
+    41: { field: 'sluggingPercentage', label: 'WHIP', decimals: 2 },
+    63: { field: 'runs', label: 'W' }, // Wins mapped to runs field for pitchers
+    48: { field: 'strikeOuts', label: 'K' },
+    83: { field: 'doubles', label: 'SV' } // Saves mapped to doubles field for pitchers
+  }
+
+  const getLeagueStats = (player: RosterPlayer, isPitcherPlayer: boolean) => {
+    // If no league settings, fall back to default stats
+    if (!leagueSettings || !leagueSettings.scoringItems) {
+      if (isPitcherPlayer) {
+        return [
+          { field: 'onBasePercentage', label: 'ERA', decimals: 2 },
+          { field: 'sluggingPercentage', label: 'WHIP', decimals: 2 },
+          { field: 'runs', label: 'W' },
+          { field: 'strikeOuts', label: 'K' }
+        ]
+      } else {
+        return [
+          { field: 'homeRuns', label: 'HR' },
+          { field: 'rbi', label: 'RBI' },
+          { field: 'battingAverage', label: 'AVG', decimals: 3 },
+          { field: 'stolenBases', label: 'SB' }
+        ]
+      }
+    }
+
+    // Filter league scoring items to only relevant stats for this player type
+    const pitcherStatIds = [47, 41, 63, 48, 83] // ERA, WHIP, W, K, SV
+    const relevantStats = leagueSettings.scoringItems
+      .filter(item => {
+        const isPitcherStat = pitcherStatIds.includes(item.statId)
+        return isPitcherPlayer ? isPitcherStat : !isPitcherStat
+      })
+      .map(item => ({ ...statIdToFieldMap[item.statId], points: item.points }))
+      .filter(stat => stat && stat.field) // Remove any undefined mappings
+      .slice(0, isPitcherPlayer ? 4 : 5) // Limit display: 4 for pitchers, 5 for hitters
+
+    return relevantStats
+  }
+
+  const isPointsLeague = (): boolean => {
+    return leagueSettings?.scoringType === 'H2H_POINTS'
   }
 
   if (loading) {
@@ -367,51 +453,32 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
                           </span>
                         </div>
                         
-                        {player.stats && (
-                          <div className="grid grid-cols-4 gap-2 text-xs text-gray-600">
-                            {isPitcher(player) ? (
-                              // Pitcher stats: ERA, WHIP, Wins, Strikeouts/Saves
-                              <>
-                                <div className="text-center">
-                                  <p className="font-medium">{formatStat(player.stats.onBasePercentage, 2)}</p>
-                                  <p>ERA</p>
-                                </div>
-                                <div className="text-center">
-                                  <p className="font-medium">{formatStat(player.stats.sluggingPercentage, 2)}</p>
-                                  <p>WHIP</p>
-                                </div>
-                                <div className="text-center">
-                                  <p className="font-medium">{formatStat(player.stats.runs)}</p>
-                                  <p>W</p>
-                                </div>
-                                <div className="text-center">
-                                  <p className="font-medium">{formatStat(player.primaryPosition === 'RP' ? player.stats.doubles : player.stats.strikeOuts)}</p>
-                                  <p>{player.primaryPosition === 'RP' ? 'SV' : 'K'}</p>
-                                </div>
-                              </>
-                            ) : (
-                              // Position player stats: HR, RBI, AVG, SB
-                              <>
-                                <div className="text-center">
-                                  <p className="font-medium">{formatStat(player.stats.homeRuns)}</p>
-                                  <p>HR</p>
-                                </div>
-                                <div className="text-center">
-                                  <p className="font-medium">{formatStat(player.stats.rbi)}</p>
-                                  <p>RBI</p>
-                                </div>
-                                <div className="text-center">
-                                  <p className="font-medium">{formatStat(player.stats.battingAverage, 3)}</p>
-                                  <p>AVG</p>
-                                </div>
-                                <div className="text-center">
-                                  <p className="font-medium">{formatStat(player.stats.stolenBases)}</p>
-                                  <p>SB</p>
-                                </div>
-                              </>
-                            )}
-                          </div>
-                        )}
+                        {player.stats && (() => {
+                          const playerIsPitcher = isPitcher(player)
+                          const statsToShow = getLeagueStats(player, playerIsPitcher)
+                          const showPointValues = isPointsLeague()
+                          
+                          return (
+                            <div className={`grid gap-2 text-xs text-gray-600 ${
+                              statsToShow.length <= 4 ? 'grid-cols-4' : 'grid-cols-5'
+                            }`}>
+                              {statsToShow.map((stat, index) => {
+                                const value = player.stats && player.stats[stat.field as keyof typeof player.stats]
+                                const formattedValue = formatStat(value as number, stat.decimals || 0)
+                                const label = showPointValues && stat.points 
+                                  ? `${stat.label} (${stat.points})` 
+                                  : stat.label
+                                
+                                return (
+                                  <div key={index} className="text-center">
+                                    <p className="font-medium">{formattedValue}</p>
+                                    <p>{label}</p>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )
+                        })()}
                       </div>
                     ))
                   ) : (

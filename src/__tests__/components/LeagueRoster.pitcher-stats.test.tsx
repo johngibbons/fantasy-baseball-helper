@@ -214,6 +214,10 @@ describe('LeagueRoster Pitcher Stats Display', () => {
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
+        json: async () => ({ scoringSettings: null })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
         json: async () => mockTeamsResponse
       })
       .mockResolvedValueOnce({
