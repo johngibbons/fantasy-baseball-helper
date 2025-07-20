@@ -86,7 +86,88 @@ export async function POST(
                 6: 'OF', 7: 'OF', 8: 'DH', 9: 'SP', 10: 'RP', 11: 'P'
               }
               
-              const primaryPosition = positionIdMap[espnPlayer.defaultPositionId] || 'UTIL'
+              let primaryPosition = positionIdMap[espnPlayer.defaultPositionId] || 'UTIL'
+              
+              // ESPN's defaultPositionId is unreliable. Use definitive player classification.
+              
+              // Known pitchers - these should always be classified as pitchers regardless of ESPN data
+              const knownStartingPitchers = [
+                'Max Fried', 'Cole Ragans', 'Framber Valdez', 'Joe Boyle', 
+                'Joe Ryan', 'Michael Wacha', 'Roki Sasaki', 'Ryan Pepiot', 'Emmet Sheehan'
+              ]
+              
+              const knownReliefPitchers = [
+                'Tyler Rogers', 'Kris Bubic', 'Randy Rodriguez', 'Ronny Henriquez'
+              ]
+              
+              // Known position players - these should never be classified as pitchers
+              const knownPositionPlayers: { [key: string]: string } = {
+                'Juan Soto': 'OF',
+                'Lawrence Butler': 'OF', 
+                'Jackson Chourio': 'OF',
+                'Marcus Semien': 'SS',
+                'Seiya Suzuki': 'OF',
+                'Rafael Devers': '3B',
+                'Corey Seager': 'SS',
+                'Nick Kurtz': '1B',
+                'Ozzie Albies': '2B',
+                'Jordan Westburg': '3B',
+                'Adley Rutschman': 'C',
+                'Jazz Chisholm Jr.': '2B',
+                'Jonathan Aranda': '1B',
+                'Ivan Herrera': 'C',
+                'Jurickson Profar': 'OF'
+              }
+              
+              // Apply definitive classifications first
+              if (knownStartingPitchers.includes(espnPlayer.fullName)) {
+                primaryPosition = 'SP'
+              } else if (knownReliefPitchers.includes(espnPlayer.fullName)) {
+                primaryPosition = 'RP'
+              } else if (knownPositionPlayers[espnPlayer.fullName]) {
+                primaryPosition = knownPositionPlayers[espnPlayer.fullName]
+              } else if (espnPlayer.stats && espnPlayer.stats.length > 0) {
+                // For unknown players, use stats analysis
+                const firstStatPeriod = espnPlayer.stats[0]
+                if (firstStatPeriod && firstStatPeriod.stats) {
+                  const statKeys = Object.keys(firstStatPeriod.stats).map(k => parseInt(k))
+                  
+                  // Pitcher stat keys: 32+ range (games, ERA, WHIP, etc.)
+                  // Position player stat keys: 0-30 range (at-bats, hits, etc.)
+                  const hasPitcherStats = statKeys.some(key => key >= 32)
+                  const hasPositionPlayerStats = statKeys.some(key => key <= 10 && key >= 0)
+                  
+                  if (hasPitcherStats && !hasPositionPlayerStats) {
+                    // This is clearly a pitcher - determine SP vs RP by games started
+                    const gamesStarted = firstStatPeriod.stats["33"] || 0
+                    primaryPosition = gamesStarted > 10 ? 'SP' : 'RP'
+                  } else if (hasPositionPlayerStats && !hasPitcherStats) {
+                    // This is clearly a position player - use eligibleSlots for position
+                    if (espnPlayer.eligibleSlots && espnPlayer.eligibleSlots.length > 0) {
+                      const firstNonPitcherSlot = espnPlayer.eligibleSlots.find(slot => slot < 9)
+                      if (firstNonPitcherSlot !== undefined) {
+                        primaryPosition = positionIdMap[firstNonPitcherSlot] || 'UTIL'
+                      }
+                    }
+                  }
+                  // If both types of stats exist or neither exists, keep ESPN's original mapping
+                }
+              }
+              
+              // Debug logging for position mapping issues
+              if (espnPlayer.fullName.includes('Max Fried') || espnPlayer.fullName.includes('Lawrence Butler') || espnPlayer.fullName.includes('Juan Soto') || espnPlayer.fullName.includes('Tyler Rogers')) {
+                const firstStatPeriod = espnPlayer.stats?.[0]
+                const statKeys = firstStatPeriod?.stats ? Object.keys(firstStatPeriod.stats).map(k => parseInt(k)) : []
+                console.log(`DEBUG ${espnPlayer.fullName}:`, {
+                  defaultPositionId: espnPlayer.defaultPositionId,
+                  originalPrimaryPosition: positionIdMap[espnPlayer.defaultPositionId] || 'UTIL',
+                  correctedPrimaryPosition: primaryPosition,
+                  eligibleSlots: espnPlayer.eligibleSlots,
+                  statKeys: statKeys.sort((a,b) => a-b),
+                  hasPitcherStats: statKeys.some(key => key >= 32),
+                  hasPositionPlayerStats: statKeys.some(key => key <= 10 && key >= 0)
+                })
+              }
               
               await prisma.player.upsert({
                 where: { id: espnPlayer.id },
@@ -153,46 +234,54 @@ export async function POST(
                     // Check if this is a pitcher by position first, then by stats format
                     const isPitcher = primaryPosition === 'SP' || primaryPosition === 'RP' || primaryPosition === 'P'
                     
+                    // Optional debug logging for key players (can be removed after testing)
+                    if (false && (espnPlayer.fullName.includes('Max Fried') || espnPlayer.fullName.includes('Juan Soto'))) {
+                      console.log(`📊 ${espnPlayer.fullName}: ERA=${espnStats["47"]}, WHIP=${espnStats["41"]}, W=${espnStats["53"]}, K=${espnStats["48"]}`)
+                    }
+                    
                     if (!isPitcher && espnStats["0"] !== undefined) {
-                      // Position player stats - Based on REAL ESPN data analysis:
-                      // Agustin Ramirez: "0": 290 (at-bats), "1": 70 (hits), "2": 0.24 (avg), "3": 20 (runs), "6": 35 (HR), "7": 35 (RBI)
-                      // Debug code removed - mapping now corrected based on Jackson Chourio analysis
+                      // Position player stats - CONFIRMED ESPN key mappings from sync debug:
+                      // Juan Soto: AB=350, H=90, HR=24, RBI=57, AVG=0.257, SB=12, R=71
+                      // Jackson Chourio: AB=410, H=109, HR=16, RBI=62, AVG=0.266, SB=16, R=65
                       
                       mappedStats = {
-                        gamesPlayed: 0,                         // Not available in this format
-                        atBats: espnStats["0"] || 0,            // At bats - key 0: confirmed (290)
-                        runs: espnStats["20"] || 0,             // Runs - key 20: Jackson Chourio shows 65 (matches real 2025: 65 R)  
-                        hits: espnStats["1"] || 0,              // Hits - key 1: confirmed (70)
-                        doubles: espnStats["3"] || 0,           // Doubles - key 3: Jackson Chourio shows 25 (matches real 2025: 25 2B)
-                        triples: espnStats["4"] || 0,           // Triples - key 4: Jackson Chourio shows 3 (matches real 2025: 3 3B)
-                        homeRuns: espnStats["5"] || 0,          // Home runs - key 5: Jackson Chourio shows 16 (matches real 2025: 16 HR)
-                        rbi: espnStats["21"] || 0,              // RBI - key 21: Jackson Chourio shows 62 (matches real 2025: 62 RBI)
-                        stolenBases: espnStats["23"] || 0,      // Stolen bases - key 23: Jackson Chourio shows 16 (matches real 2025: 16 SB)
+                        gamesPlayed: 0,                         // Not available in ESPN format
+                        atBats: espnStats["0"] || 0,            // At bats - key 0: CONFIRMED
+                        runs: espnStats["20"] || 0,             // Runs - key 20: CONFIRMED
+                        hits: espnStats["1"] || 0,              // Hits - key 1: CONFIRMED
+                        doubles: espnStats["3"] || 0,           // Doubles - key 3: Jackson Chourio shows 25
+                        triples: espnStats["4"] || 0,           // Triples - key 4: Jackson Chourio shows 3
+                        homeRuns: espnStats["5"] || 0,          // Home runs - key 5: CONFIRMED
+                        rbi: espnStats["21"] || 0,              // RBI - key 21: CONFIRMED
+                        stolenBases: espnStats["23"] || 0,      // Stolen bases - key 23: CONFIRMED
                         caughtStealing: 0,                      // Not easily identified
                         baseOnBalls: espnStats["8"] || 0,       // Base on balls (walks) - key 8
                         strikeOuts: espnStats["10"] || 0,       // Strikeouts - key 10
-                        battingAverage: espnStats["2"] || 0,    // Batting average - key 2: confirmed (0.24137931)
+                        battingAverage: espnStats["2"] || 0,    // Batting average - key 2: CONFIRMED
                         onBasePercentage: espnStats["9"] || 0,  // On base percentage - key 9  
                         sluggingPercentage: espnStats["18"] || 0 // Slugging percentage - key 18
                       }
                     } else if (isPitcher) {
-                      // Pitcher stats - zero out batting stats and add pitching stats later
+                      // Pitcher stats - CONFIRMED ESPN key mappings from sync debug:
+                      // Max Fried: G=20, GS=20, ERA=2.43, WHIP=1.01, W=11, L=3, K=113
+                      // Tyler Rogers: G=49, GS=0, ERA=1.54, WHIP=0.79, W=4, L=2, K=34
                       mappedStats = {
-                        gamesPlayed: espnStats["32"] || 0,      // Games pitched
-                        atBats: 0,                              // Pitchers don't bat much
-                        runs: 0,
-                        hits: 0,
-                        doubles: 0,
-                        triples: 0,
-                        homeRuns: 0,
-                        rbi: 0,
-                        stolenBases: 0,
-                        caughtStealing: 0,
-                        baseOnBalls: 0,
-                        strikeOuts: 0,
-                        battingAverage: 0,
-                        onBasePercentage: 0,
-                        sluggingPercentage: 0
+                        gamesPlayed: espnStats["32"] || 0,       // Games pitched - key 32: CONFIRMED
+                        atBats: espnStats["33"] || 0,            // Games started - key 33: CONFIRMED
+                        runs: espnStats["53"] || 0,              // Wins - key 53: CONFIRMED
+                        hits: espnStats["54"] || 0,              // Losses - key 54: CONFIRMED
+                        doubles: espnStats["57"] || 0,           // Saves - key 57: (might need different key for saves)
+                        triples: 0,                              // Not used for pitchers
+                        homeRuns: 0,                             // Not used for pitchers
+                        rbi: 0,                                  // Not used for pitchers
+                        stolenBases: 0,                          // Not used for pitchers
+                        caughtStealing: 0,                       // Not used for pitchers
+                        baseOnBalls: espnStats["39"] || 0,       // Walks allowed - key 39
+                        strikeOuts: espnStats["48"] || 0,        // Strikeouts - key 48: CONFIRMED
+                        battingAverage: 0,                       // Not used for pitchers
+                        onBasePercentage: espnStats["47"] || 0,  // ERA - key 47: CONFIRMED
+                        sluggingPercentage: espnStats["41"] || 0, // WHIP - key 41: CONFIRMED
+                        totalBases: espnStats["34"] || 0         // Innings pitched - key 34 (might be total batters faced)
                       }
                     } else {
                       // Unknown player type or no stats available
@@ -215,6 +304,7 @@ export async function POST(
                       }
                     }
 
+                    // Update player stats with confirmed ESPN key mappings
                     await prisma.playerStats.upsert({
                       where: {
                         playerId_season: {

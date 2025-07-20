@@ -28,10 +28,21 @@ interface RosterPlayer {
   acquisitionType: string | null
   stats?: {
     gamesPlayed: number | null
+    atBats: number | null
+    runs: number | null
+    hits: number | null
+    doubles: number | null
+    triples: number | null
     homeRuns: number | null
     rbi: number | null
-    battingAverage: number | null
     stolenBases: number | null
+    caughtStealing: number | null
+    baseOnBalls: number | null
+    strikeOuts: number | null
+    battingAverage: number | null
+    onBasePercentage: number | null
+    sluggingPercentage: number | null
+    totalBases: number | null
   }
 }
 
@@ -181,6 +192,12 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
   const formatStat = (value: number | null, decimals: number = 0): string => {
     if (value === null || value === undefined) return 'N/A'
     return decimals > 0 ? value.toFixed(decimals) : value.toString()
+  }
+
+  const isPitcher = (player: RosterPlayer): boolean => {
+    return player.primaryPosition === 'SP' || 
+           player.primaryPosition === 'RP' || 
+           player.primaryPosition === 'P'
   }
 
   const getPositionColor = (position: string): string => {
@@ -352,22 +369,47 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
                         
                         {player.stats && (
                           <div className="grid grid-cols-4 gap-2 text-xs text-gray-600">
-                            <div className="text-center">
-                              <p className="font-medium">{formatStat(player.stats.homeRuns)}</p>
-                              <p>HR</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="font-medium">{formatStat(player.stats.rbi)}</p>
-                              <p>RBI</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="font-medium">{formatStat(player.stats.battingAverage, 3)}</p>
-                              <p>AVG</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="font-medium">{formatStat(player.stats.stolenBases)}</p>
-                              <p>SB</p>
-                            </div>
+                            {isPitcher(player) ? (
+                              // Pitcher stats: ERA, WHIP, Wins, Strikeouts/Saves
+                              <>
+                                <div className="text-center">
+                                  <p className="font-medium">{formatStat(player.stats.onBasePercentage, 2)}</p>
+                                  <p>ERA</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-medium">{formatStat(player.stats.sluggingPercentage, 2)}</p>
+                                  <p>WHIP</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-medium">{formatStat(player.stats.runs)}</p>
+                                  <p>W</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-medium">{formatStat(player.primaryPosition === 'RP' ? player.stats.doubles : player.stats.strikeOuts)}</p>
+                                  <p>{player.primaryPosition === 'RP' ? 'SV' : 'K'}</p>
+                                </div>
+                              </>
+                            ) : (
+                              // Position player stats: HR, RBI, AVG, SB
+                              <>
+                                <div className="text-center">
+                                  <p className="font-medium">{formatStat(player.stats.homeRuns)}</p>
+                                  <p>HR</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-medium">{formatStat(player.stats.rbi)}</p>
+                                  <p>RBI</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-medium">{formatStat(player.stats.battingAverage, 3)}</p>
+                                  <p>AVG</p>
+                                </div>
+                                <div className="text-center">
+                                  <p className="font-medium">{formatStat(player.stats.stolenBases)}</p>
+                                  <p>SB</p>
+                                </div>
+                              </>
+                            )}
                           </div>
                         )}
                       </div>

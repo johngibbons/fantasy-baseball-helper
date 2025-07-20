@@ -128,11 +128,11 @@ describe('LeagueRoster Player Stats Display', () => {
     expect(screen.getByText('15')).toBeInTheDocument() // Stolen bases
     expect(screen.getAllByText('SB').length).toBeGreaterThanOrEqual(1) // Stolen bases label
 
-    // Check that pitcher stats are handled appropriately (pitchers have minimal hitting stats)
+    // Check that pitcher stats are handled appropriately (pitchers show pitching stats, not hitting stats)
     expect(screen.getByText('Gerrit Cole')).toBeInTheDocument()
-    // Both players should show stats now, so we just verify the pitcher's specific stats exist
-    expect(screen.getByText('0.150')).toBeInTheDocument() // Pitcher's batting average
-    expect(screen.getByText('2')).toBeInTheDocument() // Pitcher's RBI
+    // Gerrit Cole should show pitcher stats (using repurposed fields: onBasePercentage=ERA, runs=wins)
+    expect(screen.getByText('0.20')).toBeInTheDocument() // Pitcher's ERA (formatted to 2 decimals)
+    expect(screen.getByText('5')).toBeInTheDocument() // Pitcher's wins
   })
 
   it('should display N/A when stats are not available', async () => {

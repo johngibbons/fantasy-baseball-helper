@@ -67,14 +67,21 @@ export async function GET(
         acquisitionDate: slot.acquisitionDate,
         stats: playerStats ? {
           gamesPlayed: playerStats.gamesPlayed,
-          homeRuns: playerStats.homeRuns,
-          rbi: playerStats.rbi,
-          battingAverage: playerStats.battingAverage,
-          stolenBases: playerStats.stolenBases,
+          atBats: playerStats.atBats,
           runs: playerStats.runs,
           hits: playerStats.hits,
+          doubles: playerStats.doubles,
+          triples: playerStats.triples,
+          homeRuns: playerStats.homeRuns,
+          rbi: playerStats.rbi,
+          stolenBases: playerStats.stolenBases,
+          caughtStealing: playerStats.caughtStealing,
+          baseOnBalls: playerStats.baseOnBalls,
+          strikeOuts: playerStats.strikeOuts,
+          battingAverage: playerStats.battingAverage,
           onBasePercentage: playerStats.onBasePercentage,
-          sluggingPercentage: playerStats.sluggingPercentage
+          sluggingPercentage: playerStats.sluggingPercentage,
+          totalBases: playerStats.totalBases
         } : null
       }
     })
