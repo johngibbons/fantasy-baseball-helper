@@ -27,12 +27,16 @@ export async function GET(
         isActive: true
       },
       include: {
-        player: true,
-        playerStats: {
-          where: {
-            season: league.season
+        player: {
+          include: {
+            stats: {
+              where: {
+                season: league.season
+              }
+            }
           }
-        }
+        },
+        playerStats: true // This is the direct relation from RosterSlot to PlayerStats
       },
       orderBy: [
         { position: 'asc' },
@@ -48,25 +52,32 @@ export async function GET(
       season: slot.season
     })))
 
-    const roster = rosterSlots.map(slot => ({
-      id: slot.player.id,
-      fullName: slot.player.fullName,
-      primaryPosition: slot.player.primaryPosition,
-      position: slot.position,
-      acquisitionType: slot.acquisitionType,
-      acquisitionDate: slot.acquisitionDate,
-      stats: slot.playerStats ? {
-        gamesPlayed: slot.playerStats.gamesPlayed,
-        homeRuns: slot.playerStats.homeRuns,
-        rbi: slot.playerStats.rbi,
-        battingAverage: slot.playerStats.battingAverage,
-        stolenBases: slot.playerStats.stolenBases,
-        runs: slot.playerStats.runs,
-        hits: slot.playerStats.hits,
-        onBasePercentage: slot.playerStats.onBasePercentage,
-        sluggingPercentage: slot.playerStats.sluggingPercentage
-      } : null
-    }))
+    const roster = rosterSlots.map(slot => {
+      // Try to get stats from the direct relation first, then from player.stats
+      const playerStats = slot.playerStats || (slot.player.stats && slot.player.stats[0]) || null
+      
+      console.log(`Player ${slot.player.fullName}: direct stats = ${!!slot.playerStats}, player.stats = ${slot.player.stats?.length || 0}`)
+      
+      return {
+        id: slot.player.id,
+        fullName: slot.player.fullName,
+        primaryPosition: slot.player.primaryPosition,
+        position: slot.position,
+        acquisitionType: slot.acquisitionType,
+        acquisitionDate: slot.acquisitionDate,
+        stats: playerStats ? {
+          gamesPlayed: playerStats.gamesPlayed,
+          homeRuns: playerStats.homeRuns,
+          rbi: playerStats.rbi,
+          battingAverage: playerStats.battingAverage,
+          stolenBases: playerStats.stolenBases,
+          runs: playerStats.runs,
+          hits: playerStats.hits,
+          onBasePercentage: playerStats.onBasePercentage,
+          sluggingPercentage: playerStats.sluggingPercentage
+        } : null
+      }
+    })
 
     return NextResponse.json({ roster })
   } catch (error) {
