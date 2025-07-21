@@ -248,8 +248,16 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
   }
 
   // Comprehensive ESPN stat ID to database field and category mapping
+  // Based on user's actual league categories: R, TB, RBI, SB, OBP, K, QS, ERA, WHIP, SVHD
   const statIdToFieldMap: { [key: number]: { field: keyof RosterPlayer['stats'], label: string, decimals?: number, isPitcherStat?: boolean } } = {
-    // Position Player Stats
+    // Position Player Stats (confirmed from user's league)
+    9: { field: 'onBasePercentage', label: 'OBP', decimals: 3 }, // On Base Percentage - USER'S LEAGUE
+    17: { field: 'totalBases', label: 'TB' }, // Total Bases - USER'S LEAGUE
+    20: { field: 'runs', label: 'R' }, // Runs - USER'S LEAGUE
+    21: { field: 'rbi', label: 'RBI' }, // RBI - USER'S LEAGUE
+    23: { field: 'stolenBases', label: 'SB' }, // Stolen Bases - USER'S LEAGUE
+    
+    // Other position player stats (available but not in user's league)
     0: { field: 'atBats', label: 'AB' },
     1: { field: 'hits', label: 'H' },
     2: { field: 'battingAverage', label: 'AVG', decimals: 3 },
@@ -257,31 +265,38 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
     4: { field: 'triples', label: '3B' },
     5: { field: 'homeRuns', label: 'HR' },
     8: { field: 'baseOnBalls', label: 'BB' },
-    9: { field: 'onBasePercentage', label: 'OBP', decimals: 3 },
     10: { field: 'strikeOuts', label: 'SO' },
-    17: { field: 'totalBases', label: 'TB' }, // Total Bases - your league category
     18: { field: 'sluggingPercentage', label: 'SLG', decimals: 3 },
-    20: { field: 'runs', label: 'R' }, // Runs - your league category
-    21: { field: 'rbi', label: 'RBI' }, // RBI - your league category
-    23: { field: 'stolenBases', label: 'SB' }, // Stolen Bases - your league category
     
-    // Pitcher Stats (mapped to repurposed fields since we don't have separate pitcher schema)
+    // Pitcher Stats (confirmed from user's league)
+    41: { field: 'sluggingPercentage', label: 'WHIP', decimals: 2, isPitcherStat: true }, // WHIP - USER'S LEAGUE
+    47: { field: 'onBasePercentage', label: 'ERA', decimals: 2, isPitcherStat: true }, // ERA - USER'S LEAGUE
+    48: { field: 'strikeOuts', label: 'K', isPitcherStat: true }, // Strikeouts - USER'S LEAGUE
+    
+    // Pitcher stats - need to find ESPN stat IDs for these:
+    // QS (Quality Starts) - USER'S LEAGUE - MISSING ESPN ID
+    // SVHD (Saves + Holds) - USER'S LEAGUE - MISSING ESPN ID
+    
+    // Other pitcher stats (available but not in user's league)
     32: { field: 'gamesPlayed', label: 'G', isPitcherStat: true }, // Games Pitched
     33: { field: 'atBats', label: 'GS', isPitcherStat: true }, // Games Started (repurposed)
     34: { field: 'totalBases', label: 'IP', decimals: 1, isPitcherStat: true }, // Innings Pitched (repurposed)
     39: { field: 'baseOnBalls', label: 'BB', isPitcherStat: true }, // Walks Allowed
-    41: { field: 'sluggingPercentage', label: 'WHIP', decimals: 2, isPitcherStat: true }, // WHIP - your league category
-    47: { field: 'onBasePercentage', label: 'ERA', decimals: 2, isPitcherStat: true }, // ERA - your league category 
-    48: { field: 'strikeOuts', label: 'K', isPitcherStat: true }, // Strikeouts - your league category
     53: { field: 'runs', label: 'W', isPitcherStat: true }, // Wins (repurposed)
     54: { field: 'hits', label: 'L', isPitcherStat: true }, // Losses (repurposed)
     57: { field: 'doubles', label: 'SV', isPitcherStat: true }, // Saves (repurposed)
     63: { field: 'runs', label: 'W', isPitcherStat: true }, // Alternative Wins mapping
     83: { field: 'doubles', label: 'SV', isPitcherStat: true }, // Alternative Saves mapping
     
-    // Special categories that might need custom handling
-    // QS (Quality Starts) - may need research for ESPN stat ID
-    // SVHD (Saves + Holds) - may need composite calculation
+    // Experimental mappings for missing categories (need ESPN stat IDs)
+    // These are placeholder mappings until we find the correct ESPN stat IDs
+    55: { field: 'caughtStealing', label: 'QS', isPitcherStat: true }, // Quality Starts - TEST ID
+    56: { field: 'caughtStealing', label: 'QS', isPitcherStat: true }, // Quality Starts - TEST ID
+    58: { field: 'caughtStealing', label: 'QS', isPitcherStat: true }, // Quality Starts - TEST ID
+    59: { field: 'caughtStealing', label: 'QS', isPitcherStat: true }, // Quality Starts - TEST ID
+    60: { field: 'triples', label: 'SVHD', isPitcherStat: true }, // Saves+Holds - TEST ID
+    61: { field: 'triples', label: 'SVHD', isPitcherStat: true }, // Saves+Holds - TEST ID
+    62: { field: 'triples', label: 'SVHD', isPitcherStat: true }, // Saves+Holds - TEST ID
   }
 
   const getLeagueStats = (player: RosterPlayer, isPitcherPlayer: boolean) => {
@@ -310,6 +325,7 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
         const statMapping = statIdToFieldMap[item.statId]
         if (!statMapping) {
           console.warn(`Unknown ESPN stat ID: ${item.statId}. Please add mapping for this category.`)
+        console.info(`Missing category - if this is QS/SVHD/OBP, try adding stat ID ${item.statId} to the mapping.`)
           return null
         }
         
