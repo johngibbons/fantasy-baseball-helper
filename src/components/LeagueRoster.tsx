@@ -251,11 +251,15 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
   // Based on user's actual league categories: R, TB, RBI, SB, OBP, K, QS, ERA, WHIP, SVHD
   const statIdToFieldMap: { [key: number]: { field: keyof RosterPlayer['stats'], label: string, decimals?: number, isPitcherStat?: boolean } } = {
     // Position Player Stats (confirmed from user's league)
-    9: { field: 'onBasePercentage', label: 'OBP', decimals: 3 }, // On Base Percentage - USER'S LEAGUE
-    17: { field: 'totalBases', label: 'TB' }, // Total Bases - USER'S LEAGUE
+    9: { field: 'onBasePercentage', label: 'OBP', decimals: 3 }, // On Base Percentage - ESPN Stat 9 (backup)
+    17: { field: 'onBasePercentage', label: 'OBP', decimals: 3 }, // On Base Percentage - ESPN Stat 17 (CONFIRMED from discovery)
+    // Note: TB (Total Bases) is calculated, not from ESPN directly
     20: { field: 'runs', label: 'R' }, // Runs - USER'S LEAGUE
     21: { field: 'rbi', label: 'RBI' }, // RBI - USER'S LEAGUE
     23: { field: 'stolenBases', label: 'SB' }, // Stolen Bases - USER'S LEAGUE
+    
+    // TB mapping for display (calculated field, not direct ESPN stat)
+    999: { field: 'totalBases', label: 'TB' }, // Special ID for calculated Total Bases
     
     // Other position player stats (available but not in user's league)
     0: { field: 'atBats', label: 'AB' },
@@ -273,9 +277,9 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
     47: { field: 'onBasePercentage', label: 'ERA', decimals: 2, isPitcherStat: true }, // ERA - USER'S LEAGUE
     48: { field: 'strikeOuts', label: 'K', isPitcherStat: true }, // Strikeouts - USER'S LEAGUE
     
-    // Pitcher stats (using repurposed database fields):
-    56: { field: 'triples', label: 'QS', isPitcherStat: true }, // Quality Starts - mapped to triples field
-    60: { field: 'homeRuns', label: 'SVHD', isPitcherStat: true }, // Saves+Holds - mapped to homeRuns field
+    // Pitcher stats (using repurposed database fields) - CONFIRMED ESPN STAT IDs:
+    46: { field: 'triples', label: 'QS', isPitcherStat: true }, // Quality Starts - ESPN Stat ID 46 (CONFIRMED)
+    61: { field: 'homeRuns', label: 'SVHD', isPitcherStat: true }, // Saves+Holds - ESPN Stat ID 61 (TESTING)
     
     // Other pitcher stats (available but not in user's league)
     32: { field: 'gamesPlayed', label: 'G', isPitcherStat: true }, // Games Pitched

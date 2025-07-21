@@ -234,36 +234,84 @@ export async function POST(
                     // Check if this is a pitcher by position first, then by stats format
                     const isPitcher = primaryPosition === 'SP' || primaryPosition === 'RP' || primaryPosition === 'P'
                     
-                    // Debug logging to find QS and SVHD stat IDs
-                    if (espnPlayer.fullName.includes('Max Fried') || espnPlayer.fullName.includes('Cole Ragans') || espnPlayer.fullName.includes('Tyler Rogers')) {
-                      console.log(`\n🔍 DEBUG ${espnPlayer.fullName} - All ESPN stat keys:`, Object.keys(espnStats).sort((a,b) => parseInt(a) - parseInt(b)))
-                      console.log(`📊 ${espnPlayer.fullName} stats:`)
-                      Object.keys(espnStats).sort((a,b) => parseInt(a) - parseInt(b)).forEach(key => {
-                        console.log(`   Key ${key}: ${espnStats[key]}`)
+                    // ENHANCED DEBUG: Comprehensive ESPN stat analysis
+                    const isDebugPlayer = [
+                      'Max Fried', 'Tyler Rogers', 'Cole Ragans', 'Framber Valdez',
+                      'Juan Soto', 'Jackson Chourio', 'Kris Bubic', 'Randy Rodriguez'
+                    ].some(name => espnPlayer.fullName.includes(name))
+                    
+                    if (isDebugPlayer) {
+                      console.log(`\n🔍 FULL ESPN DATA ANALYSIS for ${espnPlayer.fullName}:`)
+                      console.log(`   Position: ${primaryPosition} | ESPN Position ID: ${espnPlayer.defaultPositionId}`)
+                      console.log(`   All stat keys (${Object.keys(espnStats).length} total):`, Object.keys(espnStats).sort((a,b) => parseInt(a) - parseInt(b)))
+                      
+                      // Show ALL stats in organized format
+                      console.log(`\n📊 Complete ESPN Stats for ${espnPlayer.fullName}:`)
+                      const sortedKeys = Object.keys(espnStats).sort((a,b) => parseInt(a) - parseInt(b))
+                      sortedKeys.forEach(key => {
+                        const value = espnStats[key]
+                        const keyNum = parseInt(key)
+                        let statName = 'Unknown'
+                        
+                        // Known ESPN stat mappings for reference
+                        const knownStats: { [key: number]: string } = {
+                          0: 'AB', 1: 'H', 2: 'AVG', 3: '2B', 4: '3B', 5: 'HR', 8: 'BB', 9: 'OBP', 10: 'SO',
+                          17: 'TB?', 18: 'SLG', 20: 'R', 21: 'RBI', 23: 'SB',
+                          32: 'G', 33: 'GS', 34: 'IP', 39: 'BB', 41: 'WHIP', 47: 'ERA', 48: 'K', 53: 'W', 54: 'L', 57: 'SV'
+                        }
+                        
+                        if (knownStats[keyNum]) {
+                          statName = knownStats[keyNum]
+                        }
+                        
+                        console.log(`   Key ${key.padStart(3)}: ${String(value).padStart(8)} (${statName})`)
                       })
                       
-                      // Look for QS and SVHD values based on your real data
-                      const expectedQS = espnPlayer.fullName.includes('Max Fried') ? 13 : 
-                                         espnPlayer.fullName.includes('Cole Ragans') ? 2 : 0
-                      const expectedSVHD = espnPlayer.fullName.includes('Tyler Rogers') ? 20 : 0
-                      
-                      if (expectedQS > 0) {
-                        console.log(`🎯 Looking for QS=${expectedQS} in stat keys...`)
-                        Object.keys(espnStats).forEach(key => {
-                          if (espnStats[key] === expectedQS) {
-                            console.log(`⭐ POTENTIAL QS STAT ID: ${key} = ${espnStats[key]}`)
-                          }
-                        })
+                      // Expected values analysis
+                      const expectedValues: { [key: string]: { qs?: number, svhd?: number, obp?: number } } = {
+                        'Max Fried': { qs: 13, svhd: 0 },
+                        'Tyler Rogers': { qs: 0, svhd: 20 },
+                        'Cole Ragans': { qs: 2, svhd: 0 },
+                        'Framber Valdez': { qs: 14, svhd: 0 },
+                        'Kris Bubic': { qs: 11, svhd: 0 },
+                        'Randy Rodriguez': { qs: 0, svhd: 14 },
+                        'Juan Soto': { obp: 0.391 },
+                        'Jackson Chourio': { obp: 0.297 }
                       }
                       
-                      if (expectedSVHD > 0) {
-                        console.log(`🎯 Looking for SVHD=${expectedSVHD} in stat keys...`)
-                        Object.keys(espnStats).forEach(key => {
-                          if (espnStats[key] === expectedSVHD) {
-                            console.log(`⭐ POTENTIAL SVHD STAT ID: ${key} = ${espnStats[key]}`)
-                          }
-                        })
+                      const expected = expectedValues[espnPlayer.fullName]
+                      if (expected) {
+                        console.log(`\n🎯 VALUE MATCHING for ${espnPlayer.fullName}:`)
+                        
+                        if (expected.qs !== undefined) {
+                          console.log(`   Looking for QS = ${expected.qs}:`)
+                          sortedKeys.forEach(key => {
+                            if (Math.abs(espnStats[key] - expected.qs) < 0.1) {
+                              console.log(`   ⭐ EXACT MATCH: Key ${key} = ${espnStats[key]} (QS candidate)`)
+                            }
+                          })
+                        }
+                        
+                        if (expected.svhd !== undefined) {
+                          console.log(`   Looking for SVHD = ${expected.svhd}:`)
+                          sortedKeys.forEach(key => {
+                            if (Math.abs(espnStats[key] - expected.svhd) < 0.1) {
+                              console.log(`   ⭐ EXACT MATCH: Key ${key} = ${espnStats[key]} (SVHD candidate)`)
+                            }
+                          })
+                        }
+                        
+                        if (expected.obp !== undefined) {
+                          console.log(`   Looking for OBP ≈ ${expected.obp}:`)
+                          sortedKeys.forEach(key => {
+                            if (Math.abs(espnStats[key] - expected.obp) < 0.05) {
+                              console.log(`   ⭐ CLOSE MATCH: Key ${key} = ${espnStats[key]} (OBP candidate)`)
+                            }
+                          })
+                        }
                       }
+                      
+                      console.log(`\n${'='.repeat(80)}\n`)
                     }
                     
                     if (!isPitcher && espnStats["0"] !== undefined) {
@@ -301,32 +349,22 @@ export async function POST(
                       // Pitcher stats - CONFIRMED ESPN key mappings from sync debug:
                       // Max Fried: G=20, GS=20, ERA=2.43, WHIP=1.01, W=11, L=3, K=113
                       // Tyler Rogers: G=49, GS=0, ERA=1.54, WHIP=0.79, W=4, L=2, K=34
-                      // Look for QS and SVHD in various possible ESPN stat keys
-                      let qualityStarts = 0
-                      let savesAndHolds = 0
+                      // CONFIRMED ESPN STAT IDs from discovery analysis:
+                      let qualityStarts = espnStats["46"] || 0    // QS - Stat ID 46 (confirmed: Max Fried = 13)
+                      let savesAndHolds = 0  // Still investigating - Tyler Rogers has multiple candidates
                       
-                      // Try common QS stat IDs
-                      const qsPossibleKeys = ['55', '56', '58', '59', '60', '62']
-                      for (const key of qsPossibleKeys) {
-                        if (espnStats[key] !== undefined && espnStats[key] > 0) {
-                          qualityStarts = espnStats[key]
-                          if (espnPlayer.fullName.includes('Max Fried') || espnPlayer.fullName.includes('Cole Ragans')) {
-                            console.log(`⭐ FOUND QS: Key ${key} = ${qualityStarts} for ${espnPlayer.fullName}`)
-                          }
-                          break
-                        }
-                      }
-                      
-                      // Try common SVHD stat IDs
-                      const svhdPossibleKeys = ['58', '60', '61', '62', '64', '65']
-                      for (const key of svhdPossibleKeys) {
-                        if (espnStats[key] !== undefined && espnStats[key] > 0) {
-                          savesAndHolds = espnStats[key]
-                          if (espnPlayer.fullName.includes('Tyler Rogers') || espnPlayer.fullName.includes('Kris Bubic')) {
-                            console.log(`⭐ FOUND SVHD: Key ${key} = ${savesAndHolds} for ${espnPlayer.fullName}`)
-                          }
-                          break
-                        }
+                      // Test multiple SVHD candidates for Tyler Rogers type players
+                      if (espnPlayer.fullName.includes('Tyler Rogers') || espnPlayer.fullName.includes('Randy Rodriguez')) {
+                        console.log(`🔍 SVHD Debug for ${espnPlayer.fullName}:`)
+                        console.log(`   Stat 60: ${espnStats["60"]} | Stat 61: ${espnStats["61"]} | Stat 83: ${espnStats["83"]}`)
+                        console.log(`   Expected SVHD: Tyler Rogers=20, Randy Rodriguez=14`)
+                        
+                        // Try the most promising candidates
+                        if (espnStats["61"]) savesAndHolds = espnStats["61"]  // Stat 61 seems promising
+                        else if (espnStats["60"]) savesAndHolds = espnStats["60"]  // Fallback to stat 60
+                      } else {
+                        // For other relief pitchers, try stat 61 first
+                        savesAndHolds = espnStats["61"] || espnStats["60"] || 0
                       }
                       
                       mappedStats = {
