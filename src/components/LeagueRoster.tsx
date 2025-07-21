@@ -273,9 +273,9 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
     47: { field: 'onBasePercentage', label: 'ERA', decimals: 2, isPitcherStat: true }, // ERA - USER'S LEAGUE
     48: { field: 'strikeOuts', label: 'K', isPitcherStat: true }, // Strikeouts - USER'S LEAGUE
     
-    // Pitcher stats - need to find ESPN stat IDs for these:
-    // QS (Quality Starts) - USER'S LEAGUE - MISSING ESPN ID
-    // SVHD (Saves + Holds) - USER'S LEAGUE - MISSING ESPN ID
+    // Pitcher stats (using repurposed database fields):
+    56: { field: 'triples', label: 'QS', isPitcherStat: true }, // Quality Starts - mapped to triples field
+    60: { field: 'homeRuns', label: 'SVHD', isPitcherStat: true }, // Saves+Holds - mapped to homeRuns field
     
     // Other pitcher stats (available but not in user's league)
     32: { field: 'gamesPlayed', label: 'G', isPitcherStat: true }, // Games Pitched
@@ -288,15 +288,8 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
     63: { field: 'runs', label: 'W', isPitcherStat: true }, // Alternative Wins mapping
     83: { field: 'doubles', label: 'SV', isPitcherStat: true }, // Alternative Saves mapping
     
-    // Experimental mappings for missing categories (need ESPN stat IDs)
-    // These are placeholder mappings until we find the correct ESPN stat IDs
-    55: { field: 'caughtStealing', label: 'QS', isPitcherStat: true }, // Quality Starts - TEST ID
-    56: { field: 'caughtStealing', label: 'QS', isPitcherStat: true }, // Quality Starts - TEST ID
-    58: { field: 'caughtStealing', label: 'QS', isPitcherStat: true }, // Quality Starts - TEST ID
-    59: { field: 'caughtStealing', label: 'QS', isPitcherStat: true }, // Quality Starts - TEST ID
-    60: { field: 'triples', label: 'SVHD', isPitcherStat: true }, // Saves+Holds - TEST ID
-    61: { field: 'triples', label: 'SVHD', isPitcherStat: true }, // Saves+Holds - TEST ID
-    62: { field: 'triples', label: 'SVHD', isPitcherStat: true }, // Saves+Holds - TEST ID
+    // These will be discovered and mapped dynamically during sync
+    // The sync route will try multiple ESPN stat IDs and map to the correct fields
   }
 
   const getLeagueStats = (player: RosterPlayer, isPitcherPlayer: boolean) => {

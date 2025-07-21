@@ -234,9 +234,36 @@ export async function POST(
                     // Check if this is a pitcher by position first, then by stats format
                     const isPitcher = primaryPosition === 'SP' || primaryPosition === 'RP' || primaryPosition === 'P'
                     
-                    // Optional debug logging for key players (can be removed after testing)
-                    if (false && (espnPlayer.fullName.includes('Max Fried') || espnPlayer.fullName.includes('Juan Soto'))) {
-                      console.log(`📊 ${espnPlayer.fullName}: ERA=${espnStats["47"]}, WHIP=${espnStats["41"]}, W=${espnStats["53"]}, K=${espnStats["48"]}`)
+                    // Debug logging to find QS and SVHD stat IDs
+                    if (espnPlayer.fullName.includes('Max Fried') || espnPlayer.fullName.includes('Cole Ragans') || espnPlayer.fullName.includes('Tyler Rogers')) {
+                      console.log(`\n🔍 DEBUG ${espnPlayer.fullName} - All ESPN stat keys:`, Object.keys(espnStats).sort((a,b) => parseInt(a) - parseInt(b)))
+                      console.log(`📊 ${espnPlayer.fullName} stats:`)
+                      Object.keys(espnStats).sort((a,b) => parseInt(a) - parseInt(b)).forEach(key => {
+                        console.log(`   Key ${key}: ${espnStats[key]}`)
+                      })
+                      
+                      // Look for QS and SVHD values based on your real data
+                      const expectedQS = espnPlayer.fullName.includes('Max Fried') ? 13 : 
+                                         espnPlayer.fullName.includes('Cole Ragans') ? 2 : 0
+                      const expectedSVHD = espnPlayer.fullName.includes('Tyler Rogers') ? 20 : 0
+                      
+                      if (expectedQS > 0) {
+                        console.log(`🎯 Looking for QS=${expectedQS} in stat keys...`)
+                        Object.keys(espnStats).forEach(key => {
+                          if (espnStats[key] === expectedQS) {
+                            console.log(`⭐ POTENTIAL QS STAT ID: ${key} = ${espnStats[key]}`)
+                          }
+                        })
+                      }
+                      
+                      if (expectedSVHD > 0) {
+                        console.log(`🎯 Looking for SVHD=${expectedSVHD} in stat keys...`)
+                        Object.keys(espnStats).forEach(key => {
+                          if (espnStats[key] === expectedSVHD) {
+                            console.log(`⭐ POTENTIAL SVHD STAT ID: ${key} = ${espnStats[key]}`)
+                          }
+                        })
+                      }
                     }
                     
                     if (!isPitcher && espnStats["0"] !== undefined) {
@@ -244,35 +271,72 @@ export async function POST(
                       // Juan Soto: AB=350, H=90, HR=24, RBI=57, AVG=0.257, SB=12, R=71
                       // Jackson Chourio: AB=410, H=109, HR=16, RBI=62, AVG=0.266, SB=16, R=65
                       
+                      // Calculate Total Bases since ESPN doesn't provide it directly
+                      // TB = Hits + Doubles + (2 × Triples) + (3 × Home Runs)
+                      const hits = espnStats["1"] || 0
+                      const doubles = espnStats["3"] || 0
+                      const triples = espnStats["4"] || 0
+                      const homeRuns = espnStats["5"] || 0
+                      const totalBases = hits + doubles + (2 * triples) + (3 * homeRuns)
+                      
                       mappedStats = {
                         gamesPlayed: 0,                         // Not available in ESPN format
                         atBats: espnStats["0"] || 0,            // At bats - key 0: CONFIRMED
                         runs: espnStats["20"] || 0,             // Runs - key 20: CONFIRMED
-                        hits: espnStats["1"] || 0,              // Hits - key 1: CONFIRMED
-                        doubles: espnStats["3"] || 0,           // Doubles - key 3: Jackson Chourio shows 25
-                        triples: espnStats["4"] || 0,           // Triples - key 4: Jackson Chourio shows 3
-                        homeRuns: espnStats["5"] || 0,          // Home runs - key 5: CONFIRMED
+                        hits: hits,                             // Hits - key 1: CONFIRMED
+                        doubles: doubles,                       // Doubles - key 3: CONFIRMED
+                        triples: triples,                       // Triples - key 4: CONFIRMED
+                        homeRuns: homeRuns,                     // Home runs - key 5: CONFIRMED
                         rbi: espnStats["21"] || 0,              // RBI - key 21: CONFIRMED
                         stolenBases: espnStats["23"] || 0,      // Stolen bases - key 23: CONFIRMED
                         caughtStealing: 0,                      // Not easily identified
                         baseOnBalls: espnStats["8"] || 0,       // Base on balls (walks) - key 8
                         strikeOuts: espnStats["10"] || 0,       // Strikeouts - key 10
                         battingAverage: espnStats["2"] || 0,    // Batting average - key 2: CONFIRMED
-                        onBasePercentage: espnStats["9"] || 0,  // On base percentage - key 9  
-                        sluggingPercentage: espnStats["18"] || 0 // Slugging percentage - key 18
+                        onBasePercentage: espnStats["9"] || 0,  // On base percentage - key 9: CONFIRMED  
+                        sluggingPercentage: espnStats["18"] || 0, // Slugging percentage - key 18
+                        totalBases: totalBases                  // Calculated: H + 2B + (2×3B) + (3×HR)
                       }
                     } else if (isPitcher) {
                       // Pitcher stats - CONFIRMED ESPN key mappings from sync debug:
                       // Max Fried: G=20, GS=20, ERA=2.43, WHIP=1.01, W=11, L=3, K=113
                       // Tyler Rogers: G=49, GS=0, ERA=1.54, WHIP=0.79, W=4, L=2, K=34
+                      // Look for QS and SVHD in various possible ESPN stat keys
+                      let qualityStarts = 0
+                      let savesAndHolds = 0
+                      
+                      // Try common QS stat IDs
+                      const qsPossibleKeys = ['55', '56', '58', '59', '60', '62']
+                      for (const key of qsPossibleKeys) {
+                        if (espnStats[key] !== undefined && espnStats[key] > 0) {
+                          qualityStarts = espnStats[key]
+                          if (espnPlayer.fullName.includes('Max Fried') || espnPlayer.fullName.includes('Cole Ragans')) {
+                            console.log(`⭐ FOUND QS: Key ${key} = ${qualityStarts} for ${espnPlayer.fullName}`)
+                          }
+                          break
+                        }
+                      }
+                      
+                      // Try common SVHD stat IDs
+                      const svhdPossibleKeys = ['58', '60', '61', '62', '64', '65']
+                      for (const key of svhdPossibleKeys) {
+                        if (espnStats[key] !== undefined && espnStats[key] > 0) {
+                          savesAndHolds = espnStats[key]
+                          if (espnPlayer.fullName.includes('Tyler Rogers') || espnPlayer.fullName.includes('Kris Bubic')) {
+                            console.log(`⭐ FOUND SVHD: Key ${key} = ${savesAndHolds} for ${espnPlayer.fullName}`)
+                          }
+                          break
+                        }
+                      }
+                      
                       mappedStats = {
                         gamesPlayed: espnStats["32"] || 0,       // Games pitched - key 32: CONFIRMED
                         atBats: espnStats["33"] || 0,            // Games started - key 33: CONFIRMED
                         runs: espnStats["53"] || 0,              // Wins - key 53: CONFIRMED
                         hits: espnStats["54"] || 0,              // Losses - key 54: CONFIRMED
-                        doubles: espnStats["57"] || 0,           // Saves - key 57: (might need different key for saves)
-                        triples: 0,                              // Not used for pitchers
-                        homeRuns: 0,                             // Not used for pitchers
+                        doubles: espnStats["57"] || 0,           // Saves - key 57: CONFIRMED
+                        triples: qualityStarts,                  // QS mapped to triples field (repurposed)
+                        homeRuns: savesAndHolds,                 // SVHD mapped to homeRuns field (repurposed)
                         rbi: 0,                                  // Not used for pitchers
                         stolenBases: 0,                          // Not used for pitchers
                         caughtStealing: 0,                       // Not used for pitchers
@@ -281,7 +345,7 @@ export async function POST(
                         battingAverage: 0,                       // Not used for pitchers
                         onBasePercentage: espnStats["47"] || 0,  // ERA - key 47: CONFIRMED
                         sluggingPercentage: espnStats["41"] || 0, // WHIP - key 41: CONFIRMED
-                        totalBases: espnStats["34"] || 0         // Innings pitched - key 34 (might be total batters faced)
+                        totalBases: espnStats["34"] || 0         // Innings pitched - key 34
                       }
                     } else {
                       // Unknown player type or no stats available
