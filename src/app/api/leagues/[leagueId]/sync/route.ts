@@ -351,20 +351,25 @@ export async function POST(
                       // Tyler Rogers: G=49, GS=0, ERA=1.54, WHIP=0.79, W=4, L=2, K=34
                       // CONFIRMED ESPN STAT IDs from discovery analysis:
                       let qualityStarts = espnStats["46"] || 0    // QS - Stat ID 46 (confirmed: Max Fried = 13)
-                      let savesAndHolds = 0  // Still investigating - Tyler Rogers has multiple candidates
                       
-                      // Test multiple SVHD candidates for Tyler Rogers type players
-                      if (espnPlayer.fullName.includes('Tyler Rogers') || espnPlayer.fullName.includes('Randy Rodriguez')) {
-                        console.log(`🔍 SVHD Debug for ${espnPlayer.fullName}:`)
-                        console.log(`   Stat 60: ${espnStats["60"]} | Stat 61: ${espnStats["61"]} | Stat 83: ${espnStats["83"]}`)
-                        console.log(`   Expected SVHD: Tyler Rogers=20, Randy Rodriguez=14`)
-                        
-                        // Try the most promising candidates
-                        if (espnStats["61"]) savesAndHolds = espnStats["61"]  // Stat 61 seems promising
-                        else if (espnStats["60"]) savesAndHolds = espnStats["60"]  // Fallback to stat 60
-                      } else {
-                        // For other relief pitchers, try stat 61 first
-                        savesAndHolds = espnStats["61"] || espnStats["60"] || 0
+                      // SVHD Strategy: Use a promising candidate from discovery until we find exact mapping
+                      // From Tyler Rogers data: stat 60=32, stat 61=10, stat 83=33 were high values
+                      // From discovery: saves consistently at stat 57
+                      let saves = espnStats["57"] || 0           // Saves - Stat ID 57 (confirmed)
+                      let holds = espnStats["61"] || 0           // Holds - Stat ID 61 (testing based on patterns)
+                      let savesAndHolds = saves + holds
+                      
+                      // Alternative: Try direct SVHD from high-value stats if saves+holds doesn't work
+                      if (savesAndHolds === 0 || savesAndHolds < 1) {
+                        // Try some promising candidates that had high values in discovery
+                        savesAndHolds = espnStats["60"] || espnStats["83"] || 0
+                      }
+                      
+                      // Debug logging for key relief pitchers
+                      if (['Tyler Rogers', 'Ronny Henriquez', 'Randy Rodriguez', 'Kris Bubic'].some(name => 
+                          espnPlayer.fullName.includes(name))) {
+                        console.log(`📊 ${espnPlayer.fullName}: SV=${saves} + HD=${holds} = SVHD=${savesAndHolds}`)
+                        console.log(`   Alt candidates: stat60=${espnStats["60"]}, stat83=${espnStats["83"]}`) 
                       }
                       
                       mappedStats = {
