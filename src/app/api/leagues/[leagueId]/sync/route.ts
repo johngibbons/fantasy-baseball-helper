@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ESPNApi } from '@/lib/espn-api'
+import { MLBStatsApi } from '@/lib/mlb-stats-api'
 
 export async function POST(
   request: NextRequest,
@@ -8,6 +9,8 @@ export async function POST(
 ) {
   try {
     const { leagueId } = await params
+    const body = await request.json()
+    const { swid, espn_s2, dataSource = 'hybrid' } = body
 
     // Get the league from database
     const league = await prisma.league.findUnique({
@@ -26,11 +29,6 @@ export async function POST(
       }, { status: 400 })
     }
 
-    // For now, we'll need credentials passed in the request body
-    // In a real app, these would be stored securely for the user
-    const body = await request.json()
-    const { swid, espn_s2 } = body
-
     if (!swid || !espn_s2) {
       return NextResponse.json({ 
         error: 'ESPN credentials (swid and espn_s2) are required for sync' 
@@ -39,13 +37,13 @@ export async function POST(
 
     const settings = { swid, espn_s2 }
 
-    console.log('Syncing roster data for league:', league.id)
-    console.log('ESPN API params:', { externalId: league.externalId, season: league.season })
+    console.log(`🔄 HYBRID SYNC for league: ${league.id}`)
+    console.log('📋 Strategy: ESPN rosters + MLB Stats API for accurate statistics')
+    console.log('=' * 80)
     
-    // Fetch fresh roster data from ESPN
+    // Step 1: Fetch roster structure from ESPN
     const rosters = await ESPNApi.getRosters(league.externalId, league.season, settings)
-    console.log('ESPN rosters response:', Object.keys(rosters).length, 'teams')
-    console.log('Rosters data:', JSON.stringify(rosters, null, 2))
+    console.log(`📊 ESPN rosters: ${Object.keys(rosters).length} teams`)
     
     // Get teams for this league
     const teams = await prisma.team.findMany({
@@ -53,13 +51,17 @@ export async function POST(
     })
 
     let playersProcessed = 0
+    let playersWithMLBStats = 0
+    let playersMLBNotFound = 0
     let rostersProcessed = 0
 
-    // Process rosters for each team
+    // Step 2: Process each team's roster
     for (const team of teams) {
       const teamRoster = rosters[parseInt(team.externalId)]
       
       if (teamRoster && Array.isArray(teamRoster)) {
+        console.log(`\n🏟️  Processing ${team.name} (${teamRoster.length} players)`)
+        
         // Clear existing roster slots for this team
         await prisma.rosterSlot.deleteMany({
           where: {
@@ -70,371 +72,196 @@ export async function POST(
 
         for (const rosterEntry of teamRoster) {
           try {
-            // Skip entries without player data
             if (!rosterEntry.player) {
-              console.log(`Skipping roster entry with missing player data: playerId ${rosterEntry.playerId}`)
+              console.log(`   ⚠️  Skipping roster entry with missing player data`)
               continue
             }
 
-            // Create or update player record if player data is available
-            if (rosterEntry.player) {
-              const espnPlayer = rosterEntry.player
+            const espnPlayer = rosterEntry.player
+            
+            // Determine primary position from ESPN data with enhanced logic
+            const positionIdMap: { [key: number]: string } = {
+              0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS', 5: 'OF', 
+              6: 'OF', 7: 'OF', 8: 'DH', 9: 'SP', 10: 'RP', 11: 'P'
+            }
+            
+            let primaryPosition = positionIdMap[espnPlayer.defaultPositionId] || 'UTIL'
+            
+            // Enhanced position detection using eligibleSlots for better accuracy
+            if (espnPlayer.eligibleSlots && espnPlayer.eligibleSlots.length > 0) {
+              // Check if player has pitcher slots (9=SP, 10=RP, 11=P)
+              const hasPitcherSlots = espnPlayer.eligibleSlots.some(slot => slot >= 9 && slot <= 11)
+              const hasPositionSlots = espnPlayer.eligibleSlots.some(slot => slot < 9)
               
-              // Map ESPN position IDs to readable positions
-              const positionIdMap: { [key: number]: string } = {
-                0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS', 5: 'OF', 
-                6: 'OF', 7: 'OF', 8: 'DH', 9: 'SP', 10: 'RP', 11: 'P'
-              }
-              
-              let primaryPosition = positionIdMap[espnPlayer.defaultPositionId] || 'UTIL'
-              
-              // ESPN's defaultPositionId is unreliable. Use definitive player classification.
-              
-              // Known pitchers - these should always be classified as pitchers regardless of ESPN data
-              const knownStartingPitchers = [
-                'Max Fried', 'Cole Ragans', 'Framber Valdez', 'Joe Boyle', 
-                'Joe Ryan', 'Michael Wacha', 'Roki Sasaki', 'Ryan Pepiot', 'Emmet Sheehan'
-              ]
-              
-              const knownReliefPitchers = [
-                'Tyler Rogers', 'Kris Bubic', 'Randy Rodriguez', 'Ronny Henriquez'
-              ]
-              
-              // Known position players - these should never be classified as pitchers
-              const knownPositionPlayers: { [key: string]: string } = {
-                'Juan Soto': 'OF',
-                'Lawrence Butler': 'OF', 
-                'Jackson Chourio': 'OF',
-                'Marcus Semien': 'SS',
-                'Seiya Suzuki': 'OF',
-                'Rafael Devers': '3B',
-                'Corey Seager': 'SS',
-                'Nick Kurtz': '1B',
-                'Ozzie Albies': '2B',
-                'Jordan Westburg': '3B',
-                'Adley Rutschman': 'C',
-                'Jazz Chisholm Jr.': '2B',
-                'Jonathan Aranda': '1B',
-                'Ivan Herrera': 'C',
-                'Jurickson Profar': 'OF'
-              }
-              
-              // Apply definitive classifications first
-              if (knownStartingPitchers.includes(espnPlayer.fullName)) {
-                primaryPosition = 'SP'
-              } else if (knownReliefPitchers.includes(espnPlayer.fullName)) {
-                primaryPosition = 'RP'
-              } else if (knownPositionPlayers[espnPlayer.fullName]) {
-                primaryPosition = knownPositionPlayers[espnPlayer.fullName]
-              } else if (espnPlayer.stats && espnPlayer.stats.length > 0) {
-                // For unknown players, use stats analysis
-                const firstStatPeriod = espnPlayer.stats[0]
-                if (firstStatPeriod && firstStatPeriod.stats) {
-                  const statKeys = Object.keys(firstStatPeriod.stats).map(k => parseInt(k))
-                  
-                  // Pitcher stat keys: 32+ range (games, ERA, WHIP, etc.)
-                  // Position player stat keys: 0-30 range (at-bats, hits, etc.)
-                  const hasPitcherStats = statKeys.some(key => key >= 32)
-                  const hasPositionPlayerStats = statKeys.some(key => key <= 10 && key >= 0)
-                  
-                  if (hasPitcherStats && !hasPositionPlayerStats) {
-                    // This is clearly a pitcher - determine SP vs RP by games started
-                    const gamesStarted = firstStatPeriod.stats["33"] || 0
-                    primaryPosition = gamesStarted > 10 ? 'SP' : 'RP'
-                  } else if (hasPositionPlayerStats && !hasPitcherStats) {
-                    // This is clearly a position player - use eligibleSlots for position
-                    if (espnPlayer.eligibleSlots && espnPlayer.eligibleSlots.length > 0) {
-                      const firstNonPitcherSlot = espnPlayer.eligibleSlots.find(slot => slot < 9)
-                      if (firstNonPitcherSlot !== undefined) {
-                        primaryPosition = positionIdMap[firstNonPitcherSlot] || 'UTIL'
-                      }
-                    }
-                  }
-                  // If both types of stats exist or neither exists, keep ESPN's original mapping
+              if (hasPitcherSlots && !hasPositionSlots) {
+                // Pure pitcher - determine SP vs RP
+                if (espnPlayer.eligibleSlots.includes(9)) primaryPosition = 'SP'
+                else if (espnPlayer.eligibleSlots.includes(10)) primaryPosition = 'RP'
+                else primaryPosition = 'P'
+              } else if (hasPositionSlots && !hasPitcherSlots) {
+                // Pure position player - use most specific position
+                const positionSlot = espnPlayer.eligibleSlots.find(slot => slot < 9)
+                if (positionSlot !== undefined) {
+                  primaryPosition = positionIdMap[positionSlot] || primaryPosition
                 }
               }
-              
-              // Debug logging for position mapping issues
-              if (espnPlayer.fullName.includes('Max Fried') || espnPlayer.fullName.includes('Lawrence Butler') || espnPlayer.fullName.includes('Juan Soto') || espnPlayer.fullName.includes('Tyler Rogers')) {
-                const firstStatPeriod = espnPlayer.stats?.[0]
-                const statKeys = firstStatPeriod?.stats ? Object.keys(firstStatPeriod.stats).map(k => parseInt(k)) : []
-                console.log(`DEBUG ${espnPlayer.fullName}:`, {
-                  defaultPositionId: espnPlayer.defaultPositionId,
-                  originalPrimaryPosition: positionIdMap[espnPlayer.defaultPositionId] || 'UTIL',
-                  correctedPrimaryPosition: primaryPosition,
-                  eligibleSlots: espnPlayer.eligibleSlots,
-                  statKeys: statKeys.sort((a,b) => a-b),
-                  hasPitcherStats: statKeys.some(key => key >= 32),
-                  hasPositionPlayerStats: statKeys.some(key => key <= 10 && key >= 0)
-                })
-              }
-              
-              await prisma.player.upsert({
-                where: { id: espnPlayer.id },
-                update: {
-                  fullName: espnPlayer.fullName,
-                  firstName: espnPlayer.firstName,
-                  lastName: espnPlayer.lastName,
-                  primaryPosition: primaryPosition,
-                  active: true
-                },
-                create: {
-                  id: espnPlayer.id,
-                  fullName: espnPlayer.fullName,
-                  firstName: espnPlayer.firstName,
-                  lastName: espnPlayer.lastName,
-                  primaryPosition: primaryPosition,
-                  active: true
-                }
-              })
-
-              // Create player stats if available
-              if (espnPlayer.stats && espnPlayer.stats.length > 0) {
-                // console.log(`${espnPlayer.fullName} has ${espnPlayer.stats.length} stat periods:`, 
-                //   espnPlayer.stats.map(sp => ({ 
-                //     id: sp.id, 
-                //     seasonId: sp.seasonId,
-                //     statSourceId: sp.statSourceId,
-                //     statSplitTypeId: sp.statSplitTypeId 
-                //   }))
-                // )
-                
-                // Filter for PREVIOUS season (2024) regular season stats, not current (2025)
-                // Since it's 2025 now, we want 2024 completed season stats for fantasy purposes
-                const targetSeason = parseInt(league.season)
-                const currentSeasonStats = espnPlayer.stats.filter(sp => 
-                  sp.seasonId === targetSeason && 
-                  sp.id && sp.id.startsWith('00') // Regular season stats start with '00'
-                )
-                
-                // Debug code removed - stat period filtering working correctly
-                
-                // console.log(`${espnPlayer.fullName} filtered stat periods:`, currentSeasonStats.length)
-                
-                for (const statPeriod of currentSeasonStats) {
-                  if (statPeriod.stats) {
-                    // ESPN uses numeric keys for stats, map them to our named properties
-                    const espnStats = statPeriod.stats
-                    
-                    // Debug: Log stat period information to understand what time period these stats represent
-                    // console.log(`Player ${espnPlayer.fullName} stat period:`, {
-                    //   id: statPeriod.id,
-                    //   seasonId: statPeriod.seasonId,
-                    //   statSourceId: statPeriod.statSourceId,
-                    //   statSplitTypeId: statPeriod.statSplitTypeId,
-                    //   externalId: statPeriod.externalId
-                    // })
-                    
-                    // ESPN uses different stat key formats for position players vs pitchers
-                    // Position players: 0=atBats, 1=homeRuns, 2=battingAverage, 3=runs, etc.
-                    // Pitchers: 32=games, 33=games started, 34=innings pitched, etc.
-                    
-                    let mappedStats
-                    
-                    // Check if this is a pitcher by position first, then by stats format
-                    const isPitcher = primaryPosition === 'SP' || primaryPosition === 'RP' || primaryPosition === 'P'
-                    
-                    // ENHANCED DEBUG: Comprehensive ESPN stat analysis
-                    const isDebugPlayer = [
-                      'Max Fried', 'Tyler Rogers', 'Cole Ragans', 'Framber Valdez',
-                      'Juan Soto', 'Jackson Chourio', 'Kris Bubic', 'Randy Rodriguez'
-                    ].some(name => espnPlayer.fullName.includes(name))
-                    
-                    if (isDebugPlayer) {
-                      console.log(`\n🔍 FULL ESPN DATA ANALYSIS for ${espnPlayer.fullName}:`)
-                      console.log(`   Position: ${primaryPosition} | ESPN Position ID: ${espnPlayer.defaultPositionId}`)
-                      console.log(`   All stat keys (${Object.keys(espnStats).length} total):`, Object.keys(espnStats).sort((a,b) => parseInt(a) - parseInt(b)))
-                      
-                      // Show ALL stats in organized format
-                      console.log(`\n📊 Complete ESPN Stats for ${espnPlayer.fullName}:`)
-                      const sortedKeys = Object.keys(espnStats).sort((a,b) => parseInt(a) - parseInt(b))
-                      sortedKeys.forEach(key => {
-                        const value = espnStats[key]
-                        const keyNum = parseInt(key)
-                        let statName = 'Unknown'
-                        
-                        // Known ESPN stat mappings for reference
-                        const knownStats: { [key: number]: string } = {
-                          0: 'AB', 1: 'H', 2: 'AVG', 3: '2B', 4: '3B', 5: 'HR', 8: 'BB', 9: 'OBP', 10: 'SO',
-                          17: 'TB?', 18: 'SLG', 20: 'R', 21: 'RBI', 23: 'SB',
-                          32: 'G', 33: 'GS', 34: 'IP', 39: 'BB', 41: 'WHIP', 47: 'ERA', 48: 'K', 53: 'W', 54: 'L', 57: 'SV'
-                        }
-                        
-                        if (knownStats[keyNum]) {
-                          statName = knownStats[keyNum]
-                        }
-                        
-                        console.log(`   Key ${key.padStart(3)}: ${String(value).padStart(8)} (${statName})`)
-                      })
-                      
-                      // Expected values analysis
-                      const expectedValues: { [key: string]: { qs?: number, svhd?: number, obp?: number } } = {
-                        'Max Fried': { qs: 13, svhd: 0 },
-                        'Tyler Rogers': { qs: 0, svhd: 20 },
-                        'Cole Ragans': { qs: 2, svhd: 0 },
-                        'Framber Valdez': { qs: 14, svhd: 0 },
-                        'Kris Bubic': { qs: 11, svhd: 0 },
-                        'Randy Rodriguez': { qs: 0, svhd: 14 },
-                        'Juan Soto': { obp: 0.391 },
-                        'Jackson Chourio': { obp: 0.297 }
-                      }
-                      
-                      const expected = expectedValues[espnPlayer.fullName]
-                      if (expected) {
-                        console.log(`\n🎯 VALUE MATCHING for ${espnPlayer.fullName}:`)
-                        
-                        if (expected.qs !== undefined) {
-                          console.log(`   Looking for QS = ${expected.qs}:`)
-                          sortedKeys.forEach(key => {
-                            if (Math.abs(espnStats[key] - expected.qs) < 0.1) {
-                              console.log(`   ⭐ EXACT MATCH: Key ${key} = ${espnStats[key]} (QS candidate)`)
-                            }
-                          })
-                        }
-                        
-                        if (expected.svhd !== undefined) {
-                          console.log(`   Looking for SVHD = ${expected.svhd}:`)
-                          sortedKeys.forEach(key => {
-                            if (Math.abs(espnStats[key] - expected.svhd) < 0.1) {
-                              console.log(`   ⭐ EXACT MATCH: Key ${key} = ${espnStats[key]} (SVHD candidate)`)
-                            }
-                          })
-                        }
-                        
-                        if (expected.obp !== undefined) {
-                          console.log(`   Looking for OBP ≈ ${expected.obp}:`)
-                          sortedKeys.forEach(key => {
-                            if (Math.abs(espnStats[key] - expected.obp) < 0.05) {
-                              console.log(`   ⭐ CLOSE MATCH: Key ${key} = ${espnStats[key]} (OBP candidate)`)
-                            }
-                          })
-                        }
-                      }
-                      
-                      console.log(`\n${'='.repeat(80)}\n`)
-                    }
-                    
-                    if (!isPitcher && espnStats["0"] !== undefined) {
-                      // Position player stats - CONFIRMED ESPN key mappings from sync debug:
-                      // Juan Soto: AB=350, H=90, HR=24, RBI=57, AVG=0.257, SB=12, R=71
-                      // Jackson Chourio: AB=410, H=109, HR=16, RBI=62, AVG=0.266, SB=16, R=65
-                      
-                      // Calculate Total Bases since ESPN doesn't provide it directly
-                      // TB = Hits + Doubles + (2 × Triples) + (3 × Home Runs)
-                      const hits = espnStats["1"] || 0
-                      const doubles = espnStats["3"] || 0
-                      const triples = espnStats["4"] || 0
-                      const homeRuns = espnStats["5"] || 0
-                      const totalBases = hits + doubles + (2 * triples) + (3 * homeRuns)
-                      
-                      mappedStats = {
-                        gamesPlayed: 0,                         // Not available in ESPN format
-                        atBats: espnStats["0"] || 0,            // At bats - key 0: CONFIRMED
-                        runs: espnStats["20"] || 0,             // Runs - key 20: CONFIRMED
-                        hits: hits,                             // Hits - key 1: CONFIRMED
-                        doubles: doubles,                       // Doubles - key 3: CONFIRMED
-                        triples: triples,                       // Triples - key 4: CONFIRMED
-                        homeRuns: homeRuns,                     // Home runs - key 5: CONFIRMED
-                        rbi: espnStats["21"] || 0,              // RBI - key 21: CONFIRMED
-                        stolenBases: espnStats["23"] || 0,      // Stolen bases - key 23: CONFIRMED
-                        caughtStealing: 0,                      // Not easily identified
-                        baseOnBalls: espnStats["8"] || 0,       // Base on balls (walks) - key 8
-                        strikeOuts: espnStats["10"] || 0,       // Strikeouts - key 10
-                        battingAverage: espnStats["2"] || 0,    // Batting average - key 2: CONFIRMED
-                        onBasePercentage: espnStats["9"] || 0,  // On base percentage - key 9: CONFIRMED  
-                        sluggingPercentage: espnStats["18"] || 0, // Slugging percentage - key 18
-                        totalBases: totalBases                  // Calculated: H + 2B + (2×3B) + (3×HR)
-                      }
-                    } else if (isPitcher) {
-                      // Pitcher stats - CONFIRMED ESPN key mappings from sync debug:
-                      // Max Fried: G=20, GS=20, ERA=2.43, WHIP=1.01, W=11, L=3, K=113
-                      // Tyler Rogers: G=49, GS=0, ERA=1.54, WHIP=0.79, W=4, L=2, K=34
-                      // CONFIRMED ESPN STAT IDs from discovery analysis:
-                      let qualityStarts = espnStats["46"] || 0    // QS - Stat ID 46 (confirmed: Max Fried = 13)
-                      
-                      // SVHD Strategy: Use a promising candidate from discovery until we find exact mapping
-                      // From Tyler Rogers data: stat 60=32, stat 61=10, stat 83=33 were high values
-                      // From discovery: saves consistently at stat 57
-                      let saves = espnStats["57"] || 0           // Saves - Stat ID 57 (confirmed)
-                      let holds = espnStats["61"] || 0           // Holds - Stat ID 61 (testing based on patterns)
-                      let savesAndHolds = saves + holds
-                      
-                      // Alternative: Try direct SVHD from high-value stats if saves+holds doesn't work
-                      if (savesAndHolds === 0 || savesAndHolds < 1) {
-                        // Try some promising candidates that had high values in discovery
-                        savesAndHolds = espnStats["60"] || espnStats["83"] || 0
-                      }
-                      
-                      // Debug logging for key relief pitchers
-                      if (['Tyler Rogers', 'Ronny Henriquez', 'Randy Rodriguez', 'Kris Bubic'].some(name => 
-                          espnPlayer.fullName.includes(name))) {
-                        console.log(`📊 ${espnPlayer.fullName}: SV=${saves} + HD=${holds} = SVHD=${savesAndHolds}`)
-                        console.log(`   Alt candidates: stat60=${espnStats["60"]}, stat83=${espnStats["83"]}`) 
-                      }
-                      
-                      mappedStats = {
-                        gamesPlayed: espnStats["32"] || 0,       // Games pitched - key 32: CONFIRMED
-                        atBats: espnStats["33"] || 0,            // Games started - key 33: CONFIRMED
-                        runs: espnStats["53"] || 0,              // Wins - key 53: CONFIRMED
-                        hits: espnStats["54"] || 0,              // Losses - key 54: CONFIRMED
-                        doubles: espnStats["57"] || 0,           // Saves - key 57: CONFIRMED
-                        triples: qualityStarts,                  // QS mapped to triples field (repurposed)
-                        homeRuns: savesAndHolds,                 // SVHD mapped to homeRuns field (repurposed)
-                        rbi: 0,                                  // Not used for pitchers
-                        stolenBases: 0,                          // Not used for pitchers
-                        caughtStealing: 0,                       // Not used for pitchers
-                        baseOnBalls: espnStats["39"] || 0,       // Walks allowed - key 39
-                        strikeOuts: espnStats["48"] || 0,        // Strikeouts - key 48: CONFIRMED
-                        battingAverage: 0,                       // Not used for pitchers
-                        onBasePercentage: espnStats["47"] || 0,  // ERA - key 47: CONFIRMED
-                        sluggingPercentage: espnStats["41"] || 0, // WHIP - key 41: CONFIRMED
-                        totalBases: espnStats["34"] || 0         // Innings pitched - key 34
-                      }
-                    } else {
-                      // Unknown player type or no stats available
-                      mappedStats = {
-                        gamesPlayed: 0,
-                        atBats: 0,
-                        runs: 0,
-                        hits: 0,
-                        doubles: 0,
-                        triples: 0,
-                        homeRuns: 0,
-                        rbi: 0,
-                        stolenBases: 0,
-                        caughtStealing: 0,
-                        baseOnBalls: 0,
-                        strikeOuts: 0,
-                        battingAverage: 0,
-                        onBasePercentage: 0,
-                        sluggingPercentage: 0
-                      }
-                    }
-
-                    // Update player stats with confirmed ESPN key mappings
-                    await prisma.playerStats.upsert({
-                      where: {
-                        playerId_season: {
-                          playerId: espnPlayer.id,
-                          season: league.season
-                        }
-                      },
-                      update: mappedStats,
-                      create: {
-                        playerId: espnPlayer.id,
-                        season: league.season,
-                        ...mappedStats
-                      }
-                    })
-                    break // Only use the first stat period for now
-                  }
-                }
-              }
-
-              playersProcessed++
             }
 
-            // Map lineup slot IDs to position names for roster slots
+            // Step 3: Create/update player record
+            await prisma.player.upsert({
+              where: { id: espnPlayer.id },
+              update: {
+                fullName: espnPlayer.fullName,
+                firstName: espnPlayer.firstName,
+                lastName: espnPlayer.lastName,
+                primaryPosition: primaryPosition,
+                active: true
+              },
+              create: {
+                id: espnPlayer.id,
+                fullName: espnPlayer.fullName,
+                firstName: espnPlayer.firstName,
+                lastName: espnPlayer.lastName,
+                primaryPosition: primaryPosition,
+                active: true
+              }
+            })
+
+            // Step 4: Get enhanced statistics from MLB Stats API
+            let mappedStats = null
+            
+            if (dataSource === 'hybrid') {
+              console.log(`   🔍 Looking up ${espnPlayer.fullName} in MLB API...`)
+              
+              // Search for player in MLB API (use 2024 data since 2025 season hasn't started)
+              const statsYear = parseInt(league.season) === 2025 ? 2024 : parseInt(league.season)
+              const mlbPlayer = await MLBStatsApi.findPlayerByName(espnPlayer.fullName, statsYear)
+              
+              if (mlbPlayer) {
+                console.log(`   ✅ Found in MLB API: ${mlbPlayer.fullName}`)
+                
+                // Get both pitching and batting stats
+                const pitchingStats = await MLBStatsApi.getPlayerPitchingStats(mlbPlayer.id, statsYear)
+                const battingStats = await MLBStatsApi.getPlayerBattingStats(mlbPlayer.id, statsYear)
+                
+                // Determine player type based on primary position AND stats availability
+                const espnIsPitcher = primaryPosition === 'SP' || primaryPosition === 'RP' || primaryPosition === 'P'
+                const hasPitchingStats = pitchingStats && (pitchingStats.games > 0 || pitchingStats.gamesStarted > 0)
+                const hasBattingStats = battingStats && battingStats.atBats > 0
+                
+                // Use MLB stats as primary classifier, ESPN position as secondary
+                // This prevents misclassification when ESPN data is wrong
+                let isPitcher = false
+                let isHitter = false
+                
+                if (hasPitchingStats && hasBattingStats) {
+                  // Player has both types of stats - use ESPN position to decide
+                  isPitcher = espnIsPitcher
+                  isHitter = !espnIsPitcher
+                } else if (hasPitchingStats && !hasBattingStats) {
+                  // Only has pitching stats - definitely a pitcher
+                  isPitcher = true
+                } else if (!hasPitchingStats && hasBattingStats) {
+                  // Only has batting stats - definitely a hitter
+                  isHitter = true
+                } else {
+                  // No stats found - use ESPN position as fallback
+                  isPitcher = espnIsPitcher
+                  isHitter = !espnIsPitcher
+                }
+                
+                console.log(`   🔍 Classification: ESPN=${primaryPosition}, isPitcher=${isPitcher}, isHitter=${isHitter}`)
+                
+                if (isPitcher && pitchingStats) {
+                  // Use MLB pitching stats with accurate saves/holds/QS
+                  const svhd = (pitchingStats.saves || 0) + (pitchingStats.holds || 0)
+                  
+                  mappedStats = {
+                    gamesPlayed: pitchingStats.games || 0,                    // Games pitched
+                    atBats: pitchingStats.gamesStarted || 0,                  // Games started
+                    runs: pitchingStats.wins || 0,                           // Wins
+                    hits: pitchingStats.losses || 0,                         // Losses
+                    doubles: pitchingStats.saves || 0,                       // Saves
+                    triples: pitchingStats.qualityStarts || 0,               // Quality Starts
+                    homeRuns: svhd,                                          // Saves + Holds (SVHD)
+                    rbi: 0,                                                  // Not used for pitchers
+                    stolenBases: 0,                                          // Not used for pitchers  
+                    caughtStealing: 0,                                       // Not used for pitchers
+                    baseOnBalls: 0,                                          // We could use walks allowed if needed
+                    strikeOuts: pitchingStats.strikeOuts || 0,               // Strikeouts
+                    battingAverage: 0,                                       // Not used for pitchers
+                    onBasePercentage: parseFloat(pitchingStats.era?.toString() || '0'), // ERA
+                    sluggingPercentage: parseFloat(pitchingStats.whip?.toString() || '0'), // WHIP
+                    totalBases: parseFloat(pitchingStats.inningsPitched?.replace('.', '') || '0') // IP (formatted)
+                  }
+                  
+                  console.log(`   📊 Pitcher stats: W=${pitchingStats.wins} L=${pitchingStats.losses} SV=${pitchingStats.saves} HD=${pitchingStats.holds} SVHD=${svhd} QS=${pitchingStats.qualityStarts}`)
+                  playersWithMLBStats++
+                  
+                } else if (isHitter && battingStats) {
+                  // Use MLB batting stats
+                  mappedStats = {
+                    gamesPlayed: 0,                                          // Games (not always available)
+                    atBats: battingStats.atBats || 0,                       // At Bats
+                    runs: battingStats.runs || 0,                           // Runs
+                    hits: battingStats.hits || 0,                           // Hits
+                    doubles: battingStats.doubles || 0,                     // Doubles
+                    triples: battingStats.triples || 0,                     // Triples
+                    homeRuns: battingStats.homeRuns || 0,                   // Home Runs
+                    rbi: battingStats.rbi || 0,                             // RBI
+                    stolenBases: battingStats.stolenBases || 0,             // Stolen Bases
+                    caughtStealing: 0,                                      // Not always available
+                    baseOnBalls: battingStats.baseOnBalls || 0,             // Walks
+                    strikeOuts: battingStats.strikeOuts || 0,               // Strikeouts
+                    battingAverage: battingStats.battingAverage || 0,       // Batting Average
+                    onBasePercentage: battingStats.onBasePercentage || 0,   // On Base Percentage
+                    sluggingPercentage: battingStats.sluggingPercentage || 0, // Slugging Percentage
+                    totalBases: battingStats.totalBases || 0                // Total Bases
+                  }
+                  
+                  console.log(`   📊 Hitter stats: AVG=${battingStats.battingAverage} HR=${battingStats.homeRuns} RBI=${battingStats.rbi} SB=${battingStats.stolenBases} OBP=${battingStats.onBasePercentage}`)
+                  playersWithMLBStats++
+                  
+                } else {
+                  console.log(`   ⚠️  No MLB stats found for ${espnPlayer.fullName}`)
+                  playersMLBNotFound++
+                }
+              } else {
+                console.log(`   ❌ ${espnPlayer.fullName} not found in MLB API - will use zero stats`)
+                playersMLBNotFound++
+                
+                // For players not found in MLB API, we could potentially fall back to ESPN stats
+                // For now, they'll get zero stats which is handled in the fallback section below
+              }
+            }
+
+            // Step 5: Fallback to zero stats if no MLB data available
+            if (!mappedStats) {
+              mappedStats = {
+                gamesPlayed: 0, atBats: 0, runs: 0, hits: 0, doubles: 0, triples: 0,
+                homeRuns: 0, rbi: 0, stolenBases: 0, caughtStealing: 0, baseOnBalls: 0,
+                strikeOuts: 0, battingAverage: 0, onBasePercentage: 0, sluggingPercentage: 0,
+                totalBases: 0
+              }
+            }
+
+            // Step 6: Update player stats in database
+            await prisma.playerStats.upsert({
+              where: {
+                playerId_season: {
+                  playerId: espnPlayer.id,
+                  season: league.season
+                }
+              },
+              update: mappedStats,
+              create: {
+                playerId: espnPlayer.id,
+                season: league.season,
+                ...mappedStats
+              }
+            })
+
+            // Step 7: Create roster slot entry
             const positionMap: { [key: number]: string } = {
               0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS', 5: 'OF', 6: 'OF', 7: 'OF',
               8: 'UTIL', 9: 'SP', 10: 'SP', 11: 'RP', 12: 'RP', 13: 'P', 20: 'BENCH'
@@ -452,8 +279,11 @@ export async function POST(
                 acquisitionDate: rosterEntry.acquisitionDate ? new Date(rosterEntry.acquisitionDate) : new Date()
               }
             })
-          } catch (rosterError) {
-            console.error('Error processing roster entry during sync:', rosterError, rosterEntry)
+
+            playersProcessed++
+
+          } catch (playerError) {
+            console.error(`   ❌ Error processing ${rosterEntry.player?.fullName}:`, playerError)
           }
         }
         rostersProcessed++
@@ -466,15 +296,27 @@ export async function POST(
       data: { lastSyncAt: new Date() }
     })
 
+    console.log('\n' + '=' * 80)
+    console.log('🎯 HYBRID SYNC COMPLETE')
+    console.log(`   Total players processed: ${playersProcessed}`)
+    console.log(`   Players with MLB stats: ${playersWithMLBStats}`)
+    console.log(`   Players not found in MLB: ${playersMLBNotFound}`)
+    console.log(`   Teams processed: ${rostersProcessed}`)
+
     return NextResponse.json({ 
       success: true,
-      message: `Successfully synced ${playersProcessed} players across ${rostersProcessed} team rosters`,
-      playersProcessed,
-      rostersProcessed
+      message: `Hybrid sync complete: ${playersProcessed} players processed using ESPN rosters + MLB Stats API`,
+      stats: {
+        playersProcessed,
+        playersWithMLBStats,
+        playersMLBNotFound,
+        rostersProcessed,
+        dataSource: 'Hybrid (ESPN + MLB Stats API)'
+      }
     })
 
   } catch (error) {
-    console.error('Error syncing league roster data:', error)
+    console.error('Error in hybrid sync:', error)
     return NextResponse.json({ 
       error: error instanceof Error ? error.message : 'Failed to sync roster data' 
     }, { status: 500 })

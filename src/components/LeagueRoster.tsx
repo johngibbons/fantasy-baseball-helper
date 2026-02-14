@@ -247,8 +247,9 @@ export default function LeagueRoster({ league, onBack }: LeagueRosterProps) {
     return colorMap[position] || 'bg-gray-100 text-gray-800'
   }
 
-  // Comprehensive ESPN stat ID to database field and category mapping
-  // Based on user's actual league categories: R, TB, RBI, SB, OBP, K, QS, ERA, WHIP, SVHD
+  // Hybrid Data Source: ESPN rosters + MLB Stats API for accurate statistics
+  // Database field mapping for user's league categories: R, TB, RBI, SB, OBP, K, QS, ERA, WHIP, SVHD
+  // Note: Stats now sourced from official MLB API for accuracy (saves, holds, quality starts, etc.)
   const statIdToFieldMap: { [key: number]: { field: keyof RosterPlayer['stats'], label: string, decimals?: number, isPitcherStat?: boolean } } = {
     // Position Player Stats (confirmed from user's league)
     9: { field: 'onBasePercentage', label: 'OBP', decimals: 3 }, // On Base Percentage - ESPN Stat 9 (backup)
