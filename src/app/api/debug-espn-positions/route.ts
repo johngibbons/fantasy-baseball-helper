@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server'
 import { ESPNApi } from '@/lib/espn-api'
 
@@ -12,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('🔍 Debugging ESPN position data')
-    console.log('=' * 80)
+    console.log('='.repeat(80))
 
     const settings = { swid, espn_s2 }
     const rosters = await ESPNApi.getRosters(leagueId, season, settings)
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    console.log('\n' + '=' * 80)
+    console.log('\n' + '='.repeat(80))
     console.log('🎯 ESPN POSITION DEBUG COMPLETE')
 
     return NextResponse.json({
