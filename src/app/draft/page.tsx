@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { getDraftBoard, recalculateDraftValues, RankedPlayer } from '@/lib/valuations-api'
 
@@ -73,13 +73,40 @@ const PITCHING_CATS = [
   { key: 'zscore_svhd', label: 'SVHD' },
 ] as const
 
+const ALL_CATS = [...HITTING_CATS, ...PITCHING_CATS]
+
 // ── Roster slot display order ──
 const SLOT_ORDER = ['C', '1B', '2B', '3B', 'SS', 'OF', 'UTIL', 'SP', 'RP', 'P']
 
+// ── Default teams fallback ──
+const DEFAULT_NUM_TEAMS = 10
+
+function makeDefaultTeams(n: number): DraftTeam[] {
+  return Array.from({ length: n }, (_, i) => ({ id: i + 1, name: `Team ${i + 1}` }))
+}
+
+// ── Snake order helper ──
+function getActiveTeamId(pickIndex: number, order: number[]): number {
+  if (order.length === 0) return -1
+  const numTeams = order.length
+  const round = Math.floor(pickIndex / numTeams)
+  const posInRound = pickIndex % numTeams
+  // Snake: even rounds go forward, odd rounds go backward
+  return round % 2 === 0 ? order[posInRound] : order[numTeams - 1 - posInRound]
+}
+
+// ── Types ──
+interface DraftTeam { id: number; name: string }
+
+interface DraftState {
+  picks: [number, number][]  // [mlbId, teamId][]
+  myTeamId: number | null
+  draftOrder: number[]
+  currentPickIndex: number
+}
+
 export default function DraftBoardPage() {
   const [allPlayers, setAllPlayers] = useState<RankedPlayer[]>([])
-  const [draftedIds, setDraftedIds] = useState<Set<number>>(new Set())
-  const [myPickIds, setMyPickIds] = useState<Set<number>>(new Set())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchText, setSearchText] = useState('')
@@ -88,57 +115,180 @@ export default function DraftBoardPage() {
   const [recalcData, setRecalcData] = useState<Map<number, RankedPlayer> | null>(null)
   const [recalculating, setRecalculating] = useState(false)
 
+  // ── Team-aware draft state ──
+  const [leagueTeams, setLeagueTeams] = useState<DraftTeam[]>([])
+  const [draftPicks, setDraftPicks] = useState<Map<number, number>>(new Map()) // mlb_id → teamId
+  const [myTeamId, setMyTeamId] = useState<number | null>(null)
+  const [draftOrder, setDraftOrder] = useState<number[]>([])
+  const [currentPickIndex, setCurrentPickIndex] = useState(0)
+  const [showDraftOrder, setShowDraftOrder] = useState(false)
+  const [overrideTeam, setOverrideTeam] = useState<number | null>(null)
+
+  // ── Derived state (backward-compatible) ──
+  const draftedIds = useMemo(() => new Set(draftPicks.keys()), [draftPicks])
+  const myPickIds = useMemo(() => {
+    if (!myTeamId) return new Set<number>()
+    return new Set([...draftPicks].filter(([, tid]) => tid === myTeamId).map(([id]) => id))
+  }, [draftPicks, myTeamId])
+
+  // ── Active team on the clock ──
+  const activeTeamId = useMemo(
+    () => overrideTeam ?? getActiveTeamId(currentPickIndex, draftOrder),
+    [currentPickIndex, draftOrder, overrideTeam]
+  )
+  const activeTeam = useMemo(
+    () => leagueTeams.find((t) => t.id === activeTeamId),
+    [leagueTeams, activeTeamId]
+  )
+  const currentRound = draftOrder.length > 0 ? Math.floor(currentPickIndex / draftOrder.length) + 1 : 1
+  const currentPickInRound = draftOrder.length > 0 ? (currentPickIndex % draftOrder.length) + 1 : currentPickIndex + 1
+
+  // ── Team name lookup ──
+  const teamNameMap = useMemo(() => {
+    const m = new Map<number, string>()
+    for (const t of leagueTeams) m.set(t.id, t.name)
+    m.set(-1, 'Unknown')
+    return m
+  }, [leagueTeams])
+
+  const getTeamAbbrev = useCallback((teamId: number) => {
+    const name = teamNameMap.get(teamId) ?? `T${teamId}`
+    // Use first 3 chars or abbreviation
+    if (name.startsWith('Team ')) return `TM${name.slice(5)}`
+    return name.slice(0, 4).toUpperCase()
+  }, [teamNameMap])
+
+  // ── Load players + restore state ──
   useEffect(() => {
     getDraftBoard()
       .then((data) => setAllPlayers(data.players))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
+
+    // Restore saved state
     try {
       const saved = localStorage.getItem('draftState')
       if (saved) {
         const state = JSON.parse(saved)
-        setDraftedIds(new Set(state.drafted || []))
-        setMyPickIds(new Set(state.myPicks || []))
+        // New format
+        if (state.picks) {
+          setDraftPicks(new Map(state.picks))
+          setMyTeamId(state.myTeamId ?? null)
+          setDraftOrder(state.draftOrder ?? [])
+          setCurrentPickIndex(state.currentPickIndex ?? 0)
+        }
+        // Old format migration
+        else if (state.drafted || state.myPicks) {
+          const picks = new Map<number, number>()
+          const oldMyPicks = new Set<number>(state.myPicks || [])
+          for (const id of (state.drafted || [])) {
+            if (oldMyPicks.has(id)) {
+              picks.set(id, 0) // assign to team 0 (will be re-mapped when myTeamId is set)
+            } else {
+              picks.set(id, -1) // unknown team
+            }
+          }
+          setDraftPicks(picks)
+        }
       }
     } catch {}
   }, [])
 
+  // ── Load teams from ESPN league ──
+  useEffect(() => {
+    fetch('/api/leagues').then(r => r.json()).then((leagues: { id: string }[]) => {
+      if (leagues.length > 0) {
+        fetch(`/api/leagues/${leagues[0].id}/teams`).then(r => r.json()).then((data: { teams: { externalId: string; name: string }[] }) => {
+          const teams = data.teams.map(t => ({ id: parseInt(t.externalId), name: t.name }))
+          setLeagueTeams(teams)
+          // Only set draft order if not already restored from localStorage
+          setDraftOrder(prev => prev.length > 0 ? prev : teams.map(t => t.id))
+        })
+      }
+    }).catch(() => {})
+  }, [])
+
+  // ── Fallback to generic teams if no league loaded ──
+  useEffect(() => {
+    // Wait a tick for league load to complete
+    const timer = setTimeout(() => {
+      setLeagueTeams(prev => {
+        if (prev.length > 0) return prev
+        const defaults = makeDefaultTeams(DEFAULT_NUM_TEAMS)
+        setDraftOrder(o => o.length > 0 ? o : defaults.map(t => t.id))
+        return defaults
+      })
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [])
+
+  // ── Migrate old myPicks to use actual myTeamId once set ──
+  useEffect(() => {
+    if (myTeamId == null) return
+    setDraftPicks(prev => {
+      let changed = false
+      const next = new Map(prev)
+      for (const [mlbId, tid] of next) {
+        if (tid === 0) {
+          next.set(mlbId, myTeamId)
+          changed = true
+        }
+      }
+      return changed ? next : prev
+    })
+  }, [myTeamId])
+
+  // ── Save state to localStorage ──
   useEffect(() => {
     if (allPlayers.length > 0) {
-      localStorage.setItem(
-        'draftState',
-        JSON.stringify({ drafted: [...draftedIds], myPicks: [...myPickIds] })
-      )
-    }
-  }, [draftedIds, myPickIds, allPlayers.length])
-
-  const toggleDrafted = (id: number) => {
-    setDraftedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) {
-        next.delete(id)
-        setMyPickIds((mp) => { const nm = new Set(mp); nm.delete(id); return nm })
-      } else {
-        next.add(id)
+      const state: DraftState = {
+        picks: [...draftPicks.entries()],
+        myTeamId,
+        draftOrder,
+        currentPickIndex,
       }
-      return next
-    })
-  }
+      localStorage.setItem('draftState', JSON.stringify(state))
+    }
+  }, [draftPicks, myTeamId, draftOrder, currentPickIndex, allPlayers.length])
 
-  const toggleMyPick = (id: number) => {
-    if (!draftedIds.has(id)) setDraftedIds((prev) => new Set(prev).add(id))
-    setMyPickIds((prev) => {
-      const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+  // ── Draft actions ──
+  const draftPlayer = useCallback((mlbId: number) => {
+    const teamId = overrideTeam ?? getActiveTeamId(currentPickIndex, draftOrder)
+    setDraftPicks(prev => new Map(prev).set(mlbId, teamId))
+    setCurrentPickIndex(prev => prev + 1)
+    setOverrideTeam(null)
+  }, [currentPickIndex, draftOrder, overrideTeam])
+
+  const undoLastPick = useCallback(() => {
+    if (currentPickIndex <= 0 && draftPicks.size === 0) return
+    // Find the last pick: the entry that was made at currentPickIndex - 1
+    // We go by the last entry in the map (insertion order)
+    const entries = [...draftPicks.entries()]
+    if (entries.length === 0) return
+    const [lastMlbId] = entries[entries.length - 1]
+    setDraftPicks(prev => {
+      const next = new Map(prev)
+      next.delete(lastMlbId)
       return next
     })
-  }
+    setCurrentPickIndex(prev => Math.max(0, prev - 1))
+  }, [currentPickIndex, draftPicks])
+
+  const undoPick = useCallback((mlbId: number) => {
+    setDraftPicks(prev => {
+      const next = new Map(prev)
+      next.delete(mlbId)
+      return next
+    })
+    // Don't change currentPickIndex for individual undo — only last pick undo adjusts it
+  }, [])
 
   const resetDraft = () => {
     if (confirm('Reset all draft picks?')) {
-      setDraftedIds(new Set())
-      setMyPickIds(new Set())
+      setDraftPicks(new Map())
+      setCurrentPickIndex(0)
       setRecalcData(null)
+      setOverrideTeam(null)
       localStorage.removeItem('draftState')
     }
   }
@@ -197,7 +347,7 @@ export default function DraftBoardPage() {
 
   const myTeamZScore = useMemo(() => myTeam.reduce((s, p) => s + (p.total_zscore || 0), 0), [myTeam])
 
-  // ── 3C: Roster assignment (greedy, most constrained first) ──
+  // ── Roster assignment (greedy, most constrained first) ──
   const rosterState = useMemo(() => {
     const capacity: Record<string, number> = { ...ROSTER_SLOTS }
     const assignments: { slot: string; player: RankedPlayer }[] = []
@@ -223,33 +373,71 @@ export default function DraftBoardPage() {
     return { assignments, remainingCapacity: capacity, unassigned }
   }, [myTeam])
 
-  // ── 3D: Category balance ──
+  // ── Category balance (my team) ──
   const categoryBalance = useMemo(() => {
     const totals: Record<string, number> = {}
-    const allCats = [...HITTING_CATS, ...PITCHING_CATS]
-    for (const cat of allCats) totals[cat.key] = 0
+    for (const cat of ALL_CATS) totals[cat.key] = 0
     for (const p of myTeam) {
-      for (const cat of allCats) {
+      for (const cat of ALL_CATS) {
         totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0)
       }
     }
     return totals
   }, [myTeam])
 
-  // ── 3E: Best available by need ──
+  // ── Draft comparison: all teams' category totals ──
+  const teamCategories = useMemo(() => {
+    const playerMap = new Map(allPlayers.map(p => [p.mlb_id, p]))
+    const teams = new Map<number, { totals: Record<string, number>; count: number; total: number }>()
+
+    for (const [mlbId, teamId] of draftPicks) {
+      const p = playerMap.get(mlbId)
+      if (!p) continue
+      if (!teams.has(teamId)) teams.set(teamId, { totals: {}, count: 0, total: 0 })
+      const t = teams.get(teamId)!
+      t.count++
+      for (const cat of ALL_CATS) {
+        const val = (p as unknown as Record<string, number>)[cat.key] ?? 0
+        t.totals[cat.key] = (t.totals[cat.key] ?? 0) + val
+        t.total += val
+      }
+    }
+
+    // Build ranked array sorted by total descending
+    const rows = [...teams.entries()]
+      .filter(([tid]) => tid !== -1) // exclude unknown
+      .map(([teamId, data]) => ({
+        teamId,
+        teamName: teamNameMap.get(teamId) ?? `Team ${teamId}`,
+        ...data,
+      }))
+      .sort((a, b) => b.total - a.total)
+
+    // Compute per-category ranks (1 = best)
+    const catRanks = new Map<string, Map<number, number>>()
+    for (const cat of ALL_CATS) {
+      const sorted = [...rows].sort((a, b) => (b.totals[cat.key] ?? 0) - (a.totals[cat.key] ?? 0))
+      const rankMap = new Map<number, number>()
+      sorted.forEach((r, i) => rankMap.set(r.teamId, i + 1))
+      catRanks.set(cat.key, rankMap)
+    }
+
+    return { rows, catRanks, teamCount: rows.length }
+  }, [allPlayers, draftPicks, teamNameMap])
+
+  // ── Best available by need ──
   const bestByNeed = useMemo(() => {
     const results: { slot: string; player: RankedPlayer }[] = []
     const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
     for (const slot of SLOT_ORDER) {
       if ((rosterState.remainingCapacity[slot] || 0) <= 0) continue
-      // Find best available player eligible for this slot
       const best = availablePlayers.find((p) => getEligibleSlots(p).includes(slot))
       if (best) results.push({ slot, player: best })
     }
     return results
   }, [allPlayers, draftedIds, rosterState.remainingCapacity])
 
-  // ── 3F: ADP value picks ──
+  // ── ADP value picks ──
   const adpSteals = useMemo(() => {
     const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
     return availablePlayers
@@ -261,7 +449,6 @@ export default function DraftBoardPage() {
   // ── VONA (Value Over Next Available) ──
   const vonaMap = useMemo(() => {
     const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
-    // Group available players by position, sorted by value descending
     const byPosition: Record<string, RankedPlayer[]> = {}
     for (const p of availablePlayers) {
       const positions = getPositions(p)
@@ -270,11 +457,9 @@ export default function DraftBoardPage() {
         byPosition[pos].push(p)
       }
     }
-    // Sort each position group by value
     for (const pos of Object.keys(byPosition)) {
       byPosition[pos].sort((a, b) => getPlayerValue(b) - getPlayerValue(a))
     }
-    // For each player, VONA = value - next best at their primary position
     const vona = new Map<number, number>()
     for (const p of availablePlayers) {
       const primaryPos = p.player_type === 'pitcher' ? pitcherRole(p) : getPositions(p)[0]
@@ -285,7 +470,6 @@ export default function DraftBoardPage() {
         const nextValue = getPlayerValue(posPlayers[myIdx + 1])
         vona.set(p.mlb_id, myValue - nextValue)
       } else {
-        // Last player at position — full value is VONA
         vona.set(p.mlb_id, myValue)
       }
     }
@@ -293,6 +477,7 @@ export default function DraftBoardPage() {
   }, [allPlayers, draftedIds, recalcData])
 
   const hasAdpData = allPlayers.some((p) => p.espn_adp != null)
+  const isMyTeamOnClock = myTeamId != null && activeTeamId === myTeamId
 
   if (loading) {
     return (
@@ -328,7 +513,7 @@ export default function DraftBoardPage() {
   }
 
   // Find weakest category
-  const allCatEntries = [...HITTING_CATS, ...PITCHING_CATS].map((c) => ({
+  const allCatEntries = ALL_CATS.map((c) => ({
     ...c,
     value: categoryBalance[c.key] ?? 0,
   }))
@@ -375,6 +560,114 @@ export default function DraftBoardPage() {
           </div>
         </div>
 
+        {/* Draft Toolbar */}
+        <div className={`bg-gray-900 rounded-xl border mb-4 p-3 flex flex-wrap items-center gap-4 ${isMyTeamOnClock ? 'border-blue-600 shadow-lg shadow-blue-500/10' : 'border-gray-800'}`}>
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-gray-500">Round</span>
+            <span className="font-bold text-white tabular-nums">{currentRound}</span>
+            <span className="text-gray-700">|</span>
+            <span className="text-gray-500">Pick</span>
+            <span className="font-bold text-white tabular-nums">{currentPickInRound}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-gray-500 text-sm">On the clock:</span>
+            <span className={`font-bold text-sm ${isMyTeamOnClock ? 'text-blue-400' : 'text-white'}`}>
+              {activeTeam?.name ?? `Team ${activeTeamId}`}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 ml-auto">
+            <label className="text-gray-500 text-xs">My team:</label>
+            <select
+              value={myTeamId ?? ''}
+              onChange={(e) => setMyTeamId(e.target.value ? parseInt(e.target.value) : null)}
+              className="bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select...</option>
+              {leagueTeams.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-gray-500 text-xs">Override:</label>
+            <select
+              value={overrideTeam ?? ''}
+              onChange={(e) => setOverrideTeam(e.target.value ? parseInt(e.target.value) : null)}
+              className="bg-gray-800 border border-gray-700 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Auto</option>
+              {leagueTeams.map((t) => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            onClick={undoLastPick}
+            disabled={draftPicks.size === 0}
+            className="px-3 py-1.5 text-xs font-semibold bg-gray-800 text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-700 hover:text-gray-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            Undo Last
+          </button>
+
+          <button
+            onClick={() => setShowDraftOrder(!showDraftOrder)}
+            className="px-3 py-1.5 text-xs font-semibold bg-gray-800 text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-700 hover:text-gray-200 transition-colors"
+          >
+            Draft Order
+          </button>
+        </div>
+
+        {/* Draft Order Editor */}
+        {showDraftOrder && (
+          <div className="bg-gray-900 rounded-xl border border-gray-800 mb-4 p-4">
+            <h3 className="text-sm font-bold text-white mb-3">Draft Order (Round 1)</h3>
+            <div className="flex flex-wrap gap-2">
+              {draftOrder.map((teamId, idx) => {
+                const team = leagueTeams.find(t => t.id === teamId)
+                return (
+                  <div key={teamId} className="flex items-center gap-1.5 bg-gray-800 rounded-lg px-2.5 py-1.5">
+                    <span className="text-[10px] text-gray-500 font-bold tabular-nums w-4">{idx + 1}.</span>
+                    <span className="text-xs text-white">{team?.name ?? `Team ${teamId}`}</span>
+                    <div className="flex flex-col gap-0.5 ml-1">
+                      <button
+                        onClick={() => {
+                          if (idx === 0) return
+                          setDraftOrder(prev => {
+                            const next = [...prev]
+                            ;[next[idx - 1], next[idx]] = [next[idx], next[idx - 1]]
+                            return next
+                          })
+                        }}
+                        disabled={idx === 0}
+                        className="text-[8px] text-gray-500 hover:text-white disabled:opacity-20 leading-none"
+                      >
+                        &#9650;
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (idx === draftOrder.length - 1) return
+                          setDraftOrder(prev => {
+                            const next = [...prev]
+                            ;[next[idx], next[idx + 1]] = [next[idx + 1], next[idx]]
+                            return next
+                          })
+                        }}
+                        disabled={idx === draftOrder.length - 1}
+                        className="text-[8px] text-gray-500 hover:text-white disabled:opacity-20 leading-none"
+                      >
+                        &#9660;
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
           {/* Main board */}
           <div className="lg:col-span-3">
@@ -418,7 +711,7 @@ export default function DraftBoardPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-800 bg-gray-900/80">
-                      <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-24">Actions</th>
+                      <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-28">Draft</th>
                       <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-14">#</th>
                       <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Player</th>
                       <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-24">Pos</th>
@@ -441,6 +734,7 @@ export default function DraftBoardPage() {
                     {displayList.map((p, idx) => {
                       const isDrafted = draftedIds.has(p.mlb_id)
                       const isMyPick = myPickIds.has(p.mlb_id)
+                      const draftedByTeam = draftPicks.get(p.mlb_id)
                       const stripe = idx % 2 === 0 ? 'bg-gray-900' : 'bg-gray-900/50'
                       const rowBg = isMyPick
                         ? 'bg-blue-950/50 border-l-2 border-l-blue-500'
@@ -457,28 +751,33 @@ export default function DraftBoardPage() {
                       return (
                         <tr key={p.mlb_id} className={`${rowBg} hover:bg-gray-800/80 transition-colors border-b border-gray-800/50`}>
                           <td className="px-3 py-1.5">
-                            <div className="flex gap-1">
+                            {isDrafted ? (
+                              <div className="flex items-center gap-1">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
+                                  isMyPick ? 'bg-blue-900 text-blue-300' : 'bg-gray-700 text-gray-400'
+                                }`}>
+                                  {getTeamAbbrev(draftedByTeam ?? -1)}
+                                </span>
+                                <button
+                                  onClick={() => undoPick(p.mlb_id)}
+                                  className="text-gray-600 hover:text-gray-300 text-xs transition-colors"
+                                  title="Undo pick"
+                                >
+                                  &#10005;
+                                </button>
+                              </div>
+                            ) : (
                               <button
-                                onClick={() => toggleDrafted(p.mlb_id)}
-                                className={`px-2.5 py-1 text-[10px] rounded-md font-bold uppercase tracking-wide transition-all ${
-                                  isDrafted
-                                    ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                    : 'bg-red-950 text-red-400 border border-red-800 hover:bg-red-900'
+                                onClick={() => draftPlayer(p.mlb_id)}
+                                className={`px-3 py-1 text-[10px] rounded-md font-bold uppercase tracking-wide transition-all ${
+                                  isMyTeamOnClock
+                                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 hover:bg-blue-500'
+                                    : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
                                 }`}
                               >
-                                {isDrafted ? 'Undo' : 'Gone'}
+                                Draft
                               </button>
-                              <button
-                                onClick={() => toggleMyPick(p.mlb_id)}
-                                className={`px-2.5 py-1 text-[10px] rounded-md font-bold uppercase tracking-wide transition-all ${
-                                  isMyPick
-                                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                                    : 'bg-blue-950 text-blue-400 border border-blue-800 hover:bg-blue-900'
-                                }`}
-                              >
-                                {isMyPick ? 'Mine' : 'Pick'}
-                              </button>
-                            </div>
+                            )}
                           </td>
                           <td className="px-3 py-1.5 text-gray-500 font-mono text-xs tabular-nums">{p.overall_rank}</td>
                           <td className="px-3 py-1.5">
@@ -518,7 +817,6 @@ export default function DraftBoardPage() {
                             {!isDrafted && (() => {
                               const vona = vonaMap.get(p.mlb_id)
                               if (vona == null) return <span className="text-xs text-gray-700">--</span>
-                              // Green intensity: scale from 0.3 to 1.0 opacity based on VONA magnitude
                               const opacity = Math.min(1, 0.3 + (vona / 5) * 0.7)
                               return (
                                 <span
@@ -648,7 +946,64 @@ export default function DraftBoardPage() {
                 </div>
               )}
 
-              {/* Section 3: Suggested Picks */}
+              {/* Section 3: Draft Comparison Heatmap */}
+              {teamCategories.rows.length > 0 && (
+                <div className="bg-gray-900 rounded-xl border border-gray-800">
+                  <div className="px-4 py-3 border-b border-gray-800">
+                    <h2 className="font-bold text-white text-sm">Draft Comparison</h2>
+                    <div className="text-[11px] text-gray-500 mt-0.5">
+                      {teamCategories.rows.length} teams &middot; Z-score totals by category
+                    </div>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[10px]">
+                      <thead>
+                        <tr className="border-b border-gray-800">
+                          <th className="px-2 py-1.5 text-left text-gray-500 font-semibold">Team</th>
+                          {ALL_CATS.map((cat) => (
+                            <th key={cat.key} className="px-1 py-1.5 text-center text-gray-500 font-semibold">{cat.label}</th>
+                          ))}
+                          <th className="px-2 py-1.5 text-right text-gray-500 font-semibold">Tot</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {teamCategories.rows.map((row) => {
+                          const isMyRow = row.teamId === myTeamId
+                          return (
+                            <tr
+                              key={row.teamId}
+                              className={`border-b border-gray-800/50 ${isMyRow ? 'bg-blue-950/30' : ''}`}
+                            >
+                              <td className={`px-2 py-1 font-semibold truncate max-w-[80px] ${isMyRow ? 'text-blue-400 border-l-2 border-l-blue-500' : 'text-gray-300'}`}>
+                                {row.teamName.length > 12 ? getTeamAbbrev(row.teamId) : row.teamName}
+                              </td>
+                              {ALL_CATS.map((cat) => {
+                                const val = row.totals[cat.key] ?? 0
+                                const rank = teamCategories.catRanks.get(cat.key)?.get(row.teamId) ?? teamCategories.teamCount
+                                const heatColor = getHeatColor(rank, teamCategories.teamCount)
+                                return (
+                                  <td
+                                    key={cat.key}
+                                    className="px-1 py-1 text-center font-bold tabular-nums"
+                                    style={{ color: heatColor }}
+                                  >
+                                    {val.toFixed(1)}
+                                  </td>
+                                )
+                              })}
+                              <td className={`px-2 py-1 text-right font-bold tabular-nums ${row.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                {row.total > 0 ? '+' : ''}{row.total.toFixed(1)}
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Section 4: Suggested Picks */}
               <div className="bg-gray-900 rounded-xl border border-gray-800">
                 <div className="px-4 py-3 border-b border-gray-800">
                   <h2 className="font-bold text-white text-sm">Suggestions</h2>
@@ -719,6 +1074,27 @@ export default function DraftBoardPage() {
       </div>
     </main>
   )
+}
+
+// ── Heatmap color helper ──
+function getHeatColor(rank: number, total: number): string {
+  if (total <= 1) return 'rgb(52, 211, 153)' // emerald
+  // Map rank 1→green, rank N→red
+  const t = (rank - 1) / (total - 1) // 0 = best, 1 = worst
+  // Green (52, 211, 153) → Yellow (234, 179, 8) → Red (239, 68, 68)
+  if (t <= 0.5) {
+    const s = t * 2
+    const r = Math.round(52 + (234 - 52) * s)
+    const g = Math.round(211 + (179 - 211) * s)
+    const b = Math.round(153 + (8 - 153) * s)
+    return `rgb(${r}, ${g}, ${b})`
+  } else {
+    const s = (t - 0.5) * 2
+    const r = Math.round(234 + (239 - 234) * s)
+    const g = Math.round(179 + (68 - 179) * s)
+    const b = Math.round(8 + (68 - 8) * s)
+    return `rgb(${r}, ${g}, ${b})`
+  }
 }
 
 // ── Category balance bar component ──

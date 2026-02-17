@@ -339,7 +339,20 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ 
+    // Persist ESPN credentials to User record
+    const user = await prisma.user.upsert({
+      where: { email: 'default@local' },
+      update: { espnSwid: swid, espnS2: espn_s2 },
+      create: { email: 'default@local', espnSwid: swid, espnS2: espn_s2 }
+    })
+    await prisma.userLeague.upsert({
+      where: { userId_leagueId: { userId: user.id, leagueId: league.id } },
+      update: {},
+      create: { userId: user.id, leagueId: league.id }
+    })
+    console.log('ESPN credentials persisted for user:', user.id)
+
+    return NextResponse.json({
       success: true,
       league: {
         id: league.id,
