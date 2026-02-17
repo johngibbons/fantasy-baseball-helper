@@ -31,7 +31,7 @@ jest.mock('../../lib/prisma', () => ({
 
 jest.mock('../../lib/espn-api')
 
-const mockPrisma = prisma as jest.Mocked<typeof prisma>
+const mockPrisma = prisma as any
 const mockESPNApi = ESPNApi as jest.Mocked<typeof ESPNApi>
 
 describe('ESPN Stats Mapping in Sync Process', () => {
@@ -93,7 +93,7 @@ describe('ESPN Stats Mapping in Sync Process', () => {
     mockPrisma.league.findUnique.mockResolvedValue(mockLeague as any)
     mockPrisma.team.findMany.mockResolvedValue(mockTeams as any)
     mockESPNApi.getRosters.mockResolvedValue(mockRosterWithESPNStats)
-    ;(mockPrisma.rosterSlot.deleteMany as any).mockResolvedValue({ count: 0 })
+    mockPrisma.rosterSlot.deleteMany.mockResolvedValue({ count: 0 })
     mockPrisma.player.upsert.mockResolvedValue({} as any)
     mockPrisma.playerStats.upsert.mockResolvedValue({} as any)
     mockPrisma.rosterSlot.create.mockResolvedValue({} as any)
@@ -189,7 +189,7 @@ describe('ESPN Stats Mapping in Sync Process', () => {
     mockPrisma.league.findUnique.mockResolvedValue(mockLeague as any)
     mockPrisma.team.findMany.mockResolvedValue(mockTeams as any)
     mockESPNApi.getRosters.mockResolvedValue(mockRosterWithPartialStats)
-    ;(mockPrisma.rosterSlot.deleteMany as any).mockResolvedValue({ count: 0 })
+    mockPrisma.rosterSlot.deleteMany.mockResolvedValue({ count: 0 })
     mockPrisma.player.upsert.mockResolvedValue({} as any)
     mockPrisma.playerStats.upsert.mockResolvedValue({} as any)
     mockPrisma.rosterSlot.create.mockResolvedValue({} as any)

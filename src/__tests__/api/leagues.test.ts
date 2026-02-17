@@ -21,7 +21,7 @@ jest.mock('next/server', () => ({
 
 import { prisma } from '../../lib/prisma'
 
-const mockPrisma = prisma as jest.Mocked<typeof prisma>
+const mockPrisma = prisma as any
 
 describe('/api/leagues', () => {
   beforeEach(() => {
