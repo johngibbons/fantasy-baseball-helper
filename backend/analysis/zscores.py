@@ -756,7 +756,7 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
         conn = get_connection()
         for p in all_players:
             conn.execute(
-                """INSERT OR REPLACE INTO rankings
+                """INSERT INTO rankings
                    (mlb_id, season, overall_rank, position_rank, total_zscore,
                     zscore_r, zscore_tb, zscore_rbi, zscore_sb, zscore_obp,
                     zscore_k, zscore_qs, zscore_era, zscore_whip, zscore_svhd,
@@ -764,7 +764,16 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
                    VALUES (?, ?, ?, ?, ?,
                            ?, ?, ?, ?, ?,
                            ?, ?, ?, ?, ?,
-                           ?)""",
+                           ?)
+                   ON CONFLICT (mlb_id, season) DO UPDATE SET
+                     overall_rank = EXCLUDED.overall_rank, position_rank = EXCLUDED.position_rank,
+                     total_zscore = EXCLUDED.total_zscore,
+                     zscore_r = EXCLUDED.zscore_r, zscore_tb = EXCLUDED.zscore_tb,
+                     zscore_rbi = EXCLUDED.zscore_rbi, zscore_sb = EXCLUDED.zscore_sb,
+                     zscore_obp = EXCLUDED.zscore_obp, zscore_k = EXCLUDED.zscore_k,
+                     zscore_qs = EXCLUDED.zscore_qs, zscore_era = EXCLUDED.zscore_era,
+                     zscore_whip = EXCLUDED.zscore_whip, zscore_svhd = EXCLUDED.zscore_svhd,
+                     player_type = EXCLUDED.player_type""",
                 (
                     p["mlb_id"], season, p["overall_rank"], p["position_rank"],
                     p["total_zscore"],

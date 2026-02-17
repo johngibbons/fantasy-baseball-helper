@@ -112,11 +112,18 @@ def sync_statcast_batting(season: int):
     count = 0
     for mlb_id, data in player_data.items():
         conn.execute(
-            """INSERT OR REPLACE INTO statcast_batting
+            """INSERT INTO statcast_batting
                (mlb_id, season, xwoba, xba, xslg, barrel_pct, hard_hit_pct,
                 avg_exit_velocity, max_exit_velocity, sprint_speed,
                 sweet_spot_pct, launch_angle, woba)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT (mlb_id, season) DO UPDATE SET
+                 xwoba = EXCLUDED.xwoba, xba = EXCLUDED.xba, xslg = EXCLUDED.xslg,
+                 barrel_pct = EXCLUDED.barrel_pct, hard_hit_pct = EXCLUDED.hard_hit_pct,
+                 avg_exit_velocity = EXCLUDED.avg_exit_velocity,
+                 max_exit_velocity = EXCLUDED.max_exit_velocity,
+                 sprint_speed = EXCLUDED.sprint_speed, sweet_spot_pct = EXCLUDED.sweet_spot_pct,
+                 launch_angle = EXCLUDED.launch_angle, woba = EXCLUDED.woba""",
             (
                 mlb_id, season,
                 data.get("xwoba"), data.get("xba"), data.get("xslg"),
@@ -248,12 +255,21 @@ def sync_statcast_pitching(season: int):
     count = 0
     for mlb_id, data in player_data.items():
         conn.execute(
-            """INSERT OR REPLACE INTO statcast_pitching
+            """INSERT INTO statcast_pitching
                (mlb_id, season, xera, xwoba_against, xba_against,
                 barrel_pct_against, hard_hit_pct_against,
                 whiff_pct, k_pct, bb_pct,
                 avg_exit_velocity_against, chase_rate, csw_pct)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+               ON CONFLICT (mlb_id, season) DO UPDATE SET
+                 xera = EXCLUDED.xera, xwoba_against = EXCLUDED.xwoba_against,
+                 xba_against = EXCLUDED.xba_against,
+                 barrel_pct_against = EXCLUDED.barrel_pct_against,
+                 hard_hit_pct_against = EXCLUDED.hard_hit_pct_against,
+                 whiff_pct = EXCLUDED.whiff_pct, k_pct = EXCLUDED.k_pct,
+                 bb_pct = EXCLUDED.bb_pct,
+                 avg_exit_velocity_against = EXCLUDED.avg_exit_velocity_against,
+                 chase_rate = EXCLUDED.chase_rate, csw_pct = EXCLUDED.csw_pct""",
             (
                 mlb_id, season,
                 data.get("xera"), data.get("xwoba_against"), data.get("xba_against"),

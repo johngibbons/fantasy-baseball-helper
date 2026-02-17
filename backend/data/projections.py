@@ -99,7 +99,7 @@ def import_fangraphs_batting(filepath: str, source: str, season: int = 2025):
             tb = singles + (2 * doubles) + (3 * triples) + (4 * hr)
 
             conn.execute(
-                """INSERT OR REPLACE INTO projections
+                """INSERT INTO projections
                    (mlb_id, source, season, player_type,
                     proj_pa, proj_at_bats, proj_runs, proj_hits, proj_doubles, proj_triples,
                     proj_home_runs, proj_rbi, proj_stolen_bases, proj_walks,
@@ -107,7 +107,17 @@ def import_fangraphs_batting(filepath: str, source: str, season: int = 2025):
                    VALUES (?, ?, ?, 'hitter',
                            ?, ?, ?, ?, ?, ?,
                            ?, ?, ?, ?,
-                           ?, ?, ?, ?, ?)""",
+                           ?, ?, ?, ?, ?)
+                   ON CONFLICT (mlb_id, source, season) DO UPDATE SET
+                     player_type = EXCLUDED.player_type,
+                     proj_pa = EXCLUDED.proj_pa, proj_at_bats = EXCLUDED.proj_at_bats,
+                     proj_runs = EXCLUDED.proj_runs, proj_hits = EXCLUDED.proj_hits,
+                     proj_doubles = EXCLUDED.proj_doubles, proj_triples = EXCLUDED.proj_triples,
+                     proj_home_runs = EXCLUDED.proj_home_runs, proj_rbi = EXCLUDED.proj_rbi,
+                     proj_stolen_bases = EXCLUDED.proj_stolen_bases, proj_walks = EXCLUDED.proj_walks,
+                     proj_strikeouts = EXCLUDED.proj_strikeouts, proj_hbp = EXCLUDED.proj_hbp,
+                     proj_sac_flies = EXCLUDED.proj_sac_flies, proj_obp = EXCLUDED.proj_obp,
+                     proj_total_bases = EXCLUDED.proj_total_bases""",
                 (
                     mlb_id, source, season,
                     pa, ab,
@@ -159,7 +169,7 @@ def import_fangraphs_pitching(filepath: str, source: str, season: int = 2025):
                 continue
 
             conn.execute(
-                """INSERT OR REPLACE INTO projections
+                """INSERT INTO projections
                    (mlb_id, source, season, player_type,
                     proj_ip, proj_pitcher_strikeouts, proj_quality_starts,
                     proj_era, proj_whip, proj_saves, proj_holds, proj_wins,
@@ -167,7 +177,16 @@ def import_fangraphs_pitching(filepath: str, source: str, season: int = 2025):
                    VALUES (?, ?, ?, 'pitcher',
                            ?, ?, ?,
                            ?, ?, ?, ?, ?,
-                           ?, ?, ?)""",
+                           ?, ?, ?)
+                   ON CONFLICT (mlb_id, source, season) DO UPDATE SET
+                     player_type = EXCLUDED.player_type,
+                     proj_ip = EXCLUDED.proj_ip, proj_pitcher_strikeouts = EXCLUDED.proj_pitcher_strikeouts,
+                     proj_quality_starts = EXCLUDED.proj_quality_starts,
+                     proj_era = EXCLUDED.proj_era, proj_whip = EXCLUDED.proj_whip,
+                     proj_saves = EXCLUDED.proj_saves, proj_holds = EXCLUDED.proj_holds,
+                     proj_wins = EXCLUDED.proj_wins, proj_hits_allowed = EXCLUDED.proj_hits_allowed,
+                     proj_walks_allowed = EXCLUDED.proj_walks_allowed,
+                     proj_earned_runs = EXCLUDED.proj_earned_runs""",
                 (
                     mlb_id, source, season,
                     _safe_float(row.get("IP")),
@@ -267,10 +286,16 @@ def import_league_standings(filepath: str, season: int):
                 continue
 
             conn.execute(
-                """INSERT OR REPLACE INTO league_season_totals
+                """INSERT INTO league_season_totals
                    (season, team_name, team_r, team_tb, team_rbi, team_sb, team_obp,
                     team_k, team_qs, team_era, team_whip, team_svhd)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                   ON CONFLICT (season, team_name) DO UPDATE SET
+                     team_r = EXCLUDED.team_r, team_tb = EXCLUDED.team_tb,
+                     team_rbi = EXCLUDED.team_rbi, team_sb = EXCLUDED.team_sb,
+                     team_obp = EXCLUDED.team_obp, team_k = EXCLUDED.team_k,
+                     team_qs = EXCLUDED.team_qs, team_era = EXCLUDED.team_era,
+                     team_whip = EXCLUDED.team_whip, team_svhd = EXCLUDED.team_svhd""",
                 (
                     row_season, team,
                     _safe_int(row.get("R")),
@@ -348,7 +373,7 @@ def generate_projections_from_stats(season: int = 2025):
         obp = (proj["hits"] + proj["walks"] + proj["hit_by_pitch"]) / obp_denom if obp_denom > 0 else 0
 
         conn.execute(
-            """INSERT OR REPLACE INTO projections
+            """INSERT INTO projections
                (mlb_id, source, season, player_type,
                 proj_pa, proj_at_bats, proj_runs, proj_hits, proj_doubles, proj_triples,
                 proj_home_runs, proj_rbi, proj_stolen_bases, proj_walks,
@@ -356,7 +381,17 @@ def generate_projections_from_stats(season: int = 2025):
                VALUES (?, 'trend', ?, 'hitter',
                        ?, ?, ?, ?, ?, ?,
                        ?, ?, ?, ?,
-                       ?, ?, ?, ?, ?)""",
+                       ?, ?, ?, ?, ?)
+               ON CONFLICT (mlb_id, source, season) DO UPDATE SET
+                 player_type = EXCLUDED.player_type,
+                 proj_pa = EXCLUDED.proj_pa, proj_at_bats = EXCLUDED.proj_at_bats,
+                 proj_runs = EXCLUDED.proj_runs, proj_hits = EXCLUDED.proj_hits,
+                 proj_doubles = EXCLUDED.proj_doubles, proj_triples = EXCLUDED.proj_triples,
+                 proj_home_runs = EXCLUDED.proj_home_runs, proj_rbi = EXCLUDED.proj_rbi,
+                 proj_stolen_bases = EXCLUDED.proj_stolen_bases, proj_walks = EXCLUDED.proj_walks,
+                 proj_strikeouts = EXCLUDED.proj_strikeouts, proj_hbp = EXCLUDED.proj_hbp,
+                 proj_sac_flies = EXCLUDED.proj_sac_flies, proj_obp = EXCLUDED.proj_obp,
+                 proj_total_bases = EXCLUDED.proj_total_bases""",
             (
                 mlb_id, season,
                 proj["plate_appearances"], proj["at_bats"],
@@ -412,7 +447,7 @@ def generate_projections_from_stats(season: int = 2025):
         whip = (proj["hits_allowed"] + proj["walks_allowed"]) / proj["innings_pitched"] if proj["innings_pitched"] > 0 else 0
 
         conn.execute(
-            """INSERT OR REPLACE INTO projections
+            """INSERT INTO projections
                (mlb_id, source, season, player_type,
                 proj_ip, proj_pitcher_strikeouts, proj_quality_starts,
                 proj_era, proj_whip, proj_saves, proj_holds, proj_wins,
@@ -420,7 +455,16 @@ def generate_projections_from_stats(season: int = 2025):
                VALUES (?, 'trend', ?, 'pitcher',
                        ?, ?, ?,
                        ?, ?, ?, ?, ?,
-                       ?, ?, ?)""",
+                       ?, ?, ?)
+               ON CONFLICT (mlb_id, source, season) DO UPDATE SET
+                 player_type = EXCLUDED.player_type,
+                 proj_ip = EXCLUDED.proj_ip, proj_pitcher_strikeouts = EXCLUDED.proj_pitcher_strikeouts,
+                 proj_quality_starts = EXCLUDED.proj_quality_starts,
+                 proj_era = EXCLUDED.proj_era, proj_whip = EXCLUDED.proj_whip,
+                 proj_saves = EXCLUDED.proj_saves, proj_holds = EXCLUDED.proj_holds,
+                 proj_wins = EXCLUDED.proj_wins, proj_hits_allowed = EXCLUDED.proj_hits_allowed,
+                 proj_walks_allowed = EXCLUDED.proj_walks_allowed,
+                 proj_earned_runs = EXCLUDED.proj_earned_runs""",
             (
                 mlb_id, season,
                 proj["innings_pitched"], proj["strikeouts"], proj["quality_starts"],

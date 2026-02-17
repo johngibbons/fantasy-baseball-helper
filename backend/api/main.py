@@ -1,5 +1,7 @@
 """FastAPI application — Fantasy Baseball valuation API."""
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.routes import router
@@ -11,9 +13,13 @@ app = FastAPI(
     version="1.0.0",
 )
 
+_origins = ["http://localhost:3000", "http://localhost:3001"]
+if os.environ.get("FRONTEND_URL"):
+    _origins.append(os.environ["FRONTEND_URL"])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001"],
+    allow_origins=_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

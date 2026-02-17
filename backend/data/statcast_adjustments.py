@@ -154,7 +154,7 @@ def _adjust_hitters(conn, season: int) -> int:
 
         # Write adjusted projection
         conn.execute(
-            """INSERT OR REPLACE INTO projections
+            """INSERT INTO projections
                (mlb_id, source, season, player_type,
                 proj_pa, proj_at_bats, proj_runs, proj_hits, proj_doubles, proj_triples,
                 proj_home_runs, proj_rbi, proj_stolen_bases, proj_walks,
@@ -162,7 +162,17 @@ def _adjust_hitters(conn, season: int) -> int:
                VALUES (?, 'statcast_adjusted', ?, 'hitter',
                        ?, ?, ?, ?, ?, ?,
                        ?, ?, ?, ?,
-                       ?, ?, ?, ?, ?)""",
+                       ?, ?, ?, ?, ?)
+               ON CONFLICT (mlb_id, source, season) DO UPDATE SET
+                 player_type = EXCLUDED.player_type,
+                 proj_pa = EXCLUDED.proj_pa, proj_at_bats = EXCLUDED.proj_at_bats,
+                 proj_runs = EXCLUDED.proj_runs, proj_hits = EXCLUDED.proj_hits,
+                 proj_doubles = EXCLUDED.proj_doubles, proj_triples = EXCLUDED.proj_triples,
+                 proj_home_runs = EXCLUDED.proj_home_runs, proj_rbi = EXCLUDED.proj_rbi,
+                 proj_stolen_bases = EXCLUDED.proj_stolen_bases, proj_walks = EXCLUDED.proj_walks,
+                 proj_strikeouts = EXCLUDED.proj_strikeouts, proj_hbp = EXCLUDED.proj_hbp,
+                 proj_sac_flies = EXCLUDED.proj_sac_flies, proj_obp = EXCLUDED.proj_obp,
+                 proj_total_bases = EXCLUDED.proj_total_bases""",
             (
                 mlb_id, season,
                 proj["proj_pa"], proj["proj_at_bats"],
@@ -318,7 +328,7 @@ def _adjust_pitchers(conn, season: int) -> int:
             adj_walks_allowed = orig_bb
 
         conn.execute(
-            """INSERT OR REPLACE INTO projections
+            """INSERT INTO projections
                (mlb_id, source, season, player_type,
                 proj_ip, proj_pitcher_strikeouts, proj_quality_starts,
                 proj_era, proj_whip, proj_saves, proj_holds, proj_wins,
@@ -326,7 +336,16 @@ def _adjust_pitchers(conn, season: int) -> int:
                VALUES (?, 'statcast_adjusted', ?, 'pitcher',
                        ?, ?, ?,
                        ?, ?, ?, ?, ?,
-                       ?, ?, ?)""",
+                       ?, ?, ?)
+               ON CONFLICT (mlb_id, source, season) DO UPDATE SET
+                 player_type = EXCLUDED.player_type,
+                 proj_ip = EXCLUDED.proj_ip, proj_pitcher_strikeouts = EXCLUDED.proj_pitcher_strikeouts,
+                 proj_quality_starts = EXCLUDED.proj_quality_starts,
+                 proj_era = EXCLUDED.proj_era, proj_whip = EXCLUDED.proj_whip,
+                 proj_saves = EXCLUDED.proj_saves, proj_holds = EXCLUDED.proj_holds,
+                 proj_wins = EXCLUDED.proj_wins, proj_hits_allowed = EXCLUDED.proj_hits_allowed,
+                 proj_walks_allowed = EXCLUDED.proj_walks_allowed,
+                 proj_earned_runs = EXCLUDED.proj_earned_runs""",
             (
                 mlb_id, season,
                 proj["proj_ip"], round(adj_k), round(adj_qs),
@@ -343,7 +362,7 @@ def _adjust_pitchers(conn, season: int) -> int:
 def _copy_projection_as_adjusted(conn, proj):
     """Copy a hitter trend projection as statcast_adjusted (no Statcast data available)."""
     conn.execute(
-        """INSERT OR REPLACE INTO projections
+        """INSERT INTO projections
            (mlb_id, source, season, player_type,
             proj_pa, proj_at_bats, proj_runs, proj_hits, proj_doubles, proj_triples,
             proj_home_runs, proj_rbi, proj_stolen_bases, proj_walks,
@@ -351,7 +370,17 @@ def _copy_projection_as_adjusted(conn, proj):
            VALUES (?, 'statcast_adjusted', ?, 'hitter',
                    ?, ?, ?, ?, ?, ?,
                    ?, ?, ?, ?,
-                   ?, ?, ?, ?, ?)""",
+                   ?, ?, ?, ?, ?)
+           ON CONFLICT (mlb_id, source, season) DO UPDATE SET
+             player_type = EXCLUDED.player_type,
+             proj_pa = EXCLUDED.proj_pa, proj_at_bats = EXCLUDED.proj_at_bats,
+             proj_runs = EXCLUDED.proj_runs, proj_hits = EXCLUDED.proj_hits,
+             proj_doubles = EXCLUDED.proj_doubles, proj_triples = EXCLUDED.proj_triples,
+             proj_home_runs = EXCLUDED.proj_home_runs, proj_rbi = EXCLUDED.proj_rbi,
+             proj_stolen_bases = EXCLUDED.proj_stolen_bases, proj_walks = EXCLUDED.proj_walks,
+             proj_strikeouts = EXCLUDED.proj_strikeouts, proj_hbp = EXCLUDED.proj_hbp,
+             proj_sac_flies = EXCLUDED.proj_sac_flies, proj_obp = EXCLUDED.proj_obp,
+             proj_total_bases = EXCLUDED.proj_total_bases""",
         (
             proj["mlb_id"], proj["season"],
             proj["proj_pa"], proj["proj_at_bats"],
@@ -367,7 +396,7 @@ def _copy_projection_as_adjusted(conn, proj):
 def _copy_projection_as_adjusted_pitcher(conn, proj):
     """Copy a pitcher trend projection as statcast_adjusted (no Statcast data available)."""
     conn.execute(
-        """INSERT OR REPLACE INTO projections
+        """INSERT INTO projections
            (mlb_id, source, season, player_type,
             proj_ip, proj_pitcher_strikeouts, proj_quality_starts,
             proj_era, proj_whip, proj_saves, proj_holds, proj_wins,
@@ -375,7 +404,16 @@ def _copy_projection_as_adjusted_pitcher(conn, proj):
            VALUES (?, 'statcast_adjusted', ?, 'pitcher',
                    ?, ?, ?,
                    ?, ?, ?, ?, ?,
-                   ?, ?, ?)""",
+                   ?, ?, ?)
+           ON CONFLICT (mlb_id, source, season) DO UPDATE SET
+             player_type = EXCLUDED.player_type,
+             proj_ip = EXCLUDED.proj_ip, proj_pitcher_strikeouts = EXCLUDED.proj_pitcher_strikeouts,
+             proj_quality_starts = EXCLUDED.proj_quality_starts,
+             proj_era = EXCLUDED.proj_era, proj_whip = EXCLUDED.proj_whip,
+             proj_saves = EXCLUDED.proj_saves, proj_holds = EXCLUDED.proj_holds,
+             proj_wins = EXCLUDED.proj_wins, proj_hits_allowed = EXCLUDED.proj_hits_allowed,
+             proj_walks_allowed = EXCLUDED.proj_walks_allowed,
+             proj_earned_runs = EXCLUDED.proj_earned_runs""",
         (
             proj["mlb_id"], proj["season"],
             proj["proj_ip"], proj["proj_pitcher_strikeouts"], proj["proj_quality_starts"],

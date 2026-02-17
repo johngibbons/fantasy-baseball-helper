@@ -34,9 +34,16 @@ async def sync_players(season: int = 2025):
     count = 0
     for p in players:
         conn.execute(
-            """INSERT OR REPLACE INTO players
+            """INSERT INTO players
                (mlb_id, full_name, primary_position, player_type, team, team_id, is_active)
-               VALUES (?, ?, ?, ?, ?, ?, 1)""",
+               VALUES (?, ?, ?, ?, ?, ?, 1)
+               ON CONFLICT (mlb_id) DO UPDATE SET
+                 full_name = EXCLUDED.full_name,
+                 primary_position = EXCLUDED.primary_position,
+                 player_type = EXCLUDED.player_type,
+                 team = EXCLUDED.team,
+                 team_id = EXCLUDED.team_id,
+                 is_active = EXCLUDED.is_active""",
             (p["mlb_id"], p["full_name"], p["primary_position"],
              p["player_type"], p.get("team", ""), p.get("team_id")),
         )
@@ -62,7 +69,7 @@ async def sync_stats(season: int = 2025, player_type: str = "all"):
                 stats = await get_batting_stats(h["mlb_id"], season)
                 if stats:
                     conn.execute(
-                        """INSERT OR REPLACE INTO batting_stats
+                        """INSERT INTO batting_stats
                            (mlb_id, season, games, plate_appearances, at_bats,
                             runs, hits, doubles, triples, home_runs,
                             rbi, stolen_bases, caught_stealing, walks, strikeouts,
@@ -70,7 +77,17 @@ async def sync_stats(season: int = 2025, player_type: str = "all"):
                            VALUES (?, ?, ?, ?, ?,
                                    ?, ?, ?, ?, ?,
                                    ?, ?, ?, ?, ?,
-                                   ?, ?, ?, ?, ?, ?, ?)""",
+                                   ?, ?, ?, ?, ?, ?, ?)
+                           ON CONFLICT (mlb_id, season) DO UPDATE SET
+                             games = EXCLUDED.games, plate_appearances = EXCLUDED.plate_appearances,
+                             at_bats = EXCLUDED.at_bats, runs = EXCLUDED.runs, hits = EXCLUDED.hits,
+                             doubles = EXCLUDED.doubles, triples = EXCLUDED.triples,
+                             home_runs = EXCLUDED.home_runs, rbi = EXCLUDED.rbi,
+                             stolen_bases = EXCLUDED.stolen_bases, caught_stealing = EXCLUDED.caught_stealing,
+                             walks = EXCLUDED.walks, strikeouts = EXCLUDED.strikeouts,
+                             hit_by_pitch = EXCLUDED.hit_by_pitch, sac_flies = EXCLUDED.sac_flies,
+                             batting_average = EXCLUDED.batting_average, obp = EXCLUDED.obp,
+                             slg = EXCLUDED.slg, ops = EXCLUDED.ops, total_bases = EXCLUDED.total_bases""",
                         (
                             stats["mlb_id"], stats["season"], stats["games"],
                             stats["plate_appearances"], stats["at_bats"],
@@ -103,7 +120,7 @@ async def sync_stats(season: int = 2025, player_type: str = "all"):
                 stats = await get_pitching_stats(p["mlb_id"], season)
                 if stats:
                     conn.execute(
-                        """INSERT OR REPLACE INTO pitching_stats
+                        """INSERT INTO pitching_stats
                            (mlb_id, season, games, games_started, wins, losses,
                             era, whip, innings_pitched, hits_allowed,
                             runs_allowed, earned_runs, walks_allowed, strikeouts,
@@ -111,7 +128,17 @@ async def sync_stats(season: int = 2025, player_type: str = "all"):
                            VALUES (?, ?, ?, ?, ?, ?,
                                    ?, ?, ?, ?,
                                    ?, ?, ?, ?,
-                                   ?, ?, ?, ?)""",
+                                   ?, ?, ?, ?)
+                           ON CONFLICT (mlb_id, season) DO UPDATE SET
+                             games = EXCLUDED.games, games_started = EXCLUDED.games_started,
+                             wins = EXCLUDED.wins, losses = EXCLUDED.losses,
+                             era = EXCLUDED.era, whip = EXCLUDED.whip,
+                             innings_pitched = EXCLUDED.innings_pitched, hits_allowed = EXCLUDED.hits_allowed,
+                             runs_allowed = EXCLUDED.runs_allowed, earned_runs = EXCLUDED.earned_runs,
+                             walks_allowed = EXCLUDED.walks_allowed, strikeouts = EXCLUDED.strikeouts,
+                             home_runs_allowed = EXCLUDED.home_runs_allowed,
+                             saves = EXCLUDED.saves, holds = EXCLUDED.holds,
+                             quality_starts = EXCLUDED.quality_starts""",
                         (
                             stats["mlb_id"], stats["season"], stats["games"],
                             stats["games_started"], stats["wins"], stats["losses"],
