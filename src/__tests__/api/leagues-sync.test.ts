@@ -81,7 +81,7 @@ describe('/api/leagues/[leagueId]/sync', () => {
     mockPrisma.league.findUnique.mockResolvedValue(mockLeague as any)
     mockPrisma.team.findMany.mockResolvedValue(mockTeams as any)
     mockESPNApi.getRosters.mockResolvedValue(mockRosterData)
-    mockPrisma.rosterSlot.deleteMany.mockResolvedValue({ count: 0 })
+    ;(mockPrisma.rosterSlot.deleteMany as any).mockResolvedValue({ count: 0 })
     mockPrisma.player.upsert.mockResolvedValue({} as any)
     mockPrisma.playerStats.upsert.mockResolvedValue({} as any)
     mockPrisma.rosterSlot.create.mockResolvedValue({} as any)
@@ -221,7 +221,7 @@ describe('/api/leagues/[leagueId]/sync', () => {
     mockPrisma.league.findUnique.mockResolvedValue(mockLeague as any)
     mockPrisma.team.findMany.mockResolvedValue(mockTeams as any)
     mockESPNApi.getRosters.mockResolvedValue(rosterWithMissingPlayer)
-    mockPrisma.rosterSlot.deleteMany.mockResolvedValue({ count: 0 })
+    ;(mockPrisma.rosterSlot.deleteMany as any).mockResolvedValue({ count: 0 })
     mockPrisma.league.update.mockResolvedValue(mockLeague as any)
 
     const request = new NextRequest('http://localhost/api/leagues/league-1/sync', {
