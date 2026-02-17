@@ -6,4 +6,4 @@ scipy==1.14.1
 httpx==0.28.1
 pydantic==2.10.4
 psycopg2-binary==2.9.10
-pybaseball==2.3.0
+pybaseball==2.2.7
