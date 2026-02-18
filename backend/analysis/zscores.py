@@ -731,6 +731,24 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
     hitters = calculate_hitter_zscores(season, source, excluded_ids)
     pitchers = calculate_pitcher_zscores(season, source, excluded_ids)
 
+    # Normalize pitcher values to match roster slot demand
+    hitter_slots = sum(HITTER_SLOTS.values())   # 10
+    pitcher_slots = sum(PITCHER_SLOTS.values())  # 7
+
+    hitter_value_sum = sum(p["total_zscore"] for p in hitters if p["total_zscore"] > 0)
+    pitcher_value_sum = sum(p["total_zscore"] for p in pitchers if p["total_zscore"] > 0)
+
+    if pitcher_value_sum > 0 and hitter_value_sum > 0:
+        target_pitcher_sum = hitter_value_sum * (pitcher_slots / hitter_slots)
+        scale = target_pitcher_sum / pitcher_value_sum
+        logger.info(f"Pitcher normalization: scale={scale:.3f} (hitter_sum={hitter_value_sum:.1f}, pitcher_sum={pitcher_value_sum:.1f}, target={target_pitcher_sum:.1f})")
+
+        pitcher_cats = ("zscore_k", "zscore_qs", "zscore_era", "zscore_whip", "zscore_svhd")
+        for p in pitchers:
+            p["total_zscore"] = round(p["total_zscore"] * scale, 3)
+            for cat in pitcher_cats:
+                p[cat] = round(p[cat] * scale, 3)
+
     # Combine and rank overall
     all_players = hitters + pitchers
     all_players.sort(key=lambda x: x["total_zscore"], reverse=True)
@@ -785,6 +803,13 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
                     p["player_type"],
                 ),
             )
+        # Recalculate adp_diff using new overall_rank values
+        conn.execute(
+            """UPDATE rankings
+               SET adp_diff = overall_rank - espn_adp
+               WHERE season = ? AND espn_adp IS NOT NULL""",
+            (season,),
+        )
         conn.commit()
         conn.close()
         logger.info(
