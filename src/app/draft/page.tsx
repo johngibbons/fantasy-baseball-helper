@@ -4,6 +4,12 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { getDraftBoard, recalculateDraftValues, RankedPlayer } from '@/lib/valuations-api'
 import {
+  fetchLeagueTeams,
+  saveTeamsToStorage,
+  keeperPickIndex,
+  type LeagueKeeperEntry,
+} from '@/lib/league-teams'
+import {
   analyzeCategoryStandings,
   detectStrategy,
   computeMCW,
@@ -94,10 +100,6 @@ const SLOT_ORDER = ['C', '1B', '2B', '3B', 'SS', 'OF', 'UTIL', 'SP', 'RP', 'P']
 // ── Default teams fallback ──
 const DEFAULT_NUM_TEAMS = 10
 
-function makeDefaultTeams(n: number): DraftTeam[] {
-  return Array.from({ length: n }, (_, i) => ({ id: i + 1, name: `Team ${i + 1}` }))
-}
-
 // ── Snake order helper ──
 function getActiveTeamId(pickIndex: number, order: number[]): number {
   if (order.length === 0) return -1
@@ -120,11 +122,21 @@ function getPicksUntilNextTurn(currentPickIndex: number, draftOrder: number[], t
 // ── Types ──
 interface DraftTeam { id: number; name: string }
 
+/** Load keeper entries from localStorage */
+function loadKeepersFromStorage(): LeagueKeeperEntry[] {
+  try {
+    const raw = localStorage.getItem('leagueKeepers')
+    if (raw) return JSON.parse(raw)
+  } catch { /* ignore */ }
+  return []
+}
+
 interface DraftState {
   picks: [number, number][]  // [mlbId, teamId][]
   myTeamId: number | null
   draftOrder: number[]
   currentPickIndex: number
+  keeperMlbIds?: number[]
 }
 
 export default function DraftBoardPage() {
@@ -147,6 +159,10 @@ export default function DraftBoardPage() {
   const [showDraftOrder, setShowDraftOrder] = useState(false)
   const [overrideTeam, setOverrideTeam] = useState<number | null>(null)
 
+  // ── Keeper state ──
+  const [leagueKeepersData, setLeagueKeepersData] = useState<LeagueKeeperEntry[]>([])
+  const [keeperMlbIds, setKeeperMlbIds] = useState<Set<number>>(new Set())
+
   // ── Derived state (backward-compatible) ──
   const draftedIds = useMemo(() => new Set(draftPicks.keys()), [draftPicks])
   const myPickIds = useMemo(() => {
@@ -163,6 +179,17 @@ export default function DraftBoardPage() {
     () => leagueTeams.find((t) => t.id === activeTeamId),
     [leagueTeams, activeTeamId]
   )
+  // ── Keeper pick indices (snake draft positions occupied by keepers) ──
+  const keeperPickIndices = useMemo(() => {
+    if (leagueKeepersData.length === 0 || draftOrder.length === 0) return new Set<number>()
+    const indices = new Set<number>()
+    for (const k of leagueKeepersData) {
+      const idx = keeperPickIndex(k.teamId, k.roundCost, draftOrder)
+      if (idx >= 0) indices.add(idx)
+    }
+    return indices
+  }, [leagueKeepersData, draftOrder])
+
   const currentRound = draftOrder.length > 0 ? Math.floor(currentPickIndex / draftOrder.length) + 1 : 1
   const currentPickInRound = draftOrder.length > 0 ? (currentPickIndex % draftOrder.length) + 1 : currentPickIndex + 1
 
@@ -192,57 +219,48 @@ export default function DraftBoardPage() {
     try {
       const saved = localStorage.getItem('draftState')
       if (saved) {
-        const state = JSON.parse(saved)
+        const state: DraftState = JSON.parse(saved)
         // New format
         if (state.picks) {
           setDraftPicks(new Map(state.picks))
           setMyTeamId(state.myTeamId ?? null)
           setDraftOrder(state.draftOrder ?? [])
           setCurrentPickIndex(state.currentPickIndex ?? 0)
+          if (state.keeperMlbIds) {
+            setKeeperMlbIds(new Set(state.keeperMlbIds))
+          }
         }
         // Old format migration
-        else if (state.drafted || state.myPicks) {
+        else if ((saved as unknown as { drafted?: number[]; myPicks?: number[] }).drafted) {
+          const oldState = JSON.parse(saved) as { drafted?: number[]; myPicks?: number[] }
           const picks = new Map<number, number>()
-          const oldMyPicks = new Set<number>(state.myPicks || [])
-          for (const id of (state.drafted || [])) {
+          const oldMyPicks = new Set<number>(oldState.myPicks || [])
+          for (const id of (oldState.drafted || [])) {
             if (oldMyPicks.has(id)) {
-              picks.set(id, 0) // assign to team 0 (will be re-mapped when myTeamId is set)
+              picks.set(id, 0)
             } else {
-              picks.set(id, -1) // unknown team
+              picks.set(id, -1)
             }
           }
           setDraftPicks(picks)
         }
       }
     } catch {}
+
+    // Load keepers from localStorage
+    const keepers = loadKeepersFromStorage()
+    if (keepers.length > 0) {
+      setLeagueKeepersData(keepers)
+    }
   }, [])
 
-  // ── Load teams from ESPN league ──
+  // ── Load teams (shared logic) ──
   useEffect(() => {
-    fetch('/api/leagues').then(r => r.json()).then((leagues: { id: string }[]) => {
-      if (leagues.length > 0) {
-        fetch(`/api/leagues/${leagues[0].id}/teams`).then(r => r.json()).then((data: { teams: { externalId: string; name: string }[] }) => {
-          const teams = data.teams.map(t => ({ id: parseInt(t.externalId), name: t.name }))
-          setLeagueTeams(teams)
-          // Only set draft order if not already restored from localStorage
-          setDraftOrder(prev => prev.length > 0 ? prev : teams.map(t => t.id))
-        })
-      }
-    }).catch(() => {})
-  }, [])
-
-  // ── Fallback to generic teams if no league loaded ──
-  useEffect(() => {
-    // Wait a tick for league load to complete
-    const timer = setTimeout(() => {
-      setLeagueTeams(prev => {
-        if (prev.length > 0) return prev
-        const defaults = makeDefaultTeams(DEFAULT_NUM_TEAMS)
-        setDraftOrder(o => o.length > 0 ? o : defaults.map(t => t.id))
-        return defaults
-      })
-    }, 1500)
-    return () => clearTimeout(timer)
+    fetchLeagueTeams().then((teams) => {
+      setLeagueTeams(teams)
+      saveTeamsToStorage(teams)
+      setDraftOrder(prev => prev.length > 0 ? prev : teams.map(t => t.id))
+    })
   }, [])
 
   // ── Migrate old myPicks to use actual myTeamId once set ──
@@ -261,6 +279,66 @@ export default function DraftBoardPage() {
     })
   }, [myTeamId])
 
+  // ── Pre-fill keepers into draft picks ──
+  useEffect(() => {
+    if (leagueKeepersData.length === 0 || draftOrder.length === 0) return
+    // Only pre-fill if no non-keeper picks exist yet (fresh draft)
+    const nonKeeperPicks = [...draftPicks.entries()].filter(([id]) => !keeperMlbIds.has(id))
+    if (nonKeeperPicks.length > 0) return
+
+    const newPicks = new Map(draftPicks)
+    const newKeeperIds = new Set(keeperMlbIds)
+    let changed = false
+
+    for (const k of leagueKeepersData) {
+      if (!newPicks.has(k.mlb_id)) {
+        newPicks.set(k.mlb_id, k.teamId)
+        newKeeperIds.add(k.mlb_id)
+        changed = true
+      }
+    }
+
+    if (changed) {
+      setDraftPicks(newPicks)
+      setKeeperMlbIds(newKeeperIds)
+
+      // Set currentPickIndex to first non-keeper slot
+      let startIdx = 0
+      const keeperIndices = new Set<number>()
+      for (const k of leagueKeepersData) {
+        const idx = keeperPickIndex(k.teamId, k.roundCost, draftOrder)
+        if (idx >= 0) keeperIndices.add(idx)
+      }
+      while (keeperIndices.has(startIdx)) startIdx++
+      setCurrentPickIndex(startIdx)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leagueKeepersData, draftOrder])
+
+  // ── Load/reload keepers from localStorage ──
+  const handleLoadKeepers = useCallback(() => {
+    const keepers = loadKeepersFromStorage()
+    if (keepers.length === 0) return
+
+    setLeagueKeepersData(keepers)
+    const newPicks = new Map(draftPicks)
+    const newKeeperIds = new Set<number>()
+
+    // Remove old keeper picks first
+    for (const id of keeperMlbIds) {
+      newPicks.delete(id)
+    }
+
+    // Add new keeper picks
+    for (const k of keepers) {
+      newPicks.set(k.mlb_id, k.teamId)
+      newKeeperIds.add(k.mlb_id)
+    }
+
+    setDraftPicks(newPicks)
+    setKeeperMlbIds(newKeeperIds)
+  }, [draftPicks, keeperMlbIds])
+
   // ── Save state to localStorage ──
   useEffect(() => {
     if (allPlayers.length > 0) {
@@ -269,50 +347,84 @@ export default function DraftBoardPage() {
         myTeamId,
         draftOrder,
         currentPickIndex,
+        keeperMlbIds: [...keeperMlbIds],
       }
       localStorage.setItem('draftState', JSON.stringify(state))
     }
-  }, [draftPicks, myTeamId, draftOrder, currentPickIndex, allPlayers.length])
+  }, [draftPicks, myTeamId, draftOrder, currentPickIndex, allPlayers.length, keeperMlbIds])
 
   // ── Draft actions ──
   const draftPlayer = useCallback((mlbId: number) => {
     const teamId = overrideTeam ?? getActiveTeamId(currentPickIndex, draftOrder)
     setDraftPicks(prev => new Map(prev).set(mlbId, teamId))
-    setCurrentPickIndex(prev => prev + 1)
+    // Advance past keeper-occupied slots
+    let nextIdx = currentPickIndex + 1
+    while (keeperPickIndices.has(nextIdx)) nextIdx++
+    setCurrentPickIndex(nextIdx)
     setOverrideTeam(null)
-  }, [currentPickIndex, draftOrder, overrideTeam])
+  }, [currentPickIndex, draftOrder, overrideTeam, keeperPickIndices])
 
   const undoLastPick = useCallback(() => {
     if (currentPickIndex <= 0 && draftPicks.size === 0) return
-    // Find the last pick: the entry that was made at currentPickIndex - 1
-    // We go by the last entry in the map (insertion order)
+    // Find the last non-keeper pick (by insertion order)
     const entries = [...draftPicks.entries()]
     if (entries.length === 0) return
-    const [lastMlbId] = entries[entries.length - 1]
+    // Walk backwards to find last non-keeper entry
+    let lastNonKeeper: number | null = null
+    for (let i = entries.length - 1; i >= 0; i--) {
+      if (!keeperMlbIds.has(entries[i][0])) {
+        lastNonKeeper = entries[i][0]
+        break
+      }
+    }
+    if (lastNonKeeper == null) return // all remaining picks are keepers
     setDraftPicks(prev => {
       const next = new Map(prev)
-      next.delete(lastMlbId)
+      next.delete(lastNonKeeper)
       return next
     })
-    setCurrentPickIndex(prev => Math.max(0, prev - 1))
-  }, [currentPickIndex, draftPicks])
+    // Move pick index backward, skipping keeper slots
+    let prevIdx = currentPickIndex - 1
+    while (prevIdx >= 0 && keeperPickIndices.has(prevIdx)) prevIdx--
+    setCurrentPickIndex(Math.max(0, prevIdx))
+  }, [currentPickIndex, draftPicks, keeperMlbIds, keeperPickIndices])
 
   const undoPick = useCallback((mlbId: number) => {
+    if (keeperMlbIds.has(mlbId)) return // cannot undo keeper picks
     setDraftPicks(prev => {
       const next = new Map(prev)
       next.delete(mlbId)
       return next
     })
     // Don't change currentPickIndex for individual undo — only last pick undo adjusts it
-  }, [])
+  }, [keeperMlbIds])
 
   const resetDraft = () => {
-    if (confirm('Reset all draft picks?')) {
-      setDraftPicks(new Map())
-      setCurrentPickIndex(0)
+    if (confirm('Reset all draft picks? (Keepers will be preserved)')) {
       setRecalcData(null)
       setOverrideTeam(null)
-      localStorage.removeItem('draftState')
+
+      // Re-apply keepers from localStorage
+      const keepers = loadKeepersFromStorage()
+      const newPicks = new Map<number, number>()
+      const newKeeperIds = new Set<number>()
+      const keeperIndices = new Set<number>()
+
+      for (const k of keepers) {
+        newPicks.set(k.mlb_id, k.teamId)
+        newKeeperIds.add(k.mlb_id)
+        const idx = keeperPickIndex(k.teamId, k.roundCost, draftOrder)
+        if (idx >= 0) keeperIndices.add(idx)
+      }
+
+      setLeagueKeepersData(keepers)
+      setDraftPicks(newPicks)
+      setKeeperMlbIds(newKeeperIds)
+
+      // Find first non-keeper slot
+      let startIdx = 0
+      while (keeperIndices.has(startIdx)) startIdx++
+      setCurrentPickIndex(startIdx)
     }
   }
 
@@ -729,6 +841,12 @@ export default function DraftBoardPage() {
               <span className="text-red-400 font-semibold">{draftedIds.size}</span> drafted
               <span className="text-gray-600 mx-1.5">/</span>
               <span className="text-blue-400 font-semibold">{myPickIds.size}</span> my picks
+              {keeperMlbIds.size > 0 && (
+                <>
+                  <span className="text-gray-600 mx-1.5">/</span>
+                  <span className="text-amber-400 font-semibold">{keeperMlbIds.size}</span> keepers
+                </>
+              )}
             </p>
           </div>
           <div className="flex gap-2">
@@ -801,6 +919,13 @@ export default function DraftBoardPage() {
             className="px-3 py-1.5 text-xs font-semibold bg-gray-800 text-gray-400 border border-gray-700 rounded-lg hover:bg-gray-700 hover:text-gray-200 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Undo Last
+          </button>
+
+          <button
+            onClick={handleLoadKeepers}
+            className="px-3 py-1.5 text-xs font-semibold bg-amber-950 text-amber-400 border border-amber-800 rounded-lg hover:bg-amber-900 hover:text-amber-300 transition-colors"
+          >
+            Load Keepers
           </button>
 
           <button
@@ -968,13 +1093,19 @@ export default function DraftBoardPage() {
                                 }`}>
                                   {getTeamAbbrev(draftedByTeam ?? -1)}
                                 </span>
-                                <button
-                                  onClick={() => undoPick(p.mlb_id)}
-                                  className="text-gray-600 hover:text-gray-300 text-xs transition-colors"
-                                  title="Undo pick"
-                                >
-                                  &#10005;
-                                </button>
+                                {keeperMlbIds.has(p.mlb_id) ? (
+                                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-900/60 text-amber-400 border border-amber-700/50 leading-none">
+                                    KEEPER
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => undoPick(p.mlb_id)}
+                                    className="text-gray-600 hover:text-gray-300 text-xs transition-colors"
+                                    title="Undo pick"
+                                  >
+                                    &#10005;
+                                  </button>
+                                )}
                               </div>
                             ) : (
                               <button
