@@ -68,6 +68,7 @@ class _PgConnectionWrapper:
 def get_connection():
     if _USE_PG:
         conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+        conn.cursor().execute("SET search_path TO analytics, public")
         return _PgConnectionWrapper(conn)
     else:
         conn = sqlite3.connect(str(_SQLITE_PATH))
@@ -90,6 +91,9 @@ def init_db():
 def _init_pg():
     conn = psycopg2.connect(DATABASE_URL)
     cursor = conn.cursor()
+
+    cursor.execute("CREATE SCHEMA IF NOT EXISTS analytics;")
+    cursor.execute("SET search_path TO analytics;")
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS players (
@@ -264,12 +268,12 @@ def _init_pg():
         );
     """)
 
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_batting_stats_season ON batting_stats(season);")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_pitching_stats_season ON pitching_stats(season);")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_projections_season ON projections(season);")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_rankings_season ON rankings(season);")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_players_position ON players(primary_position);")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_players_type ON players(player_type);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_batting_stats_season ON analytics.batting_stats(season);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_pitching_stats_season ON analytics.pitching_stats(season);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_projections_season ON analytics.projections(season);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_rankings_season ON analytics.rankings(season);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_players_position ON analytics.players(primary_position);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_players_type ON analytics.players(player_type);")
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS league_season_totals (
@@ -290,8 +294,8 @@ def _init_pg():
         );
     """)
 
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_statcast_batting_season ON statcast_batting(season);")
-    cursor.execute("CREATE INDEX IF NOT EXISTS idx_statcast_pitching_season ON statcast_pitching(season);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_statcast_batting_season ON analytics.statcast_batting(season);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_statcast_pitching_season ON analytics.statcast_pitching(season);")
 
     conn.commit()
     conn.close()
