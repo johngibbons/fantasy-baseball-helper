@@ -1050,6 +1050,9 @@ export default function DraftBoardPage() {
                     <tr className="border-b border-gray-800 bg-gray-900/80">
                       <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-28">Draft</th>
                       <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-14">#</th>
+                      {hasAdpData && (
+                        <th className="px-3 py-2.5 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-16">ADP</th>
+                      )}
                       <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Player</th>
                       <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-24">Pos</th>
                       <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Team</th>
@@ -1064,9 +1067,6 @@ export default function DraftBoardPage() {
                       <th className="px-3 py-2.5 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-28">
                         {hasAdpData && myTeamId != null ? 'Score' : 'VONA'}
                       </th>
-                      {hasAdpData && (
-                        <th className="px-3 py-2.5 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-16">ADP</th>
-                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -1125,6 +1125,22 @@ export default function DraftBoardPage() {
                             )}
                           </td>
                           <td className="px-3 py-1.5 text-gray-500 font-mono text-xs tabular-nums">{p.overall_rank}</td>
+                          {hasAdpData && (
+                            <td className="px-3 py-1.5 text-right">
+                              {p.espn_adp != null ? (
+                                <div className="flex items-center justify-end gap-1">
+                                  <span className="text-xs text-gray-500 tabular-nums">{Math.round(p.espn_adp)}</span>
+                                  {p.adp_diff != null && Math.abs(p.adp_diff) > 5 && (
+                                    <span className={`text-[10px] font-bold tabular-nums ${p.adp_diff < 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                      {p.adp_diff > 0 ? '+' : ''}{Math.round(p.adp_diff)}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-700">--</span>
+                              )}
+                            </td>
+                          )}
                           <td className="px-3 py-1.5">
                             <Link href={`/player/${p.mlb_id}`} className="font-medium text-white hover:text-blue-400 transition-colors text-sm">
                               {p.full_name}
@@ -1197,22 +1213,6 @@ export default function DraftBoardPage() {
                               )
                             })()}
                           </td>
-                          {hasAdpData && (
-                            <td className="px-3 py-1.5 text-right">
-                              {p.espn_adp != null ? (
-                                <div className="flex items-center justify-end gap-1">
-                                  <span className="text-xs text-gray-500 tabular-nums">{Math.round(p.espn_adp)}</span>
-                                  {p.adp_diff != null && Math.abs(p.adp_diff) > 5 && (
-                                    <span className={`text-[10px] font-bold tabular-nums ${p.adp_diff < 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                      {p.adp_diff > 0 ? '+' : ''}{Math.round(p.adp_diff)}
-                                    </span>
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="text-xs text-gray-700">--</span>
-                              )}
-                            </td>
-                          )}
                         </tr>
                       )
                     })}
