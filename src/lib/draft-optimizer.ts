@@ -122,29 +122,51 @@ export function analyzeCategoryStandings(
  * Detect punt/target/lock/neutral strategy per category.
  * Only activates after enough picks (6+).
  * Hard cap: max 2 punts.
+ *
+ * Thresholds adapt to league format via playoffSpots:
+ *   - More forgiving playoffs (e.g. 6/10) → higher punt gap requirement
+ *     (punting is riskier when you only need to be average) and wider
+ *     target zone (more middle ranks worth improving).
+ *   - Strict playoffs (e.g. 4/10) → lower punt gap (punting is a viable
+ *     concentration strategy) and narrower target zone.
  */
 export function detectStrategy(
   standings: CategoryAnalysis[],
   myPickCount: number,
-  numTeams: number
+  numTeams: number,
+  playoffSpots: number = 6
 ): CategoryAnalysis[] {
   if (myPickCount < 6) {
-    // Not enough data — everything neutral
     return standings.map(s => ({ ...s, strategy: 'neutral' as const }))
   }
 
-  // First pass: classify each category
+  // Playoff ratio drives threshold scaling.
+  // ratio = 0.6 (6/10) → forgiving; ratio = 0.4 (4/10) → strict.
+  const playoffRatio = playoffSpots / numTeams
+
+  // Punt gap: higher when playoffs are forgiving (giving up a cat hurts more).
+  // Base 3.0 at ratio 0.4, scales up to ~4.5 at ratio 0.6.
+  const puntGap = 3.0 + (playoffRatio - 0.4) * 7.5  // 0.4→3.0, 0.5→3.75, 0.6→4.5
+
+  // Punt rank threshold: bottom N ranks.  With forgiving playoffs, only
+  // the very worst rank is punt-eligible (harder to justify).
+  const puntRankFloor = playoffRatio >= 0.55
+    ? numTeams          // must be dead last
+    : numTeams - 1      // bottom 2
+
+  // Target zone: ranks where marginal improvement yields the most wins.
+  // Wider when playoffs are forgiving (more ranks matter).
+  const targetLow = playoffRatio >= 0.55 ? 3 : 4
+  const targetHigh = playoffRatio >= 0.55 ? 8 : 7
+
   const classified = standings.map(s => {
     let strategy: CategoryAnalysis['strategy'] = 'neutral'
 
     if (s.myRank <= 2 && s.gapBelow >= 1.0) {
-      // Top 2 with solid lead
       strategy = 'lock'
-    } else if (s.myRank >= numTeams - 1 && s.gapAbove >= 3.0) {
-      // Bottom 2 with huge gap to middle
+    } else if (s.myRank >= puntRankFloor && s.gapAbove >= puntGap) {
       strategy = 'punt'
-    } else if (s.myRank >= 4 && s.myRank <= 7) {
-      // Near median — biggest marginal gains here
+    } else if (s.myRank >= targetLow && s.myRank <= targetHigh) {
       strategy = 'target'
     }
 
@@ -154,7 +176,7 @@ export function detectStrategy(
   // Enforce max 2 punts (keep the 2 worst-ranked ones as punts, rest become neutral)
   const puntCats = classified
     .filter(c => c.strategy === 'punt')
-    .sort((a, b) => b.myRank - a.myRank) // worst rank first
+    .sort((a, b) => b.myRank - a.myRank)
 
   if (puntCats.length > 2) {
     const keepPunts = new Set(puntCats.slice(0, 2).map(c => c.catKey))

@@ -326,7 +326,7 @@ ERA < 4.00 and WHIP < 1.25) since these provide value every week without burning
 
 ## Issue 12: Punt strategy thresholds are rigid
 
-**Status:** Not started
+**Status:** DONE
 **Priority:** 12 (Minor)
 **Impact:** Low - matters late in draft
 **Complexity:** Low
