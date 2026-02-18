@@ -23,6 +23,10 @@ class _CursorWrapper:
     def __init__(self, cursor):
         self._cursor = cursor
 
+    @property
+    def rowcount(self):
+        return self._cursor.rowcount
+
     def fetchall(self):
         if self._cursor.description is None:
             return []
