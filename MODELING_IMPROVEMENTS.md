@@ -235,7 +235,7 @@ where `WOBA_TO_OBP_SCALE ~ 1.2`.
 
 ## Issue 8: Trend projections don't account for age curves
 
-**Status:** Not started
+**Status:** DONE
 **Priority:** 8 (Moderate)
 **Impact:** Low-Medium - affects ~15% of player pool
 **Complexity:** Medium

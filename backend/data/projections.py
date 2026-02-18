@@ -4,6 +4,7 @@ and generate simple trend-based projections from historical stats."""
 import csv
 import logging
 import unicodedata
+from datetime import date
 from pathlib import Path
 from typing import Optional
 from backend.database import get_connection
@@ -328,15 +329,65 @@ def import_league_standings(filepath: str, season: int):
     return imported
 
 
+# ── Age-curve weights for trend projections ──
+# Young players (22-26): lean harder on most recent season — breakouts more
+# likely to sustain.  Older players (32+): also lean on recent season since
+# decline is likely to accelerate.  Prime-age (27-31): balanced weights.
+_AGE_WEIGHTS = {
+    "young":  {0: 0.60, 1: 0.25, 2: 0.15},
+    "prime":  {0: 0.50, 1: 0.30, 2: 0.20},
+    "older":  {0: 0.60, 1: 0.25, 2: 0.15},
+}
+
+# Small growth/decline multiplier applied to counting stats after weighting.
+# Rate stats (OBP, ERA, WHIP) are NOT multiplied — aging affects rate stats
+# primarily through playing-time loss, which is already captured by the PA/IP
+# projection.
+_AGE_COUNTING_MULTIPLIER = {
+    "young": 1.03,   # +3% growth expectation
+    "prime": 1.00,
+    "older": 0.97,   # -3% decline expectation
+}
+
+
+def _player_age(birth_date_str: str, season: int) -> Optional[int]:
+    """Compute a player's age as of July 1 of the projection season."""
+    if not birth_date_str:
+        return None
+    try:
+        bd = date.fromisoformat(birth_date_str)
+        midseason = date(season, 7, 1)
+        return midseason.year - bd.year - ((midseason.month, midseason.day) < (bd.month, bd.day))
+    except (ValueError, TypeError):
+        return None
+
+
+def _age_tier(age: Optional[int]) -> str:
+    if age is None:
+        return "prime"  # default when unknown
+    if age <= 26:
+        return "young"
+    if age <= 31:
+        return "prime"
+    return "older"
+
+
 def generate_projections_from_stats(season: int = 2025):
     """Generate simple projections based on recent historical stats.
 
-    Uses a weighted average of last 3 seasons (if available) with recency bias.
-    This is a fallback when external projections aren't loaded.
+    Uses a weighted average of last 3 seasons (if available) with age-adjusted
+    recency bias.  Young players weight the most recent season more heavily
+    (breakouts sustain), older players do the same (declines accelerate), and
+    a small counting-stat multiplier nudges projections in the expected
+    direction of the aging curve.
     """
     conn = get_connection()
-    weights = {0: 0.5, 1: 0.3, 2: 0.2}  # most recent season gets highest weight
     seasons_back = [season - 1, season - 2, season - 3]
+
+    # Pre-load birth dates for age lookup
+    birth_dates: dict[int, str] = {}
+    for row in conn.execute("SELECT mlb_id, birth_date FROM players WHERE birth_date IS NOT NULL").fetchall():
+        birth_dates[row["mlb_id"]] = row["birth_date"]
 
     # Generate hitter projections
     hitters = conn.execute(
@@ -344,6 +395,11 @@ def generate_projections_from_stats(season: int = 2025):
     ).fetchall()
 
     hitter_count = 0
+    hitter_counting_fields = [
+        "plate_appearances", "at_bats", "runs", "hits", "doubles", "triples",
+        "home_runs", "rbi", "stolen_bases", "walks", "strikeouts",
+        "hit_by_pitch", "sac_flies",
+    ]
     for h in hitters:
         mlb_id = h["mlb_id"]
         stats_rows = conn.execute(
@@ -356,23 +412,22 @@ def generate_projections_from_stats(season: int = 2025):
         if not stats_rows:
             continue
 
-        # Weighted average
+        # Age-adjusted weighted average
+        tier = _age_tier(_player_age(birth_dates.get(mlb_id, ""), season))
+        weights = _AGE_WEIGHTS[tier]
+
         proj = {}
-        fields = [
-            "plate_appearances", "at_bats", "runs", "hits", "doubles", "triples",
-            "home_runs", "rbi", "stolen_bases", "walks", "strikeouts",
-            "hit_by_pitch", "sac_flies",
-        ]
         total_weight = 0
         for i, row in enumerate(stats_rows):
             w = weights.get(i, 0.1)
             total_weight += w
-            for field in fields:
+            for field in hitter_counting_fields:
                 proj[field] = proj.get(field, 0) + (row[field] or 0) * w
 
         if total_weight > 0:
-            for field in fields:
-                proj[field] = round(proj[field] / total_weight)
+            mult = _AGE_COUNTING_MULTIPLIER[tier]
+            for field in hitter_counting_fields:
+                proj[field] = round(proj[field] / total_weight * mult)
 
         # Calculate derived stats
         singles = proj["hits"] - proj["doubles"] - proj["triples"] - proj["home_runs"]
@@ -419,6 +474,10 @@ def generate_projections_from_stats(season: int = 2025):
     ).fetchall()
 
     pitcher_count = 0
+    pitcher_counting_fields = [
+        "innings_pitched", "strikeouts", "quality_starts", "saves", "holds",
+        "wins", "hits_allowed", "walks_allowed", "earned_runs",
+    ]
     for p in pitchers:
         mlb_id = p["mlb_id"]
         stats_rows = conn.execute(
@@ -431,21 +490,21 @@ def generate_projections_from_stats(season: int = 2025):
         if not stats_rows:
             continue
 
+        tier = _age_tier(_player_age(birth_dates.get(mlb_id, ""), season))
+        weights = _AGE_WEIGHTS[tier]
+
         proj = {}
-        fields = [
-            "innings_pitched", "strikeouts", "quality_starts", "saves", "holds",
-            "wins", "hits_allowed", "walks_allowed", "earned_runs",
-        ]
         total_weight = 0
         for i, row in enumerate(stats_rows):
             w = weights.get(i, 0.1)
             total_weight += w
-            for field in fields:
+            for field in pitcher_counting_fields:
                 proj[field] = proj.get(field, 0) + (row[field] or 0) * w
 
         if total_weight > 0:
-            for field in fields:
-                proj[field] = proj[field] / total_weight
+            mult = _AGE_COUNTING_MULTIPLIER[tier]
+            for field in pitcher_counting_fields:
+                proj[field] = proj[field] / total_weight * mult
                 if field != "innings_pitched":
                     proj[field] = round(proj[field])
                 else:
