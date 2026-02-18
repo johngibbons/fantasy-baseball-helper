@@ -22,6 +22,12 @@ LEAGUE_AVG_SPRINT_SPEED = 27.0  # ft/s
 LEAGUE_AVG_WHIFF_PCT = 25.0  # percent
 LEAGUE_AVG_BA_AGAINST = 0.250
 
+# wOBA-to-OBP scale factor.  wOBA uses linear weights that compress the
+# scale relative to OBP (league-avg wOBA ~.310 vs OBP ~.320, and the SD
+# of wOBA is ~1.2× that of OBP).  Dividing by this factor converts a
+# wOBA-space difference into the approximate OBP-space equivalent.
+WOBA_TO_OBP_SCALE = 1.2
+
 
 def apply_statcast_adjustments(season: int):
     """Apply Statcast-based adjustments to trend projections.
@@ -126,8 +132,8 @@ def _adjust_hitters(conn, season: int) -> int:
         if xwoba is not None and actual_woba is not None and actual_woba > 0:
             woba_diff = xwoba - actual_woba
             if abs(woba_diff) > 0.015:  # Meaningful gap
-                # Scale OBP proportionally to the wOBA gap
-                obp_adjustment = woba_diff * BLEND
+                # Convert wOBA-space diff to OBP-space, then apply blend
+                obp_adjustment = woba_diff / WOBA_TO_OBP_SCALE * BLEND
                 adj_obp = adj_obp + obp_adjustment
 
         # --- SB adjustment via sprint speed ---

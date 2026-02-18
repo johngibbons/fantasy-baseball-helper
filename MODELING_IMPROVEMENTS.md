@@ -208,7 +208,7 @@ fills roster slots.
 
 ## Issue 7: Statcast OBP adjustment uses wrong scale
 
-**Status:** Not started
+**Status:** DONE
 **Priority:** 7 (Moderate)
 **Impact:** Medium - ~20% error on OBP adjustments
 **Complexity:** Low
