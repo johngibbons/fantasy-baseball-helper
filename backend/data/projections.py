@@ -488,3 +488,62 @@ def generate_projections_from_stats(season: int = 2025):
     conn.close()
     logger.info(f"Generated trend projections: {hitter_count} hitters, {pitcher_count} pitchers")
     return hitter_count + pitcher_count
+
+
+def import_adp_from_csv(source: str = "steamer", season: int = 2026):
+    """Import ADP (Average Draft Position) from projection CSV files into rankings.
+
+    Reads the ADP column from batting and pitching CSVs, matches players via
+    _resolve_mlb_id(), and updates the rankings table with espn_adp and adp_diff.
+    For two-way players appearing in both CSVs, keeps the lower (earlier) ADP.
+
+    Args:
+        source: Projection system identifier ("steamer", "zips", "thebatx").
+        season: Season year.
+    """
+    valid_sources = {"steamer", "zips", "thebatx"}
+    if source not in valid_sources:
+        raise ValueError(f"Invalid source '{source}', must be one of {sorted(valid_sources)}")
+
+    conn = get_connection()
+
+    # Collect ADP values from both CSVs: mlb_id → best (lowest) ADP
+    adp_map: dict[int, float] = {}
+
+    for player_type in ("batting", "pitching"):
+        filepath = PROJECTIONS_DIR / f"{source}_{player_type}_{season}.csv"
+        if not filepath.exists():
+            logger.warning(f"ADP file not found: {filepath}")
+            continue
+
+        with open(filepath, "r") as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                adp_val = _safe_float(row.get("ADP"))
+                if adp_val <= 0:
+                    continue
+
+                mlb_id = _resolve_mlb_id(conn, row)
+                if mlb_id is None:
+                    continue
+
+                # Keep the lower (earlier) ADP for two-way players
+                if mlb_id not in adp_map or adp_val < adp_map[mlb_id]:
+                    adp_map[mlb_id] = adp_val
+
+    # Update rankings table
+    updated = 0
+    for mlb_id, adp in adp_map.items():
+        result = conn.execute(
+            """UPDATE rankings
+               SET espn_adp = ?, adp_diff = overall_rank - ?
+               WHERE mlb_id = ? AND season = ?""",
+            (adp, adp, mlb_id, season),
+        )
+        if result.rowcount > 0:
+            updated += 1
+
+    conn.commit()
+    conn.close()
+    logger.info(f"Imported ADP for {updated} players from {source} ({len(adp_map)} found in CSVs)")
+    return updated

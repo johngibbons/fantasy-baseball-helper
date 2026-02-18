@@ -16,7 +16,7 @@ from backend.data.mlb_api import (
     get_batting_stats,
     get_pitching_stats,
 )
-from backend.data.projections import generate_projections_from_stats
+from backend.data.projections import generate_projections_from_stats, import_adp_from_csv
 from backend.data.statcast import sync_statcast_data
 from backend.data.statcast_adjustments import apply_statcast_adjustments
 from backend.analysis.zscores import calculate_all_zscores
@@ -198,6 +198,13 @@ async def run_full_sync(season: int = 2025, stats_seasons: list[int] = None):
     logger.info("Calculating z-scores and rankings...")
     calculate_all_zscores(season)
 
+    # 7. Import ADP data
+    logger.info("Importing ADP data...")
+    try:
+        import_adp_from_csv(season=season)
+    except Exception as e:
+        logger.warning(f"ADP import failed (non-fatal): {e}")
+
     logger.info("Full sync complete!")
 
 
@@ -216,6 +223,7 @@ def main():
     parser.add_argument("--statcast-only", action="store_true", help="Only sync Statcast data")
     parser.add_argument("--projections-only", action="store_true", help="Only generate projections")
     parser.add_argument("--rankings-only", action="store_true", help="Only calculate rankings")
+    parser.add_argument("--adp-only", action="store_true", help="Only import ADP data from projection CSVs")
 
     args = parser.parse_args()
 
@@ -237,6 +245,9 @@ def main():
     elif args.rankings_only:
         init_db()
         calculate_all_zscores(args.season)
+    elif args.adp_only:
+        init_db()
+        import_adp_from_csv(season=args.season)
     else:
         asyncio.run(run_full_sync(args.season, args.stats_seasons))
 
