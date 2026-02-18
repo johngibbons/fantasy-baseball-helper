@@ -305,7 +305,7 @@ fix, increase the fractional credit multiplier to ~0.5-0.6 based on empirical te
 
 ## Issue 11: Streaming constraint not reflected in pitcher valuation
 
-**Status:** Not started
+**Status:** DONE
 **Priority:** 11 (Minor)
 **Impact:** Low - marginal adjustment
 **Complexity:** Low

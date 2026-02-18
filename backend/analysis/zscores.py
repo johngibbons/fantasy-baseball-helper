@@ -711,6 +711,27 @@ def _compute_pitcher_pool_zscores(
     if discounted:
         logger.info(f"Applied playing time discount to {discounted} {pool_label}s (< {full_credit_ip} IP)")
 
+    # ── Streaming constraint bonus (SP only) ──
+    # In leagues with weekly acquisition limits, SPs who are rosterable all
+    # season (solid ERA + WHIP) are more valuable than their raw z-scores
+    # suggest, because they provide every-week production without burning a
+    # transaction.  A small bonus nudges them above similarly-valued
+    # streaming-tier SPs.
+    if pool_label == "SP":
+        _STREAM_ERA_THRESHOLD = 4.00
+        _STREAM_WHIP_THRESHOLD = 1.25
+        _STREAM_BONUS = 0.35  # ~0.35 SGP bonus, roughly a third of one standings spot
+        streamed = 0
+        for p in results:
+            if p["proj_era"] <= _STREAM_ERA_THRESHOLD and p["proj_whip"] <= _STREAM_WHIP_THRESHOLD:
+                p["total_zscore"] = round(p["total_zscore"] + _STREAM_BONUS, 3)
+                streamed += 1
+        if streamed:
+            logger.info(
+                f"Applied streaming hold bonus (+{_STREAM_BONUS}) to {streamed} SPs "
+                f"(ERA <= {_STREAM_ERA_THRESHOLD}, WHIP <= {_STREAM_WHIP_THRESHOLD})"
+            )
+
     return results
 
 
