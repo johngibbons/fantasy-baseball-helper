@@ -500,7 +500,8 @@ def calculate_hitter_zscores(season: int = 2026, source: str = None,
 
 
 def _compute_pitcher_pool_zscores(
-    rows: list, pool_label: str, categories: set[str], min_ip: float
+    rows: list, pool_label: str, categories: set[str], min_ip: float,
+    combined_avg_team_ip: float | None = None,
 ) -> list[dict]:
     """Compute z-scores for a single pitcher pool (SP or RP).
 
@@ -509,6 +510,9 @@ def _compute_pitcher_pool_zscores(
         pool_label: "SP" or "RP" for logging
         categories: set of active categories, e.g. {"k", "qs", "era", "whip"}
         min_ip: minimum innings pitched to include
+        combined_avg_team_ip: Total pitcher IP (SP+RP) per team, used as the
+            denominator for rate stat marginal calculations.  When None, falls
+            back to pool-only IP (legacy behaviour, less accurate).
 
     Returns:
         List of player dicts with z-scores (excluded categories set to 0.0)
@@ -559,7 +563,10 @@ def _compute_pitcher_pool_zscores(
 
     # SGP for rate stats: marginal contribution / SGP denominator
     # Inverted — lower ERA/WHIP = positive SGP
-    avg_team_ip = np.sum(ip) / NUM_TEAMS
+    # Use combined SP+RP team IP for the denominator because the SGP denominators
+    # come from team-level standings (all pitchers).  Using pool-only IP would
+    # overstate each pitcher's marginal impact on team ERA/WHIP.
+    avg_team_ip = combined_avg_team_ip if combined_avg_team_ip else np.sum(ip) / NUM_TEAMS
     if "era" in categories and avg_team_ip > 0:
         era_marginal = (league_era - era_raw) * (ip / avg_team_ip)
         sgp_era = era_marginal / sgp_denoms["ERA"]
@@ -708,12 +715,25 @@ def calculate_pitcher_zscores(season: int = 2026, source: str = None,
         f"Pitcher pool split: {len(sp_rows)} SP candidates, {len(rp_rows)} RP candidates"
     )
 
+    # Compute combined avg team IP (SP+RP) for rate stat marginal calculations.
+    # The SGP denominators for ERA/WHIP come from team-level standings that include
+    # all pitchers, so the marginal impact denominator must also use total team IP.
+    sp_ip_pool = sum(r["proj_ip"] or 0 for r in sp_rows if (r["proj_ip"] or 0) >= MIN_IP_SP)
+    rp_ip_pool = sum(r["proj_ip"] or 0 for r in rp_rows if (r["proj_ip"] or 0) >= MIN_IP_RP)
+    combined_avg_team_ip = (sp_ip_pool + rp_ip_pool) / NUM_TEAMS if NUM_TEAMS > 0 else 0
+    logger.info(
+        f"Combined avg team IP: {combined_avg_team_ip:.1f} "
+        f"(SP: {sp_ip_pool:.0f}, RP: {rp_ip_pool:.0f})"
+    )
+
     # Compute z-scores within each pool using only relevant categories
     sp_results = _compute_pitcher_pool_zscores(
-        sp_rows, "SP", {"k", "qs", "era", "whip"}, MIN_IP_SP
+        sp_rows, "SP", {"k", "qs", "era", "whip"}, MIN_IP_SP,
+        combined_avg_team_ip=combined_avg_team_ip,
     )
     rp_results = _compute_pitcher_pool_zscores(
-        rp_rows, "RP", {"k", "svhd", "era", "whip"}, MIN_IP_RP
+        rp_rows, "RP", {"k", "svhd", "era", "whip"}, MIN_IP_RP,
+        combined_avg_team_ip=combined_avg_team_ip,
     )
 
     # Compute replacement levels across both pools (handles flex P slots)

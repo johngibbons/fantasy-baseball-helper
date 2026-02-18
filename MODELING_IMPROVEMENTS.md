@@ -49,7 +49,7 @@ factor to counting stats (R, TB, RBI, SB for hitters; K, QS, SVHD for pitchers).
 
 ## Issue 2: Pool-specific IP denominators inflate rate stat SGP
 
-**Status:** Not started
+**Status:** DONE
 **Priority:** 2 (Critical)
 **Impact:** High - overvalues "ratio" pitchers by 1.4-3.4x
 **Complexity:** Low
