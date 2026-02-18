@@ -3,6 +3,7 @@ and generate simple trend-based projections from historical stats."""
 
 import csv
 import logging
+import unicodedata
 from pathlib import Path
 from typing import Optional
 from backend.database import get_connection
@@ -227,6 +228,20 @@ def import_position_eligibility(filepath: str):
     updated = 0
     skipped = 0
 
+    def _strip_accents(s: str) -> str:
+        return "".join(
+            c for c in unicodedata.normalize("NFD", s)
+            if unicodedata.category(c) != "Mn"
+        ).lower()
+
+    # Build accent-insensitive lookup from all players in DB
+    all_players = conn.execute("SELECT mlb_id, full_name FROM players").fetchall()
+    name_to_id: dict[str, int] = {}
+    stripped_to_id: dict[str, int] = {}
+    for p in all_players:
+        name_to_id[p["full_name"].lower()] = p["mlb_id"]
+        stripped_to_id[_strip_accents(p["full_name"])] = p["mlb_id"]
+
     with open(filepath, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -235,20 +250,15 @@ def import_position_eligibility(filepath: str):
             if not name or not positions:
                 continue
 
-            # Try exact match first, then LIKE
-            player = conn.execute(
-                "SELECT mlb_id FROM players WHERE full_name = ?", (name,)
-            ).fetchone()
-            if not player:
-                player = conn.execute(
-                    "SELECT mlb_id FROM players WHERE full_name LIKE ?",
-                    (f"%{name}%",),
-                ).fetchone()
+            # Try exact match, then accent-stripped match
+            mlb_id = name_to_id.get(name.lower())
+            if not mlb_id:
+                mlb_id = stripped_to_id.get(_strip_accents(name))
 
-            if player:
+            if mlb_id:
                 conn.execute(
                     "UPDATE players SET eligible_positions = ? WHERE mlb_id = ?",
-                    (positions, player["mlb_id"]),
+                    (positions, mlb_id),
                 )
                 updated += 1
             else:
