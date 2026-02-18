@@ -100,16 +100,60 @@ function futureCost(draftRound: number | null, keeperSeason: number, yearsAhead:
   return Math.max(1, baseRound - 5 * (futureSeason - 1))
 }
 
+// ── Category definitions (matching draft page) ──
+const HITTING_CATS = [
+  { key: 'zscore_r', label: 'R' },
+  { key: 'zscore_tb', label: 'TB' },
+  { key: 'zscore_rbi', label: 'RBI' },
+  { key: 'zscore_sb', label: 'SB' },
+  { key: 'zscore_obp', label: 'OBP' },
+] as const
+
+const PITCHING_CATS = [
+  { key: 'zscore_k', label: 'K' },
+  { key: 'zscore_qs', label: 'QS' },
+  { key: 'zscore_era', label: 'ERA' },
+  { key: 'zscore_whip', label: 'WHIP' },
+  { key: 'zscore_svhd', label: 'SVHD' },
+] as const
+
+const ALL_CATS = [...HITTING_CATS, ...PITCHING_CATS]
+
+/**
+ * Category diversity bonus for a keeper combination.
+ * Rewards combos that cover more categories with positive z-scores.
+ * A combo covering 8/10 categories is better than one covering 5/10.
+ */
+function categoryDiversityBonus(keepers: KeeperWithSurplus[]): number {
+  const catTotals: Record<string, number> = {}
+  for (const cat of ALL_CATS) catTotals[cat.key] = 0
+  for (const k of keepers) {
+    for (const cat of ALL_CATS) {
+      catTotals[cat.key] += ((k.resolved as unknown as Record<string, number>)[cat.key] ?? 0)
+    }
+  }
+  // Count categories with positive contribution
+  let covered = 0
+  for (const cat of ALL_CATS) {
+    if (catTotals[cat.key] > 0.5) covered++ // threshold: meaningful positive contribution
+  }
+  // Bonus: 0.5 per category covered beyond 5 (half the categories)
+  // This nudges toward diversity without overwhelming surplus value
+  return Math.max(0, covered - 5) * 0.5
+}
+
 function findOptimalKeepers(candidates: KeeperWithSurplus[]): KeeperWithSurplus[] {
   if (candidates.length <= MAX_KEEPERS) return [...candidates]
   let bestCombo: KeeperWithSurplus[] = []
-  let bestSurplus = -Infinity
+  let bestScore = -Infinity
 
   function combine(start: number, current: KeeperWithSurplus[]) {
     if (current.length === MAX_KEEPERS) {
       const totalSurplus = current.reduce((s, k) => s + k.surplus, 0)
-      if (totalSurplus > bestSurplus) {
-        bestSurplus = totalSurplus
+      const diversity = categoryDiversityBonus(current)
+      const score = totalSurplus + diversity
+      if (score > bestScore) {
+        bestScore = score
         bestCombo = [...current]
       }
       return
@@ -122,6 +166,17 @@ function findOptimalKeepers(candidates: KeeperWithSurplus[]): KeeperWithSurplus[
 
   combine(0, [])
   return bestCombo
+}
+
+/** Compute per-category z-score totals for a set of keepers */
+function keeperCategoryTotals(keepers: KeeperWithSurplus[]): { key: string; label: string; value: number }[] {
+  return ALL_CATS.map(cat => {
+    let total = 0
+    for (const k of keepers) {
+      total += ((k.resolved as unknown as Record<string, number>)[cat.key] ?? 0)
+    }
+    return { key: cat.key, label: cat.label, value: total }
+  })
 }
 
 function surplusBg(v: number): string {
@@ -583,6 +638,10 @@ export default function KeepersPage() {
                     Select Optimal
                   </button>
                 )}
+                {/* Category coverage for optimal keepers */}
+                {optimalKeepers.length > 0 && (
+                  <KeeperCategoryBalance keepers={optimalKeepers} title="Category Coverage" />
+                )}
               </div>
 
               {/* Your Selected Keepers */}
@@ -636,6 +695,10 @@ export default function KeepersPage() {
                     )}
                   </>
                 )}
+                {/* Category coverage for selected keepers */}
+                {selectedKeeperData.length > 0 && (
+                  <KeeperCategoryBalance keepers={selectedKeeperData} title="Category Coverage" />
+                )}
               </div>
 
               {/* Multi-Year View */}
@@ -684,5 +747,53 @@ export default function KeepersPage() {
         )}
       </div>
     </main>
+  )
+}
+
+// ── Category balance visualization for keeper combinations ──
+function KeeperCategoryBalance({ keepers, title }: { keepers: KeeperWithSurplus[]; title: string }) {
+  const cats = keeperCategoryTotals(keepers)
+  const covered = cats.filter(c => c.value > 0.5).length
+  const gaps = cats.filter(c => c.value <= 0.5)
+
+  return (
+    <div className="mt-3 pt-3 border-t border-gray-700/50">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">{title}</span>
+        <span className={`text-[10px] font-bold ${covered >= 8 ? 'text-emerald-400' : covered >= 6 ? 'text-yellow-400' : 'text-red-400'}`}>
+          {covered}/10
+        </span>
+      </div>
+      <div className="space-y-0.5">
+        {cats.map(cat => {
+          const maxVal = 8
+          const clamped = Math.max(-maxVal, Math.min(maxVal, cat.value))
+          const pct = Math.abs(clamped) / maxVal * 100
+          const isGap = cat.value <= 0.5
+          return (
+            <div key={cat.key} className="flex items-center gap-1.5">
+              <span className={`w-8 text-[9px] font-bold text-right shrink-0 ${isGap ? 'text-red-400' : 'text-gray-500'}`}>
+                {cat.label}
+              </span>
+              <div className="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${cat.value > 0.5 ? 'bg-emerald-500/50' : cat.value > 0 ? 'bg-yellow-500/40' : 'bg-red-500/40'}`}
+                  style={{ width: `${Math.max(pct, 3)}%` }}
+                />
+              </div>
+              <span className={`w-7 text-[9px] font-bold tabular-nums text-right shrink-0 ${cat.value > 0.5 ? 'text-emerald-400' : cat.value > 0 ? 'text-yellow-400' : 'text-red-400'}`}>
+                {cat.value > 0 ? '+' : ''}{cat.value.toFixed(1)}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+      {gaps.length > 0 && (
+        <div className="mt-1.5 text-[9px] text-gray-500">
+          Gaps: <span className="text-red-400 font-semibold">{gaps.map(g => g.label).join(', ')}</span>
+          <span className="text-gray-600"> — target in draft</span>
+        </div>
+      )}
+    </div>
   )
 }
