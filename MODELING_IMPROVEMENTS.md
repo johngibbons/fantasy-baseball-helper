@@ -258,7 +258,7 @@ Add age-based weight adjustments to the trend projection:
 
 ## Issue 9: Projection blending uses equal weights
 
-**Status:** Not started
+**Status:** DONE
 **Priority:** 9 (Moderate)
 **Impact:** Low-Medium - modest accuracy gain
 **Complexity:** Low

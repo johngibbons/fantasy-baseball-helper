@@ -221,17 +221,40 @@ def _compute_sgp_denominators(categories: list[str]) -> dict[str, float]:
 
 
 def _blend_projection_rows(
-    rows, numeric_fields: list[str]
+    rows, numeric_fields: list[str], player_type: str = "hitter"
 ) -> tuple[list[dict], int, float]:
     """Blend multiple projection sources into one row per player.
 
-    Groups rows by mlb_id, averages numeric_fields across sources.
+    Groups rows by mlb_id, weighted-averages numeric_fields across sources.
+    Source weights reflect empirical projection-system accuracy:
+      - Hitters: THE BAT X 0.40, Steamer 0.30, ZiPS 0.30
+      - Pitchers: Steamer 0.40, THE BAT X 0.30, ZiPS 0.30
+
     If a player has a 'statcast_adjusted' row, excludes 'trend' for that player
     (since statcast_adjusted already incorporates trend data).
 
     Returns:
         (blended_rows, player_count, avg_sources_per_player)
     """
+    # Source-specific weights (keys must match the 'source' column values)
+    _SOURCE_WEIGHTS = {
+        "hitter": {
+            "thebatx": 0.40,
+            "steamer": 0.30,
+            "zips": 0.30,
+            "statcast_adjusted": 0.40,  # derived from trend + Statcast; treat like thebatx tier
+            "trend": 0.20,               # fallback weight when no better source exists
+        },
+        "pitcher": {
+            "steamer": 0.40,
+            "thebatx": 0.30,
+            "zips": 0.30,
+            "statcast_adjusted": 0.40,
+            "trend": 0.20,
+        },
+    }
+    weights_map = _SOURCE_WEIGHTS.get(player_type, _SOURCE_WEIGHTS["hitter"])
+
     by_player = defaultdict(list)
     for row in rows:
         by_player[row["mlb_id"]].append(row)
@@ -253,9 +276,14 @@ def _blend_projection_rows(
             "team": first["team"],
             "eligible_positions": first["eligible_positions"] if "eligible_positions" in first.keys() else None,
         }
+        # Weighted blend: look up each source's weight, then normalise so
+        # the weights of the sources actually present sum to 1.0.
+        row_weights = [weights_map.get(r["source"], 0.25) for r in player_rows]
+        total_w = sum(row_weights) or 1.0
         for field in numeric_fields:
-            values = [r[field] or 0 for r in player_rows]
-            result[field] = sum(values) / len(values)
+            result[field] = sum(
+                (r[field] or 0) * w for r, w in zip(player_rows, row_weights)
+            ) / total_w
         blended.append(result)
 
     avg_sources = total_source_count / len(blended) if blended else 0
@@ -426,7 +454,7 @@ def calculate_hitter_zscores(season: int = 2026, source: str = None,
     if source:
         rows = [dict(r) for r in rows]
     else:
-        rows, n_players, avg_src = _blend_projection_rows(rows, _HITTER_NUMERIC)
+        rows, n_players, avg_src = _blend_projection_rows(rows, _HITTER_NUMERIC, "hitter")
         logger.info(
             f"Blended projections from multiple sources for {n_players} hitters "
             f"(avg {avg_src:.1f} sources/player)"
@@ -743,7 +771,7 @@ def calculate_pitcher_zscores(season: int = 2026, source: str = None,
     if source:
         rows = [dict(r) for r in rows]
     else:
-        rows, n_players, avg_src = _blend_projection_rows(rows, _PITCHER_NUMERIC)
+        rows, n_players, avg_src = _blend_projection_rows(rows, _PITCHER_NUMERIC, "pitcher")
         logger.info(
             f"Blended projections from multiple sources for {n_players} pitchers "
             f"(avg {avg_src:.1f} sources/player)"
