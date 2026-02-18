@@ -1203,8 +1203,8 @@ export default function DraftBoardPage() {
                                 <div className="flex items-center justify-end gap-1">
                                   <span className="text-xs text-gray-500 tabular-nums">{Math.round(p.espn_adp)}</span>
                                   {p.adp_diff != null && Math.abs(p.adp_diff) > 5 && (
-                                    <span className={`text-[10px] ${p.adp_diff > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                      {p.adp_diff > 0 ? '\u25B2' : '\u25BC'}
+                                    <span className={`text-[10px] font-bold tabular-nums ${p.adp_diff < 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                      {p.adp_diff > 0 ? '+' : ''}{Math.round(p.adp_diff)}
                                     </span>
                                   )}
                                 </div>
