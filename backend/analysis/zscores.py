@@ -468,14 +468,22 @@ def calculate_hitter_zscores(season: int = 2026, source: str = None,
         })
 
     # Apply playing time risk discount — linear ramp to full credit at FULL_CREDIT_PA
+    # Only discount COUNTING stats (R, TB, RBI, SB). Rate stats (OBP) are already
+    # PA-weighted through the marginal approach — discounting them again would
+    # double-count the playing time effect.
+    _HITTER_COUNTING_CATS = ("zscore_r", "zscore_tb", "zscore_rbi", "zscore_sb")
     discounted = 0
     for p in results:
         confidence = min(1.0, p["proj_pa"] / FULL_CREDIT_PA)
         if confidence < 1.0:
             discounted += 1
-            for cat in ("zscore_r", "zscore_tb", "zscore_rbi", "zscore_sb", "zscore_obp"):
+            for cat in _HITTER_COUNTING_CATS:
                 p[cat] = round(p[cat] * confidence, 3)
-            p["total_zscore"] = round(p["total_zscore"] * confidence, 3)
+            # Recompute total from discounted counting stats + unchanged rate stats
+            p["total_zscore"] = round(
+                sum(p[cat] for cat in _HITTER_COUNTING_CATS) + p["zscore_obp"],
+                3,
+            )
     if discounted:
         logger.info(f"Applied playing time discount to {discounted} hitters (< {FULL_CREDIT_PA} PA)")
 
@@ -590,16 +598,25 @@ def _compute_pitcher_pool_zscores(
             "proj_svhd": int(svhd[i]),
         })
 
-    # Apply playing time risk discount
+    # Apply playing time risk discount — counting stats only.
+    # Rate stats (ERA, WHIP) are already IP-weighted through the marginal approach;
+    # discounting them again would double-count the playing time effect.
+    _PITCHER_COUNTING_CATS = ("zscore_k", "zscore_qs", "zscore_svhd")
+    _PITCHER_RATE_CATS = ("zscore_era", "zscore_whip")
     full_credit_ip = FULL_CREDIT_IP_SP if pool_label == "SP" else FULL_CREDIT_IP_RP
     discounted = 0
     for p in results:
         confidence = min(1.0, p["proj_ip"] / full_credit_ip)
         if confidence < 1.0:
             discounted += 1
-            for cat in ("zscore_k", "zscore_qs", "zscore_era", "zscore_whip", "zscore_svhd"):
+            for cat in _PITCHER_COUNTING_CATS:
                 p[cat] = round(p[cat] * confidence, 3)
-            p["total_zscore"] = round(p["total_zscore"] * confidence, 3)
+            # Recompute total from discounted counting stats + unchanged rate stats
+            p["total_zscore"] = round(
+                sum(p[cat] for cat in _PITCHER_COUNTING_CATS)
+                + sum(p[cat] for cat in _PITCHER_RATE_CATS),
+                3,
+            )
     if discounted:
         logger.info(f"Applied playing time discount to {discounted} {pool_label}s (< {full_credit_ip} IP)")
 
