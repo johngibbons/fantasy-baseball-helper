@@ -125,7 +125,7 @@ Approximate correlation-aware weights:
 
 ## Issue 4: Pitcher normalization scaling is a blunt instrument
 
-**Status:** Not started
+**Status:** DONE
 **Priority:** 4 (Major)
 **Impact:** Medium - distorts cross-position comparisons
 **Complexity:** Medium

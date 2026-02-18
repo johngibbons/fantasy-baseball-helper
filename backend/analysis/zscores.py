@@ -814,23 +814,24 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
     hitters = calculate_hitter_zscores(season, source, excluded_ids)
     pitchers = calculate_pitcher_zscores(season, source, excluded_ids)
 
-    # Normalize pitcher values to match roster slot demand
-    hitter_slots = sum(HITTER_SLOTS.values())   # 10
-    pitcher_slots = sum(PITCHER_SLOTS.values())  # 7
-
+    # Log hitter/pitcher value distribution for diagnostics.
+    # No post-hoc scaling is applied — SGP is already a common currency
+    # (1 SGP = 1 standings position regardless of category), and the replacement
+    # level framework correctly accounts for positional scarcity.  Hitters
+    # naturally have higher totals because they contribute across 5 categories
+    # vs 4 for pitchers; this accurately reflects their broader impact on
+    # weekly H2H matchups.
     hitter_value_sum = sum(p["total_zscore"] for p in hitters if p["total_zscore"] > 0)
     pitcher_value_sum = sum(p["total_zscore"] for p in pitchers if p["total_zscore"] > 0)
-
-    if pitcher_value_sum > 0 and hitter_value_sum > 0:
-        target_pitcher_sum = hitter_value_sum * (pitcher_slots / hitter_slots)
-        scale = target_pitcher_sum / pitcher_value_sum
-        logger.info(f"Pitcher normalization: scale={scale:.3f} (hitter_sum={hitter_value_sum:.1f}, pitcher_sum={pitcher_value_sum:.1f}, target={target_pitcher_sum:.1f})")
-
-        pitcher_cats = ("zscore_k", "zscore_qs", "zscore_era", "zscore_whip", "zscore_svhd")
-        for p in pitchers:
-            p["total_zscore"] = round(p["total_zscore"] * scale, 3)
-            for cat in pitcher_cats:
-                p[cat] = round(p[cat] * scale, 3)
+    hitter_count = sum(1 for p in hitters if p["total_zscore"] > 0)
+    pitcher_count = sum(1 for p in pitchers if p["total_zscore"] > 0)
+    if hitter_count > 0 and pitcher_count > 0:
+        logger.info(
+            f"Value distribution: {hitter_count} hitters ({hitter_value_sum:.1f} total, "
+            f"{hitter_value_sum / hitter_count:.2f} avg) | "
+            f"{pitcher_count} pitchers ({pitcher_value_sum:.1f} total, "
+            f"{pitcher_value_sum / pitcher_count:.2f} avg)"
+        )
 
     # Combine and rank overall
     all_players = hitters + pitchers
