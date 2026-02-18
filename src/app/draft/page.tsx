@@ -3,6 +3,19 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import Link from 'next/link'
 import { getDraftBoard, recalculateDraftValues, RankedPlayer } from '@/lib/valuations-api'
+import {
+  analyzeCategoryStandings,
+  detectStrategy,
+  computeMCW,
+  computeDraftScore,
+  standingsConfidence,
+  generateExplanation,
+  expectedWeeklyWins,
+  type CategoryAnalysis,
+  type CategoryGain,
+  type PlayerDraftScore,
+  type DraftRecommendation,
+} from '@/lib/draft-optimizer'
 
 // ── Position filter buttons ──
 const POSITIONS = ['All', 'C', '1B', '2B', '3B', 'SS', 'OF', 'SP', 'RP']
@@ -95,6 +108,15 @@ function getActiveTeamId(pickIndex: number, order: number[]): number {
   return round % 2 === 0 ? order[posInRound] : order[numTeams - 1 - posInRound]
 }
 
+// ── Snake order: picks until a team's next turn ──
+function getPicksUntilNextTurn(currentPickIndex: number, draftOrder: number[], teamId: number): number {
+  if (draftOrder.length === 0) return 999
+  for (let i = currentPickIndex + 1; i < currentPickIndex + draftOrder.length * 2; i++) {
+    if (getActiveTeamId(i, draftOrder) === teamId) return i - currentPickIndex
+  }
+  return draftOrder.length * 2 // fallback: full snake round
+}
+
 // ── Types ──
 interface DraftTeam { id: number; name: string }
 
@@ -114,6 +136,7 @@ export default function DraftBoardPage() {
   const [showDrafted, setShowDrafted] = useState(false)
   const [recalcData, setRecalcData] = useState<Map<number, RankedPlayer> | null>(null)
   const [recalculating, setRecalculating] = useState(false)
+  const [sortBy, setSortBy] = useState<'priority' | 'rank' | 'value'>('priority')
 
   // ── Team-aware draft state ──
   const [leagueTeams, setLeagueTeams] = useState<DraftTeam[]>([])
@@ -425,6 +448,51 @@ export default function DraftBoardPage() {
     return { rows, catRanks, teamCount: rows.length }
   }, [allPlayers, draftPicks, teamNameMap])
 
+  // ── Category standings analysis (MCW model) ──
+  const categoryStandings = useMemo((): CategoryAnalysis[] => {
+    if (!myTeamId || teamCategories.rows.length < 2) return []
+    const numTeams = leagueTeams.length || DEFAULT_NUM_TEAMS
+    const myRow = teamCategories.rows.find(r => r.teamId === myTeamId)
+    if (!myRow) return []
+
+    const raw = analyzeCategoryStandings(
+      myTeamId,
+      myRow.totals,
+      teamCategories.rows,
+      ALL_CATS.map(c => ({ key: c.key, label: c.label })),
+      numTeams
+    )
+    return detectStrategy(raw, myTeam.length, numTeams)
+  }, [myTeamId, teamCategories, leagueTeams.length, myTeam.length])
+
+  // ── Other teams' totals per category (sorted desc, for MCW computation) ──
+  const otherTeamTotals = useMemo((): Record<string, number[]> => {
+    if (!myTeamId) return {}
+    const result: Record<string, number[]> = {}
+    const otherRows = teamCategories.rows.filter(r => r.teamId !== myTeamId)
+    for (const cat of ALL_CATS) {
+      result[cat.key] = otherRows
+        .map(r => r.totals[cat.key] ?? 0)
+        .sort((a, b) => b - a)
+    }
+    return result
+  }, [myTeamId, teamCategories])
+
+  // ── Strategy map (catKey → strategy string) ──
+  const strategyMap = useMemo((): Record<string, CategoryAnalysis['strategy']> => {
+    const map: Record<string, CategoryAnalysis['strategy']> = {}
+    for (const s of categoryStandings) {
+      map[s.catKey] = s.strategy
+    }
+    return map
+  }, [categoryStandings])
+
+  // ── Expected weekly wins ──
+  const expectedWins = useMemo(() => {
+    if (categoryStandings.length === 0) return null
+    return expectedWeeklyWins(categoryStandings)
+  }, [categoryStandings])
+
   // ── Best available by need ──
   const bestByNeed = useMemo(() => {
     const results: { slot: string; player: RankedPlayer }[] = []
@@ -479,6 +547,129 @@ export default function DraftBoardPage() {
   const hasAdpData = allPlayers.some((p) => p.espn_adp != null)
   const isMyTeamOnClock = myTeamId != null && activeTeamId === myTeamId
 
+  // ── Priority map ──
+  const picksUntilMine = useMemo(
+    () => myTeamId != null ? getPicksUntilNextTurn(currentPickIndex, draftOrder, myTeamId) : 999,
+    [currentPickIndex, draftOrder, myTeamId]
+  )
+
+  const draftScoreMap = useMemo(() => {
+    const map = new Map<number, PlayerDraftScore>()
+    const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
+    const numTeams = leagueTeams.length || DEFAULT_NUM_TEAMS
+    const totalSlots = Object.values(ROSTER_SLOTS).reduce((a, b) => a + b, 0)
+    const totalPicksMade = draftPicks.size
+    const confidence = standingsConfidence(totalPicksMade)
+    const draftProgress = Math.min(1, myTeam.length / totalSlots)
+    const hasMCW = categoryStandings.length > 0 && Object.keys(otherTeamTotals).length > 0
+    const myRow = myTeamId ? teamCategories.rows.find(r => r.teamId === myTeamId) : null
+
+    for (const p of availablePlayers) {
+      const value = getPlayerValue(p)
+      const vona = vonaMap.get(p.mlb_id) ?? 0
+      let urgency = 0
+      let badge: 'NOW' | 'WAIT' | null = null
+
+      if (myTeamId != null && p.espn_adp != null) {
+        const adpGap = p.espn_adp - currentPickIndex
+        urgency = Math.max(0, Math.min(15, picksUntilMine - adpGap))
+
+        if (p.espn_adp <= currentPickIndex + picksUntilMine) {
+          badge = 'NOW'
+        } else if (p.espn_adp > currentPickIndex + picksUntilMine * 2) {
+          badge = 'WAIT'
+        }
+      }
+
+      // Compute MCW if we have standings data
+      let mcw = 0
+      let categoryGains: CategoryGain[] = []
+
+      if (hasMCW && myRow) {
+        const playerZscores: Record<string, number> = {}
+        for (const cat of ALL_CATS) {
+          playerZscores[cat.key] = (p as unknown as Record<string, number>)[cat.key] ?? 0
+        }
+        const mcwResult = computeMCW(
+          playerZscores,
+          myRow.totals,
+          otherTeamTotals,
+          strategyMap,
+          ALL_CATS.map(c => ({ key: c.key, label: c.label })),
+          numTeams
+        )
+        mcw = mcwResult.mcw
+        categoryGains = mcwResult.categoryGains
+      }
+
+      // Roster fit: 1 if fills a need, 0 otherwise
+      const needSlots = getEligibleSlots(p).filter(s => (rosterState.remainingCapacity[s] || 0) > 0)
+      const rosterFit = needSlots.length > 0 ? 1 : 0
+
+      let score: number
+      if (hasMCW && confidence > 0) {
+        score = computeDraftScore(mcw, vona, urgency, rosterFit, confidence, draftProgress)
+        // Blend with raw value when confidence is low
+        const rawScore = value + vona * 0.5 + urgency * 0.3
+        score = score * confidence + rawScore * (1 - confidence)
+      } else {
+        // Fallback: old formula
+        score = value + vona * 0.5 + urgency * 0.3
+      }
+
+      map.set(p.mlb_id, { mlbId: p.mlb_id, score, mcw, vona, urgency, badge, categoryGains })
+    }
+    return map
+  }, [allPlayers, draftedIds, vonaMap, myTeamId, currentPickIndex, picksUntilMine, recalcData,
+      categoryStandings, otherTeamTotals, strategyMap, teamCategories, leagueTeams.length,
+      myTeam.length, draftPicks.size, rosterState.remainingCapacity])
+
+  // ── Top recommendation with explanation ──
+  const topRecommendation = useMemo((): DraftRecommendation | null => {
+    if (!myTeamId) return null
+    const entries = [...draftScoreMap.entries()]
+      .sort((a, b) => b[1].score - a[1].score)
+      .slice(0, 3)
+      .map(([mlbId, ds]) => {
+        const p = allPlayers.find(x => x.mlb_id === mlbId)
+        if (!p) return null
+        return { ...ds, fullName: p.full_name, position: getPositions(p)[0] }
+      })
+      .filter((x): x is PlayerDraftScore & { fullName: string; position: string } => x !== null)
+
+    if (entries.length === 0) return null
+
+    const primary = entries[0]
+    const explanation = generateExplanation(
+      primary,
+      primary.categoryGains,
+      primary.vona,
+      primary.urgency,
+      getEligibleSlots(allPlayers.find(p => p.mlb_id === primary.mlbId)!).some(s => (rosterState.remainingCapacity[s] || 0) > 0) ? 1 : 0,
+      strategyMap
+    )
+
+    return {
+      primary,
+      explanation,
+      runnersUp: entries.slice(1),
+    }
+  }, [draftScoreMap, allPlayers, myTeamId, strategyMap, rosterState.remainingCapacity])
+
+  const sortedAvailable = useMemo(() => {
+    const list = [...available]
+    const canScore = hasAdpData && myTeamId != null
+    const effectiveSort = canScore ? sortBy : (sortBy === 'priority' ? 'rank' : sortBy)
+
+    if (effectiveSort === 'priority') {
+      list.sort((a, b) => (draftScoreMap.get(b.mlb_id)?.score ?? 0) - (draftScoreMap.get(a.mlb_id)?.score ?? 0))
+    } else if (effectiveSort === 'value') {
+      list.sort((a, b) => getPlayerValue(b) - getPlayerValue(a))
+    }
+    // 'rank' keeps the default overall_rank order
+    return list
+  }, [available, sortBy, draftScoreMap, hasAdpData, myTeamId, recalcData])
+
   if (loading) {
     return (
       <main className="min-h-screen bg-gray-950">
@@ -501,8 +692,8 @@ export default function DraftBoardPage() {
   }
 
   const displayList = showDrafted
-    ? [...available, ...drafted].sort((a, b) => a.overall_rank - b.overall_rank)
-    : available
+    ? [...sortedAvailable, ...drafted].sort((a, b) => a.overall_rank - b.overall_rank)
+    : sortedAvailable
 
   // Build a set of assigned player IDs by slot for the roster grid
   const slotAssignments: Record<string, RankedPlayer[]> = {}
@@ -704,6 +895,23 @@ export default function DraftBoardPage() {
                 />
                 Show drafted
               </label>
+              {hasAdpData && myTeamId != null && (
+                <div className="flex gap-1 ml-auto">
+                  {(['priority', 'rank', 'value'] as const).map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setSortBy(s)}
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                        sortBy === s
+                          ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+                      }`}
+                    >
+                      {s === 'priority' ? 'Score' : s.charAt(0).toUpperCase() + s.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
@@ -724,7 +932,9 @@ export default function DraftBoardPage() {
                           )}
                         </div>
                       </th>
-                      <th className="px-3 py-2.5 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-16">VONA</th>
+                      <th className="px-3 py-2.5 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-28">
+                        {hasAdpData && myTeamId != null ? 'Score' : 'VONA'}
+                      </th>
                       {hasAdpData && (
                         <th className="px-3 py-2.5 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-16">ADP</th>
                       )}
@@ -815,7 +1025,31 @@ export default function DraftBoardPage() {
                           </td>
                           <td className="px-3 py-1.5 text-right">
                             {!isDrafted && (() => {
+                              const ds = draftScoreMap.get(p.mlb_id)
                               const vona = vonaMap.get(p.mlb_id)
+                              const showScore = hasAdpData && myTeamId != null
+
+                              if (showScore && ds) {
+                                return (
+                                  <div className="flex items-center justify-end gap-1">
+                                    {ds.badge === 'NOW' && (
+                                      <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">
+                                        NOW
+                                      </span>
+                                    )}
+                                    {ds.badge === 'WAIT' && (
+                                      <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">
+                                        WAIT
+                                      </span>
+                                    )}
+                                    <span className={`font-bold tabular-nums text-xs ${ds.score > 0 ? 'text-purple-400' : 'text-gray-500'}`}>
+                                      {ds.score.toFixed(1)}
+                                    </span>
+                                  </div>
+                                )
+                              }
+
+                              // Fallback: VONA display
                               if (vona == null) return <span className="text-xs text-gray-700">--</span>
                               const opacity = Math.min(1, 0.3 + (vona / 5) * 0.7)
                               return (
@@ -946,6 +1180,78 @@ export default function DraftBoardPage() {
                 </div>
               )}
 
+              {/* Section 2.5: Strategy Panel (MCW model) */}
+              {categoryStandings.length > 0 && myTeam.length >= 3 && (
+                <div className="bg-gray-900 rounded-xl border border-gray-800">
+                  <div className="px-4 py-3 border-b border-gray-800">
+                    <h2 className="font-bold text-white text-sm">H2H Strategy</h2>
+                    <div className="text-[11px] text-gray-500 mt-0.5">
+                      {expectedWins != null ? (
+                        <>Expected: <span className={`font-bold ${expectedWins >= 5.5 ? 'text-emerald-400' : expectedWins >= 4.5 ? 'text-yellow-400' : 'text-red-400'}`}>{expectedWins.toFixed(1)}</span> wins/week</>
+                      ) : 'Win probability by category'}
+                    </div>
+                  </div>
+                  <div className="px-3 py-2 space-y-0.5">
+                    {categoryStandings.map((cat) => {
+                      const pct = Math.round(cat.winProb * 100)
+                      const strategyBadge = {
+                        target: { label: 'TARGET', cls: 'bg-emerald-900/60 text-emerald-300 border-emerald-700/50' },
+                        lock: { label: 'LOCK', cls: 'bg-blue-900/60 text-blue-300 border-blue-700/50' },
+                        punt: { label: 'PUNT', cls: 'bg-red-900/60 text-red-300 border-red-700/50' },
+                        neutral: null,
+                      }[cat.strategy]
+                      return (
+                        <div key={cat.catKey} className="flex items-center gap-1.5 py-1">
+                          <span className="w-9 text-[10px] font-bold text-gray-400 text-right shrink-0">{cat.label}</span>
+                          <div className="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                cat.strategy === 'punt' ? 'bg-red-500/40' :
+                                cat.strategy === 'lock' ? 'bg-blue-500/60' :
+                                cat.strategy === 'target' ? 'bg-emerald-500/60' :
+                                'bg-gray-600/60'
+                              }`}
+                              style={{ width: `${Math.max(pct, 3)}%` }}
+                            />
+                          </div>
+                          <span className="w-5 text-[10px] font-bold tabular-nums text-gray-300 text-right shrink-0">{cat.myRank}</span>
+                          <span className={`w-8 text-[10px] font-bold tabular-nums text-right shrink-0 ${
+                            pct >= 60 ? 'text-emerald-400' : pct >= 40 ? 'text-yellow-400' : 'text-red-400'
+                          }`}>{pct}%</span>
+                          {strategyBadge && (
+                            <span className={`px-1 py-0.5 rounded text-[7px] font-bold border leading-none shrink-0 ${strategyBadge.cls}`}>
+                              {strategyBadge.label}
+                            </span>
+                          )}
+                        </div>
+                      )
+                    })}
+                    {/* Summary line */}
+                    {(() => {
+                      const punts = categoryStandings.filter(c => c.strategy === 'punt')
+                      const targets = categoryStandings.filter(c => c.strategy === 'target')
+                      if (punts.length === 0 && targets.length === 0) return null
+                      return (
+                        <div className="pt-1.5 mt-1 border-t border-gray-800 text-[10px] text-gray-500">
+                          {punts.length > 0 && (
+                            <span>Punting <span className="text-red-400 font-semibold">{punts.map(c => c.label).join(', ')}</span></span>
+                          )}
+                          {punts.length > 0 && targets.length > 0 && <span className="mx-1">&middot;</span>}
+                          {targets.length > 0 && (
+                            <span>Targeting <span className="text-emerald-400 font-semibold">{targets.map(c => c.label).join(', ')}</span></span>
+                          )}
+                        </div>
+                      )
+                    })()}
+                  </div>
+                </div>
+              )}
+              {myTeamId && myTeam.length > 0 && myTeam.length < 3 && (
+                <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+                  <div className="text-xs text-gray-500 text-center">Draft more players to enable H2H strategy analysis</div>
+                </div>
+              )}
+
               {/* Section 3: Draft Comparison Heatmap */}
               {teamCategories.rows.length > 0 && (
                 <div className="bg-gray-900 rounded-xl border border-gray-800">
@@ -1009,6 +1315,129 @@ export default function DraftBoardPage() {
                   <h2 className="font-bold text-white text-sm">Suggestions</h2>
                 </div>
                 <div className="px-3 py-2 space-y-2">
+                  {/* Recommendation Card */}
+                  {topRecommendation && (() => {
+                    const { primary, explanation, runnersUp } = topRecommendation
+                    const topGains = primary.categoryGains
+                      .filter(g => g.winProbAfter - g.winProbBefore > 0.02)
+                      .sort((a, b) => (b.winProbAfter - b.winProbBefore) - (a.winProbAfter - a.winProbBefore))
+                      .slice(0, 3)
+                    return (
+                      <div>
+                        <div className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider mb-1">Recommended pick</div>
+                        {/* Primary recommendation */}
+                        <div className="py-2 px-2.5 rounded-lg bg-purple-950/30 border border-purple-800/30 mb-1.5">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[primary.position] || 'bg-gray-600'}`}>
+                              {primary.position}
+                            </span>
+                            <span className="text-sm font-bold text-white truncate">{primary.fullName}</span>
+                            <div className="flex items-center gap-1 ml-auto shrink-0">
+                              {primary.badge === 'NOW' && (
+                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
+                              )}
+                              {primary.badge === 'WAIT' && (
+                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">WAIT</span>
+                              )}
+                              <span className="text-xs font-bold tabular-nums text-purple-400">{primary.score.toFixed(1)}</span>
+                            </div>
+                          </div>
+                          {/* Category win probability shifts */}
+                          {topGains.length > 0 && (
+                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mb-1.5">
+                              {topGains.map(g => (
+                                <span key={g.catKey} className="text-[10px] tabular-nums">
+                                  <span className="text-gray-500">{g.label}:</span>{' '}
+                                  <span className="text-gray-400">{Math.round(g.winProbBefore * 100)}%</span>
+                                  <span className="text-gray-600 mx-0.5">&rarr;</span>
+                                  <span className="text-emerald-400 font-bold">{Math.round(g.winProbAfter * 100)}%</span>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {/* Score breakdown */}
+                          <div className="flex gap-3 text-[9px] text-gray-500 mb-1">
+                            {primary.mcw > 0 && <span>MCW <span className="text-purple-400 font-bold">{primary.mcw.toFixed(2)}</span></span>}
+                            <span>VONA <span className="text-emerald-400 font-bold">{primary.vona.toFixed(1)}</span></span>
+                            {primary.urgency > 0 && <span>URG <span className="text-yellow-400 font-bold">{primary.urgency.toFixed(0)}</span></span>}
+                          </div>
+                          {/* Explanation */}
+                          <div className="text-[10px] text-gray-400 leading-snug">{explanation}</div>
+                        </div>
+                        {/* Runners up */}
+                        {runnersUp.map((ru) => (
+                          <div
+                            key={ru.mlbId}
+                            className="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-gray-800/30 mb-0.5"
+                          >
+                            <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[ru.position] || 'bg-gray-600'}`}>
+                              {ru.position}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-white truncate">{ru.fullName}</div>
+                              {ru.categoryGains.filter(g => g.winProbAfter - g.winProbBefore > 0.02).length > 0 && (
+                                <div className="text-[9px] text-gray-500">
+                                  {ru.categoryGains
+                                    .filter(g => g.winProbAfter - g.winProbBefore > 0.02)
+                                    .sort((a, b) => (b.winProbAfter - b.winProbBefore) - (a.winProbAfter - a.winProbBefore))
+                                    .slice(0, 2)
+                                    .map(g => `${g.label}: ${Math.round(g.winProbBefore * 100)}%\u2192${Math.round(g.winProbAfter * 100)}%`)
+                                    .join(' ')}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {ru.badge === 'NOW' && (
+                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
+                              )}
+                              <span className="text-[10px] font-bold tabular-nums text-purple-400">{ru.score.toFixed(1)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
+                  {/* Fallback: simple top scores when no recommendation card */}
+                  {!topRecommendation && hasAdpData && myTeamId != null && (() => {
+                    const topScores = [...draftScoreMap.entries()]
+                      .sort((a, b) => b[1].score - a[1].score)
+                      .slice(0, 3)
+                      .map(([mlbId, ds]) => ({ player: allPlayers.find(p => p.mlb_id === mlbId)!, ...ds }))
+                      .filter(x => x.player)
+                    if (topScores.length === 0) return null
+                    return (
+                      <div>
+                        <div className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider mb-1">Top scores</div>
+                        {topScores.map(({ player, score, badge }) => (
+                          <div
+                            key={player.mlb_id}
+                            className="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-purple-950/30 border border-purple-800/30 mb-0.5"
+                          >
+                            <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[getPositions(player)[0]] || 'bg-gray-600'}`}>
+                              {getPositions(player)[0]}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-white truncate">{player.full_name}</div>
+                              <div className="text-[10px] text-gray-500">
+                                #{player.overall_rank}
+                                {player.espn_adp != null && <> &middot; ADP {Math.round(player.espn_adp)}</>}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {badge === 'NOW' && (
+                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
+                              )}
+                              {badge === 'WAIT' && (
+                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">WAIT</span>
+                              )}
+                              <span className="text-[10px] font-bold tabular-nums text-purple-400">{score.toFixed(1)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
+
                   {/* Best by need */}
                   {bestByNeed.length > 0 && (
                     <div>
