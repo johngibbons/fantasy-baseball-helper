@@ -148,7 +148,8 @@ export default function DraftBoardPage() {
   const [showDrafted, setShowDrafted] = useState(false)
   const [recalcData, setRecalcData] = useState<Map<number, RankedPlayer> | null>(null)
   const [recalculating, setRecalculating] = useState(false)
-  const [sortBy, setSortBy] = useState<'priority' | 'rank' | 'value'>('priority')
+  const [sortKey, setSortKey] = useState<'rank' | 'adp' | 'name' | 'pos' | 'team' | 'value' | 'score'>('rank')
+  const [sortAsc, setSortAsc] = useState(true)
 
   // ── Team-aware draft state ──
   const [leagueTeams, setLeagueTeams] = useState<DraftTeam[]>([])
@@ -775,19 +776,52 @@ export default function DraftBoardPage() {
     }
   }, [draftScoreMap, allPlayers, myTeamId, strategyMap, rosterState.remainingCapacity])
 
+  const handleSort = useCallback((key: typeof sortKey) => {
+    if (sortKey === key) {
+      setSortAsc(prev => !prev)
+    } else {
+      setSortKey(key)
+      // Sensible defaults: descending for value/score, ascending for others
+      setSortAsc(key !== 'value' && key !== 'score')
+    }
+  }, [sortKey])
+
   const sortedAvailable = useMemo(() => {
     const list = [...available]
-    const canScore = hasAdpData && myTeamId != null
-    const effectiveSort = canScore ? sortBy : (sortBy === 'priority' ? 'rank' : sortBy)
+    const dir = sortAsc ? 1 : -1
 
-    if (effectiveSort === 'priority') {
-      list.sort((a, b) => (draftScoreMap.get(b.mlb_id)?.score ?? 0) - (draftScoreMap.get(a.mlb_id)?.score ?? 0))
-    } else if (effectiveSort === 'value') {
-      list.sort((a, b) => getPlayerValue(b) - getPlayerValue(a))
-    }
-    // 'rank' keeps the default overall_rank order
+    list.sort((a, b) => {
+      let cmp = 0
+      switch (sortKey) {
+        case 'rank':
+          cmp = a.overall_rank - b.overall_rank
+          break
+        case 'adp':
+          cmp = (a.espn_adp ?? 9999) - (b.espn_adp ?? 9999)
+          break
+        case 'name':
+          cmp = a.full_name.localeCompare(b.full_name)
+          break
+        case 'pos':
+          cmp = getPositions(a)[0].localeCompare(getPositions(b)[0])
+          break
+        case 'team':
+          cmp = (a.team ?? '').localeCompare(b.team ?? '')
+          break
+        case 'value':
+          cmp = getPlayerValue(a) - getPlayerValue(b)
+          break
+        case 'score': {
+          const aScore = draftScoreMap.get(a.mlb_id)?.score ?? vonaMap.get(a.mlb_id) ?? 0
+          const bScore = draftScoreMap.get(b.mlb_id)?.score ?? vonaMap.get(b.mlb_id) ?? 0
+          cmp = aScore - bScore
+          break
+        }
+      }
+      return cmp * dir
+    })
     return list
-  }, [available, sortBy, draftScoreMap, hasAdpData, myTeamId, recalcData])
+  }, [available, sortKey, sortAsc, draftScoreMap, vonaMap, recalcData])
 
   if (loading) {
     return (
@@ -811,7 +845,7 @@ export default function DraftBoardPage() {
   }
 
   const displayList = showDrafted
-    ? [...sortedAvailable, ...drafted].sort((a, b) => a.overall_rank - b.overall_rank)
+    ? [...sortedAvailable, ...drafted]
     : sortedAvailable
 
   // Build a set of assigned player IDs by slot for the roster grid
@@ -1024,23 +1058,6 @@ export default function DraftBoardPage() {
                 />
                 Show drafted
               </label>
-              {hasAdpData && myTeamId != null && (
-                <div className="flex gap-1 ml-auto">
-                  {(['priority', 'rank', 'value'] as const).map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setSortBy(s)}
-                      className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                        sortBy === s
-                          ? 'bg-purple-600 text-white shadow-md shadow-purple-500/20'
-                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
-                      }`}
-                    >
-                      {s === 'priority' ? 'Score' : s.charAt(0).toUpperCase() + s.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
             <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
@@ -1049,24 +1066,27 @@ export default function DraftBoardPage() {
                   <thead>
                     <tr className="border-b border-gray-800 bg-gray-900/80">
                       <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-28">Draft</th>
-                      <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-14">#</th>
+                      <DraftTh label="#" field="rank" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" className="w-14" />
                       {hasAdpData && (
-                        <th className="px-3 py-2.5 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-16">ADP</th>
+                        <DraftTh label="ADP" field="adp" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-16" />
                       )}
-                      <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Player</th>
-                      <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-24">Pos</th>
-                      <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Team</th>
-                      <th className="px-3 py-2.5 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-20">
-                        <div className="flex items-center justify-end gap-1">
-                          Value
-                          {recalcData && (
-                            <span className="text-[8px] px-1 py-0.5 rounded bg-indigo-900 text-indigo-300 font-bold normal-case tracking-normal">Dyn</span>
-                          )}
-                        </div>
-                      </th>
-                      <th className="px-3 py-2.5 text-right text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-28">
-                        {hasAdpData && myTeamId != null ? 'Score' : 'VONA'}
-                      </th>
+                      <DraftTh label="Player" field="name" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" />
+                      <DraftTh label="Pos" field="pos" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" className="w-24" />
+                      <DraftTh label="Team" field="team" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" />
+                      <DraftTh label="Value" field="value" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-20">
+                        {recalcData && (
+                          <span className="text-[8px] px-1 py-0.5 rounded bg-indigo-900 text-indigo-300 font-bold normal-case tracking-normal">Dyn</span>
+                        )}
+                      </DraftTh>
+                      <DraftTh
+                        label={hasAdpData && myTeamId != null ? 'Score' : 'VONA'}
+                        field="score"
+                        sortKey={sortKey}
+                        sortAsc={sortAsc}
+                        onSort={handleSort}
+                        align="right"
+                        className="w-28"
+                      />
                     </tr>
                   </thead>
                   <tbody>
@@ -1662,6 +1682,30 @@ function getHeatColor(rank: number, total: number): string {
 }
 
 // ── Category balance bar component ──
+// ── Sortable table header for draft board ──
+type DraftSortKey = 'rank' | 'adp' | 'name' | 'pos' | 'team' | 'value' | 'score'
+
+function DraftTh({ label, field, sortKey, sortAsc, onSort, align = 'left', className = '', children }: {
+  label: string; field: DraftSortKey; sortKey: DraftSortKey; sortAsc: boolean;
+  onSort: (k: DraftSortKey) => void; align?: 'left' | 'right'; className?: string; children?: React.ReactNode
+}) {
+  const active = sortKey === field
+  return (
+    <th
+      className={`px-3 py-2.5 ${align === 'right' ? 'text-right' : 'text-left'} text-[11px] font-semibold uppercase tracking-wider cursor-pointer select-none transition-colors whitespace-nowrap ${
+        active ? 'text-blue-400' : 'text-gray-400 hover:text-gray-200'
+      } ${className}`}
+      onClick={() => onSort(field)}
+    >
+      <div className={`flex items-center gap-1 ${align === 'right' ? 'justify-end' : ''}`}>
+        {label}
+        {active && <span className="text-[8px]">{sortAsc ? '\u25B2' : '\u25BC'}</span>}
+        {children}
+      </div>
+    </th>
+  )
+}
+
 function CategoryBar({ label, value, isWeakest }: { label: string; value: number; isWeakest: boolean }) {
   // Scale bar: clamp to [-10, 10] for display
   const maxVal = 10
