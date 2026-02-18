@@ -153,7 +153,7 @@ value-above-replacement pool. Set the zero line at the (hitter_slots + pitcher_s
 
 ## Issue 5: Replacement level computed on primary position only
 
-**Status:** Not started
+**Status:** DONE
 **Priority:** 5 (Major)
 **Impact:** Medium - misvalues positional scarcity
 **Complexity:** Medium

@@ -265,9 +265,11 @@ def _blend_projection_rows(
 def _compute_hitter_replacement_levels(results: list[dict]) -> dict[str, float]:
     """Compute replacement-level z-scores per hitter roster slot.
 
-    Groups players by their roster slot (LF/CF/RF → OF, DH → UTIL),
-    sorts each group by raw z-score, and finds the replacement-level
-    player at rank (slots_per_team × num_teams).
+    Uses a greedy draft simulation that considers multi-position eligibility:
+    players are assigned (best-first) to their scarcest eligible slot.  This
+    avoids the old approach of grouping by primary position only, which made
+    thin positions (C, SS) look artificially scarce by ignoring multi-eligible
+    players who could fill those slots.
 
     A hitter baseline from total hitter demand acts as a floor — no
     position's replacement level can be lower than the overall baseline.
@@ -275,18 +277,9 @@ def _compute_hitter_replacement_levels(results: list[dict]) -> dict[str, float]:
     Returns:
         {slot: replacement_z} mapping.
     """
-    # Group by roster slot
-    by_slot = defaultdict(list)
-    all_zscores = []
-    for p in results:
-        slot = POSITION_TO_SLOT.get(p["primary_position"], "UTIL")
-        by_slot[slot].append(p["total_zscore"])
-        all_zscores.append(p["total_zscore"])
-
-    # Sort each group descending
-    for zscores in by_slot.values():
-        zscores.sort(reverse=True)
-    all_zscores.sort(reverse=True)
+    all_zscores = sorted(
+        [p["total_zscore"] for p in results], reverse=True
+    )
 
     # Hitter baseline: the (total_hitter_demand)th best hitter overall
     total_demand = sum(HITTER_SLOTS.values()) * NUM_TEAMS
@@ -296,15 +289,32 @@ def _compute_hitter_replacement_levels(results: list[dict]) -> dict[str, float]:
         else all_zscores[-1]
     )
 
-    # Position-specific replacement levels (floored by hitter baseline)
+    # Greedy assignment: best players first, each assigned to their scarcest
+    # eligible slot.  Mirrors how a rational draft actually fills rosters.
+    remaining = {slot: count * NUM_TEAMS for slot, count in HITTER_SLOTS.items()}
+    last_assigned: dict[str, float] = {}
+
+    sorted_players = sorted(results, key=lambda p: p["total_zscore"], reverse=True)
+    for p in sorted_players:
+        eligible = _eligible_slots(p.get("eligible_positions"), p["primary_position"])
+
+        # Try specific slots first (not UTIL) — pick the scarcest one
+        specific = [s for s in eligible if s != "UTIL" and remaining.get(s, 0) > 0]
+        if specific:
+            chosen = min(specific, key=lambda s: remaining[s])
+            remaining[chosen] -= 1
+            last_assigned[chosen] = p["total_zscore"]
+        elif remaining.get("UTIL", 0) > 0:
+            remaining["UTIL"] -= 1
+            last_assigned["UTIL"] = p["total_zscore"]
+        # else: player is below replacement for all positions
+
+    # Replacement level = last player assigned to each slot, floored by baseline
     replacement = {}
-    for slot, count in HITTER_SLOTS.items():
-        demand = count * NUM_TEAMS
-        zscores = by_slot.get(slot, [])
-        if len(zscores) >= demand:
-            replacement[slot] = max(zscores[demand - 1], hitter_baseline)
+    for slot in HITTER_SLOTS:
+        if slot in last_assigned:
+            replacement[slot] = max(last_assigned[slot], hitter_baseline)
         else:
-            # Not enough players at this position — use baseline
             replacement[slot] = hitter_baseline
 
     parts = ", ".join(f"{s}: {z:+.2f}" for s, z in sorted(replacement.items()))
