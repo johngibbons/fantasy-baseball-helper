@@ -109,7 +109,9 @@ def get_adp_comparison(season: int = 2026, limit: int = 200) -> list[dict]:
     """Get players sorted by value vs ADP (biggest steals/busts).
 
     Returns players where our ranking differs most from ESPN ADP.
-    Positive adp_diff = we rank higher (potential steal).
+    adp_diff = overall_rank - espn_adp:
+      Negative = model ranks better than ADP (potential steal)
+      Positive = model ranks worse than ADP (potentially over-drafted)
     """
     conn = get_connection()
 

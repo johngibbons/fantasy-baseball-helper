@@ -628,8 +628,8 @@ export default function DraftBoardPage() {
   const adpSteals = useMemo(() => {
     const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
     return availablePlayers
-      .filter((p) => p.adp_diff != null && p.adp_diff > 10)
-      .sort((a, b) => (b.adp_diff ?? 0) - (a.adp_diff ?? 0))
+      .filter((p) => p.adp_diff != null && p.adp_diff < -10)
+      .sort((a, b) => (a.adp_diff ?? 0) - (b.adp_diff ?? 0))
       .slice(0, 3)
   }, [allPlayers, draftedIds])
 
@@ -1618,7 +1618,7 @@ export default function DraftBoardPage() {
                             </div>
                           </div>
                           <span className="text-[10px] font-bold text-emerald-400 shrink-0">
-                            +{Math.round(p.adp_diff!)}
+                            +{Math.abs(Math.round(p.adp_diff!))}
                           </span>
                         </div>
                       ))}

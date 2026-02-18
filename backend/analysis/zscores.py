@@ -68,12 +68,15 @@ POSITION_TO_SLOT = {
 #   ERA-WHIP: .70, ERA-SVHD: .05, WHIP-SVHD: .05
 #
 # Net effect: SB and SVHD get ~15% boost (independent categories),
-# R/TB/RBI and ERA/WHIP get ~5-8% discount (correlated clusters).
+# R/TB/RBI get ~4-8% discount, ERA/WHIP get a softened ~3-5% discount.
+# The pitcher discount is intentionally lighter than the hitting cluster
+# discount because pitchers already face a structural disadvantage from
+# contributing to only 4 of 5 pitching categories per player.
 H2H_CATEGORY_WEIGHTS = {
     # Hitting — R/TB/RBI cluster discounted, SB boosted
     "R": 0.92, "TB": 0.95, "RBI": 0.96, "SB": 1.15, "OBP": 1.02,
-    # Pitching — ERA/WHIP pair discounted, SVHD boosted
-    "K": 1.02, "QS": 0.98, "ERA": 0.92, "WHIP": 0.94, "SVHD": 1.14,
+    # Pitching — ERA/WHIP softened discount, SVHD boosted
+    "K": 1.02, "QS": 0.98, "ERA": 0.95, "WHIP": 0.97, "SVHD": 1.14,
 }
 
 
@@ -720,7 +723,7 @@ def _compute_pitcher_pool_zscores(
     if pool_label == "SP":
         _STREAM_ERA_THRESHOLD = 4.00
         _STREAM_WHIP_THRESHOLD = 1.25
-        _STREAM_BONUS = 0.35  # ~0.35 SGP bonus, roughly a third of one standings spot
+        _STREAM_BONUS = 0.70  # ~0.70 SGP bonus, roughly two-thirds of one standings spot
         streamed = 0
         for p in results:
             if p["proj_era"] <= _STREAM_ERA_THRESHOLD and p["proj_whip"] <= _STREAM_WHIP_THRESHOLD:
@@ -873,13 +876,11 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
     hitters = calculate_hitter_zscores(season, source, excluded_ids)
     pitchers = calculate_pitcher_zscores(season, source, excluded_ids)
 
-    # Log hitter/pitcher value distribution for diagnostics.
-    # No post-hoc scaling is applied — SGP is already a common currency
-    # (1 SGP = 1 standings position regardless of category), and the replacement
-    # level framework correctly accounts for positional scarcity.  Hitters
-    # naturally have higher totals because they contribute across 5 categories
-    # vs 4 for pitchers; this accurately reflects their broader impact on
-    # weekly H2H matchups.
+    # Log hitter/pitcher value distribution for diagnostics (pre-normalization).
+    # Raw SGP is a common currency (1 SGP = 1 standings position), but hitters
+    # accumulate more total SGP because they contribute to 5 categories vs 4
+    # for pitchers.  A category normalization step below corrects this structural
+    # gap before the overall ranking.
     hitter_value_sum = sum(p["total_zscore"] for p in hitters if p["total_zscore"] > 0)
     pitcher_value_sum = sum(p["total_zscore"] for p in pitchers if p["total_zscore"] > 0)
     hitter_count = sum(1 for p in hitters if p["total_zscore"] > 0)
@@ -891,6 +892,21 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
             f"{pitcher_count} pitchers ({pitcher_value_sum:.1f} total, "
             f"{pitcher_value_sum / pitcher_count:.2f} avg)"
         )
+
+    # ── Pitcher category normalization ──
+    # Individual pitchers contribute to 4 categories (K/QS/ERA/WHIP for SP,
+    # K/SVHD/ERA/WHIP for RP) vs 5 for hitters (R/TB/RBI/SB/OBP).  Since
+    # total_zscore is a sum of per-category SGPs, hitters have a structural
+    # advantage in the overall ranking.  Scaling pitcher totals by 5/4
+    # normalizes for this category count gap so that cross-position rankings
+    # reflect equal per-category impact.
+    PITCHER_CATEGORY_NORMALIZER = 5 / 4  # 1.25
+    for p in pitchers:
+        p["total_zscore"] = round(p["total_zscore"] * PITCHER_CATEGORY_NORMALIZER, 3)
+    logger.info(
+        f"Applied pitcher category normalization (x{PITCHER_CATEGORY_NORMALIZER:.2f}) "
+        f"to {len(pitchers)} pitchers"
+    )
 
     # Combine and rank overall
     all_players = hitters + pitchers
