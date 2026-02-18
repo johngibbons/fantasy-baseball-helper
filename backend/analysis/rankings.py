@@ -23,7 +23,8 @@ def get_rankings(
     conn = get_connection()
 
     query = """
-        SELECT r.*, p.full_name, p.primary_position, p.team, p.player_type as ptype
+        SELECT r.*, p.full_name, p.primary_position, p.team, p.player_type as ptype,
+               p.eligible_positions
         FROM rankings r
         JOIN players p ON r.mlb_id = p.mlb_id
         WHERE r.season = ?
