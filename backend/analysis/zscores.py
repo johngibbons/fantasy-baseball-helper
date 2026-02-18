@@ -46,6 +46,36 @@ POSITION_TO_SLOT = {
     "DH": "UTIL",
 }
 
+# ── H2H Category Correlation Weights ──
+#
+# In H2H categories, correlated stats (R/TB/RBI, ERA/WHIP) provide overlapping
+# information — winning one strongly predicts winning the others in the same
+# matchup.  Independent categories (SB, SVHD) provide unique win chances.
+#
+# Derivation: from approximate weekly correlation matrices, each category's
+# "independence score" = 1 - avg|correlation| with other categories, then
+# normalized so weights sum to N_categories and dampened by blending 60/40
+# with equal weights to keep adjustments moderate.
+#
+# Approximate weekly hitting correlations used:
+#   R-TB: .65, R-RBI: .60, R-OBP: .40, R-SB: .15
+#   TB-RBI: .70, TB-OBP: .30, TB-SB: -.05
+#   RBI-OBP: .25, RBI-SB: -.05, OBP-SB: .10
+#
+# Approximate weekly pitching correlations used:
+#   K-QS: .30, K-ERA: .35, K-WHIP: .30, K-SVHD: .00
+#   QS-ERA: .55, QS-WHIP: .45, QS-SVHD: -.10
+#   ERA-WHIP: .70, ERA-SVHD: .05, WHIP-SVHD: .05
+#
+# Net effect: SB and SVHD get ~15% boost (independent categories),
+# R/TB/RBI and ERA/WHIP get ~5-8% discount (correlated clusters).
+H2H_CATEGORY_WEIGHTS = {
+    # Hitting — R/TB/RBI cluster discounted, SB boosted
+    "R": 0.92, "TB": 0.95, "RBI": 0.96, "SB": 1.15, "OBP": 1.02,
+    # Pitching — ERA/WHIP pair discounted, SVHD boosted
+    "K": 1.02, "QS": 0.98, "ERA": 0.92, "WHIP": 0.94, "SVHD": 1.14,
+}
+
 
 def _classify_pitcher(position: str, proj_ip: float, proj_qs: float) -> str:
     """Classify a pitcher as SP or RP based on position and stats."""
@@ -440,7 +470,15 @@ def calculate_hitter_zscores(season: int = 2026, source: str = None,
     obp_marginal = (obp_raw - league_obp) * (pa / avg_team_pa) if avg_team_pa > 0 else obp_raw
     sgp_obp = obp_marginal / sgp_denoms["OBP"]
 
-    # Build results with raw SGP values (no position adjustment yet)
+    # Apply H2H correlation weights — discount correlated clusters (R/TB/RBI),
+    # boost independent categories (SB, OBP)
+    sgp_r = sgp_r * H2H_CATEGORY_WEIGHTS["R"]
+    sgp_tb = sgp_tb * H2H_CATEGORY_WEIGHTS["TB"]
+    sgp_rbi = sgp_rbi * H2H_CATEGORY_WEIGHTS["RBI"]
+    sgp_sb = sgp_sb * H2H_CATEGORY_WEIGHTS["SB"]
+    sgp_obp = sgp_obp * H2H_CATEGORY_WEIGHTS["OBP"]
+
+    # Build results with H2H-weighted SGP values (no position adjustment yet)
     results = []
     for i in range(n):
         raw_sgp = float(sgp_r[i] + sgp_tb[i] + sgp_rbi[i] + sgp_sb[i] + sgp_obp[i])
@@ -579,7 +617,15 @@ def _compute_pitcher_pool_zscores(
     else:
         sgp_whip = np.zeros(n)
 
-    # Build results with raw SGP values
+    # Apply H2H correlation weights — discount correlated pair (ERA/WHIP),
+    # boost independent categories (K, SVHD)
+    sgp_k = sgp_k * H2H_CATEGORY_WEIGHTS["K"]
+    sgp_qs = sgp_qs * H2H_CATEGORY_WEIGHTS["QS"]
+    sgp_era = sgp_era * H2H_CATEGORY_WEIGHTS["ERA"]
+    sgp_whip = sgp_whip * H2H_CATEGORY_WEIGHTS["WHIP"]
+    sgp_svhd = sgp_svhd * H2H_CATEGORY_WEIGHTS["SVHD"]
+
+    # Build results with H2H-weighted SGP values
     results = []
     for i in range(n):
         raw_sgp = float(sgp_k[i] + sgp_qs[i] + sgp_era[i] + sgp_whip[i] + sgp_svhd[i])

@@ -84,7 +84,7 @@ Compute total pitcher IP across both pools before splitting into SP/RP, and pass
 
 ## Issue 3: H2H category correlation weighting
 
-**Status:** Not started
+**Status:** DONE
 **Priority:** 3 (Critical)
 **Impact:** High - overvalues R/TB/RBI cluster
 **Complexity:** Medium
