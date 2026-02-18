@@ -281,7 +281,7 @@ Apply source-specific weights when blending:
 
 ## Issue 10: MCW fractional credit is poorly calibrated
 
-**Status:** Not started
+**Status:** DONE
 **Priority:** 10 (Moderate)
 **Impact:** Low - affects mid-draft decisions
 **Complexity:** Low

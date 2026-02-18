@@ -228,19 +228,20 @@ export function computeMCW(
 
     let marginalWin = winProbAfter - winProbBefore
 
-    // Fractional credit: if we closed a gap without fully overtaking
+    // Fractional credit: if we closed a gap without fully overtaking.
+    // Uses a convex curve (gapClosed^1.5) so that closing 80% of a gap
+    // is worth much more than closing 20% — the closer you get, the more
+    // likely weekly variance will complete the overtake in H2H matchups.
     if (marginalWin === 0 && playerVal > 0) {
-      // Check if we closed a gap to someone above us
       const teamsAboveBefore = otherVals.filter(v => v > myVal)
       const teamsAboveAfter = otherVals.filter(v => v > newVal)
       if (teamsAboveBefore.length > 0 && teamsAboveAfter.length === teamsAboveBefore.length) {
-        // Didn't overtake, but closed gap
         const closestAboveBefore = teamsAboveBefore[teamsAboveBefore.length - 1]
         const gapBefore = closestAboveBefore - myVal
         const gapAfter = closestAboveBefore - newVal
         if (gapBefore > 0) {
           const gapClosed = (gapBefore - gapAfter) / gapBefore
-          marginalWin = gapClosed * 0.3 / (numTeams - 1) // small fractional credit
+          marginalWin = Math.pow(gapClosed, 1.5) * 0.55 / (numTeams - 1)
         }
       }
     }
