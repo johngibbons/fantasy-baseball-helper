@@ -182,7 +182,7 @@ fills roster slots.
 
 ## Issue 6: Keeper surplus optimization ignores draft interaction
 
-**Status:** Not started
+**Status:** DONE
 **Priority:** 6 (Major)
 **Impact:** Medium - suboptimal keeper decisions
 **Complexity:** High

@@ -132,6 +132,12 @@ const ALL_CATS = [...HITTING_CATS, ...PITCHING_CATS]
 
 /**
  * Category diversity bonus for a keeper combination.
+ *
+ * Uses a continuous scale rather than a binary threshold so that strong
+ * coverage in more categories is progressively rewarded.  Each category
+ * contributes min(catTotal, 2.0) / 2.0 — capping at 2.0 avoids one
+ * monster category dominating the bonus.  The sum is then scaled so
+ * the bonus is meaningful relative to surplus values (typically 3-10).
  */
 function categoryDiversityBonus(keepers: KeeperWithSurplus[]): number {
   const catTotals: Record<string, number> = {}
@@ -141,14 +147,50 @@ function categoryDiversityBonus(keepers: KeeperWithSurplus[]): number {
       catTotals[cat.key] += ((k.resolved as unknown as Record<string, number>)[cat.key] ?? 0)
     }
   }
-  let covered = 0
+  // Continuous coverage score: each category contributes 0-1.0
+  let coverageScore = 0
   for (const cat of ALL_CATS) {
-    if (catTotals[cat.key] > 0.5) covered++
+    const v = catTotals[cat.key]
+    coverageScore += Math.min(Math.max(v, 0), 2.0) / 2.0
   }
-  return Math.max(0, covered - 5) * 0.5
+  // Scale: 10 categories × 1.0 max each = 10.0 possible.
+  // Normalize to a bonus in the range 0-3.0 (meaningful vs surplus values of 3-10)
+  return (coverageScore / ALL_CATS.length) * 3.0
 }
 
-function findOptimalKeepers(candidates: KeeperWithSurplus[]): KeeperWithSurplus[] {
+/**
+ * Resolve round collisions within a keeper combination.
+ *
+ * If two+ keepers share the same round cost, bump duplicates to the next
+ * earlier round (lower number = more expensive pick lost).  Returns the
+ * adjusted round costs and the total surplus penalty from bumping.
+ */
+function resolveRoundCollisions(
+  keepers: KeeperWithSurplus[],
+  allPlayers: RankedPlayer[],
+): number {
+  // Collect round costs and sort ascending (earliest round first)
+  const costs = keepers.map(k => k.roundCost).sort((a, b) => a - b)
+  let penalty = 0
+  for (let i = 1; i < costs.length; i++) {
+    while (costs[i] <= costs[i - 1]) {
+      // Bump to one round earlier (more expensive)
+      const oldRound = costs[i]
+      costs[i] = Math.max(1, costs[i - 1] - 1)
+      if (costs[i] === oldRound) break // can't go earlier than round 1
+      // Penalty = difference in expected value between old and new round
+      const oldExpected = expectedValueAtRound(oldRound, allPlayers)
+      const newExpected = expectedValueAtRound(costs[i], allPlayers)
+      penalty += (newExpected - oldExpected) // positive = higher expected value = lower surplus
+    }
+  }
+  return penalty
+}
+
+function findOptimalKeepers(
+  candidates: KeeperWithSurplus[],
+  allPlayers: RankedPlayer[],
+): KeeperWithSurplus[] {
   if (candidates.length <= MAX_KEEPERS) return [...candidates]
   let bestCombo: KeeperWithSurplus[] = []
   let bestScore = -Infinity
@@ -157,7 +199,8 @@ function findOptimalKeepers(candidates: KeeperWithSurplus[]): KeeperWithSurplus[
     if (current.length === MAX_KEEPERS) {
       const totalSurplus = current.reduce((s, k) => s + k.surplus, 0)
       const diversity = categoryDiversityBonus(current)
-      const score = totalSurplus + diversity
+      const collisionPenalty = resolveRoundCollisions(current, allPlayers)
+      const score = totalSurplus + diversity - collisionPenalty
       if (score > bestScore) {
         bestScore = score
         bestCombo = [...current]
@@ -443,14 +486,41 @@ export default function KeepersPage() {
     }
   }, [otherEntries, selectedTeamId, myTeamId])
 
+  // Build depleted draft pool: remove other teams' confirmed keepers from the
+  // full player list.  This reflects the real draft — kept players won't be
+  // available, making remaining picks less valuable and keeper surplus higher.
+  const draftPoolPlayers = useMemo<RankedPlayer[]>(() => {
+    if (allPlayers.length === 0) return allPlayers
+
+    // Collect all other teams' kept player MLB IDs
+    const keptIds = new Set<number>()
+    for (const team of leagueTeams) {
+      if (team.id === myTeamId) continue // don't exclude our own candidates
+      const resolved = loadOtherTeamResolved(team.id)
+      for (const r of resolved) {
+        if (r.mlb_id) keptIds.add(r.mlb_id)
+      }
+    }
+
+    if (keptIds.size === 0) return allPlayers
+
+    // Filter and re-rank
+    const filtered = allPlayers
+      .filter(p => !keptIds.has(p.mlb_id))
+      .map((p, i) => ({ ...p, overall_rank: i + 1 }))
+    return filtered
+  }, [allPlayers, leagueTeams, myTeamId, otherResolved])
+
   // Compute surplus for all resolved players (my team only)
+  // Uses the depleted draft pool so expected values reflect what's actually
+  // available after other teams' keepers are removed.
   const keeperAnalysis = useMemo<KeeperWithSurplus[]>(() => {
-    if (!resolvedPlayers || allPlayers.length === 0) return []
+    if (!resolvedPlayers || draftPoolPlayers.length === 0) return []
 
     return resolvedPlayers
       .map((r) => {
         const cost = keeperCost({ draftRound: r.draft_round, keeperSeason: r.keeper_season })
-        const expected = expectedValueAtRound(cost, allPlayers)
+        const expected = expectedValueAtRound(cost, draftPoolPlayers)
         const value = r.total_zscore ?? 0
         return {
           resolved: r,
@@ -460,12 +530,12 @@ export default function KeepersPage() {
         }
       })
       .sort((a, b) => b.surplus - a.surplus)
-  }, [resolvedPlayers, allPlayers])
+  }, [resolvedPlayers, draftPoolPlayers])
 
-  // Optimal keepers
+  // Optimal keepers (accounts for round collisions and depleted pool)
   const optimalKeepers = useMemo(
-    () => findOptimalKeepers(keeperAnalysis),
-    [keeperAnalysis]
+    () => findOptimalKeepers(keeperAnalysis, draftPoolPlayers),
+    [keeperAnalysis, draftPoolPlayers]
   )
   const optimalIds = useMemo(
     () => new Set(optimalKeepers.map((k) => k.resolved.mlb_id)),
