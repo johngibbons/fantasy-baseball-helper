@@ -261,7 +261,8 @@ export default function DraftBoardPage() {
     fetchLeagueTeams().then((teams) => {
       setLeagueTeams(teams)
       saveTeamsToStorage(teams)
-      setDraftOrder(prev => prev.length > 0 ? prev : teams.map(t => t.id))
+      // Default draft order: reverse of standings (worst record picks first)
+      setDraftOrder(prev => prev.length > 0 ? prev : [...teams].reverse().map(t => t.id))
     })
   }, [])
 
