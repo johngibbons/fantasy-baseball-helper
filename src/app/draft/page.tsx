@@ -36,17 +36,17 @@ const posColor: Record<string, string> = {
 
 // ── Roster slot configuration ──
 const ROSTER_SLOTS: Record<string, number> = {
-  C: 1, '1B': 1, '2B': 1, '3B': 1, SS: 1, OF: 3, UTIL: 2, SP: 3, RP: 2, P: 2,
+  C: 1, '1B': 1, '2B': 1, '3B': 1, SS: 1, OF: 3, UTIL: 2, SP: 3, RP: 2, P: 2, BE: 8,
 }
 
 // Maps ESPN positions to the roster slots they can fill (most restrictive first)
 const POSITION_TO_SLOTS: Record<string, string[]> = {
-  C: ['C', 'UTIL'], '1B': ['1B', 'UTIL'], '2B': ['2B', 'UTIL'],
-  '3B': ['3B', 'UTIL'], SS: ['SS', 'UTIL'],
-  OF: ['OF', 'UTIL'], LF: ['OF', 'UTIL'], CF: ['OF', 'UTIL'], RF: ['OF', 'UTIL'],
-  DH: ['UTIL'],
-  SP: ['SP', 'P'], RP: ['RP', 'P'],
-  TWP: ['UTIL', 'SP', 'P'],
+  C: ['C', 'UTIL', 'BE'], '1B': ['1B', 'UTIL', 'BE'], '2B': ['2B', 'UTIL', 'BE'],
+  '3B': ['3B', 'UTIL', 'BE'], SS: ['SS', 'UTIL', 'BE'],
+  OF: ['OF', 'UTIL', 'BE'], LF: ['OF', 'UTIL', 'BE'], CF: ['OF', 'UTIL', 'BE'], RF: ['OF', 'UTIL', 'BE'],
+  DH: ['UTIL', 'BE'],
+  SP: ['SP', 'P', 'BE'], RP: ['RP', 'P', 'BE'],
+  TWP: ['UTIL', 'SP', 'P', 'BE'],
 }
 
 // ── Helpers ──
@@ -96,7 +96,7 @@ const PITCHING_CATS = [
 const ALL_CATS = [...HITTING_CATS, ...PITCHING_CATS]
 
 // ── Roster slot display order ──
-const SLOT_ORDER = ['C', '1B', '2B', '3B', 'SS', 'OF', 'UTIL', 'SP', 'RP', 'P']
+const SLOT_ORDER = ['C', '1B', '2B', '3B', 'SS', 'OF', 'UTIL', 'SP', 'RP', 'P', 'BE']
 
 // ── Default teams fallback ──
 const DEFAULT_NUM_TEAMS = 10
@@ -622,6 +622,7 @@ export default function DraftBoardPage() {
     const results: { slot: string; player: RankedPlayer }[] = []
     const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
     for (const slot of SLOT_ORDER) {
+      if (slot === 'BE') continue // skip bench for best-available suggestions
       if ((rosterState.remainingCapacity[slot] || 0) <= 0) continue
       const best = availablePlayers.find((p) => getEligibleSlots(p).includes(slot))
       if (best) results.push({ slot, player: best })
@@ -726,8 +727,8 @@ export default function DraftBoardPage() {
         categoryGains = mcwResult.categoryGains
       }
 
-      // Roster fit: 1 if fills a need, 0 otherwise
-      const needSlots = getEligibleSlots(p).filter(s => (rosterState.remainingCapacity[s] || 0) > 0)
+      // Roster fit: 1 if fills a starting roster need, 0 otherwise (bench doesn't count)
+      const needSlots = getEligibleSlots(p).filter(s => s !== 'BE' && (rosterState.remainingCapacity[s] || 0) > 0)
       const rosterFit = needSlots.length > 0 ? 1 : 0
 
       let score: number
@@ -1108,7 +1109,7 @@ export default function DraftBoardPage() {
                       const positions = getPositions(p)
                       const displayPos = positions[0]
                       const extraPositions = positions.slice(1)
-                      const needSlots = isDrafted ? [] : getEligibleSlots(p).filter((s) => (rosterState.remainingCapacity[s] || 0) > 0)
+                      const needSlots = isDrafted ? [] : getEligibleSlots(p).filter((s) => s !== 'BE' && (rosterState.remainingCapacity[s] || 0) > 0)
                       const fillsNeed = needSlots.length > 0
 
                       return (
