@@ -978,7 +978,7 @@ export default function DraftBoardPage() {
         {/* Draft Order Editor */}
         {showDraftOrder && (
           <div className="bg-gray-900 rounded-xl border border-gray-800 mb-4 p-4">
-            <h3 className="text-sm font-bold text-white mb-3">Draft Order (Round 1)</h3>
+            <h3 className="text-sm font-bold text-white mb-3">Draft Order</h3>
             <div className="flex flex-wrap gap-2">
               {draftOrder.map((teamId, idx) => {
                 const team = leagueTeams.find(t => t.id === teamId)
