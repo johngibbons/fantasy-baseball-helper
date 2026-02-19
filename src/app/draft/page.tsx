@@ -261,8 +261,10 @@ export default function DraftBoardPage() {
     fetchLeagueTeams().then((teams) => {
       setLeagueTeams(teams)
       saveTeamsToStorage(teams)
-      // Default draft order: reverse of standings (worst record picks first)
-      setDraftOrder(prev => prev.length > 0 ? prev : [...teams].reverse().map(t => t.id))
+      // Default draft order: reverse of 2025 final standings (worst record picks first)
+      // 2025 final: WORK(7), COUG(1), BP(6), SHC(4), BLEW(10), TR(3), NOTO(8), BOOM(2), ROP(9), JAMC(5)
+      const defaultOrder = [5, 9, 2, 8, 3, 10, 4, 6, 1, 7]
+      setDraftOrder(prev => prev.length > 0 ? prev : defaultOrder)
     })
   }, [])
 
