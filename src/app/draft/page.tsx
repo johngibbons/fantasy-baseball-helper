@@ -31,7 +31,7 @@ const posColor: Record<string, string> = {
   C: 'bg-blue-500', '1B': 'bg-amber-500', '2B': 'bg-orange-500', '3B': 'bg-purple-500',
   SS: 'bg-red-500', OF: 'bg-emerald-500', LF: 'bg-emerald-500', CF: 'bg-emerald-500',
   RF: 'bg-emerald-500', DH: 'bg-gray-500', SP: 'bg-sky-500', RP: 'bg-pink-500', P: 'bg-teal-500',
-  UTIL: 'bg-gray-500',
+  TWP: 'bg-violet-500', UTIL: 'bg-gray-500',
 }
 
 // ── Roster slot configuration ──
@@ -46,6 +46,7 @@ const POSITION_TO_SLOTS: Record<string, string[]> = {
   OF: ['OF', 'UTIL'], LF: ['OF', 'UTIL'], CF: ['OF', 'UTIL'], RF: ['OF', 'UTIL'],
   DH: ['UTIL'],
   SP: ['SP', 'P'], RP: ['RP', 'P'],
+  TWP: ['UTIL', 'SP', 'P'],
 }
 
 // ── Helpers ──

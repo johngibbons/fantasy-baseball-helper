@@ -876,6 +876,45 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
     hitters = calculate_hitter_zscores(season, source, excluded_ids)
     pitchers = calculate_pitcher_zscores(season, source, excluded_ids)
 
+    # ── Merge two-way players ──
+    # A two-way player (e.g. Ohtani) appears in BOTH the hitters and pitchers
+    # lists.  Merge their z-scores into a single hitter entry that spans all
+    # 10 categories, then remove the pitcher duplicate.
+    hitter_by_id = {p["mlb_id"]: p for p in hitters}
+    pitcher_by_id = {p["mlb_id"]: p for p in pitchers}
+    twoway_ids = set(hitter_by_id.keys()) & set(pitcher_by_id.keys())
+
+    if twoway_ids:
+        for mid in twoway_ids:
+            h = hitter_by_id[mid]
+            pit = pitcher_by_id[mid]
+            # Merge pitcher z-scores into the hitter entry
+            h["zscore_k"] = pit["zscore_k"]
+            h["zscore_qs"] = pit["zscore_qs"]
+            h["zscore_era"] = pit["zscore_era"]
+            h["zscore_whip"] = pit["zscore_whip"]
+            h["zscore_svhd"] = pit["zscore_svhd"]
+            # Combined total: hitter + pitcher raw SGP (no category normalizer
+            # needed — two-way players already span all 10 categories)
+            h["total_zscore"] = round(h["total_zscore"] + pit["total_zscore"], 3)
+            # Copy pitcher projection data for display
+            h["proj_ip"] = pit.get("proj_ip", 0)
+            h["proj_k"] = pit.get("proj_k", 0)
+            h["proj_qs"] = pit.get("proj_qs", 0)
+            h["proj_era"] = pit.get("proj_era", 0)
+            h["proj_whip"] = pit.get("proj_whip", 0)
+            h["proj_svhd"] = pit.get("proj_svhd", 0)
+
+        # Remove two-way players from the pitchers list
+        pitchers = [p for p in pitchers if p["mlb_id"] not in twoway_ids]
+        logger.info(
+            f"Merged {len(twoway_ids)} two-way player(s) — combined hitter + pitcher z-scores: "
+            + ", ".join(
+                f"{hitter_by_id[mid]['full_name']} ({hitter_by_id[mid]['total_zscore']:+.2f})"
+                for mid in twoway_ids
+            )
+        )
+
     # Log hitter/pitcher value distribution for diagnostics (pre-normalization).
     # Raw SGP is a common currency (1 SGP = 1 standings position), but hitters
     # accumulate more total SGP because they contribute to 5 categories vs 4
@@ -900,6 +939,8 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
     # advantage in the overall ranking.  Scaling pitcher totals by 5/4
     # normalizes for this category count gap so that cross-position rankings
     # reflect equal per-category impact.
+    # NOTE: Two-way players are NOT normalized — they already contribute to
+    # all 10 categories and live in the hitters list.
     PITCHER_CATEGORY_NORMALIZER = 5 / 4  # 1.25
     for p in pitchers:
         p["total_zscore"] = round(p["total_zscore"] * PITCHER_CATEGORY_NORMALIZER, 3)

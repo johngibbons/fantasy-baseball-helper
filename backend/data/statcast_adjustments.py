@@ -169,8 +169,7 @@ def _adjust_hitters(conn, season: int) -> int:
                        ?, ?, ?, ?, ?, ?,
                        ?, ?, ?, ?,
                        ?, ?, ?, ?, ?)
-               ON CONFLICT (mlb_id, source, season) DO UPDATE SET
-                 player_type = EXCLUDED.player_type,
+               ON CONFLICT (mlb_id, source, season, player_type) DO UPDATE SET
                  proj_pa = EXCLUDED.proj_pa, proj_at_bats = EXCLUDED.proj_at_bats,
                  proj_runs = EXCLUDED.proj_runs, proj_hits = EXCLUDED.proj_hits,
                  proj_doubles = EXCLUDED.proj_doubles, proj_triples = EXCLUDED.proj_triples,
@@ -343,8 +342,7 @@ def _adjust_pitchers(conn, season: int) -> int:
                        ?, ?, ?,
                        ?, ?, ?, ?, ?,
                        ?, ?, ?)
-               ON CONFLICT (mlb_id, source, season) DO UPDATE SET
-                 player_type = EXCLUDED.player_type,
+               ON CONFLICT (mlb_id, source, season, player_type) DO UPDATE SET
                  proj_ip = EXCLUDED.proj_ip, proj_pitcher_strikeouts = EXCLUDED.proj_pitcher_strikeouts,
                  proj_quality_starts = EXCLUDED.proj_quality_starts,
                  proj_era = EXCLUDED.proj_era, proj_whip = EXCLUDED.proj_whip,
@@ -377,8 +375,7 @@ def _copy_projection_as_adjusted(conn, proj):
                    ?, ?, ?, ?, ?, ?,
                    ?, ?, ?, ?,
                    ?, ?, ?, ?, ?)
-           ON CONFLICT (mlb_id, source, season) DO UPDATE SET
-             player_type = EXCLUDED.player_type,
+           ON CONFLICT (mlb_id, source, season, player_type) DO UPDATE SET
              proj_pa = EXCLUDED.proj_pa, proj_at_bats = EXCLUDED.proj_at_bats,
              proj_runs = EXCLUDED.proj_runs, proj_hits = EXCLUDED.proj_hits,
              proj_doubles = EXCLUDED.proj_doubles, proj_triples = EXCLUDED.proj_triples,
@@ -411,8 +408,7 @@ def _copy_projection_as_adjusted_pitcher(conn, proj):
                    ?, ?, ?,
                    ?, ?, ?, ?, ?,
                    ?, ?, ?)
-           ON CONFLICT (mlb_id, source, season) DO UPDATE SET
-             player_type = EXCLUDED.player_type,
+           ON CONFLICT (mlb_id, source, season, player_type) DO UPDATE SET
              proj_ip = EXCLUDED.proj_ip, proj_pitcher_strikeouts = EXCLUDED.proj_pitcher_strikeouts,
              proj_quality_starts = EXCLUDED.proj_quality_starts,
              proj_era = EXCLUDED.proj_era, proj_whip = EXCLUDED.proj_whip,

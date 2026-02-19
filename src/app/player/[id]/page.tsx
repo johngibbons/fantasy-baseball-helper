@@ -9,6 +9,7 @@ const posColor: Record<string, string> = {
   C: 'bg-blue-500', '1B': 'bg-amber-500', '2B': 'bg-orange-500', '3B': 'bg-purple-500',
   SS: 'bg-red-500', OF: 'bg-emerald-500', LF: 'bg-emerald-500', CF: 'bg-emerald-500',
   RF: 'bg-emerald-500', DH: 'bg-gray-500', SP: 'bg-sky-500', RP: 'bg-pink-500', P: 'bg-sky-500',
+  TWP: 'bg-violet-500',
 }
 
 export default function PlayerDetailPage() {
@@ -62,21 +63,29 @@ export default function PlayerDetailPage() {
   const r = player.ranking
   const isHitter = player.player_type === 'hitter'
 
-  const categories = isHitter
-    ? [
-        { label: 'R', value: r?.zscore_r ?? 0 },
-        { label: 'TB', value: r?.zscore_tb ?? 0 },
-        { label: 'RBI', value: r?.zscore_rbi ?? 0 },
-        { label: 'SB', value: r?.zscore_sb ?? 0 },
-        { label: 'OBP', value: r?.zscore_obp ?? 0 },
-      ]
-    : [
-        { label: 'K', value: r?.zscore_k ?? 0 },
-        { label: 'QS', value: r?.zscore_qs ?? 0 },
-        { label: 'ERA', value: r?.zscore_era ?? 0 },
-        { label: 'WHIP', value: r?.zscore_whip ?? 0 },
-        { label: 'SVHD', value: r?.zscore_svhd ?? 0 },
-      ]
+  // Detect two-way player: has non-zero z-scores in both hitting AND pitching categories
+  const hasHittingZ = r && [r.zscore_r, r.zscore_tb, r.zscore_rbi, r.zscore_sb, r.zscore_obp].some(v => v != null && v !== 0)
+  const hasPitchingZ = r && [r.zscore_k, r.zscore_qs, r.zscore_era, r.zscore_whip, r.zscore_svhd].some(v => v != null && v !== 0)
+  const isTwoWay = hasHittingZ && hasPitchingZ
+
+  const hitterCats = [
+    { label: 'R', value: r?.zscore_r ?? 0 },
+    { label: 'TB', value: r?.zscore_tb ?? 0 },
+    { label: 'RBI', value: r?.zscore_rbi ?? 0 },
+    { label: 'SB', value: r?.zscore_sb ?? 0 },
+    { label: 'OBP', value: r?.zscore_obp ?? 0 },
+  ]
+  const pitcherCats = [
+    { label: 'K', value: r?.zscore_k ?? 0 },
+    { label: 'QS', value: r?.zscore_qs ?? 0 },
+    { label: 'ERA', value: r?.zscore_era ?? 0 },
+    { label: 'WHIP', value: r?.zscore_whip ?? 0 },
+    { label: 'SVHD', value: r?.zscore_svhd ?? 0 },
+  ]
+
+  const categories = isTwoWay
+    ? [...hitterCats, ...pitcherCats]
+    : isHitter ? hitterCats : pitcherCats
 
   return (
     <main className="min-h-screen bg-gray-950">
@@ -97,9 +106,14 @@ export default function PlayerDetailPage() {
               </div>
               <p className="text-gray-400">
                 {player.team}
-                {(isHitter ? player.bats : player.throws) && (
+                {isTwoWay ? (
+                  <span className="text-gray-600">
+                    {player.bats && <> &middot; Bats: {player.bats}</>}
+                    {player.throws && <> / Throws: {player.throws}</>}
+                  </span>
+                ) : (isHitter ? player.bats : player.throws) ? (
                   <span className="text-gray-600"> &middot; {isHitter ? 'Bats' : 'Throws'}: {isHitter ? player.bats : player.throws}</span>
-                )}
+                ) : null}
               </p>
             </div>
             {r && (
@@ -154,9 +168,38 @@ export default function PlayerDetailPage() {
 
           {/* Projections */}
           {player.projection && (
-            <div className="bg-gray-900 rounded-xl border border-gray-800 p-5">
+            <div className={`bg-gray-900 rounded-xl border border-gray-800 p-5 ${isTwoWay ? 'lg:col-span-2' : ''}`}>
               <h2 className="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">2026 Projections</h2>
-              {isHitter ? (
+              {isTwoWay ? (
+                <div className="space-y-4">
+                  <div>
+                    <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Hitting</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <StatBox label="PA" value={player.projection.proj_pa} />
+                      <StatBox label="R" value={player.projection.proj_runs} highlight />
+                      <StatBox label="TB" value={player.projection.proj_total_bases} highlight />
+                      <StatBox label="RBI" value={player.projection.proj_rbi} highlight />
+                      <StatBox label="SB" value={player.projection.proj_stolen_bases} highlight />
+                      <StatBox label="OBP" value={player.projection.proj_obp} decimal highlight />
+                      <StatBox label="HR" value={player.projection.proj_home_runs} />
+                      <StatBox label="H" value={player.projection.proj_hits} />
+                    </div>
+                  </div>
+                  <div className="border-t border-gray-800 pt-4">
+                    <div className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider mb-2">Pitching</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <StatBox label="IP" value={player.projection.proj_ip} decimal />
+                      <StatBox label="K" value={player.projection.proj_pitcher_strikeouts} highlight />
+                      <StatBox label="QS" value={player.projection.proj_quality_starts} highlight />
+                      <StatBox label="ERA" value={player.projection.proj_era} decimal highlight />
+                      <StatBox label="WHIP" value={player.projection.proj_whip} decimal highlight />
+                      <StatBox label="SV" value={player.projection.proj_saves} />
+                      <StatBox label="HLD" value={player.projection.proj_holds} />
+                      <StatBox label="SVHD" value={(player.projection.proj_saves ?? 0) + (player.projection.proj_holds ?? 0)} highlight />
+                    </div>
+                  </div>
+                </div>
+              ) : isHitter ? (
                 <div className="grid grid-cols-2 gap-3">
                   <StatBox label="PA" value={player.projection.proj_pa} />
                   <StatBox label="R" value={player.projection.proj_runs} highlight />

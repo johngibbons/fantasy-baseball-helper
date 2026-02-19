@@ -110,8 +110,7 @@ def import_fangraphs_batting(filepath: str, source: str, season: int = 2025):
                            ?, ?, ?, ?, ?, ?,
                            ?, ?, ?, ?,
                            ?, ?, ?, ?, ?)
-                   ON CONFLICT (mlb_id, source, season) DO UPDATE SET
-                     player_type = EXCLUDED.player_type,
+                   ON CONFLICT (mlb_id, source, season, player_type) DO UPDATE SET
                      proj_pa = EXCLUDED.proj_pa, proj_at_bats = EXCLUDED.proj_at_bats,
                      proj_runs = EXCLUDED.proj_runs, proj_hits = EXCLUDED.proj_hits,
                      proj_doubles = EXCLUDED.proj_doubles, proj_triples = EXCLUDED.proj_triples,
@@ -180,8 +179,7 @@ def import_fangraphs_pitching(filepath: str, source: str, season: int = 2025):
                            ?, ?, ?,
                            ?, ?, ?, ?, ?,
                            ?, ?, ?)
-                   ON CONFLICT (mlb_id, source, season) DO UPDATE SET
-                     player_type = EXCLUDED.player_type,
+                   ON CONFLICT (mlb_id, source, season, player_type) DO UPDATE SET
                      proj_ip = EXCLUDED.proj_ip, proj_pitcher_strikeouts = EXCLUDED.proj_pitcher_strikeouts,
                      proj_quality_starts = EXCLUDED.proj_quality_starts,
                      proj_era = EXCLUDED.proj_era, proj_whip = EXCLUDED.proj_whip,
@@ -389,10 +387,21 @@ def generate_projections_from_stats(season: int = 2025):
     for row in conn.execute("SELECT mlb_id, birth_date FROM players WHERE birth_date IS NOT NULL").fetchall():
         birth_dates[row["mlb_id"]] = row["birth_date"]
 
-    # Generate hitter projections
-    hitters = conn.execute(
+    # Generate hitter projections — includes two-way players (pitchers with batting stats)
+    hitter_ids = conn.execute(
         "SELECT mlb_id FROM players WHERE player_type = 'hitter' AND is_active = 1"
     ).fetchall()
+    # Also find pitchers who have batting stats (two-way players like Ohtani)
+    twp_hitter_ids = conn.execute(
+        """SELECT DISTINCT bs.mlb_id FROM batting_stats bs
+           JOIN players p ON bs.mlb_id = p.mlb_id
+           WHERE p.player_type = 'pitcher' AND p.is_active = 1
+             AND bs.season IN (?, ?, ?)""",
+        (*seasons_back,),
+    ).fetchall()
+    all_hitter_ids = {h["mlb_id"] for h in hitter_ids} | {h["mlb_id"] for h in twp_hitter_ids}
+    if twp_hitter_ids:
+        logger.info(f"Found {len(twp_hitter_ids)} two-way players with batting stats for hitter trend generation")
 
     hitter_count = 0
     hitter_counting_fields = [
@@ -400,8 +409,7 @@ def generate_projections_from_stats(season: int = 2025):
         "home_runs", "rbi", "stolen_bases", "walks", "strikeouts",
         "hit_by_pitch", "sac_flies",
     ]
-    for h in hitters:
-        mlb_id = h["mlb_id"]
+    for mlb_id in all_hitter_ids:
         stats_rows = conn.execute(
             """SELECT * FROM batting_stats
                WHERE mlb_id = ? AND season IN (?, ?, ?)
@@ -447,8 +455,7 @@ def generate_projections_from_stats(season: int = 2025):
                        ?, ?, ?, ?, ?, ?,
                        ?, ?, ?, ?,
                        ?, ?, ?, ?, ?)
-               ON CONFLICT (mlb_id, source, season) DO UPDATE SET
-                 player_type = EXCLUDED.player_type,
+               ON CONFLICT (mlb_id, source, season, player_type) DO UPDATE SET
                  proj_pa = EXCLUDED.proj_pa, proj_at_bats = EXCLUDED.proj_at_bats,
                  proj_runs = EXCLUDED.proj_runs, proj_hits = EXCLUDED.proj_hits,
                  proj_doubles = EXCLUDED.proj_doubles, proj_triples = EXCLUDED.proj_triples,
@@ -468,18 +475,28 @@ def generate_projections_from_stats(season: int = 2025):
         )
         hitter_count += 1
 
-    # Generate pitcher projections
-    pitchers = conn.execute(
+    # Generate pitcher projections — includes two-way players (hitters with pitching stats)
+    pitcher_ids = conn.execute(
         "SELECT mlb_id FROM players WHERE player_type = 'pitcher' AND is_active = 1"
     ).fetchall()
+    # Also find hitters who have pitching stats (two-way players like Ohtani)
+    twp_pitcher_ids = conn.execute(
+        """SELECT DISTINCT ps.mlb_id FROM pitching_stats ps
+           JOIN players p ON ps.mlb_id = p.mlb_id
+           WHERE p.player_type = 'hitter' AND p.is_active = 1
+             AND ps.season IN (?, ?, ?)""",
+        (*seasons_back,),
+    ).fetchall()
+    all_pitcher_ids = {p["mlb_id"] for p in pitcher_ids} | {p["mlb_id"] for p in twp_pitcher_ids}
+    if twp_pitcher_ids:
+        logger.info(f"Found {len(twp_pitcher_ids)} two-way players with pitching stats for pitcher trend generation")
 
     pitcher_count = 0
     pitcher_counting_fields = [
         "innings_pitched", "strikeouts", "quality_starts", "saves", "holds",
         "wins", "hits_allowed", "walks_allowed", "earned_runs",
     ]
-    for p in pitchers:
-        mlb_id = p["mlb_id"]
+    for mlb_id in all_pitcher_ids:
         stats_rows = conn.execute(
             """SELECT * FROM pitching_stats
                WHERE mlb_id = ? AND season IN (?, ?, ?)
@@ -525,8 +542,7 @@ def generate_projections_from_stats(season: int = 2025):
                        ?, ?, ?,
                        ?, ?, ?, ?, ?,
                        ?, ?, ?)
-               ON CONFLICT (mlb_id, source, season) DO UPDATE SET
-                 player_type = EXCLUDED.player_type,
+               ON CONFLICT (mlb_id, source, season, player_type) DO UPDATE SET
                  proj_ip = EXCLUDED.proj_ip, proj_pitcher_strikeouts = EXCLUDED.proj_pitcher_strikeouts,
                  proj_quality_starts = EXCLUDED.proj_quality_starts,
                  proj_era = EXCLUDED.proj_era, proj_whip = EXCLUDED.proj_whip,

@@ -13,6 +13,7 @@ const posColors: Record<string, string> = {
   C: 'text-blue-400', '1B': 'text-amber-400', '2B': 'text-orange-400', '3B': 'text-purple-400',
   SS: 'text-red-400', OF: 'text-emerald-400', LF: 'text-emerald-400', CF: 'text-teal-400',
   RF: 'text-emerald-400', DH: 'text-gray-400', SP: 'text-sky-400', RP: 'text-pink-400', P: 'text-sky-400',
+  TWP: 'text-violet-400',
 }
 
 function zBg(v: number | undefined | null): string {
@@ -256,30 +257,32 @@ export default function RankingsPage() {
                           </span>
                         </td>
 
-                        {/* Category z-scores */}
-                        {showHitterCats && isHitter && (
-                          <>
-                            <ZTd v={p.zscore_r} />
-                            <ZTd v={p.zscore_tb} />
-                            <ZTd v={p.zscore_rbi} />
-                            <ZTd v={p.zscore_sb} />
-                            <ZTd v={p.zscore_obp} />
-                          </>
+                        {/* Category z-scores — two-way players show values in both sections */}
+                        {showHitterCats && (
+                          (isHitter || [p.zscore_r, p.zscore_tb, p.zscore_rbi, p.zscore_sb, p.zscore_obp].some(v => v != null && v !== 0)) ? (
+                            <>
+                              <ZTd v={p.zscore_r} />
+                              <ZTd v={p.zscore_tb} />
+                              <ZTd v={p.zscore_rbi} />
+                              <ZTd v={p.zscore_sb} />
+                              <ZTd v={p.zscore_obp} />
+                            </>
+                          ) : (
+                            <td colSpan={5} className="text-center text-gray-800 text-[11px]">—</td>
+                          )
                         )}
-                        {showHitterCats && !isHitter && (
-                          <td colSpan={5} className="text-center text-gray-800 text-[11px]">—</td>
-                        )}
-                        {showPitcherCats && !isHitter && (
-                          <>
-                            <ZTd v={p.zscore_k} />
-                            <ZTd v={p.zscore_qs} />
-                            <ZTd v={p.zscore_era} />
-                            <ZTd v={p.zscore_whip} />
-                            <ZTd v={p.zscore_svhd} />
-                          </>
-                        )}
-                        {showPitcherCats && isHitter && (
-                          <td colSpan={5} className="text-center text-gray-800 text-[11px]">—</td>
+                        {showPitcherCats && (
+                          (!isHitter || [p.zscore_k, p.zscore_qs, p.zscore_era, p.zscore_whip, p.zscore_svhd].some(v => v != null && v !== 0)) ? (
+                            <>
+                              <ZTd v={p.zscore_k} />
+                              <ZTd v={p.zscore_qs} />
+                              <ZTd v={p.zscore_era} />
+                              <ZTd v={p.zscore_whip} />
+                              <ZTd v={p.zscore_svhd} />
+                            </>
+                          ) : (
+                            <td colSpan={5} className="text-center text-gray-800 text-[11px]">—</td>
+                          )
                         )}
                       </tr>
                     )

@@ -211,7 +211,7 @@ def _init_pg():
             proj_earned_runs INTEGER DEFAULT 0,
             updated_at TIMESTAMP DEFAULT NOW(),
             FOREIGN KEY (mlb_id) REFERENCES players(mlb_id),
-            UNIQUE(mlb_id, source, season)
+            UNIQUE(mlb_id, source, season, player_type)
         );
     """)
 
@@ -419,7 +419,7 @@ def _init_sqlite():
             proj_earned_runs INTEGER DEFAULT 0,
             updated_at TEXT DEFAULT (datetime('now')),
             FOREIGN KEY (mlb_id) REFERENCES players(mlb_id),
-            UNIQUE(mlb_id, source, season)
+            UNIQUE(mlb_id, source, season, player_type)
         );
 
         CREATE TABLE IF NOT EXISTS rankings (

@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 BASE_URL = "https://statsapi.mlb.com/api/v1"
 
-PITCHER_POSITIONS = {"P", "SP", "RP", "CP", "TWP"}
+PITCHER_POSITIONS = {"P", "SP", "RP", "CP"}
 
 
 async def get_all_teams(season: int = 2025) -> list[dict]:
