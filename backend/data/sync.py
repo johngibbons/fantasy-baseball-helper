@@ -16,7 +16,7 @@ from backend.data.mlb_api import (
     get_batting_stats,
     get_pitching_stats,
 )
-from backend.data.projections import generate_projections_from_stats, import_adp_from_csv
+from backend.data.projections import generate_projections_from_stats, import_adp_from_csv, import_fangraphs_batting, import_fangraphs_pitching
 from backend.data.statcast import sync_statcast_data
 from backend.data.statcast_adjustments import apply_statcast_adjustments
 from backend.analysis.zscores import calculate_all_zscores
@@ -158,7 +158,132 @@ async def sync_stats(season: int = 2025, player_type: str = "all"):
         conn.commit()
         logger.info(f"Finished pitching stats")
 
+    # Two-way players: fetch the "other" stat type for players with dual roles.
+    # Hitters with pitching history need pitching stats synced, and pitchers with
+    # batting history need batting stats synced.
+    if player_type == "all":
+        # Find hitters who have pitching stats in other seasons (two-way players)
+        twp_hitters = conn.execute(
+            """SELECT DISTINCT p.mlb_id, p.full_name FROM players p
+               JOIN pitching_stats ps ON p.mlb_id = ps.mlb_id
+               WHERE p.player_type = 'hitter' AND p.is_active = 1"""
+        ).fetchall()
+        if twp_hitters:
+            logger.info(f"Fetching pitching stats for {len(twp_hitters)} two-way hitters...")
+            for p in twp_hitters:
+                try:
+                    stats = await get_pitching_stats(p["mlb_id"], season)
+                    if stats:
+                        conn.execute(
+                            """INSERT INTO pitching_stats
+                               (mlb_id, season, games, games_started, wins, losses,
+                                era, whip, innings_pitched, hits_allowed,
+                                runs_allowed, earned_runs, walks_allowed, strikeouts,
+                                home_runs_allowed, saves, holds, quality_starts)
+                               VALUES (?, ?, ?, ?, ?, ?,
+                                       ?, ?, ?, ?,
+                                       ?, ?, ?, ?,
+                                       ?, ?, ?, ?)
+                               ON CONFLICT (mlb_id, season) DO UPDATE SET
+                                 games = EXCLUDED.games, games_started = EXCLUDED.games_started,
+                                 wins = EXCLUDED.wins, losses = EXCLUDED.losses,
+                                 era = EXCLUDED.era, whip = EXCLUDED.whip,
+                                 innings_pitched = EXCLUDED.innings_pitched, hits_allowed = EXCLUDED.hits_allowed,
+                                 runs_allowed = EXCLUDED.runs_allowed, earned_runs = EXCLUDED.earned_runs,
+                                 walks_allowed = EXCLUDED.walks_allowed, strikeouts = EXCLUDED.strikeouts,
+                                 home_runs_allowed = EXCLUDED.home_runs_allowed,
+                                 saves = EXCLUDED.saves, holds = EXCLUDED.holds,
+                                 quality_starts = EXCLUDED.quality_starts""",
+                            (
+                                stats["mlb_id"], stats["season"], stats["games"],
+                                stats["games_started"], stats["wins"], stats["losses"],
+                                stats["era"], stats["whip"], stats["innings_pitched"],
+                                stats["hits_allowed"], stats["runs_allowed"],
+                                stats["earned_runs"], stats["walks_allowed"],
+                                stats["strikeouts"], stats["home_runs_allowed"],
+                                stats["saves"], stats["holds"], stats["quality_starts"],
+                            ),
+                        )
+                except Exception as e:
+                    logger.warning(f"Failed to fetch pitching stats for TWP {p['full_name']}: {e}")
+            conn.commit()
+
+        # Find pitchers who have batting stats in other seasons (two-way players)
+        twp_pitchers = conn.execute(
+            """SELECT DISTINCT p.mlb_id, p.full_name FROM players p
+               JOIN batting_stats bs ON p.mlb_id = bs.mlb_id
+               WHERE p.player_type = 'pitcher' AND p.is_active = 1"""
+        ).fetchall()
+        if twp_pitchers:
+            logger.info(f"Fetching batting stats for {len(twp_pitchers)} two-way pitchers...")
+            for h in twp_pitchers:
+                try:
+                    stats = await get_batting_stats(h["mlb_id"], season)
+                    if stats:
+                        conn.execute(
+                            """INSERT INTO batting_stats
+                               (mlb_id, season, games, plate_appearances, at_bats,
+                                runs, hits, doubles, triples, home_runs,
+                                rbi, stolen_bases, caught_stealing, walks, strikeouts,
+                                hit_by_pitch, sac_flies, batting_average, obp, slg, ops, total_bases)
+                               VALUES (?, ?, ?, ?, ?,
+                                       ?, ?, ?, ?, ?,
+                                       ?, ?, ?, ?, ?,
+                                       ?, ?, ?, ?, ?, ?, ?)
+                               ON CONFLICT (mlb_id, season) DO UPDATE SET
+                                 games = EXCLUDED.games, plate_appearances = EXCLUDED.plate_appearances,
+                                 at_bats = EXCLUDED.at_bats, runs = EXCLUDED.runs, hits = EXCLUDED.hits,
+                                 doubles = EXCLUDED.doubles, triples = EXCLUDED.triples,
+                                 home_runs = EXCLUDED.home_runs, rbi = EXCLUDED.rbi,
+                                 stolen_bases = EXCLUDED.stolen_bases, caught_stealing = EXCLUDED.caught_stealing,
+                                 walks = EXCLUDED.walks, strikeouts = EXCLUDED.strikeouts,
+                                 hit_by_pitch = EXCLUDED.hit_by_pitch, sac_flies = EXCLUDED.sac_flies,
+                                 batting_average = EXCLUDED.batting_average, obp = EXCLUDED.obp,
+                                 slg = EXCLUDED.slg, ops = EXCLUDED.ops, total_bases = EXCLUDED.total_bases""",
+                            (
+                                stats["mlb_id"], stats["season"], stats["games"],
+                                stats["plate_appearances"], stats["at_bats"],
+                                stats["runs"], stats["hits"], stats["doubles"],
+                                stats["triples"], stats["home_runs"],
+                                stats["rbi"], stats["stolen_bases"], stats["caught_stealing"],
+                                stats["walks"], stats["strikeouts"],
+                                stats["hit_by_pitch"], stats["sac_flies"],
+                                stats["batting_average"], stats["obp"], stats["slg"],
+                                stats["ops"], stats["total_bases"],
+                            ),
+                        )
+                except Exception as e:
+                    logger.warning(f"Failed to fetch batting stats for TWP {h['full_name']}: {e}")
+            conn.commit()
+
     conn.close()
+
+
+def import_csv_projections(season: int = 2026):
+    """Import FanGraphs CSV projections (steamer, thebatx, zips) if files exist."""
+    csv_dir = Path(__file__).parent.parent / "projection_data"
+    sources = ["steamer", "thebatx", "zips"]
+    count = 0
+    for source in sources:
+        batting_file = csv_dir / f"{source}_batting_{season}.csv"
+        pitching_file = csv_dir / f"{source}_pitching_{season}.csv"
+        if batting_file.exists():
+            try:
+                import_fangraphs_batting(str(batting_file), source, season)
+                count += 1
+                logger.info(f"Imported {source} batting projections from {batting_file.name}")
+            except Exception as e:
+                logger.warning(f"Failed to import {batting_file.name}: {e}")
+        if pitching_file.exists():
+            try:
+                import_fangraphs_pitching(str(pitching_file), source, season)
+                count += 1
+                logger.info(f"Imported {source} pitching projections from {pitching_file.name}")
+            except Exception as e:
+                logger.warning(f"Failed to import {pitching_file.name}: {e}")
+    if count == 0:
+        logger.info(f"No CSV projection files found in {csv_dir} for {season}")
+    return count
 
 
 async def run_full_sync(season: int = 2025, stats_seasons: list[int] = None):
@@ -183,22 +308,26 @@ async def run_full_sync(season: int = 2025, stats_seasons: list[int] = None):
         except Exception as e:
             logger.warning(f"Statcast sync failed for {s} (non-fatal): {e}")
 
-    # 4. Generate projections from historical stats
+    # 4. Import FanGraphs CSV projections
+    logger.info("Importing CSV projections...")
+    import_csv_projections(season)
+
+    # 5. Generate projections from historical stats
     logger.info("Generating trend-based projections...")
     generate_projections_from_stats(season)
 
-    # 5. Apply Statcast adjustments to projections
+    # 6. Apply Statcast adjustments to projections
     logger.info("Applying Statcast adjustments...")
     try:
         apply_statcast_adjustments(season)
     except Exception as e:
         logger.warning(f"Statcast adjustments failed (non-fatal): {e}")
 
-    # 6. Calculate z-scores and rankings
+    # 7. Calculate z-scores and rankings
     logger.info("Calculating z-scores and rankings...")
     calculate_all_zscores(season)
 
-    # 7. Import ADP data
+    # 8. Import ADP data
     logger.info("Importing ADP data...")
     try:
         import_adp_from_csv(season=season)

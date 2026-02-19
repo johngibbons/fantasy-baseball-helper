@@ -10,6 +10,7 @@ from backend.database import init_db, get_connection
 from backend.data.projections import generate_projections_from_stats, import_adp_from_csv
 from backend.data.statcast_adjustments import apply_statcast_adjustments
 from backend.analysis.zscores import calculate_all_zscores
+from backend.data.sync import import_csv_projections
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,11 @@ def startup():
         return
 
     logger.info(f"Startup recalculation for season {_SEASON} ({player_count} active players)")
+
+    try:
+        import_csv_projections(_SEASON)
+    except Exception as e:
+        logger.warning(f"CSV projection import failed (non-fatal): {e}")
 
     try:
         generate_projections_from_stats(_SEASON)
