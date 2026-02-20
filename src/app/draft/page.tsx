@@ -1415,9 +1415,9 @@ export default function DraftBoardPage() {
                       const needSlots = isDrafted ? [] : getEligibleSlots(p).filter((s) => s !== 'BE' && (rosterState.remainingCapacity[s] || 0) > 0)
                       const fillsNeed = needSlots.length > 0
 
-                      // Tier separator: show when tier changes between consecutive available rows
+                      // Tier separator: only when sorted by value (the ordering where tiers are contiguous)
                       const rows: React.ReactNode[] = []
-                      if (!isDrafted && idx > 0 && !showDrafted) {
+                      if (!isDrafted && idx > 0 && !showDrafted && sortKey === 'value') {
                         const prevPlayer = displayList[idx - 1]
                         const prevTier = playerTiers.get(prevPlayer?.mlb_id)
                         const curTier = playerTiers.get(p.mlb_id)
@@ -1477,12 +1477,7 @@ export default function DraftBoardPage() {
                               </button>
                             )}
                           </td>
-                          <td className="px-3 py-1.5 text-gray-500 font-mono text-xs tabular-nums">
-                            {!isDrafted && playerTiers.has(p.mlb_id) && (
-                              <span className="text-indigo-400 text-[9px] font-bold mr-0.5">T{playerTiers.get(p.mlb_id)}</span>
-                            )}
-                            {p.overall_rank}
-                          </td>
+                          <td className="px-3 py-1.5 text-gray-500 font-mono text-xs tabular-nums">{p.overall_rank}</td>
                           {hasAdpData && (
                             <td className="px-3 py-1.5 text-right">
                               {p.espn_adp != null ? (
