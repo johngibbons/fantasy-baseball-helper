@@ -26,6 +26,19 @@ export interface RankedPlayer {
   zscore_era?: number
   zscore_whip?: number
   zscore_svhd?: number
+  // Blended projected stats
+  proj_pa?: number
+  proj_r?: number
+  proj_tb?: number
+  proj_rbi?: number
+  proj_sb?: number
+  proj_obp?: number
+  proj_ip?: number
+  proj_k?: number
+  proj_qs?: number
+  proj_era?: number
+  proj_whip?: number
+  proj_svhd?: number
   // Multi-position eligibility
   eligible_positions?: string
   // ADP

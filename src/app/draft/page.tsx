@@ -85,23 +85,32 @@ function getEligibleSlots(p: RankedPlayer): string[] {
 }
 
 // ── Category definitions ──
-const HITTING_CATS = [
-  { key: 'zscore_r', label: 'R' },
-  { key: 'zscore_tb', label: 'TB' },
-  { key: 'zscore_rbi', label: 'RBI' },
-  { key: 'zscore_sb', label: 'SB' },
-  { key: 'zscore_obp', label: 'OBP' },
-] as const
+interface CatDef {
+  key: string
+  label: string
+  projKey: string
+  inverted: boolean
+  rate?: boolean
+  weight?: string
+}
 
-const PITCHING_CATS = [
-  { key: 'zscore_k', label: 'K' },
-  { key: 'zscore_qs', label: 'QS' },
-  { key: 'zscore_era', label: 'ERA' },
-  { key: 'zscore_whip', label: 'WHIP' },
-  { key: 'zscore_svhd', label: 'SVHD' },
-] as const
+const HITTING_CATS: CatDef[] = [
+  { key: 'zscore_r', label: 'R', projKey: 'proj_r', inverted: false },
+  { key: 'zscore_tb', label: 'TB', projKey: 'proj_tb', inverted: false },
+  { key: 'zscore_rbi', label: 'RBI', projKey: 'proj_rbi', inverted: false },
+  { key: 'zscore_sb', label: 'SB', projKey: 'proj_sb', inverted: false },
+  { key: 'zscore_obp', label: 'OBP', projKey: 'proj_obp', inverted: false, rate: true, weight: 'proj_pa' },
+]
 
-const ALL_CATS = [...HITTING_CATS, ...PITCHING_CATS]
+const PITCHING_CATS: CatDef[] = [
+  { key: 'zscore_k', label: 'K', projKey: 'proj_k', inverted: false },
+  { key: 'zscore_qs', label: 'QS', projKey: 'proj_qs', inverted: false },
+  { key: 'zscore_era', label: 'ERA', projKey: 'proj_era', inverted: true, rate: true, weight: 'proj_ip' },
+  { key: 'zscore_whip', label: 'WHIP', projKey: 'proj_whip', inverted: true, rate: true, weight: 'proj_ip' },
+  { key: 'zscore_svhd', label: 'SVHD', projKey: 'proj_svhd', inverted: false },
+]
+
+const ALL_CATS: CatDef[] = [...HITTING_CATS, ...PITCHING_CATS]
 
 // ── Roster slot display order ──
 const SLOT_ORDER = ['C', '1B', '2B', '3B', 'SS', 'OF', 'UTIL', 'SP', 'RP', 'P', 'BE']
@@ -591,22 +600,63 @@ export default function DraftBoardPage() {
   // ── Draft comparison: all teams' category totals ──
   const teamCategories = useMemo(() => {
     const playerMap = new Map(allPlayers.map(p => [p.mlb_id, p]))
-    const teams = new Map<number, { totals: Record<string, number>; count: number; total: number }>()
+
+    interface TeamData {
+      totals: Record<string, number>       // z-score sums (for MCW model)
+      statTotals: Record<string, number>   // projected stat totals (for display)
+      totalPA: number
+      totalIP: number
+      weightedOBP: number
+      weightedERA: number
+      weightedWHIP: number
+      count: number
+      total: number
+    }
+    const teams = new Map<number, TeamData>()
 
     for (const [mlbId, teamId] of draftPicks) {
       const p = playerMap.get(mlbId)
       if (!p) continue
-      if (!teams.has(teamId)) teams.set(teamId, { totals: {}, count: 0, total: 0 })
+      if (!teams.has(teamId)) teams.set(teamId, {
+        totals: {}, statTotals: {}, totalPA: 0, totalIP: 0,
+        weightedOBP: 0, weightedERA: 0, weightedWHIP: 0,
+        count: 0, total: 0,
+      })
       const t = teams.get(teamId)!
       t.count++
+
+      // Accumulate z-scores (unchanged — powers MCW model)
       for (const cat of ALL_CATS) {
         const val = (p as unknown as Record<string, number>)[cat.key] ?? 0
         t.totals[cat.key] = (t.totals[cat.key] ?? 0) + val
         t.total += val
       }
+
+      // Accumulate projected stats for display
+      const pd = p as unknown as Record<string, number>
+      // Counting stats: sum directly
+      for (const cat of ALL_CATS) {
+        if (!cat.rate) {
+          t.statTotals[cat.projKey] = (t.statTotals[cat.projKey] ?? 0) + (pd[cat.projKey] ?? 0)
+        }
+      }
+      // PA/IP accumulation
+      t.totalPA += pd.proj_pa ?? 0
+      t.totalIP += pd.proj_ip ?? 0
+      // Weighted rate components
+      t.weightedOBP += (pd.proj_obp ?? 0) * (pd.proj_pa ?? 0)
+      t.weightedERA += (pd.proj_era ?? 0) * (pd.proj_ip ?? 0)
+      t.weightedWHIP += (pd.proj_whip ?? 0) * (pd.proj_ip ?? 0)
     }
 
-    // Build ranked array sorted by total descending
+    // Compute final rate stats from weighted components
+    for (const [, t] of teams) {
+      t.statTotals['proj_obp'] = t.totalPA > 0 ? t.weightedOBP / t.totalPA : 0
+      t.statTotals['proj_era'] = t.totalIP > 0 ? t.weightedERA / t.totalIP : 0
+      t.statTotals['proj_whip'] = t.totalIP > 0 ? t.weightedWHIP / t.totalIP : 0
+    }
+
+    // Build ranked array sorted by total descending (z-score total for ordering)
     const rows = [...teams.entries()]
       .filter(([tid]) => tid !== -1) // exclude unknown
       .map(([teamId, data]) => ({
@@ -616,10 +666,14 @@ export default function DraftBoardPage() {
       }))
       .sort((a, b) => b.total - a.total)
 
-    // Compute per-category ranks (1 = best)
+    // Compute per-category ranks from projected stats (1 = best)
     const catRanks = new Map<string, Map<number, number>>()
     for (const cat of ALL_CATS) {
-      const sorted = [...rows].sort((a, b) => (b.totals[cat.key] ?? 0) - (a.totals[cat.key] ?? 0))
+      const sorted = [...rows].sort((a, b) => {
+        const aVal = a.statTotals[cat.projKey] ?? 0
+        const bVal = b.statTotals[cat.projKey] ?? 0
+        return cat.inverted ? aVal - bVal : bVal - aVal
+      })
       const rankMap = new Map<number, number>()
       sorted.forEach((r, i) => rankMap.set(r.teamId, i + 1))
       catRanks.set(cat.key, rankMap)
@@ -990,17 +1044,22 @@ export default function DraftBoardPage() {
     const availablePlayers = allPlayers
       .filter(p => !draftedIds.has(p.mlb_id))
       .map(p => {
+        const pd = p as unknown as Record<string, number>
         const zscores: Record<string, number> = {}
+        const stats: Record<string, number> = {}
         for (const cat of ALL_CATS) {
-          zscores[cat.key] = (p as unknown as Record<string, number>)[cat.key] ?? 0
+          zscores[cat.key] = pd[cat.key] ?? 0
+          stats[cat.projKey] = pd[cat.projKey] ?? 0
         }
-        return { mlb_id: p.mlb_id, zscores }
+        stats['proj_pa'] = pd.proj_pa ?? 0
+        stats['proj_ip'] = pd.proj_ip ?? 0
+        return { mlb_id: p.mlb_id, zscores, stats }
       })
 
     return projectStandings(
       teamCategories.rows,
       availablePlayers,
-      ALL_CATS.map(c => ({ key: c.key, label: c.label })),
+      ALL_CATS,
       Object.values(ROSTER_SLOTS).reduce((a, b) => a + b, 0),
       pickSchedule,
       currentPickIndex
@@ -1849,7 +1908,7 @@ export default function DraftBoardPage() {
                     <div>
                       <h2 className="font-bold text-white text-sm">Draft Comparison</h2>
                       <div className="text-[11px] text-gray-500 mt-0.5">
-                        {teamCategories.rows.length} teams &middot; {showProjected ? 'Projected' : 'Current'} z-score totals
+                        {teamCategories.rows.length} teams &middot; {showProjected ? 'Projected' : 'Current'} stats
                       </div>
                     </div>
                     {projectedStandingsData.length > 0 && (
@@ -1877,32 +1936,19 @@ export default function DraftBoardPage() {
                           {ALL_CATS.map((cat) => (
                             <th key={cat.key} className="px-1 py-1.5 text-center text-gray-500 font-semibold">{cat.label}</th>
                           ))}
-                          <th className="px-2 py-1.5 text-right text-gray-500 font-semibold">Tot</th>
+                          <th className="px-2 py-1.5 text-right text-gray-500 font-semibold" title="Expected weekly wins">E(W)</th>
                         </tr>
                       </thead>
                       <tbody>
                         {(() => {
                           if (showProjected && projectedStandingsData.length > 0) {
-                            // Build projected cat ranks for heatmap
-                            const projCatRanks = new Map<string, Map<number, number>>()
-                            for (const cat of ALL_CATS) {
-                              const sorted = [...projectedStandingsData].sort(
-                                (a, b) => (b.projectedTotals[cat.key] ?? 0) - (a.projectedTotals[cat.key] ?? 0)
-                              )
-                              const rankMap = new Map<number, number>()
-                              sorted.forEach((s, i) => rankMap.set(s.teamId, i + 1))
-                              projCatRanks.set(cat.key, rankMap)
-                            }
+                            // Use pre-computed projected ranks from projectedStandingsData
+                            const projN = projectedStandingsData.length
 
                             return [...projectedStandingsData]
-                              .sort((a, b) => {
-                                const aTotal = ALL_CATS.reduce((s, c) => s + (a.projectedTotals[c.key] ?? 0), 0)
-                                const bTotal = ALL_CATS.reduce((s, c) => s + (b.projectedTotals[c.key] ?? 0), 0)
-                                return bTotal - aTotal
-                              })
+                              .sort((a, b) => b.projectedWins - a.projectedWins)
                               .map(standing => {
                                 const isMyRow = standing.teamId === myTeamId
-                                const projTotal = ALL_CATS.reduce((s, c) => s + (standing.projectedTotals[c.key] ?? 0), 0)
                                 return (
                                   <tr
                                     key={standing.teamId}
@@ -1915,30 +1961,37 @@ export default function DraftBoardPage() {
                                       )}
                                     </td>
                                     {ALL_CATS.map((cat) => {
-                                      const val = standing.projectedTotals[cat.key] ?? 0
-                                      const rank = projCatRanks.get(cat.key)?.get(standing.teamId) ?? projectedStandingsData.length
-                                      const heatColor = getHeatColor(rank, projectedStandingsData.length)
+                                      const val = standing.projectedStatTotals[cat.projKey] ?? 0
+                                      const rank = standing.projectedRanks[cat.key] ?? projN
+                                      const heatColor = getHeatColor(rank, projN)
                                       return (
                                         <td
                                           key={cat.key}
                                           className="px-1 py-1 text-center font-bold tabular-nums"
                                           style={{ color: heatColor }}
                                         >
-                                          {val.toFixed(1)}
+                                          {formatStat(cat, val)}
                                         </td>
                                       )
                                     })}
-                                    <td className={`px-2 py-1 text-right font-bold tabular-nums ${projTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                      {projTotal > 0 ? '+' : ''}{projTotal.toFixed(1)}
+                                    <td className="px-2 py-1 text-right font-bold tabular-nums text-gray-200">
+                                      {standing.projectedWins.toFixed(1)}
                                     </td>
                                   </tr>
                                 )
                               })
                           }
 
-                          // Current view (original)
+                          // Current view — projected stats with expected wins
+                          const numTeams = teamCategories.teamCount
                           return teamCategories.rows.map((row) => {
                             const isMyRow = row.teamId === myTeamId
+                            // Compute expected weekly wins from category ranks
+                            let expWins = 0
+                            for (const cat of ALL_CATS) {
+                              const rank = teamCategories.catRanks.get(cat.key)?.get(row.teamId) ?? numTeams
+                              expWins += numTeams > 1 ? (numTeams - rank) / (numTeams - 1) : 0
+                            }
                             return (
                               <tr
                                 key={row.teamId}
@@ -1948,21 +2001,21 @@ export default function DraftBoardPage() {
                                   {row.teamName.length > 12 ? getTeamAbbrev(row.teamId) : row.teamName}
                                 </td>
                                 {ALL_CATS.map((cat) => {
-                                  const val = row.totals[cat.key] ?? 0
-                                  const rank = teamCategories.catRanks.get(cat.key)?.get(row.teamId) ?? teamCategories.teamCount
-                                  const heatColor = getHeatColor(rank, teamCategories.teamCount)
+                                  const val = row.statTotals[cat.projKey] ?? 0
+                                  const rank = teamCategories.catRanks.get(cat.key)?.get(row.teamId) ?? numTeams
+                                  const heatColor = getHeatColor(rank, numTeams)
                                   return (
                                     <td
                                       key={cat.key}
                                       className="px-1 py-1 text-center font-bold tabular-nums"
                                       style={{ color: heatColor }}
                                     >
-                                      {val.toFixed(1)}
+                                      {formatStat(cat, val)}
                                     </td>
                                   )
                                 })}
-                                <td className={`px-2 py-1 text-right font-bold tabular-nums ${row.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                  {row.total > 0 ? '+' : ''}{row.total.toFixed(1)}
+                                <td className="px-2 py-1 text-right font-bold tabular-nums text-gray-200">
+                                  {expWins.toFixed(1)}
                                 </td>
                               </tr>
                             )
@@ -2236,6 +2289,13 @@ function getHeatColor(rank: number, total: number): string {
     const b = Math.round(8 + (68 - 8) * s)
     return `rgb(${r}, ${g}, ${b})`
   }
+}
+
+// ── Stat formatting for projected stats ──
+function formatStat(cat: CatDef, value: number): string {
+  if (cat.label === 'OBP') return value.toFixed(3)
+  if (cat.label === 'ERA' || cat.label === 'WHIP') return value.toFixed(2)
+  return Math.round(value).toString()
 }
 
 // ── Category balance bar component ──

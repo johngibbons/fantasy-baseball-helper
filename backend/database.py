@@ -89,6 +89,23 @@ def init_db():
         _init_sqlite()
 
 
+# Projection columns to add to rankings (name, type, default)
+_RANKINGS_PROJ_COLUMNS = [
+    ("proj_pa", "INTEGER", 0),
+    ("proj_r", "INTEGER", 0),
+    ("proj_tb", "INTEGER", 0),
+    ("proj_rbi", "INTEGER", 0),
+    ("proj_sb", "INTEGER", 0),
+    ("proj_obp", "REAL", 0),
+    ("proj_ip", "REAL", 0),
+    ("proj_k", "INTEGER", 0),
+    ("proj_qs", "INTEGER", 0),
+    ("proj_era", "REAL", 0),
+    ("proj_whip", "REAL", 0),
+    ("proj_svhd", "INTEGER", 0),
+]
+
+
 # ── PostgreSQL init ─────────────────────────────────────────────────────────
 
 
@@ -233,6 +250,18 @@ def _init_pg():
             zscore_era REAL DEFAULT 0,
             zscore_whip REAL DEFAULT 0,
             zscore_svhd REAL DEFAULT 0,
+            proj_pa INTEGER DEFAULT 0,
+            proj_r INTEGER DEFAULT 0,
+            proj_tb INTEGER DEFAULT 0,
+            proj_rbi INTEGER DEFAULT 0,
+            proj_sb INTEGER DEFAULT 0,
+            proj_obp REAL DEFAULT 0,
+            proj_ip REAL DEFAULT 0,
+            proj_k INTEGER DEFAULT 0,
+            proj_qs INTEGER DEFAULT 0,
+            proj_era REAL DEFAULT 0,
+            proj_whip REAL DEFAULT 0,
+            proj_svhd INTEGER DEFAULT 0,
             espn_adp REAL,
             adp_diff REAL,
             player_type TEXT CHECK(player_type IN ('hitter', 'pitcher')),
@@ -300,6 +329,13 @@ def _init_pg():
 
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_statcast_batting_season ON analytics.statcast_batting(season);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_statcast_pitching_season ON analytics.statcast_pitching(season);")
+
+    # Migration: add projection columns to rankings if missing
+    for col, col_type, default in _RANKINGS_PROJ_COLUMNS:
+        try:
+            cursor.execute(f"ALTER TABLE analytics.rankings ADD COLUMN {col} {col_type} DEFAULT {default}")
+        except Exception:
+            pass  # column already exists
 
     conn.commit()
     conn.close()
@@ -439,6 +475,18 @@ def _init_sqlite():
             zscore_era REAL DEFAULT 0,
             zscore_whip REAL DEFAULT 0,
             zscore_svhd REAL DEFAULT 0,
+            proj_pa INTEGER DEFAULT 0,
+            proj_r INTEGER DEFAULT 0,
+            proj_tb INTEGER DEFAULT 0,
+            proj_rbi INTEGER DEFAULT 0,
+            proj_sb INTEGER DEFAULT 0,
+            proj_obp REAL DEFAULT 0,
+            proj_ip REAL DEFAULT 0,
+            proj_k INTEGER DEFAULT 0,
+            proj_qs INTEGER DEFAULT 0,
+            proj_era REAL DEFAULT 0,
+            proj_whip REAL DEFAULT 0,
+            proj_svhd INTEGER DEFAULT 0,
             espn_adp REAL,
             adp_diff REAL,
             player_type TEXT CHECK(player_type IN ('hitter', 'pitcher')),
@@ -500,6 +548,14 @@ def _init_sqlite():
         CREATE INDEX IF NOT EXISTS idx_statcast_batting_season ON statcast_batting(season);
         CREATE INDEX IF NOT EXISTS idx_statcast_pitching_season ON statcast_pitching(season);
     """)
+
+    # Migration: add projection columns to rankings if missing
+    for col, col_type, default in _RANKINGS_PROJ_COLUMNS:
+        try:
+            conn.execute(f"ALTER TABLE rankings ADD COLUMN {col} {col_type} DEFAULT {default}")
+        except Exception:
+            pass  # column already exists
+
     conn.commit()
     conn.close()
 

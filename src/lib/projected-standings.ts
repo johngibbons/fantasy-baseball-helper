@@ -3,32 +3,58 @@
  *
  * Uses a simple proportional model: each team gets a share of the remaining
  * player pool proportional to their remaining picks.
+ *
+ * Projects actual stats (R, TB, OBP, ERA, etc.) rather than z-scores.
  */
+
+export interface CatDef {
+  key: string
+  label: string
+  projKey: string
+  inverted: boolean
+  rate?: boolean
+  weight?: string
+}
+
+export interface TeamRow {
+  teamId: number
+  teamName: string
+  totals: Record<string, number>
+  statTotals: Record<string, number>
+  totalPA: number
+  totalIP: number
+  weightedOBP: number
+  weightedERA: number
+  weightedWHIP: number
+  count: number
+  total: number
+}
 
 export interface ProjectedStanding {
   teamId: number
   teamName: string
   currentTotals: Record<string, number>
   projectedTotals: Record<string, number>
+  projectedStatTotals: Record<string, number>
   projectedRanks: Record<string, number>
   projectedWins: number
   overallRank: number
 }
 
 /**
- * Project final standings for all teams.
+ * Project final standings for all teams using projected stats.
  *
- * @param teamRows - Current team category data (from teamCategories.rows)
- * @param availablePlayers - Undrafted players with z-score data
- * @param cats - Category definitions [{key, label}]
- * @param rosterSize - Total roster slots per team (default 25)
+ * @param teamRows - Current team data (from teamCategories.rows) with stat totals
+ * @param availablePlayers - Undrafted players with projection data
+ * @param cats - Category definitions with projKey, inverted, rate, weight
+ * @param rosterSize - Total roster slots per team
  * @param pickSchedule - Flat pick schedule array
  * @param currentPickIndex - Current pick index in the schedule
  */
 export function projectStandings(
-  teamRows: { teamId: number; teamName: string; totals: Record<string, number>; count: number }[],
-  availablePlayers: { mlb_id: number; zscores: Record<string, number> }[],
-  cats: { key: string; label: string }[],
+  teamRows: TeamRow[],
+  availablePlayers: { mlb_id: number; zscores: Record<string, number>; stats: Record<string, number> }[],
+  cats: CatDef[],
   rosterSize: number,
   pickSchedule: number[],
   currentPickIndex: number
@@ -51,18 +77,47 @@ export function projectStandings(
       teamName: row.teamName,
       currentTotals: { ...row.totals },
       projectedTotals: { ...row.totals },
+      projectedStatTotals: { ...row.statTotals },
       projectedRanks: {},
       projectedWins: 0,
       overallRank: i + 1,
     }))
   }
 
-  // Sum z-scores of all remaining available players per category (the pool)
-  const poolTotals: Record<string, number> = {}
-  for (const cat of cats) poolTotals[cat.key] = 0
+  // Compute pool totals for counting stats and rate stat components
+  let poolPA = 0
+  let poolIP = 0
+  let poolWeightedOBP = 0
+  let poolWeightedERA = 0
+  let poolWeightedWHIP = 0
+  const poolStatTotals: Record<string, number> = {}
+  for (const cat of cats) {
+    if (!cat.rate) poolStatTotals[cat.projKey] = 0
+  }
+
+  for (const p of availablePlayers) {
+    // Counting stats
+    for (const cat of cats) {
+      if (!cat.rate) {
+        poolStatTotals[cat.projKey] += (p.stats[cat.projKey] ?? 0)
+      }
+    }
+    // Rate stat components
+    const pa = p.stats['proj_pa'] ?? 0
+    const ip = p.stats['proj_ip'] ?? 0
+    poolPA += pa
+    poolIP += ip
+    poolWeightedOBP += (p.stats['proj_obp'] ?? 0) * pa
+    poolWeightedERA += (p.stats['proj_era'] ?? 0) * ip
+    poolWeightedWHIP += (p.stats['proj_whip'] ?? 0) * ip
+  }
+
+  // Also sum z-score pool for projectedTotals (used by MCW model downstream)
+  const poolZscores: Record<string, number> = {}
+  for (const cat of cats) poolZscores[cat.key] = 0
   for (const p of availablePlayers) {
     for (const cat of cats) {
-      poolTotals[cat.key] += (p.zscores[cat.key] ?? 0)
+      poolZscores[cat.key] += (p.zscores[cat.key] ?? 0)
     }
   }
 
@@ -70,29 +125,55 @@ export function projectStandings(
   const projected: ProjectedStanding[] = teamRows.map(row => {
     const teamRemaining = remainingPicks.get(row.teamId) ?? 0
     const share = teamRemaining / totalRemainingPicks
-    const projectedTotals: Record<string, number> = {}
 
+    // Z-score projected totals (for MCW model compatibility)
+    const projectedTotals: Record<string, number> = {}
     for (const cat of cats) {
-      const currentVal = row.totals[cat.key] ?? 0
-      projectedTotals[cat.key] = currentVal + share * poolTotals[cat.key]
+      projectedTotals[cat.key] = (row.totals[cat.key] ?? 0) + share * poolZscores[cat.key]
     }
+
+    // Stat projected totals (for display)
+    const projectedStatTotals: Record<string, number> = {}
+
+    // Counting stats: current + share of pool
+    for (const cat of cats) {
+      if (!cat.rate) {
+        projectedStatTotals[cat.projKey] = (row.statTotals[cat.projKey] ?? 0) + share * poolStatTotals[cat.projKey]
+      }
+    }
+
+    // Rate stats: recompute from combined weighted components
+    const projPA = row.totalPA + share * poolPA
+    const projIP = row.totalIP + share * poolIP
+    projectedStatTotals['proj_obp'] = projPA > 0
+      ? (row.weightedOBP + share * poolWeightedOBP) / projPA
+      : 0
+    projectedStatTotals['proj_era'] = projIP > 0
+      ? (row.weightedERA + share * poolWeightedERA) / projIP
+      : 0
+    projectedStatTotals['proj_whip'] = projIP > 0
+      ? (row.weightedWHIP + share * poolWeightedWHIP) / projIP
+      : 0
 
     return {
       teamId: row.teamId,
       teamName: row.teamName,
       currentTotals: { ...row.totals },
       projectedTotals,
+      projectedStatTotals,
       projectedRanks: {},
       projectedWins: 0,
       overallRank: 0,
     }
   })
 
-  // Rank teams per category from projected totals
+  // Rank teams per category from projected stat totals
   for (const cat of cats) {
-    const sorted = [...projected].sort(
-      (a, b) => (b.projectedTotals[cat.key] ?? 0) - (a.projectedTotals[cat.key] ?? 0)
-    )
+    const sorted = [...projected].sort((a, b) => {
+      const aVal = a.projectedStatTotals[cat.projKey] ?? 0
+      const bVal = b.projectedStatTotals[cat.projKey] ?? 0
+      return cat.inverted ? aVal - bVal : bVal - aVal
+    })
     sorted.forEach((s, i) => {
       s.projectedRanks[cat.key] = i + 1
     })
@@ -104,7 +185,7 @@ export function projectStandings(
     let totalWinProb = 0
     for (const cat of cats) {
       const rank = standing.projectedRanks[cat.key] ?? numTeams
-      totalWinProb += (numTeams - rank) / (numTeams - 1)
+      totalWinProb += numTeams > 1 ? (numTeams - rank) / (numTeams - 1) : 0
     }
     standing.projectedWins = totalWinProb
   }

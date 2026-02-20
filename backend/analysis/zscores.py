@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """SGP (Standings Gain Points) valuation engine for fantasy baseball.
 
 Uses historical league standings to compute SGP denominators — the average
@@ -978,10 +980,14 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
                    (mlb_id, season, overall_rank, position_rank, total_zscore,
                     zscore_r, zscore_tb, zscore_rbi, zscore_sb, zscore_obp,
                     zscore_k, zscore_qs, zscore_era, zscore_whip, zscore_svhd,
+                    proj_pa, proj_r, proj_tb, proj_rbi, proj_sb, proj_obp,
+                    proj_ip, proj_k, proj_qs, proj_era, proj_whip, proj_svhd,
                     player_type)
                    VALUES (?, ?, ?, ?, ?,
                            ?, ?, ?, ?, ?,
                            ?, ?, ?, ?, ?,
+                           ?, ?, ?, ?, ?, ?,
+                           ?, ?, ?, ?, ?, ?,
                            ?)
                    ON CONFLICT (mlb_id, season) DO UPDATE SET
                      overall_rank = EXCLUDED.overall_rank, position_rank = EXCLUDED.position_rank,
@@ -991,6 +997,12 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
                      zscore_obp = EXCLUDED.zscore_obp, zscore_k = EXCLUDED.zscore_k,
                      zscore_qs = EXCLUDED.zscore_qs, zscore_era = EXCLUDED.zscore_era,
                      zscore_whip = EXCLUDED.zscore_whip, zscore_svhd = EXCLUDED.zscore_svhd,
+                     proj_pa = EXCLUDED.proj_pa, proj_r = EXCLUDED.proj_r,
+                     proj_tb = EXCLUDED.proj_tb, proj_rbi = EXCLUDED.proj_rbi,
+                     proj_sb = EXCLUDED.proj_sb, proj_obp = EXCLUDED.proj_obp,
+                     proj_ip = EXCLUDED.proj_ip, proj_k = EXCLUDED.proj_k,
+                     proj_qs = EXCLUDED.proj_qs, proj_era = EXCLUDED.proj_era,
+                     proj_whip = EXCLUDED.proj_whip, proj_svhd = EXCLUDED.proj_svhd,
                      player_type = EXCLUDED.player_type""",
                 (
                     p["mlb_id"], season, p["overall_rank"], p["position_rank"],
@@ -1000,6 +1012,12 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
                     p.get("zscore_obp", 0), p.get("zscore_k", 0),
                     p.get("zscore_qs", 0), p.get("zscore_era", 0),
                     p.get("zscore_whip", 0), p.get("zscore_svhd", 0),
+                    p.get("proj_pa", 0), p.get("proj_r", 0),
+                    p.get("proj_tb", 0), p.get("proj_rbi", 0),
+                    p.get("proj_sb", 0), p.get("proj_obp", 0),
+                    p.get("proj_ip", 0), p.get("proj_k", 0),
+                    p.get("proj_qs", 0), p.get("proj_era", 0),
+                    p.get("proj_whip", 0), p.get("proj_svhd", 0),
                     p["player_type"],
                 ),
             )
