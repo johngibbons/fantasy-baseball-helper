@@ -839,11 +839,11 @@ export default function DraftBoardPage() {
       if (hasMCW && confidence > 0) {
         score = computeDraftScore(mcw, vona, urgency, rosterFit, confidence, draftProgress)
         // Blend with raw value when confidence is low
-        const rawScore = normalizedValue + vona * 0.5 + urgency * 0.3
+        const rawScore = normalizedValue + vona * 0.42 + urgency * 0.55
         score = score * confidence + rawScore * (1 - confidence)
       } else {
-        // Fallback: old formula
-        score = normalizedValue + vona * 0.5 + urgency * 0.3
+        // Fallback: BPA formula
+        score = normalizedValue + vona * 0.42 + urgency * 0.55
       }
 
       // ── Multiplicative adjustments so #1 score = "pick this player now" ──
@@ -853,14 +853,14 @@ export default function DraftBoardPage() {
       if (myTeamId != null) {
         const avail = availabilityMap.get(p.mlb_id)
         if (avail != null) {
-          score *= 1 - avail * 0.5
+          score *= 1 - avail * 0.19
         }
       }
 
       // Bench penalty: if player only fills bench slots, discount score.
       // Scales with draft progress — BPA matters early, roster fit matters later.
       if (rosterFit === 0 && draftProgress > 0.15) {
-        score *= Math.max(0.35, 1 - draftProgress * 0.8)
+        score *= Math.max(0.35, 1 - draftProgress * 0.63)
       }
 
       map.set(p.mlb_id, { mlbId: p.mlb_id, score, mcw, vona, urgency, badge, categoryGains })
