@@ -7,7 +7,12 @@ import {
   fetchLeagueTeams,
   saveTeamsToStorage,
   keeperPickIndex,
+  generateSnakeSchedule,
+  keeperPickIndexFromSchedule,
+  tradePickInSchedule,
   type LeagueKeeperEntry,
+  type PickSchedule,
+  type PickTrade,
 } from '@/lib/league-teams'
 import {
   analyzeCategoryStandings,
@@ -111,13 +116,13 @@ function getActiveTeamId(pickIndex: number, order: number[]): number {
   return round % 2 === 0 ? order[posInRound] : order[numTeams - 1 - posInRound]
 }
 
-// ── Snake order: picks until a team's next turn ──
-function getPicksUntilNextTurn(currentPickIndex: number, draftOrder: number[], teamId: number): number {
-  if (draftOrder.length === 0) return 999
-  for (let i = currentPickIndex + 1; i < currentPickIndex + draftOrder.length * 2; i++) {
-    if (getActiveTeamId(i, draftOrder) === teamId) return i - currentPickIndex
+// ── Picks until a team's next turn (schedule-based) ──
+function getPicksUntilNextTurn(currentPickIndex: number, schedule: number[], teamId: number): number {
+  if (schedule.length === 0) return 999
+  for (let i = currentPickIndex + 1; i < schedule.length; i++) {
+    if (schedule[i] === teamId) return i - currentPickIndex
   }
-  return draftOrder.length * 2 // fallback: full snake round
+  return 999
 }
 
 // ── Types ──
@@ -138,6 +143,8 @@ interface DraftState {
   draftOrder: number[]
   currentPickIndex: number
   keeperMlbIds?: number[]
+  pickSchedule?: number[]
+  pickTrades?: PickTrade[]
 }
 
 export default function DraftBoardPage() {
@@ -160,6 +167,9 @@ export default function DraftBoardPage() {
   const [currentPickIndex, setCurrentPickIndex] = useState(0)
   const [showDraftOrder, setShowDraftOrder] = useState(false)
   const [overrideTeam, setOverrideTeam] = useState<number | null>(null)
+  const [pickSchedule, setPickSchedule] = useState<PickSchedule>([])
+  const [pickTrades, setPickTrades] = useState<PickTrade[]>([])
+  const [showPickTrader, setShowPickTrader] = useState(false)
 
   // ── Keeper state ──
   const [leagueKeepersData, setLeagueKeepersData] = useState<LeagueKeeperEntry[]>([])
@@ -174,8 +184,8 @@ export default function DraftBoardPage() {
 
   // ── Active team on the clock ──
   const activeTeamId = useMemo(
-    () => overrideTeam ?? getActiveTeamId(currentPickIndex, draftOrder),
-    [currentPickIndex, draftOrder, overrideTeam]
+    () => overrideTeam ?? (pickSchedule.length > 0 ? pickSchedule[currentPickIndex] : getActiveTeamId(currentPickIndex, draftOrder)),
+    [currentPickIndex, draftOrder, overrideTeam, pickSchedule]
   )
   const activeTeam = useMemo(
     () => leagueTeams.find((t) => t.id === activeTeamId),
@@ -184,13 +194,16 @@ export default function DraftBoardPage() {
   // ── Keeper pick indices (snake draft positions occupied by keepers) ──
   const keeperPickIndices = useMemo(() => {
     if (leagueKeepersData.length === 0 || draftOrder.length === 0) return new Set<number>()
+    const numTeams = draftOrder.length
     const indices = new Set<number>()
     for (const k of leagueKeepersData) {
-      const idx = keeperPickIndex(k.teamId, k.roundCost, draftOrder)
+      const idx = pickSchedule.length > 0
+        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams)
+        : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
       if (idx >= 0) indices.add(idx)
     }
     return indices
-  }, [leagueKeepersData, draftOrder])
+  }, [leagueKeepersData, draftOrder, pickSchedule])
 
   const currentRound = draftOrder.length > 0 ? Math.floor(currentPickIndex / draftOrder.length) + 1 : 1
   const currentPickInRound = draftOrder.length > 0 ? (currentPickIndex % draftOrder.length) + 1 : currentPickIndex + 1
@@ -231,6 +244,12 @@ export default function DraftBoardPage() {
           if (state.keeperMlbIds) {
             setKeeperMlbIds(new Set(state.keeperMlbIds))
           }
+          if (state.pickSchedule && state.pickSchedule.length > 0) {
+            setPickSchedule(state.pickSchedule)
+          }
+          if (state.pickTrades && state.pickTrades.length > 0) {
+            setPickTrades(state.pickTrades)
+          }
         }
         // Old format migration
         else if ((saved as unknown as { drafted?: number[]; myPicks?: number[] }).drafted) {
@@ -255,6 +274,14 @@ export default function DraftBoardPage() {
       setLeagueKeepersData(keepers)
     }
   }, [])
+
+  // ── Auto-generate schedule from draftOrder (only if no trades) ──
+  useEffect(() => {
+    if (draftOrder.length === 0) return
+    if (pickTrades.length === 0) {
+      setPickSchedule(generateSnakeSchedule(draftOrder))
+    }
+  }, [draftOrder, pickTrades.length])
 
   // ── Load teams (shared logic) ──
   useEffect(() => {
@@ -353,21 +380,23 @@ export default function DraftBoardPage() {
         draftOrder,
         currentPickIndex,
         keeperMlbIds: [...keeperMlbIds],
+        pickSchedule,
+        pickTrades,
       }
       localStorage.setItem('draftState', JSON.stringify(state))
     }
-  }, [draftPicks, myTeamId, draftOrder, currentPickIndex, allPlayers.length, keeperMlbIds])
+  }, [draftPicks, myTeamId, draftOrder, currentPickIndex, allPlayers.length, keeperMlbIds, pickSchedule, pickTrades])
 
   // ── Draft actions ──
   const draftPlayer = useCallback((mlbId: number) => {
-    const teamId = overrideTeam ?? getActiveTeamId(currentPickIndex, draftOrder)
+    const teamId = overrideTeam ?? (pickSchedule.length > 0 ? pickSchedule[currentPickIndex] : getActiveTeamId(currentPickIndex, draftOrder))
     setDraftPicks(prev => new Map(prev).set(mlbId, teamId))
     // Advance past keeper-occupied slots
     let nextIdx = currentPickIndex + 1
     while (keeperPickIndices.has(nextIdx)) nextIdx++
     setCurrentPickIndex(nextIdx)
     setOverrideTeam(null)
-  }, [currentPickIndex, draftOrder, overrideTeam, keeperPickIndices])
+  }, [currentPickIndex, draftOrder, overrideTeam, keeperPickIndices, pickSchedule])
 
   const undoLastPick = useCallback(() => {
     if (currentPickIndex <= 0 && draftPicks.size === 0) return
@@ -405,7 +434,7 @@ export default function DraftBoardPage() {
   }, [keeperMlbIds])
 
   const resetDraft = () => {
-    if (confirm('Reset all draft picks? (Keepers will be preserved)')) {
+    if (confirm('Reset all draft picks? (Keepers and pick trades will be preserved)')) {
       setRecalcData(null)
       setOverrideTeam(null)
 
@@ -413,13 +442,16 @@ export default function DraftBoardPage() {
       const keepers = loadKeepersFromStorage()
       const newPicks = new Map<number, number>()
       const newKeeperIds = new Set<number>()
-      const keeperIndices = new Set<number>()
+      const keeperIndicesSet = new Set<number>()
+      const numTeams = draftOrder.length
 
       for (const k of keepers) {
         newPicks.set(k.mlb_id, k.teamId)
         newKeeperIds.add(k.mlb_id)
-        const idx = keeperPickIndex(k.teamId, k.roundCost, draftOrder)
-        if (idx >= 0) keeperIndices.add(idx)
+        const idx = pickSchedule.length > 0
+          ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams)
+          : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
+        if (idx >= 0) keeperIndicesSet.add(idx)
       }
 
       setLeagueKeepersData(keepers)
@@ -428,7 +460,7 @@ export default function DraftBoardPage() {
 
       // Find first non-keeper slot
       let startIdx = 0
-      while (keeperIndices.has(startIdx)) startIdx++
+      while (keeperIndicesSet.has(startIdx)) startIdx++
       setCurrentPickIndex(startIdx)
     }
   }
@@ -674,8 +706,8 @@ export default function DraftBoardPage() {
 
   // ── Priority map ──
   const picksUntilMine = useMemo(
-    () => myTeamId != null ? getPicksUntilNextTurn(currentPickIndex, draftOrder, myTeamId) : 999,
-    [currentPickIndex, draftOrder, myTeamId]
+    () => myTeamId != null ? getPicksUntilNextTurn(currentPickIndex, pickSchedule.length > 0 ? pickSchedule : draftOrder, myTeamId) : 999,
+    [currentPickIndex, draftOrder, myTeamId, pickSchedule]
   )
 
   const draftScoreMap = useMemo(() => {
@@ -977,6 +1009,19 @@ export default function DraftBoardPage() {
           >
             Draft Order
           </button>
+
+          <button
+            onClick={() => setShowPickTrader(!showPickTrader)}
+            className={`px-3 py-1.5 text-xs font-semibold border rounded-lg transition-colors ${
+              pickTrades.length > 0
+                ? 'bg-amber-950 text-amber-400 border-amber-800 hover:bg-amber-900'
+                : 'bg-gray-800 text-gray-400 border-gray-700 hover:bg-gray-700 hover:text-gray-200'
+            }`}
+          >
+            Pick Trades{pickTrades.length > 0 && (
+              <span className="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-800 text-amber-200">{pickTrades.length}</span>
+            )}
+          </button>
         </div>
 
         {/* Draft Order Editor */}
@@ -994,6 +1039,8 @@ export default function DraftBoardPage() {
                       <button
                         onClick={() => {
                           if (idx === 0) return
+                          if (pickTrades.length > 0 && !confirm('This will reset all pick trades. Continue?')) return
+                          if (pickTrades.length > 0) setPickTrades([])
                           setDraftOrder(prev => {
                             const next = [...prev]
                             ;[next[idx - 1], next[idx]] = [next[idx], next[idx - 1]]
@@ -1008,6 +1055,8 @@ export default function DraftBoardPage() {
                       <button
                         onClick={() => {
                           if (idx === draftOrder.length - 1) return
+                          if (pickTrades.length > 0 && !confirm('This will reset all pick trades. Continue?')) return
+                          if (pickTrades.length > 0) setPickTrades([])
                           setDraftOrder(prev => {
                             const next = [...prev]
                             ;[next[idx], next[idx + 1]] = [next[idx + 1], next[idx]]
@@ -1023,6 +1072,112 @@ export default function DraftBoardPage() {
                   </div>
                 )
               })}
+            </div>
+          </div>
+        )}
+
+        {/* Pick Trade Grid */}
+        {showPickTrader && pickSchedule.length > 0 && (
+          <div className="bg-gray-900 rounded-xl border border-gray-800 mb-4 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-white">Pick Trades</h3>
+              {pickTrades.length > 0 && (
+                <button
+                  onClick={() => {
+                    if (confirm('Reset all pick trades?')) {
+                      setPickTrades([])
+                      setPickSchedule(generateSnakeSchedule(draftOrder))
+                    }
+                  }}
+                  className="px-2.5 py-1 text-[10px] font-semibold bg-red-950 text-red-400 border border-red-800 rounded-lg hover:bg-red-900 transition-colors"
+                >
+                  Reset Trades
+                </button>
+              )}
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-[10px]">
+                <thead>
+                  <tr className="border-b border-gray-800">
+                    <th className="px-1.5 py-1 text-left text-gray-500 font-semibold w-16">Round</th>
+                    {Array.from({ length: draftOrder.length }, (_, i) => (
+                      <th key={i} className="px-1 py-1 text-center text-gray-500 font-semibold">{i + 1}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    const numTeams = draftOrder.length
+                    const totalPicks = pickSchedule.length
+                    const numRounds = Math.ceil(totalPicks / numTeams)
+                    // Build set of traded pick indices
+                    const tradedIndices = new Set(pickTrades.map(t => t.pickIndex))
+                    // Build keeper pick index → keeper info map
+                    const keeperAtIndex = new Map<number, LeagueKeeperEntry>()
+                    for (const k of leagueKeepersData) {
+                      const idx = keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams)
+                      if (idx >= 0) keeperAtIndex.set(idx, k)
+                    }
+
+                    return Array.from({ length: numRounds }, (_, round) => {
+                      const isSupplemental = round >= 25
+                      return (
+                        <tr key={round} className="border-b border-gray-800/50">
+                          <td className="px-1.5 py-1 font-semibold text-gray-400">
+                            {isSupplemental ? `S${round - 24}` : round + 1}
+                          </td>
+                          {Array.from({ length: numTeams }, (_, pos) => {
+                            const pickIdx = round * numTeams + pos
+                            if (pickIdx >= totalPicks) return <td key={pos} />
+                            const teamId = pickSchedule[pickIdx]
+                            const isPast = pickIdx < currentPickIndex
+                            const isKeeper = keeperAtIndex.has(pickIdx)
+                            const isTraded = tradedIndices.has(pickIdx)
+                            const canTrade = !isPast && !isKeeper && pickIdx >= currentPickIndex
+
+                            return (
+                              <td key={pos} className="px-0.5 py-0.5 text-center">
+                                {canTrade ? (
+                                  <select
+                                    value={teamId}
+                                    onChange={(e) => {
+                                      const newTeamId = parseInt(e.target.value)
+                                      if (newTeamId === teamId) return
+                                      const allTeamIds = leagueTeams.map(t => t.id)
+                                      const { schedule, trade } = tradePickInSchedule(pickSchedule, pickIdx, newTeamId, allTeamIds)
+                                      setPickSchedule(schedule)
+                                      setPickTrades(prev => [...prev, trade])
+                                    }}
+                                    className={`w-full text-[10px] font-bold rounded px-0.5 py-0.5 border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                                      isTraded
+                                        ? 'bg-amber-950 text-amber-300 border-amber-700'
+                                        : 'bg-gray-800 text-gray-300 border-gray-700 hover:border-gray-500'
+                                    }`}
+                                  >
+                                    {leagueTeams.map(t => (
+                                      <option key={t.id} value={t.id}>{getTeamAbbrev(t.id)}</option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  <span className={`inline-block w-full rounded px-1 py-0.5 text-[10px] font-bold ${
+                                    isPast ? 'text-gray-600 bg-gray-800/30' :
+                                    isKeeper ? 'text-amber-400 bg-amber-950/40 border border-amber-800/30' :
+                                    isTraded ? 'text-amber-300 bg-amber-950' :
+                                    'text-gray-400 bg-gray-800/50'
+                                  }`}>
+                                    {getTeamAbbrev(teamId)}
+                                    {isKeeper && <span className="text-[7px] ml-0.5">K</span>}
+                                  </span>
+                                )}
+                              </td>
+                            )
+                          })}
+                        </tr>
+                      )
+                    })
+                  })()}
+                </tbody>
+              </table>
             </div>
           </div>
         )}

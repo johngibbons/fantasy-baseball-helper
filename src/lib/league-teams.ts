@@ -90,3 +90,100 @@ export function keeperPickIndex(
   if (posInRound < 0) return -1
   return round0 * numTeams + posInRound
 }
+
+// ── Pick schedule types and utilities ──
+
+export type PickSchedule = number[]  // pickSchedule[pickIndex] = teamId
+
+export interface PickTrade {
+  pickIndex: number
+  fromTeamId: number
+  toTeamId: number
+}
+
+/**
+ * Generate a flat snake-order schedule: numRounds × numTeams entries.
+ * schedule[pickIndex] = teamId that owns that pick.
+ */
+export function generateSnakeSchedule(draftOrder: number[], numRounds = 25): PickSchedule {
+  const numTeams = draftOrder.length
+  if (numTeams === 0) return []
+  const schedule: number[] = []
+  for (let round = 0; round < numRounds; round++) {
+    for (let pos = 0; pos < numTeams; pos++) {
+      schedule.push(
+        round % 2 === 0 ? draftOrder[pos] : draftOrder[numTeams - 1 - pos]
+      )
+    }
+  }
+  return schedule
+}
+
+/**
+ * Find a team's pick index in a specific round by scanning the schedule.
+ * Returns -1 if the team has no pick in that round (e.g. traded away).
+ */
+export function keeperPickIndexFromSchedule(
+  teamId: number,
+  roundCost: number,
+  schedule: PickSchedule,
+  numTeams: number
+): number {
+  if (schedule.length === 0 || numTeams === 0) return -1
+  const roundStart = (roundCost - 1) * numTeams
+  const roundEnd = Math.min(roundStart + numTeams, schedule.length)
+  for (let i = roundStart; i < roundEnd; i++) {
+    if (schedule[i] === teamId) return i
+  }
+  return -1
+}
+
+/**
+ * Ensure every team has at least `rosterSize` picks by appending supplemental picks.
+ * Returns a new schedule (does not mutate the input).
+ */
+export function ensureSupplementalPicks(
+  schedule: PickSchedule,
+  allTeamIds: number[],
+  rosterSize = 25
+): PickSchedule {
+  const counts = new Map<number, number>()
+  for (const id of allTeamIds) counts.set(id, 0)
+  for (const id of schedule) {
+    counts.set(id, (counts.get(id) ?? 0) + 1)
+  }
+
+  const supplemental: number[] = []
+  for (const id of allTeamIds) {
+    const have = counts.get(id) ?? 0
+    for (let i = have; i < rosterSize; i++) {
+      supplemental.push(id)
+    }
+  }
+
+  if (supplemental.length === 0) return schedule
+  return [...schedule, ...supplemental]
+}
+
+/**
+ * Reassign a pick and recalculate supplemental picks.
+ * Returns { schedule, trade }.
+ */
+export function tradePickInSchedule(
+  schedule: PickSchedule,
+  pickIndex: number,
+  toTeamId: number,
+  allTeamIds: number[]
+): { schedule: PickSchedule; trade: PickTrade } {
+  const fromTeamId = schedule[pickIndex]
+  const numTeams = allTeamIds.length
+  // Strip any existing supplemental picks (beyond 25 * numTeams)
+  const baseLength = 25 * numTeams
+  const base = schedule.slice(0, baseLength)
+  base[pickIndex] = toTeamId
+  const newSchedule = ensureSupplementalPicks(base, allTeamIds)
+  return {
+    schedule: newSchedule,
+    trade: { pickIndex, fromTeamId, toTeamId },
+  }
+}
