@@ -219,7 +219,7 @@ export default function DraftBoardPage() {
   const getTeamAbbrev = useCallback((teamId: number) => {
     const name = teamNameMap.get(teamId) ?? `T${teamId}`
     // Use first 3 chars or abbreviation
-    if (name.startsWith('Team ')) return `TM${name.slice(5)}`
+    if (name.startsWith('Team ')) return name.slice(5)
     return name.slice(0, 4).toUpperCase()
   }, [teamNameMap])
 
