@@ -42,13 +42,10 @@ export function computeAvailability(
 ): number {
   // The pick at which we'd be selecting
   const targetPick = currentPick + picksUntilMyTurn
-  // How far this player's ADP is from the target pick
-  // If ADP is much lower (earlier) than targetPick, they'll likely be gone
+  // Model: player's actual draft position X ~ N(ADP, sigma²)
+  // P(available at targetPick) = P(X > targetPick) = 1 - CDF((targetPick - ADP) / sigma)
+  // Low ADP (elite) + high target → z large → CDF ~1 → availability LOW (gone early)
+  // High ADP (late) + low target → z negative → CDF ~0 → availability HIGH (still there)
   const z = (targetPick - espnAdp) / sigma
-  // P(available) = P(player has NOT been taken yet) = P(their actual draft pos > targetPick)
-  // Since lower ADP = drafted earlier, we want P(actual > target) = 1 - CDF(z)
-  // But z is (target - ADP)/sigma, so:
-  // - If ADP << target: z large, CDF(z) ~1, player likely available
-  // - If ADP >> target: z negative, CDF(z) ~0, player likely gone
-  return Math.max(0, Math.min(1, normalCDF(z)))
+  return Math.max(0, Math.min(1, 1 - normalCDF(z)))
 }
