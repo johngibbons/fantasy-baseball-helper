@@ -656,15 +656,15 @@ export default function DraftBoardPage() {
       t.statTotals['proj_whip'] = t.totalIP > 0 ? t.weightedWHIP / t.totalIP : 0
     }
 
-    // Build ranked array sorted by total descending (z-score total for ordering)
+    // Build rows
     const rows = [...teams.entries()]
       .filter(([tid]) => tid !== -1) // exclude unknown
       .map(([teamId, data]) => ({
         teamId,
         teamName: teamNameMap.get(teamId) ?? `Team ${teamId}`,
+        expectedWins: 0,
         ...data,
       }))
-      .sort((a, b) => b.total - a.total)
 
     // Compute per-category ranks from projected stats (1 = best)
     const catRanks = new Map<string, Map<number, number>>()
@@ -678,6 +678,20 @@ export default function DraftBoardPage() {
       sorted.forEach((r, i) => rankMap.set(r.teamId, i + 1))
       catRanks.set(cat.key, rankMap)
     }
+
+    // Compute expected weekly wins per team from category ranks
+    const numTeams = rows.length
+    for (const row of rows) {
+      let ew = 0
+      for (const cat of ALL_CATS) {
+        const rank = catRanks.get(cat.key)?.get(row.teamId) ?? numTeams
+        ew += numTeams > 1 ? (numTeams - rank) / (numTeams - 1) : 0
+      }
+      row.expectedWins = ew
+    }
+
+    // Sort by expected wins descending
+    rows.sort((a, b) => b.expectedWins - a.expectedWins)
 
     return { rows, catRanks, teamCount: rows.length }
   }, [allPlayers, draftPicks, teamNameMap])
@@ -1982,16 +1996,9 @@ export default function DraftBoardPage() {
                               })
                           }
 
-                          // Current view — projected stats with expected wins
-                          const numTeams = teamCategories.teamCount
+                          // Current view — projected stats sorted by expected wins
                           return teamCategories.rows.map((row) => {
                             const isMyRow = row.teamId === myTeamId
-                            // Compute expected weekly wins from category ranks
-                            let expWins = 0
-                            for (const cat of ALL_CATS) {
-                              const rank = teamCategories.catRanks.get(cat.key)?.get(row.teamId) ?? numTeams
-                              expWins += numTeams > 1 ? (numTeams - rank) / (numTeams - 1) : 0
-                            }
                             return (
                               <tr
                                 key={row.teamId}
@@ -2002,8 +2009,8 @@ export default function DraftBoardPage() {
                                 </td>
                                 {ALL_CATS.map((cat) => {
                                   const val = row.statTotals[cat.projKey] ?? 0
-                                  const rank = teamCategories.catRanks.get(cat.key)?.get(row.teamId) ?? numTeams
-                                  const heatColor = getHeatColor(rank, numTeams)
+                                  const rank = teamCategories.catRanks.get(cat.key)?.get(row.teamId) ?? teamCategories.teamCount
+                                  const heatColor = getHeatColor(rank, teamCategories.teamCount)
                                   return (
                                     <td
                                       key={cat.key}
@@ -2015,7 +2022,7 @@ export default function DraftBoardPage() {
                                   )
                                 })}
                                 <td className="px-2 py-1 text-right font-bold tabular-nums text-gray-200">
-                                  {expWins.toFixed(1)}
+                                  {row.expectedWins.toFixed(1)}
                                 </td>
                               </tr>
                             )
