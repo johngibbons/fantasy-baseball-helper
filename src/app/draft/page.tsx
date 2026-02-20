@@ -27,6 +27,9 @@ import {
   type PlayerDraftScore,
   type DraftRecommendation,
 } from '@/lib/draft-optimizer'
+import { computeTiers } from '@/lib/tier-engine'
+import { computeAvailability } from '@/lib/pick-predictor'
+import { projectStandings, type ProjectedStanding } from '@/lib/projected-standings'
 
 // ── Position filter buttons ──
 const POSITIONS = ['All', 'C', '1B', '2B', '3B', 'SS', 'OF', 'SP', 'RP']
@@ -145,6 +148,7 @@ interface DraftState {
   keeperMlbIds?: number[]
   pickSchedule?: number[]
   pickTrades?: PickTrade[]
+  pickLog?: { pickIndex: number; mlbId: number; teamId: number }[]
 }
 
 export default function DraftBoardPage() {
@@ -156,7 +160,7 @@ export default function DraftBoardPage() {
   const [showDrafted, setShowDrafted] = useState(false)
   const [recalcData, setRecalcData] = useState<Map<number, RankedPlayer> | null>(null)
   const [recalculating, setRecalculating] = useState(false)
-  const [sortKey, setSortKey] = useState<'rank' | 'adp' | 'name' | 'pos' | 'team' | 'value' | 'score'>('rank')
+  const [sortKey, setSortKey] = useState<'rank' | 'adp' | 'avail' | 'name' | 'pos' | 'team' | 'value' | 'score'>('rank')
   const [sortAsc, setSortAsc] = useState(true)
 
   // ── Team-aware draft state ──
@@ -170,6 +174,8 @@ export default function DraftBoardPage() {
   const [pickSchedule, setPickSchedule] = useState<PickSchedule>([])
   const [pickTrades, setPickTrades] = useState<PickTrade[]>([])
   const [showPickTrader, setShowPickTrader] = useState(false)
+  const [pickLog, setPickLog] = useState<{ pickIndex: number; mlbId: number; teamId: number }[]>([])
+  const [showProjected, setShowProjected] = useState(false)
 
   // ── Keeper state ──
   const [leagueKeepersData, setLeagueKeepersData] = useState<LeagueKeeperEntry[]>([])
@@ -249,6 +255,9 @@ export default function DraftBoardPage() {
           }
           if (state.pickTrades && state.pickTrades.length > 0) {
             setPickTrades(state.pickTrades)
+          }
+          if (state.pickLog && state.pickLog.length > 0) {
+            setPickLog(state.pickLog)
           }
         }
         // Old format migration
@@ -382,15 +391,17 @@ export default function DraftBoardPage() {
         keeperMlbIds: [...keeperMlbIds],
         pickSchedule,
         pickTrades,
+        pickLog,
       }
       localStorage.setItem('draftState', JSON.stringify(state))
     }
-  }, [draftPicks, myTeamId, draftOrder, currentPickIndex, allPlayers.length, keeperMlbIds, pickSchedule, pickTrades])
+  }, [draftPicks, myTeamId, draftOrder, currentPickIndex, allPlayers.length, keeperMlbIds, pickSchedule, pickTrades, pickLog])
 
   // ── Draft actions ──
   const draftPlayer = useCallback((mlbId: number) => {
     const teamId = overrideTeam ?? (pickSchedule.length > 0 ? pickSchedule[currentPickIndex] : getActiveTeamId(currentPickIndex, draftOrder))
     setDraftPicks(prev => new Map(prev).set(mlbId, teamId))
+    setPickLog(prev => [...prev, { pickIndex: currentPickIndex, mlbId, teamId }])
     // Advance past keeper-occupied slots
     let nextIdx = currentPickIndex + 1
     while (keeperPickIndices.has(nextIdx)) nextIdx++
@@ -417,6 +428,17 @@ export default function DraftBoardPage() {
       next.delete(lastNonKeeper)
       return next
     })
+    // Remove last non-keeper entry from pickLog
+    setPickLog(prev => {
+      const copy = [...prev]
+      for (let i = copy.length - 1; i >= 0; i--) {
+        if (!keeperMlbIds.has(copy[i].mlbId)) {
+          copy.splice(i, 1)
+          break
+        }
+      }
+      return copy
+    })
     // Move pick index backward, skipping keeper slots
     let prevIdx = currentPickIndex - 1
     while (prevIdx >= 0 && keeperPickIndices.has(prevIdx)) prevIdx--
@@ -430,6 +452,7 @@ export default function DraftBoardPage() {
       next.delete(mlbId)
       return next
     })
+    setPickLog(prev => prev.filter(e => e.mlbId !== mlbId))
     // Don't change currentPickIndex for individual undo — only last pick undo adjusts it
   }, [keeperMlbIds])
 
@@ -437,6 +460,7 @@ export default function DraftBoardPage() {
     if (confirm('Reset all draft picks? (Keepers and pick trades will be preserved)')) {
       setRecalcData(null)
       setOverrideTeam(null)
+      setPickLog([])
 
       // Re-apply keepers from localStorage
       const keepers = loadKeepersFromStorage()
@@ -813,13 +837,131 @@ export default function DraftBoardPage() {
     }
   }, [draftScoreMap, allPlayers, myTeamId, strategyMap, rosterState.remainingCapacity])
 
+  // ── Tier-based drafting ──
+  const playerTiers = useMemo(
+    () => computeTiers(available.map(p => ({ mlb_id: p.mlb_id, value: getPlayerValue(p) }))),
+    [available, recalcData] // eslint-disable-line react-hooks/exhaustive-deps
+  )
+  const tierUrgency = useMemo(() => {
+    // Tiers with <=2 remaining players
+    const tierCounts = new Map<number, number>()
+    for (const [, tier] of playerTiers) {
+      tierCounts.set(tier, (tierCounts.get(tier) ?? 0) + 1)
+    }
+    const urgent = new Set<number>()
+    for (const [tier, count] of tierCounts) {
+      if (count <= 2) urgent.add(tier)
+    }
+    return urgent
+  }, [playerTiers])
+
+  // ── Pick availability predictor ──
+  const availabilityMap = useMemo(() => {
+    if (myTeamId == null || !hasAdpData) return new Map<number, number>()
+    const map = new Map<number, number>()
+    const myPicksUntil = getPicksUntilNextTurn(currentPickIndex, pickSchedule.length > 0 ? pickSchedule : draftOrder, myTeamId)
+    for (const p of available) {
+      if (p.espn_adp != null) {
+        map.set(p.mlb_id, computeAvailability(p.espn_adp, currentPickIndex, myPicksUntil))
+      }
+    }
+    return map
+  }, [myTeamId, hasAdpData, available, currentPickIndex, pickSchedule, draftOrder])
+
+  // ── Opponent needs ──
+  const opponentNeeds = useMemo(() => {
+    if (!myTeamId || leagueTeams.length < 2) return []
+    const playerMap = new Map(allPlayers.map(p => [p.mlb_id, p]))
+
+    return leagueTeams
+      .filter(t => t.id !== myTeamId)
+      .map(team => {
+        // Get this team's drafted players
+        const teamPlayers = [...draftPicks.entries()]
+          .filter(([, tid]) => tid === team.id)
+          .map(([mlbId]) => playerMap.get(mlbId))
+          .filter((p): p is RankedPlayer => p != null)
+
+        // Run greedy roster assignment (same algorithm as my team)
+        const capacity: Record<string, number> = { ...ROSTER_SLOTS }
+        const sorted = [...teamPlayers].sort((a, b) => getEligibleSlots(a).length - getEligibleSlots(b).length)
+        for (const player of sorted) {
+          const slots = getEligibleSlots(player)
+          for (const slot of slots) {
+            if ((capacity[slot] || 0) > 0) {
+              capacity[slot]--
+              break
+            }
+          }
+        }
+
+        // Compute open roster slots (remaining capacity per slot, excluding bench)
+        const openSlots: { slot: string; remaining: number }[] = []
+        for (const slot of SLOT_ORDER) {
+          if (slot === 'BE') continue
+          if ((capacity[slot] || 0) > 0) {
+            openSlots.push({ slot, remaining: capacity[slot] })
+          }
+        }
+
+        // Compute weakest 3 categories
+        const totals: Record<string, number> = {}
+        for (const cat of ALL_CATS) totals[cat.key] = 0
+        for (const p of teamPlayers) {
+          for (const cat of ALL_CATS) {
+            totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0)
+          }
+        }
+        const weakCats = ALL_CATS
+          .map(c => ({ key: c.key, label: c.label, value: totals[c.key] }))
+          .sort((a, b) => a.value - b.value)
+          .slice(0, 3)
+
+        // Picks until their next turn
+        const nextPickIn = getPicksUntilNextTurn(currentPickIndex, pickSchedule.length > 0 ? pickSchedule : draftOrder, team.id)
+
+        return {
+          teamId: team.id,
+          teamName: team.name,
+          pickCount: teamPlayers.length,
+          openSlots,
+          weakCats,
+          nextPickIn,
+        }
+      })
+      .sort((a, b) => a.nextPickIn - b.nextPickIn)
+  }, [myTeamId, leagueTeams, allPlayers, draftPicks, currentPickIndex, pickSchedule, draftOrder])
+
+  // ── Projected standings ──
+  const projectedStandingsData = useMemo((): ProjectedStanding[] => {
+    if (teamCategories.rows.length < 2 || pickSchedule.length === 0) return []
+    const availablePlayers = allPlayers
+      .filter(p => !draftedIds.has(p.mlb_id))
+      .map(p => {
+        const zscores: Record<string, number> = {}
+        for (const cat of ALL_CATS) {
+          zscores[cat.key] = (p as unknown as Record<string, number>)[cat.key] ?? 0
+        }
+        return { mlb_id: p.mlb_id, zscores }
+      })
+
+    return projectStandings(
+      teamCategories.rows,
+      availablePlayers,
+      ALL_CATS.map(c => ({ key: c.key, label: c.label })),
+      Object.values(ROSTER_SLOTS).reduce((a, b) => a + b, 0),
+      pickSchedule,
+      currentPickIndex
+    )
+  }, [teamCategories, allPlayers, draftedIds, pickSchedule, currentPickIndex])
+
   const handleSort = useCallback((key: typeof sortKey) => {
     if (sortKey === key) {
       setSortAsc(prev => !prev)
     } else {
       setSortKey(key)
       // Sensible defaults: descending for value/score, ascending for others
-      setSortAsc(key !== 'value' && key !== 'score')
+      setSortAsc(key !== 'value' && key !== 'score' && key !== 'avail')
     }
   }, [sortKey])
 
@@ -835,6 +977,9 @@ export default function DraftBoardPage() {
           break
         case 'adp':
           cmp = (a.espn_adp ?? 9999) - (b.espn_adp ?? 9999)
+          break
+        case 'avail':
+          cmp = (availabilityMap.get(a.mlb_id) ?? -1) - (availabilityMap.get(b.mlb_id) ?? -1)
           break
         case 'name':
           cmp = a.full_name.localeCompare(b.full_name)
@@ -858,7 +1003,7 @@ export default function DraftBoardPage() {
       return cmp * dir
     })
     return list
-  }, [available, sortKey, sortAsc, draftScoreMap, vonaMap, recalcData])
+  }, [available, sortKey, sortAsc, draftScoreMap, vonaMap, recalcData, availabilityMap])
 
   if (loading) {
     return (
@@ -1230,6 +1375,9 @@ export default function DraftBoardPage() {
                       {hasAdpData && (
                         <DraftTh label="ADP" field="adp" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-16" />
                       )}
+                      {myTeamId != null && hasAdpData && (
+                        <DraftTh label="Avl%" field="avail" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-14" />
+                      )}
                       <DraftTh label="Player" field="name" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" />
                       <DraftTh label="Pos" field="pos" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" className="w-24" />
                       <DraftTh label="Team" field="team" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" />
@@ -1250,7 +1398,7 @@ export default function DraftBoardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {displayList.map((p, idx) => {
+                    {displayList.flatMap((p, idx) => {
                       const isDrafted = draftedIds.has(p.mlb_id)
                       const isMyPick = myPickIds.has(p.mlb_id)
                       const draftedByTeam = draftPicks.get(p.mlb_id)
@@ -1267,7 +1415,32 @@ export default function DraftBoardPage() {
                       const needSlots = isDrafted ? [] : getEligibleSlots(p).filter((s) => s !== 'BE' && (rosterState.remainingCapacity[s] || 0) > 0)
                       const fillsNeed = needSlots.length > 0
 
-                      return (
+                      // Tier separator: show when tier changes between consecutive available rows
+                      const rows: React.ReactNode[] = []
+                      if (!isDrafted && idx > 0 && !showDrafted) {
+                        const prevPlayer = displayList[idx - 1]
+                        const prevTier = playerTiers.get(prevPlayer?.mlb_id)
+                        const curTier = playerTiers.get(p.mlb_id)
+                        if (prevTier != null && curTier != null && curTier !== prevTier) {
+                          const colSpan = 7 + (hasAdpData ? 1 : 0) + (myTeamId != null && hasAdpData ? 1 : 0)
+                          rows.push(
+                            <tr key={`tier-${curTier}`} className="bg-indigo-950/30 border-y border-indigo-800/40">
+                              <td colSpan={colSpan} className="px-3 py-1 text-center">
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-900/60 text-indigo-300 border border-indigo-700/50">
+                                  TIER {curTier}
+                                </span>
+                                {tierUrgency.has(curTier) && (
+                                  <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 animate-pulse">
+                                    END OF TIER
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          )
+                        }
+                      }
+
+                      rows.push(
                         <tr key={p.mlb_id} className={`${rowBg} hover:bg-gray-800/80 transition-colors border-b border-gray-800/50`}>
                           <td className="px-3 py-1.5">
                             {isDrafted ? (
@@ -1304,7 +1477,12 @@ export default function DraftBoardPage() {
                               </button>
                             )}
                           </td>
-                          <td className="px-3 py-1.5 text-gray-500 font-mono text-xs tabular-nums">{p.overall_rank}</td>
+                          <td className="px-3 py-1.5 text-gray-500 font-mono text-xs tabular-nums">
+                            {!isDrafted && playerTiers.has(p.mlb_id) && (
+                              <span className="text-indigo-400 text-[9px] font-bold mr-0.5">T{playerTiers.get(p.mlb_id)}</span>
+                            )}
+                            {p.overall_rank}
+                          </td>
                           {hasAdpData && (
                             <td className="px-3 py-1.5 text-right">
                               {p.espn_adp != null ? (
@@ -1319,6 +1497,17 @@ export default function DraftBoardPage() {
                               ) : (
                                 <span className="text-xs text-gray-700">--</span>
                               )}
+                            </td>
+                          )}
+                          {myTeamId != null && hasAdpData && (
+                            <td className="px-3 py-1.5 text-right">
+                              {!isDrafted && (() => {
+                                const avail = availabilityMap.get(p.mlb_id)
+                                if (avail == null) return <span className="text-xs text-gray-700">--</span>
+                                const pct = Math.round(avail * 100)
+                                const color = pct >= 80 ? 'text-emerald-400' : pct >= 50 ? 'text-yellow-400' : pct >= 20 ? 'text-orange-400' : 'text-red-400'
+                                return <span className={`text-xs font-bold tabular-nums ${color}`}>{pct}%</span>
+                              })()}
                             </td>
                           )}
                           <td className="px-3 py-1.5">
@@ -1395,6 +1584,7 @@ export default function DraftBoardPage() {
                           </td>
                         </tr>
                       )
+                      return rows
                     })}
                   </tbody>
                 </table>
@@ -1567,14 +1757,70 @@ export default function DraftBoardPage() {
                 </div>
               )}
 
+              {/* Draft Log */}
+              {pickLog.length > 0 && (
+                <div className="bg-gray-900 rounded-xl border border-gray-800">
+                  <div className="px-4 py-3 border-b border-gray-800">
+                    <h2 className="font-bold text-white text-sm">Draft Log</h2>
+                    <div className="text-[11px] text-gray-500 mt-0.5">{pickLog.length} picks</div>
+                  </div>
+                  <div className="px-2 py-2 max-h-[200px] overflow-y-auto space-y-0.5" ref={(el) => { if (el) el.scrollTop = el.scrollHeight }}>
+                    {pickLog.map((entry, i) => {
+                      const player = allPlayers.find(pl => pl.mlb_id === entry.mlbId)
+                      if (!player) return null
+                      const numTeams = draftOrder.length || 10
+                      const round = Math.floor(entry.pickIndex / numTeams) + 1
+                      const pickInRound = (entry.pickIndex % numTeams) + 1
+                      const isMyTeamPick = entry.teamId === myTeamId
+                      const value = getPlayerValue(player)
+                      const pos = getPositions(player)[0]
+                      return (
+                        <div
+                          key={`${entry.pickIndex}-${entry.mlbId}`}
+                          className={`flex items-center gap-1.5 py-1 px-2 rounded text-[11px] ${
+                            i === pickLog.length - 1 ? 'bg-gray-800/80 ring-1 ring-gray-700' : ''
+                          } ${isMyTeamPick ? 'text-blue-300' : 'text-gray-400'}`}
+                        >
+                          <span className="font-mono text-[10px] text-gray-500 w-8 shrink-0 tabular-nums">{round}.{String(pickInRound).padStart(2, '0')}</span>
+                          <span className={`font-bold text-[10px] w-9 shrink-0 ${isMyTeamPick ? 'text-blue-400' : 'text-gray-500'}`}>{getTeamAbbrev(entry.teamId)}</span>
+                          <span className="truncate flex-1">{player.full_name}</span>
+                          <span className={`text-[9px] font-bold ${posColor[pos] ? 'text-gray-500' : ''}`}>({pos})</span>
+                          <span className={`text-[10px] font-bold tabular-nums shrink-0 ${value > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                            {value > 0 ? '+' : ''}{value.toFixed(1)}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Section 3: Draft Comparison Heatmap */}
               {teamCategories.rows.length > 0 && (
                 <div className="bg-gray-900 rounded-xl border border-gray-800">
-                  <div className="px-4 py-3 border-b border-gray-800">
-                    <h2 className="font-bold text-white text-sm">Draft Comparison</h2>
-                    <div className="text-[11px] text-gray-500 mt-0.5">
-                      {teamCategories.rows.length} teams &middot; Z-score totals by category
+                  <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+                    <div>
+                      <h2 className="font-bold text-white text-sm">Draft Comparison</h2>
+                      <div className="text-[11px] text-gray-500 mt-0.5">
+                        {teamCategories.rows.length} teams &middot; {showProjected ? 'Projected' : 'Current'} z-score totals
+                      </div>
                     </div>
+                    {projectedStandingsData.length > 0 && (
+                      <div className="flex rounded-lg border border-gray-700 overflow-hidden">
+                        <button
+                          onClick={() => setShowProjected(false)}
+                          className={`px-2 py-1 text-[10px] font-semibold transition-colors ${!showProjected ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}`}
+                        >
+                          Current
+                        </button>
+                        <button
+                          onClick={() => setShowProjected(true)}
+                          className={`px-2 py-1 text-[10px] font-semibold transition-colors ${showProjected ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'}`}
+                        >
+                          Projected
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-[10px]">
@@ -1588,38 +1834,142 @@ export default function DraftBoardPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {teamCategories.rows.map((row) => {
-                          const isMyRow = row.teamId === myTeamId
-                          return (
-                            <tr
-                              key={row.teamId}
-                              className={`border-b border-gray-800/50 ${isMyRow ? 'bg-blue-950/30' : ''}`}
-                            >
-                              <td className={`px-2 py-1 font-semibold truncate max-w-[80px] ${isMyRow ? 'text-blue-400 border-l-2 border-l-blue-500' : 'text-gray-300'}`}>
-                                {row.teamName.length > 12 ? getTeamAbbrev(row.teamId) : row.teamName}
-                              </td>
-                              {ALL_CATS.map((cat) => {
-                                const val = row.totals[cat.key] ?? 0
-                                const rank = teamCategories.catRanks.get(cat.key)?.get(row.teamId) ?? teamCategories.teamCount
-                                const heatColor = getHeatColor(rank, teamCategories.teamCount)
+                        {(() => {
+                          if (showProjected && projectedStandingsData.length > 0) {
+                            // Build projected cat ranks for heatmap
+                            const projCatRanks = new Map<string, Map<number, number>>()
+                            for (const cat of ALL_CATS) {
+                              const sorted = [...projectedStandingsData].sort(
+                                (a, b) => (b.projectedTotals[cat.key] ?? 0) - (a.projectedTotals[cat.key] ?? 0)
+                              )
+                              const rankMap = new Map<number, number>()
+                              sorted.forEach((s, i) => rankMap.set(s.teamId, i + 1))
+                              projCatRanks.set(cat.key, rankMap)
+                            }
+
+                            return [...projectedStandingsData]
+                              .sort((a, b) => {
+                                const aTotal = ALL_CATS.reduce((s, c) => s + (a.projectedTotals[c.key] ?? 0), 0)
+                                const bTotal = ALL_CATS.reduce((s, c) => s + (b.projectedTotals[c.key] ?? 0), 0)
+                                return bTotal - aTotal
+                              })
+                              .map(standing => {
+                                const isMyRow = standing.teamId === myTeamId
+                                const projTotal = ALL_CATS.reduce((s, c) => s + (standing.projectedTotals[c.key] ?? 0), 0)
                                 return (
-                                  <td
-                                    key={cat.key}
-                                    className="px-1 py-1 text-center font-bold tabular-nums"
-                                    style={{ color: heatColor }}
+                                  <tr
+                                    key={standing.teamId}
+                                    className={`border-b border-gray-800/50 ${isMyRow ? 'bg-blue-950/30' : ''}`}
                                   >
-                                    {val.toFixed(1)}
-                                  </td>
+                                    <td className={`px-2 py-1 font-semibold truncate max-w-[80px] ${isMyRow ? 'text-blue-400 border-l-2 border-l-blue-500' : 'text-gray-300'}`}>
+                                      {standing.teamName.length > 12 ? getTeamAbbrev(standing.teamId) : standing.teamName}
+                                      {isMyRow && standing.overallRank > 0 && (
+                                        <span className="ml-1 text-[8px] text-blue-300">#{standing.overallRank}</span>
+                                      )}
+                                    </td>
+                                    {ALL_CATS.map((cat) => {
+                                      const val = standing.projectedTotals[cat.key] ?? 0
+                                      const rank = projCatRanks.get(cat.key)?.get(standing.teamId) ?? projectedStandingsData.length
+                                      const heatColor = getHeatColor(rank, projectedStandingsData.length)
+                                      return (
+                                        <td
+                                          key={cat.key}
+                                          className="px-1 py-1 text-center font-bold tabular-nums"
+                                          style={{ color: heatColor }}
+                                        >
+                                          {val.toFixed(1)}
+                                        </td>
+                                      )
+                                    })}
+                                    <td className={`px-2 py-1 text-right font-bold tabular-nums ${projTotal >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                      {projTotal > 0 ? '+' : ''}{projTotal.toFixed(1)}
+                                    </td>
+                                  </tr>
                                 )
-                              })}
-                              <td className={`px-2 py-1 text-right font-bold tabular-nums ${row.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                {row.total > 0 ? '+' : ''}{row.total.toFixed(1)}
-                              </td>
-                            </tr>
-                          )
-                        })}
+                              })
+                          }
+
+                          // Current view (original)
+                          return teamCategories.rows.map((row) => {
+                            const isMyRow = row.teamId === myTeamId
+                            return (
+                              <tr
+                                key={row.teamId}
+                                className={`border-b border-gray-800/50 ${isMyRow ? 'bg-blue-950/30' : ''}`}
+                              >
+                                <td className={`px-2 py-1 font-semibold truncate max-w-[80px] ${isMyRow ? 'text-blue-400 border-l-2 border-l-blue-500' : 'text-gray-300'}`}>
+                                  {row.teamName.length > 12 ? getTeamAbbrev(row.teamId) : row.teamName}
+                                </td>
+                                {ALL_CATS.map((cat) => {
+                                  const val = row.totals[cat.key] ?? 0
+                                  const rank = teamCategories.catRanks.get(cat.key)?.get(row.teamId) ?? teamCategories.teamCount
+                                  const heatColor = getHeatColor(rank, teamCategories.teamCount)
+                                  return (
+                                    <td
+                                      key={cat.key}
+                                      className="px-1 py-1 text-center font-bold tabular-nums"
+                                      style={{ color: heatColor }}
+                                    >
+                                      {val.toFixed(1)}
+                                    </td>
+                                  )
+                                })}
+                                <td className={`px-2 py-1 text-right font-bold tabular-nums ${row.total >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                  {row.total > 0 ? '+' : ''}{row.total.toFixed(1)}
+                                </td>
+                              </tr>
+                            )
+                          })
+                        })()}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Opponent Needs */}
+              {opponentNeeds.length > 0 && (
+                <div className="bg-gray-900 rounded-xl border border-gray-800">
+                  <div className="px-4 py-3 border-b border-gray-800">
+                    <h2 className="font-bold text-white text-sm">Opponent Needs</h2>
+                    <div className="text-[11px] text-gray-500 mt-0.5">Teams picking soonest</div>
+                  </div>
+                  <div className="px-3 py-2 space-y-2">
+                    {opponentNeeds.slice(0, 4).map((opp, i) => (
+                      <div key={opp.teamId} className="py-1.5 px-2 rounded-lg bg-gray-800/30">
+                        <div className="flex items-center gap-1.5 mb-1">
+                          {opp.nextPickIn <= 1 && (
+                            <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-orange-900/60 text-orange-300 border border-orange-700/50 leading-none">
+                              NEXT
+                            </span>
+                          )}
+                          <span className="text-xs font-bold text-white">{opp.teamName}</span>
+                          <span className="text-[10px] text-gray-500 ml-auto">({opp.pickCount}/25 picks)</span>
+                        </div>
+                        {opp.openSlots.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mb-1">
+                            <span className="text-[9px] text-gray-500">Need:</span>
+                            {opp.openSlots.map(s => (
+                              <span key={s.slot} className="px-1 py-0.5 rounded text-[9px] font-bold bg-gray-700/60 text-gray-300">
+                                {s.slot}{s.remaining > 1 ? ` x${s.remaining}` : ''}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {opp.weakCats.length > 0 && (
+                          <div className="text-[10px] text-gray-500">
+                            Weak: {opp.weakCats.map(c => (
+                              <span key={c.key} className="mr-2">
+                                <span className="text-gray-400">{c.label}</span>{' '}
+                                <span className={`font-bold ${c.value >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                  {c.value > 0 ? '+' : ''}{c.value.toFixed(1)}
+                                </span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
@@ -1843,7 +2193,7 @@ function getHeatColor(rank: number, total: number): string {
 
 // ── Category balance bar component ──
 // ── Sortable table header for draft board ──
-type DraftSortKey = 'rank' | 'adp' | 'name' | 'pos' | 'team' | 'value' | 'score'
+type DraftSortKey = 'rank' | 'adp' | 'avail' | 'name' | 'pos' | 'team' | 'value' | 'score'
 
 function DraftTh({ label, field, sortKey, sortAsc, onSort, align = 'left', className = '', children }: {
   label: string; field: DraftSortKey; sortKey: DraftSortKey; sortAsc: boolean;
