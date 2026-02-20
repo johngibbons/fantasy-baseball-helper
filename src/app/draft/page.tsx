@@ -695,12 +695,13 @@ export default function DraftBoardPage() {
       .slice(0, 3)
   }, [allPlayers, draftedIds])
 
-  // ── Per-category standard deviations for z-score normalization ──
-  // Normalizing by stdev equalizes category contributions so counting stats
-  // (R, TB, RBI) don't dominate rate stats (OBP, ERA, WHIP) in VONA/BPA scoring.
-  const catStdevs = useMemo(() => {
+  // ── Per-category standardization stats for z-score normalization ──
+  // Full standardization (subtract mean, divide by stdev) equalizes hitter/pitcher
+  // contributions. Without centering, hitter counting stats have much higher means
+  // than pitcher rate stats, creating a ~12-point inherent offset in raw sums.
+  const catStats = useMemo(() => {
     const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
-    const stdevs: Record<string, number> = {}
+    const stats: Record<string, { mean: number; stdev: number }> = {}
     for (const cat of ALL_CATS) {
       const isHitterCat = HITTING_CATS.some(c => c.key === cat.key)
       const relevant = availablePlayers.filter(p =>
@@ -709,12 +710,12 @@ export default function DraftBoardPage() {
       const values = relevant.map(p => (p[cat.key as keyof RankedPlayer] as number) ?? 0)
       const mean = values.reduce((s, v) => s + v, 0) / (values.length || 1)
       const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / (values.length || 1)
-      stdevs[cat.key] = Math.sqrt(variance) || 1
+      stats[cat.key] = { mean, stdev: Math.sqrt(variance) || 1 }
     }
-    return stdevs
+    return stats
   }, [allPlayers, draftedIds])
 
-  // Sum of z-scores normalized by their category stdev — used for VONA and BPA scoring
+  // Sum of standardized z-scores (centered + scaled) — used for VONA and BPA scoring
   const getNormalizedValue = useCallback((p: RankedPlayer): number => {
     const cats = p.player_type === 'pitcher' ? PITCHING_CATS : HITTING_CATS
     let total = 0
@@ -723,10 +724,11 @@ export default function DraftBoardPage() {
       const raw = recalc
         ? (recalc[cat.key as keyof RankedPlayer] as number) ?? 0
         : (p[cat.key as keyof RankedPlayer] as number) ?? 0
-      total += raw / catStdevs[cat.key]
+      const { mean, stdev } = catStats[cat.key]
+      total += (raw - mean) / stdev
     }
     return total
-  }, [catStdevs, recalcData])
+  }, [catStats, recalcData])
 
   // ── VONA (Value Over Next Available) ──
   const vonaMap = useMemo(() => {
@@ -756,7 +758,7 @@ export default function DraftBoardPage() {
       }
     }
     return vona
-  }, [allPlayers, draftedIds, recalcData, catStdevs])
+  }, [allPlayers, draftedIds, recalcData, catStats])
 
   const hasAdpData = allPlayers.some((p) => p.espn_adp != null)
   const isMyTeamOnClock = myTeamId != null && activeTeamId === myTeamId
@@ -866,7 +868,7 @@ export default function DraftBoardPage() {
     return map
   }, [allPlayers, draftedIds, vonaMap, myTeamId, currentPickIndex, picksUntilMine, recalcData,
       categoryStandings, otherTeamTotals, strategyMap, teamCategories, leagueTeams.length,
-      myTeam.length, draftPicks.size, rosterState.remainingCapacity, availabilityMap, catStdevs])
+      myTeam.length, draftPicks.size, rosterState.remainingCapacity, availabilityMap, catStats])
 
   // ── Top recommendation with explanation ──
   const topRecommendation = useMemo((): DraftRecommendation | null => {
