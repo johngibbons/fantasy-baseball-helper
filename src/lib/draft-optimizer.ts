@@ -302,7 +302,7 @@ export function computeDraftScore(
   draftProgress: number
 ): number {
   return mcw * 12.0 * confidence
-    + vona * 1.5
+    + vona * 3.0
     + urgency * 0.8
     + rosterFit * draftProgress
 }
@@ -337,7 +337,7 @@ export function generateExplanation(
     }
   }
 
-  if (vona >= 3.0) {
+  if (vona >= 1.0) {
     parts.push(`high positional scarcity (VONA ${vona.toFixed(1)})`)
   }
 

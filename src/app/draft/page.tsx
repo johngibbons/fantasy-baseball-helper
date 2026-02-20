@@ -695,6 +695,39 @@ export default function DraftBoardPage() {
       .slice(0, 3)
   }, [allPlayers, draftedIds])
 
+  // ── Per-category standard deviations for z-score normalization ──
+  // Normalizing by stdev equalizes category contributions so counting stats
+  // (R, TB, RBI) don't dominate rate stats (OBP, ERA, WHIP) in VONA/BPA scoring.
+  const catStdevs = useMemo(() => {
+    const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
+    const stdevs: Record<string, number> = {}
+    for (const cat of ALL_CATS) {
+      const isHitterCat = HITTING_CATS.some(c => c.key === cat.key)
+      const relevant = availablePlayers.filter(p =>
+        isHitterCat ? p.player_type === 'hitter' : p.player_type === 'pitcher'
+      )
+      const values = relevant.map(p => (p[cat.key as keyof RankedPlayer] as number) ?? 0)
+      const mean = values.reduce((s, v) => s + v, 0) / (values.length || 1)
+      const variance = values.reduce((s, v) => s + (v - mean) ** 2, 0) / (values.length || 1)
+      stdevs[cat.key] = Math.sqrt(variance) || 1
+    }
+    return stdevs
+  }, [allPlayers, draftedIds])
+
+  // Sum of z-scores normalized by their category stdev — used for VONA and BPA scoring
+  const getNormalizedValue = useCallback((p: RankedPlayer): number => {
+    const cats = p.player_type === 'pitcher' ? PITCHING_CATS : HITTING_CATS
+    let total = 0
+    for (const cat of cats) {
+      const recalc = recalcData?.get(p.mlb_id)
+      const raw = recalc
+        ? (recalc[cat.key as keyof RankedPlayer] as number) ?? 0
+        : (p[cat.key as keyof RankedPlayer] as number) ?? 0
+      total += raw / catStdevs[cat.key]
+    }
+    return total
+  }, [catStdevs, recalcData])
+
   // ── VONA (Value Over Next Available) ──
   const vonaMap = useMemo(() => {
     const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
@@ -707,23 +740,23 @@ export default function DraftBoardPage() {
       }
     }
     for (const pos of Object.keys(byPosition)) {
-      byPosition[pos].sort((a, b) => getPlayerValue(b) - getPlayerValue(a))
+      byPosition[pos].sort((a, b) => getNormalizedValue(b) - getNormalizedValue(a))
     }
     const vona = new Map<number, number>()
     for (const p of availablePlayers) {
       const primaryPos = p.player_type === 'pitcher' ? pitcherRole(p) : getPositions(p)[0]
       const posPlayers = byPosition[primaryPos] || []
       const myIdx = posPlayers.findIndex((x) => x.mlb_id === p.mlb_id)
-      const myValue = getPlayerValue(p)
+      const myValue = getNormalizedValue(p)
       if (myIdx >= 0 && myIdx < posPlayers.length - 1) {
-        const nextValue = getPlayerValue(posPlayers[myIdx + 1])
+        const nextValue = getNormalizedValue(posPlayers[myIdx + 1])
         vona.set(p.mlb_id, myValue - nextValue)
       } else {
         vona.set(p.mlb_id, myValue)
       }
     }
     return vona
-  }, [allPlayers, draftedIds, recalcData])
+  }, [allPlayers, draftedIds, recalcData, catStdevs])
 
   const hasAdpData = allPlayers.some((p) => p.espn_adp != null)
   const isMyTeamOnClock = myTeamId != null && activeTeamId === myTeamId
@@ -800,14 +833,15 @@ export default function DraftBoardPage() {
       const rosterFit = needSlots.length > 0 ? 1 : 0
 
       let score: number
+      const normalizedValue = getNormalizedValue(p)
       if (hasMCW && confidence > 0) {
         score = computeDraftScore(mcw, vona, urgency, rosterFit, confidence, draftProgress)
         // Blend with raw value when confidence is low
-        const rawScore = value + vona * 0.5 + urgency * 0.3
+        const rawScore = normalizedValue + vona * 0.5 + urgency * 0.3
         score = score * confidence + rawScore * (1 - confidence)
       } else {
         // Fallback: old formula
-        score = value + vona * 0.5 + urgency * 0.3
+        score = normalizedValue + vona * 0.5 + urgency * 0.3
       }
 
       // ── Multiplicative adjustments so #1 score = "pick this player now" ──
@@ -832,7 +866,7 @@ export default function DraftBoardPage() {
     return map
   }, [allPlayers, draftedIds, vonaMap, myTeamId, currentPickIndex, picksUntilMine, recalcData,
       categoryStandings, otherTeamTotals, strategyMap, teamCategories, leagueTeams.length,
-      myTeam.length, draftPicks.size, rosterState.remainingCapacity, availabilityMap])
+      myTeam.length, draftPicks.size, rosterState.remainingCapacity, availabilityMap, catStdevs])
 
   // ── Top recommendation with explanation ──
   const topRecommendation = useMemo((): DraftRecommendation | null => {
@@ -1582,7 +1616,7 @@ export default function DraftBoardPage() {
 
                               // Fallback: VONA display
                               if (vona == null) return <span className="text-xs text-gray-700">--</span>
-                              const opacity = Math.min(1, 0.3 + (vona / 5) * 0.7)
+                              const opacity = Math.min(1, 0.3 + (vona / 2) * 0.7)
                               return (
                                 <span
                                   className="inline-block font-bold tabular-nums text-xs"
