@@ -1618,7 +1618,7 @@ export default function DraftBoardPage() {
 
                               // Fallback: VONA display
                               if (vona == null) return <span className="text-xs text-gray-700">--</span>
-                              const opacity = Math.min(1, 0.3 + (vona / 2) * 0.7)
+                              const opacity = Math.min(1, 0.3 + (vona / 3) * 0.7)
                               return (
                                 <span
                                   className="inline-block font-bold tabular-nums text-xs"
