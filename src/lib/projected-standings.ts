@@ -71,8 +71,8 @@ export function projectStandings(
   // Total remaining picks across all teams
   const totalRemainingPicks = [...remainingPicks.values()].reduce((a, b) => a + b, 0)
   if (totalRemainingPicks === 0) {
-    // No more picks — projected = current
-    return teamRows.map((row, i) => ({
+    // No more picks — projected = current, but still compute ranks and wins
+    const standings: ProjectedStanding[] = teamRows.map(row => ({
       teamId: row.teamId,
       teamName: row.teamName,
       currentTotals: { ...row.totals },
@@ -80,8 +80,9 @@ export function projectStandings(
       projectedStatTotals: { ...row.statTotals },
       projectedRanks: {},
       projectedWins: 0,
-      overallRank: i + 1,
+      overallRank: 0,
     }))
+    return computeRanksAndWins(standings, cats)
   }
 
   // Compute pool totals for counting stats and rate stat components
@@ -167,9 +168,16 @@ export function projectStandings(
     }
   })
 
+  return computeRanksAndWins(projected, cats)
+}
+
+/**
+ * Compute category ranks, expected weekly wins, and overall rank for standings.
+ */
+function computeRanksAndWins(standings: ProjectedStanding[], cats: CatDef[]): ProjectedStanding[] {
   // Rank teams per category from projected stat totals
   for (const cat of cats) {
-    const sorted = [...projected].sort((a, b) => {
+    const sorted = [...standings].sort((a, b) => {
       const aVal = a.projectedStatTotals[cat.projKey] ?? 0
       const bVal = b.projectedStatTotals[cat.projKey] ?? 0
       return cat.inverted ? aVal - bVal : bVal - aVal
@@ -180,8 +188,8 @@ export function projectStandings(
   }
 
   // Compute projected weekly wins from category ranks
-  const numTeams = projected.length
-  for (const standing of projected) {
+  const numTeams = standings.length
+  for (const standing of standings) {
     let totalWinProb = 0
     for (const cat of cats) {
       const rank = standing.projectedRanks[cat.key] ?? numTeams
@@ -191,10 +199,10 @@ export function projectStandings(
   }
 
   // Compute overall rank from projected wins
-  const byWins = [...projected].sort((a, b) => b.projectedWins - a.projectedWins)
+  const byWins = [...standings].sort((a, b) => b.projectedWins - a.projectedWins)
   byWins.forEach((s, i) => {
     s.overallRank = i + 1
   })
 
-  return projected
+  return standings
 }
