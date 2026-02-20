@@ -734,6 +734,18 @@ export default function DraftBoardPage() {
     [currentPickIndex, draftOrder, myTeamId, pickSchedule]
   )
 
+  // ── Pick availability predictor ──
+  const availabilityMap = useMemo(() => {
+    if (myTeamId == null || !hasAdpData) return new Map<number, number>()
+    const map = new Map<number, number>()
+    for (const p of available) {
+      if (p.espn_adp != null) {
+        map.set(p.mlb_id, computeAvailability(p.espn_adp, currentPickIndex, picksUntilMine))
+      }
+    }
+    return map
+  }, [myTeamId, hasAdpData, available, currentPickIndex, picksUntilMine])
+
   const draftScoreMap = useMemo(() => {
     const map = new Map<number, PlayerDraftScore>()
     const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
@@ -798,12 +810,29 @@ export default function DraftBoardPage() {
         score = value + vona * 0.5 + urgency * 0.3
       }
 
+      // ── Multiplicative adjustments so #1 score = "pick this player now" ──
+
+      // Availability discount: if player will likely still be there next round, prefer
+      // someone who won't. At 100% available → keep 50% of score; at 0% → keep 100%.
+      if (myTeamId != null) {
+        const avail = availabilityMap.get(p.mlb_id)
+        if (avail != null) {
+          score *= 1 - avail * 0.5
+        }
+      }
+
+      // Bench penalty: if player only fills bench slots, discount score.
+      // Scales with draft progress — BPA matters early, roster fit matters later.
+      if (rosterFit === 0 && draftProgress > 0.15) {
+        score *= Math.max(0.35, 1 - draftProgress * 0.8)
+      }
+
       map.set(p.mlb_id, { mlbId: p.mlb_id, score, mcw, vona, urgency, badge, categoryGains })
     }
     return map
   }, [allPlayers, draftedIds, vonaMap, myTeamId, currentPickIndex, picksUntilMine, recalcData,
       categoryStandings, otherTeamTotals, strategyMap, teamCategories, leagueTeams.length,
-      myTeam.length, draftPicks.size, rosterState.remainingCapacity])
+      myTeam.length, draftPicks.size, rosterState.remainingCapacity, availabilityMap])
 
   // ── Top recommendation with explanation ──
   const topRecommendation = useMemo((): DraftRecommendation | null => {
@@ -854,19 +883,6 @@ export default function DraftBoardPage() {
     }
     return urgent
   }, [playerTiers])
-
-  // ── Pick availability predictor ──
-  const availabilityMap = useMemo(() => {
-    if (myTeamId == null || !hasAdpData) return new Map<number, number>()
-    const map = new Map<number, number>()
-    const myPicksUntil = getPicksUntilNextTurn(currentPickIndex, pickSchedule.length > 0 ? pickSchedule : draftOrder, myTeamId)
-    for (const p of available) {
-      if (p.espn_adp != null) {
-        map.set(p.mlb_id, computeAvailability(p.espn_adp, currentPickIndex, myPicksUntil))
-      }
-    }
-    return map
-  }, [myTeamId, hasAdpData, available, currentPickIndex, pickSchedule, draftOrder])
 
   // ── Opponent needs ──
   const opponentNeeds = useMemo(() => {
