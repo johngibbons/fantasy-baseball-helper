@@ -68,7 +68,13 @@ function pitcherRole(p: RankedPlayer): 'SP' | 'RP' {
 
 /** Parse eligible_positions string into raw position list, inferring SP/RP for pitchers */
 function getPositions(p: RankedPlayer): string[] {
-  if (p.eligible_positions) return p.eligible_positions.split('/')
+  if (p.eligible_positions) {
+    const positions = p.eligible_positions.split('/')
+    // Sort DH to the end — it only fills UTIL, so a real position should take priority
+    // for display and VONA scarcity calculations
+    positions.sort((a, b) => (a === 'DH' ? 1 : 0) - (b === 'DH' ? 1 : 0))
+    return positions
+  }
   if (p.player_type === 'pitcher') return [pitcherRole(p)]
   return [p.primary_position]
 }
