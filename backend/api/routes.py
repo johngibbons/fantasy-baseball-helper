@@ -194,10 +194,23 @@ class DraftStateBody(BaseModel):
     state: Any
 
 
+def _ensure_draft_state_table(conn):
+    """Create the draft_state table if it doesn't exist (self-healing migration)."""
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS draft_state (
+            season INTEGER PRIMARY KEY,
+            state_json TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+
+
 @router.get("/draft/state")
 def get_draft_state(season: int = Query(2026)):
     """Fetch persisted draft state for a season."""
     conn = get_connection()
+    _ensure_draft_state_table(conn)
     row = conn.execute(
         "SELECT state_json FROM draft_state WHERE season = ?", (season,)
     ).fetchone()
@@ -212,6 +225,7 @@ def put_draft_state(body: DraftStateBody):
     """Upsert draft state for a season."""
     state_json = json.dumps(body.state)
     conn = get_connection()
+    _ensure_draft_state_table(conn)
     conn.execute(
         """INSERT INTO draft_state (season, state_json) VALUES (?, ?)
            ON CONFLICT (season) DO UPDATE SET state_json = ?, updated_at = CURRENT_TIMESTAMP""",
