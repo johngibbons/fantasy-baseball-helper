@@ -44,4 +44,5 @@ def evaluate_draft(result: DraftResult, num_teams: int) -> dict:
         "hitter_count": hitter_count,
         "pitcher_count": pitcher_count,
         "first_pitcher_round": first_pitcher_round,
+        "bench_pitcher_count": result.bench_pitcher_count,
     }

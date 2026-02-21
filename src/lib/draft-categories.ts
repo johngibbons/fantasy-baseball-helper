@@ -2,7 +2,7 @@
 
 import type { RankedPlayer } from './valuations-api'
 import {
-  BENCH_CONTRIBUTION, optimizeRoster,
+  PITCHER_BENCH_CONTRIBUTION, HITTER_BENCH_CONTRIBUTION, optimizeRoster,
   type RosterResult,
 } from './roster-optimizer'
 
@@ -123,32 +123,30 @@ export function computeTeamCategories(
     }
     teams.set(teamId, t)
 
-    const weighted: [RankedPlayer[], number][] = [
-      [roster.starters, 1],
-      [roster.bench, BENCH_CONTRIBUTION],
+    const allPlayers: [RankedPlayer, number][] = [
+      ...roster.starters.map(p => [p, 1] as [RankedPlayer, number]),
+      ...roster.bench.map(p => [p, p.player_type === 'pitcher' ? PITCHER_BENCH_CONTRIBUTION : HITTER_BENCH_CONTRIBUTION] as [RankedPlayer, number]),
     ]
-    for (const [players, weight] of weighted) {
-      for (const p of players) {
-        t.count++
+    for (const [p, weight] of allPlayers) {
+      t.count++
 
-        for (const cat of ALL_CATS) {
-          const val = (p as unknown as Record<string, number>)[cat.key] ?? 0
-          t.totals[cat.key] = (t.totals[cat.key] ?? 0) + val * weight
-          t.total += val * weight
-        }
-
-        const pd = p as unknown as Record<string, number>
-        for (const cat of ALL_CATS) {
-          if (!cat.rate) {
-            t.statTotals[cat.projKey] = (t.statTotals[cat.projKey] ?? 0) + (pd[cat.projKey] ?? 0) * weight
-          }
-        }
-        t.totalPA += (pd.proj_pa ?? 0) * weight
-        t.totalIP += (pd.proj_ip ?? 0) * weight
-        t.weightedOBP += (pd.proj_obp ?? 0) * (pd.proj_pa ?? 0) * weight
-        t.weightedERA += (pd.proj_era ?? 0) * (pd.proj_ip ?? 0) * weight
-        t.weightedWHIP += (pd.proj_whip ?? 0) * (pd.proj_ip ?? 0) * weight
+      for (const cat of ALL_CATS) {
+        const val = (p as unknown as Record<string, number>)[cat.key] ?? 0
+        t.totals[cat.key] = (t.totals[cat.key] ?? 0) + val * weight
+        t.total += val * weight
       }
+
+      const pd = p as unknown as Record<string, number>
+      for (const cat of ALL_CATS) {
+        if (!cat.rate) {
+          t.statTotals[cat.projKey] = (t.statTotals[cat.projKey] ?? 0) + (pd[cat.projKey] ?? 0) * weight
+        }
+      }
+      t.totalPA += (pd.proj_pa ?? 0) * weight
+      t.totalIP += (pd.proj_ip ?? 0) * weight
+      t.weightedOBP += (pd.proj_obp ?? 0) * (pd.proj_pa ?? 0) * weight
+      t.weightedERA += (pd.proj_era ?? 0) * (pd.proj_ip ?? 0) * weight
+      t.weightedWHIP += (pd.proj_whip ?? 0) * (pd.proj_ip ?? 0) * weight
     }
   }
 

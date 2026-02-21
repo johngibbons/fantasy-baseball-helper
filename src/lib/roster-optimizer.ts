@@ -19,10 +19,11 @@ export const STARTER_SLOT_COUNT = Object.entries(ROSTER_SLOTS)
 
 /**
  * Fraction of projected stats a bench player contributes over a season.
- * Accounts for injury coverage, rest days, and streaming value in daily-lineup leagues.
- * Derived from ~11% starter absence rate across 16 slots / 8 bench slots ≈ 22%, plus streaming.
+ * Split by player type: pitchers contribute more in daily leagues (streaming SPs,
+ * swapping in RPs on their days) while hitters only cover rest days (~1-2 games/week).
  */
-export const BENCH_CONTRIBUTION = 0.25
+export const PITCHER_BENCH_CONTRIBUTION = 0.45
+export const HITTER_BENCH_CONTRIBUTION = 0.20
 
 // Maps ESPN positions to the roster slots they can fill (most restrictive first)
 export const POSITION_TO_SLOTS: Record<string, string[]> = {

@@ -390,6 +390,7 @@ def full_player_score(
     total_picks_made: int,
     my_pick_count: int,
     config: SimConfig,
+    bench_pitcher_count: int = 0,
 ) -> float:
     normalized_value = get_normalized_value(player, cat_stats)
 
@@ -427,8 +428,15 @@ def full_player_score(
         avail = compute_availability(player.espn_adp, current_pick, picks_until_mine, config.ADP_SIGMA)
         score *= 1 - avail * config.AVAILABILITY_DISCOUNT
 
-    # Bench penalty
+    # Bench penalty — pitcher-aware: softer penalty for first few bench pitchers
+    # (daily league streaming/swap value), then saturates to full penalty
     if not has_starting_need and draft_progress > 0.15:
-        score *= max(0.35, 1 - draft_progress * config.BENCH_PENALTY_RATE)
+        if player.player_type == "pitcher":
+            saturation = min(1.0, bench_pitcher_count / 3)
+            floor = 0.65 - saturation * 0.30
+            scale = 0.35 + saturation * 0.28
+            score *= max(floor, 1 - draft_progress * scale)
+        else:
+            score *= max(0.35, 1 - draft_progress * config.BENCH_PENALTY_RATE)
 
     return score

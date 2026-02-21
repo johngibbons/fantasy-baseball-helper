@@ -11,7 +11,8 @@ import {
   type CategoryAnalysis,
 } from '@/lib/draft-optimizer'
 import {
-  ROSTER_SLOTS, SLOT_ORDER, STARTER_SLOT_COUNT, BENCH_CONTRIBUTION,
+  ROSTER_SLOTS, SLOT_ORDER, STARTER_SLOT_COUNT,
+  PITCHER_BENCH_CONTRIBUTION, HITTER_BENCH_CONTRIBUTION,
   getPositions, optimizeRoster, type RosterResult,
 } from '@/lib/roster-optimizer'
 import {
@@ -146,8 +147,9 @@ export default function DraftResultsPage() {
       }
     }
     for (const p of rosterState.bench) {
+      const bc = p.player_type === 'pitcher' ? PITCHER_BENCH_CONTRIBUTION : HITTER_BENCH_CONTRIBUTION
       for (const cat of ALL_CATS) {
-        totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0) * BENCH_CONTRIBUTION
+        totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0) * bc
       }
     }
     return totals

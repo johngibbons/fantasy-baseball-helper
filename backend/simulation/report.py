@@ -80,12 +80,15 @@ def print_report(
     print("".join(cats_line1))
     print("".join(cats_line2))
 
+    bench_pitcher_counts = [r.get("bench_pitcher_count", 0) for r in results]
+
     avg_hitters = sum(hitter_counts) / len(hitter_counts) if hitter_counts else 0
     avg_pitchers = sum(pitcher_counts) / len(pitcher_counts) if pitcher_counts else 0
     avg_first_p = sum(first_pitcher_rounds) / len(first_pitcher_rounds) if first_pitcher_rounds else 0
+    avg_bench_p = sum(bench_pitcher_counts) / len(bench_pitcher_counts) if bench_pitcher_counts else 0
 
     print(f"\nDraft Composition (avg):")
-    print(f"  Hitters: {avg_hitters:.1f}   Pitchers: {avg_pitchers:.1f}")
+    print(f"  Hitters: {avg_hitters:.1f}   Pitchers: {avg_pitchers:.1f}   Bench P: {avg_bench_p:.1f}")
     if first_pitcher_rounds:
         print(f"  First pitcher picked at: round {avg_first_p:.1f}")
 

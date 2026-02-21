@@ -31,7 +31,8 @@ import { computeTiers } from '@/lib/tier-engine'
 import { computeAvailability } from '@/lib/pick-predictor'
 import { projectStandings, type ProjectedStanding } from '@/lib/projected-standings'
 import {
-  ROSTER_SLOTS, POSITION_TO_SLOTS, SLOT_ORDER, STARTER_SLOT_COUNT, BENCH_CONTRIBUTION,
+  ROSTER_SLOTS, POSITION_TO_SLOTS, SLOT_ORDER, STARTER_SLOT_COUNT,
+  PITCHER_BENCH_CONTRIBUTION, HITTER_BENCH_CONTRIBUTION,
   pitcherRole, getPositions, getEligibleSlots, optimizeRoster, type RosterResult,
 } from '@/lib/roster-optimizer'
 import {
@@ -558,7 +559,7 @@ export default function DraftBoardPage() {
     [teamRosters, myTeamId]
   )
 
-  // ── Category balance (my team: starters at full weight, bench at BENCH_CONTRIBUTION) ──
+  // ── Category balance (my team: starters at full weight, bench weighted by player type) ──
   const categoryBalance = useMemo(() => {
     const totals: Record<string, number> = {}
     for (const cat of ALL_CATS) totals[cat.key] = 0
@@ -568,8 +569,9 @@ export default function DraftBoardPage() {
       }
     }
     for (const p of rosterState.bench) {
+      const bc = p.player_type === 'pitcher' ? PITCHER_BENCH_CONTRIBUTION : HITTER_BENCH_CONTRIBUTION
       for (const cat of ALL_CATS) {
-        totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0) * BENCH_CONTRIBUTION
+        totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0) * bc
       }
     }
     return totals
@@ -826,10 +828,18 @@ export default function DraftBoardPage() {
 
       // ── Multiplicative adjustments so #1 score = "pick this player now" ──
 
-      // Bench penalty: if player only fills bench slots, discount score.
-      // Scales with draft progress — BPA matters early, roster fit matters later.
+      // Bench penalty — pitcher-aware: softer penalty for first few bench pitchers
+      // (daily league streaming/swap value), then saturates to full penalty
       if (rosterFit === 0 && draftProgress > 0.15) {
-        score *= Math.max(0.35, 1 - draftProgress * 0.63)
+        if (p.player_type === 'pitcher') {
+          const benchPitcherCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher').length
+          const saturation = Math.min(1, benchPitcherCount / 3)
+          const floor = 0.65 - saturation * 0.30
+          const scale = 0.35 + saturation * 0.28
+          score *= Math.max(floor, 1 - draftProgress * scale)
+        } else {
+          score *= Math.max(0.35, 1 - draftProgress * 0.63)
+        }
       }
 
       map.set(p.mlb_id, { mlbId: p.mlb_id, score, mcw, vona, urgency, badge, categoryGains })
@@ -921,7 +931,7 @@ export default function DraftBoardPage() {
           }
         }
 
-        // Compute weakest 3 categories (starters full, bench discounted)
+        // Compute weakest 3 categories (starters full, bench weighted by player type)
         const totals: Record<string, number> = {}
         for (const cat of ALL_CATS) totals[cat.key] = 0
         if (roster) {
@@ -931,8 +941,9 @@ export default function DraftBoardPage() {
             }
           }
           for (const p of roster.bench) {
+            const bc = p.player_type === 'pitcher' ? PITCHER_BENCH_CONTRIBUTION : HITTER_BENCH_CONTRIBUTION
             for (const cat of ALL_CATS) {
-              totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0) * BENCH_CONTRIBUTION
+              totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0) * bc
             }
           }
         }

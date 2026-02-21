@@ -16,6 +16,11 @@ class SimConfig:
     AVAILABILITY_DISCOUNT: float = 0.19
     BENCH_PENALTY_RATE: float = 0.63
 
+    # Bench contribution rates (how much bench stats count toward team totals)
+    # Pitchers contribute more in daily leagues (streaming SPs, swapping in RPs)
+    PITCHER_BENCH_CONTRIBUTION: float = 0.45
+    HITTER_BENCH_CONTRIBUTION: float = 0.20
+
     # Opponent model
     ADP_SIGMA: float = 18.0
     OPP_BENCH_ADP_PENALTY: float = 15.0  # ADP penalty for bench-only picks

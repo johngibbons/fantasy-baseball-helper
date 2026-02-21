@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 
 from .config import SimConfig
-from .player_pool import Player, ALL_CAT_KEYS, TOTAL_ROSTER_SIZE, BENCH_CONTRIBUTION
+from .player_pool import Player, ALL_CAT_KEYS, TOTAL_ROSTER_SIZE
 from .roster import RosterState
 from .scoring_model import (
     analyze_category_standings,
@@ -26,6 +26,7 @@ class DraftResult:
     my_players: list[Player] = field(default_factory=list)
     all_team_totals: list[dict[str, float]] = field(default_factory=list)  # team_idx -> cat totals
     pick_order: list[int] = field(default_factory=list)  # mlb_ids in pick order for my team
+    bench_pitcher_count: int = 0  # pitchers assigned to bench for my team
 
 
 def snake_order(pick_index: int, num_teams: int) -> int:
@@ -68,6 +69,7 @@ def simulate_draft(
     ]
     team_players: list[list[Player]] = [[] for _ in range(num_teams)]
     my_pick_count = 0
+    my_bench_pitcher_count = 0
 
     # Precompute ADP-sorted order for opponent picks (rebuilt when pool changes significantly)
     # We'll sort once and maintain it lazily
@@ -135,6 +137,7 @@ def simulate_draft(
                     total_picks_made=pick_idx,
                     my_pick_count=my_pick_count,
                     config=config,
+                    bench_pitcher_count=my_bench_pitcher_count,
                 )
                 if score > best_score:
                     best_score = score
@@ -168,12 +171,18 @@ def simulate_draft(
         # Update state
         available_set.discard(chosen.mlb_id)
         assigned_slot = rosters[team_idx].add_player(chosen)
-        weight = BENCH_CONTRIBUTION if assigned_slot == "BE" else 1.0
+        if assigned_slot == "BE":
+            weight = config.PITCHER_BENCH_CONTRIBUTION if chosen.player_type == "pitcher" else config.HITTER_BENCH_CONTRIBUTION
+            if team_idx == my_slot and chosen.player_type == "pitcher":
+                my_bench_pitcher_count += 1
+        else:
+            weight = 1.0
         for cat_key in ALL_CAT_KEYS:
             team_totals[team_idx][cat_key] += chosen.zscores.get(cat_key, 0.0) * weight
         team_players[team_idx].append(chosen)
 
     result.all_team_totals = team_totals
+    result.bench_pitcher_count = my_bench_pitcher_count
     return result
 
 
