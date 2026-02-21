@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 
 from .config import SimConfig
-from .player_pool import Player, ALL_CAT_KEYS, TOTAL_ROSTER_SIZE
+from .player_pool import Player, ALL_CAT_KEYS, TOTAL_ROSTER_SIZE, BENCH_CONTRIBUTION
 from .roster import RosterState
 from .scoring_model import (
     analyze_category_standings,
@@ -166,9 +166,10 @@ def simulate_draft(
 
         # Update state
         available_set.discard(chosen.mlb_id)
-        rosters[team_idx].add_player(chosen)
+        assigned_slot = rosters[team_idx].add_player(chosen)
+        weight = BENCH_CONTRIBUTION if assigned_slot == "BE" else 1.0
         for cat_key in ALL_CAT_KEYS:
-            team_totals[team_idx][cat_key] += chosen.zscores.get(cat_key, 0.0)
+            team_totals[team_idx][cat_key] += chosen.zscores.get(cat_key, 0.0) * weight
         team_players[team_idx].append(chosen)
 
     result.all_team_totals = team_totals

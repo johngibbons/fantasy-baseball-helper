@@ -15,13 +15,13 @@ class RosterState:
                 return True
         return False
 
-    def add_player(self, player: Player) -> bool:
-        """Greedy assign to most-constrained (first) eligible slot. Returns True if placed."""
+    def add_player(self, player: Player) -> str | None:
+        """Greedy assign to most-constrained (first) eligible slot. Returns slot name or None."""
         for slot in self._eligible_slots_ordered(player):
             if self.capacity.get(slot, 0) > 0:
                 self.capacity[slot] -= 1
-                return True
-        return False
+                return slot
+        return None
 
     def has_starting_need(self, player: Player) -> bool:
         """Returns True if player fills a non-bench slot."""

@@ -24,6 +24,10 @@ ROSTER_SLOTS: dict[str, int] = {
 }
 
 TOTAL_ROSTER_SIZE = sum(ROSTER_SLOTS.values())
+STARTER_SLOT_COUNT = sum(v for k, v in ROSTER_SLOTS.items() if k != "BE")
+
+# Bench players contribute ~25% of projected stats (injury coverage, rest days, streaming)
+BENCH_CONTRIBUTION = 0.25
 
 # Maps positions to eligible roster slots (most restrictive first) — matches page.tsx:50-57
 POSITION_TO_SLOTS: dict[str, list[str]] = {
