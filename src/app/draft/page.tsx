@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { getDraftBoard, recalculateDraftValues, RankedPlayer } from '@/lib/valuations-api'
 import {
@@ -196,6 +196,11 @@ export default function DraftBoardPage() {
   const [leagueKeepersData, setLeagueKeepersData] = useState<LeagueKeeperEntry[]>([])
   const [keeperMlbIds, setKeeperMlbIds] = useState<Set<number>>(new Set())
 
+  // ── Server sync state ──
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   // ── Derived state (backward-compatible) ──
   const draftedIds = useMemo(() => new Set(draftPicks.keys()), [draftPicks])
   const myPickIds = useMemo(() => {
@@ -251,46 +256,69 @@ export default function DraftBoardPage() {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
 
-    // Restore saved state
-    try {
-      const saved = localStorage.getItem('draftState')
-      if (saved) {
-        const state: DraftState = JSON.parse(saved)
-        // New format
-        if (state.picks) {
-          setDraftPicks(new Map(state.picks))
-          setMyTeamId(state.myTeamId ?? null)
-          setDraftOrder(state.draftOrder ?? [])
-          setCurrentPickIndex(state.currentPickIndex ?? 0)
-          if (state.keeperMlbIds) {
-            setKeeperMlbIds(new Set(state.keeperMlbIds))
-          }
-          if (state.pickSchedule && state.pickSchedule.length > 0) {
-            setPickSchedule(state.pickSchedule)
-          }
-          if (state.pickTrades && state.pickTrades.length > 0) {
-            setPickTrades(state.pickTrades)
-          }
-          if (state.pickLog && state.pickLog.length > 0) {
-            setPickLog(state.pickLog)
-          }
+    // Restore saved state — try server first, fall back to localStorage
+    const restoreFromState = (state: DraftState) => {
+      if (state.picks) {
+        setDraftPicks(new Map(state.picks))
+        setMyTeamId(state.myTeamId ?? null)
+        setDraftOrder(state.draftOrder ?? [])
+        setCurrentPickIndex(state.currentPickIndex ?? 0)
+        if (state.keeperMlbIds) {
+          setKeeperMlbIds(new Set(state.keeperMlbIds))
         }
-        // Old format migration
-        else if ((saved as unknown as { drafted?: number[]; myPicks?: number[] }).drafted) {
-          const oldState = JSON.parse(saved) as { drafted?: number[]; myPicks?: number[] }
-          const picks = new Map<number, number>()
-          const oldMyPicks = new Set<number>(oldState.myPicks || [])
-          for (const id of (oldState.drafted || [])) {
-            if (oldMyPicks.has(id)) {
-              picks.set(id, 0)
-            } else {
-              picks.set(id, -1)
-            }
-          }
-          setDraftPicks(picks)
+        if (state.pickSchedule && state.pickSchedule.length > 0) {
+          setPickSchedule(state.pickSchedule)
+        }
+        if (state.pickTrades && state.pickTrades.length > 0) {
+          setPickTrades(state.pickTrades)
+        }
+        if (state.pickLog && state.pickLog.length > 0) {
+          setPickLog(state.pickLog)
         }
       }
-    } catch {}
+    }
+
+    const restoreFromLocalStorage = () => {
+      try {
+        const saved = localStorage.getItem('draftState')
+        if (saved) {
+          const state: DraftState = JSON.parse(saved)
+          if (state.picks) {
+            restoreFromState(state)
+          }
+          // Old format migration
+          else if ((saved as unknown as { drafted?: number[]; myPicks?: number[] }).drafted) {
+            const oldState = JSON.parse(saved) as { drafted?: number[]; myPicks?: number[] }
+            const picks = new Map<number, number>()
+            const oldMyPicks = new Set<number>(oldState.myPicks || [])
+            for (const id of (oldState.drafted || [])) {
+              if (oldMyPicks.has(id)) {
+                picks.set(id, 0)
+              } else {
+                picks.set(id, -1)
+              }
+            }
+            setDraftPicks(picks)
+          }
+        }
+      } catch {}
+    }
+
+    fetch('/api/v2/draft/state?season=2026')
+      .then((res) => {
+        if (!res.ok) throw new Error('Server error')
+        return res.json()
+      })
+      .then((data) => {
+        if (data.state) {
+          restoreFromState(data.state as DraftState)
+        } else {
+          restoreFromLocalStorage()
+        }
+      })
+      .catch(() => {
+        restoreFromLocalStorage()
+      })
 
     // Load keepers from localStorage
     const keepers = loadKeepersFromStorage()
@@ -395,7 +423,7 @@ export default function DraftBoardPage() {
     setKeeperMlbIds(newKeeperIds)
   }, [draftPicks, keeperMlbIds])
 
-  // ── Save state to localStorage ──
+  // ── Save state to localStorage + server (debounced) ──
   useEffect(() => {
     if (allPlayers.length > 0) {
       const state: DraftState = {
@@ -409,6 +437,26 @@ export default function DraftBoardPage() {
         pickLog,
       }
       localStorage.setItem('draftState', JSON.stringify(state))
+
+      // Debounced server save (2s)
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+      if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
+      saveTimerRef.current = setTimeout(() => {
+        setSaveStatus('saving')
+        fetch('/api/v2/draft/state', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ season: 2026, state }),
+        })
+          .then((res) => {
+            if (!res.ok) throw new Error('Save failed')
+            setSaveStatus('saved')
+            fadeTimerRef.current = setTimeout(() => setSaveStatus('idle'), 3000)
+          })
+          .catch(() => {
+            setSaveStatus('error')
+          })
+      }, 2000)
     }
   }, [draftPicks, myTeamId, draftOrder, currentPickIndex, allPlayers.length, keeperMlbIds, pickSchedule, pickTrades, pickLog])
 
@@ -1206,6 +1254,14 @@ export default function DraftBoardPage() {
                   <span className="text-gray-600 mx-1.5">/</span>
                   <span className="inline-block w-2.5 h-2.5 border-[1.5px] border-indigo-800 border-t-indigo-400 rounded-full animate-spin align-middle" />
                   <span className="text-indigo-400 ml-1">updating values</span>
+                </>
+              )}
+              {saveStatus !== 'idle' && (
+                <>
+                  <span className="text-gray-600 mx-1.5">/</span>
+                  {saveStatus === 'saving' && <span className="text-gray-400">Saving…</span>}
+                  {saveStatus === 'saved' && <span className="text-emerald-400">Saved</span>}
+                  {saveStatus === 'error' && <span className="text-amber-400">Save failed</span>}
                 </>
               )}
             </p>

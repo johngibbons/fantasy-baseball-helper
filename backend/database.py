@@ -330,6 +330,14 @@ def _init_pg():
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_statcast_batting_season ON analytics.statcast_batting(season);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_statcast_pitching_season ON analytics.statcast_pitching(season);")
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS draft_state (
+            season INTEGER PRIMARY KEY,
+            state_json TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT NOW()
+        );
+    """)
+
     # Migration: add projection columns to rankings if missing
     for col, col_type, default in _RANKINGS_PROJ_COLUMNS:
         try:
@@ -547,6 +555,12 @@ def _init_sqlite():
 
         CREATE INDEX IF NOT EXISTS idx_statcast_batting_season ON statcast_batting(season);
         CREATE INDEX IF NOT EXISTS idx_statcast_pitching_season ON statcast_pitching(season);
+
+        CREATE TABLE IF NOT EXISTS draft_state (
+            season INTEGER PRIMARY KEY,
+            state_json TEXT NOT NULL,
+            updated_at TEXT DEFAULT (datetime('now'))
+        );
     """)
 
     # Migration: add projection columns to rankings if missing

@@ -1,10 +1,11 @@
 """API route definitions."""
 
 import difflib
+import json
 import unicodedata
 from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
-from typing import Optional
+from typing import Any, Optional
 from backend.analysis.rankings import (
     get_rankings,
     get_player_detail,
@@ -186,6 +187,39 @@ def draft_recalculate(body: RecalculateRequest):
         save_to_db=False,
     )
     return {"players": results}
+
+
+class DraftStateBody(BaseModel):
+    season: int
+    state: Any
+
+
+@router.get("/draft/state")
+def get_draft_state(season: int = Query(2026)):
+    """Fetch persisted draft state for a season."""
+    conn = get_connection()
+    row = conn.execute(
+        "SELECT state_json FROM draft_state WHERE season = ?", (season,)
+    ).fetchone()
+    conn.close()
+    if not row:
+        return {"state": None}
+    return {"state": json.loads(row["state_json"])}
+
+
+@router.put("/draft/state")
+def put_draft_state(body: DraftStateBody):
+    """Upsert draft state for a season."""
+    state_json = json.dumps(body.state)
+    conn = get_connection()
+    conn.execute(
+        """INSERT INTO draft_state (season, state_json) VALUES (?, ?)
+           ON CONFLICT (season) DO UPDATE SET state_json = ?, updated_at = CURRENT_TIMESTAMP""",
+        (body.season, state_json, state_json),
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True}
 
 
 @router.get("/stats/summary")
