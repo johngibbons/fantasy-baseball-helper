@@ -815,44 +815,69 @@ export default function DraftBoardPage() {
     return total
   }, [catStats, recalcData])
 
-  // ── VONA (Value Over Next Available) ──
+  // ── Picks until my next turn (needed by window VONA and availability) ──
+  const picksUntilMine = useMemo(
+    () => myTeamId != null ? getPicksUntilNextTurn(currentPickIndex, pickSchedule.length > 0 ? pickSchedule : draftOrder, myTeamId) : 999,
+    [currentPickIndex, draftOrder, myTeamId, pickSchedule]
+  )
+
+  // ── VONA (Value Over Next Available) — window-based ──
+  // Uses availability-weighted expected replacement value instead of literal next-best.
+  // For each position, computes what you'd realistically get if you wait until your
+  // next pick, accounting for the probability each alternative gets taken.
   const vonaMap = useMemo(() => {
     const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
-    const byPosition: Record<string, RankedPlayer[]> = {}
+    const byPosition: Record<string, { player: RankedPlayer; nv: number; adp: number }[]> = {}
     for (const p of availablePlayers) {
-      const positions = getPositions(p)
-      for (const pos of positions) {
+      const nv = getNormalizedValue(p)
+      const adp = p.espn_adp ?? 999
+      for (const pos of getPositions(p)) {
         if (!byPosition[pos]) byPosition[pos] = []
-        byPosition[pos].push(p)
+        byPosition[pos].push({ player: p, nv, adp })
       }
     }
     for (const pos of Object.keys(byPosition)) {
-      byPosition[pos].sort((a, b) => getNormalizedValue(b) - getNormalizedValue(a))
+      byPosition[pos].sort((a, b) => b.nv - a.nv)
     }
     const vona = new Map<number, number>()
     for (const p of availablePlayers) {
       const primaryPos = p.player_type === 'pitcher' ? pitcherRole(p) : getPositions(p)[0]
       const posPlayers = byPosition[primaryPos] || []
-      const myIdx = posPlayers.findIndex((x) => x.mlb_id === p.mlb_id)
       const myValue = getNormalizedValue(p)
-      if (myIdx >= 0 && myIdx < posPlayers.length - 1) {
-        const nextValue = getNormalizedValue(posPlayers[myIdx + 1])
-        vona.set(p.mlb_id, myValue - nextValue)
-      } else {
-        vona.set(p.mlb_id, myValue)
+
+      // Collect alternatives (everyone else at this position, sorted desc by value)
+      const alternatives: { nv: number; adp: number }[] = []
+      for (const entry of posPlayers) {
+        if (entry.player.mlb_id !== p.mlb_id) {
+          alternatives.push(entry)
+        }
       }
+
+      if (alternatives.length === 0) {
+        vona.set(p.mlb_id, myValue)
+        continue
+      }
+
+      // Expected value of best replacement if we wait:
+      // Walk alternatives best-to-worst. For each, P(it's the best still available) =
+      // P(all better ones gone) × P(this one available). Weight value by that probability.
+      let expectedReplacement = 0
+      let pAllGoneSoFar = 1.0
+      for (const alt of alternatives) {
+        const pAvail = computeAvailability(alt.adp, currentPickIndex, picksUntilMine)
+        const pIsBest = pAllGoneSoFar * pAvail
+        expectedReplacement += alt.nv * pIsBest
+        pAllGoneSoFar *= (1 - pAvail)
+      }
+      // pAllGoneSoFar is now P(every alternative is gone) — replacement = 0 in that case
+
+      vona.set(p.mlb_id, myValue - expectedReplacement)
     }
     return vona
-  }, [allPlayers, draftedIds, recalcData, catStats])
+  }, [allPlayers, draftedIds, recalcData, catStats, currentPickIndex, picksUntilMine])
 
   const hasAdpData = allPlayers.some((p) => p.espn_adp != null)
   const isMyTeamOnClock = myTeamId != null && activeTeamId === myTeamId
-
-  // ── Priority map ──
-  const picksUntilMine = useMemo(
-    () => myTeamId != null ? getPicksUntilNextTurn(currentPickIndex, pickSchedule.length > 0 ? pickSchedule : draftOrder, myTeamId) : 999,
-    [currentPickIndex, draftOrder, myTeamId, pickSchedule]
-  )
 
   // ── Pick availability predictor ──
   const availabilityMap = useMemo(() => {
@@ -933,15 +958,6 @@ export default function DraftBoardPage() {
 
       // ── Multiplicative adjustments so #1 score = "pick this player now" ──
 
-      // Availability discount: if player will likely still be there next round, prefer
-      // someone who won't. At 100% available → keep 50% of score; at 0% → keep 100%.
-      if (myTeamId != null) {
-        const avail = availabilityMap.get(p.mlb_id)
-        if (avail != null) {
-          score *= 1 - avail * 0.19
-        }
-      }
-
       // Bench penalty: if player only fills bench slots, discount score.
       // Scales with draft progress — BPA matters early, roster fit matters later.
       if (rosterFit === 0 && draftProgress > 0.15) {
@@ -953,7 +969,7 @@ export default function DraftBoardPage() {
     return map
   }, [allPlayers, draftedIds, vonaMap, myTeamId, currentPickIndex, picksUntilMine, recalcData,
       categoryStandings, otherTeamTotals, strategyMap, teamCategories, leagueTeams.length,
-      myTeam.length, draftPicks.size, rosterState.remainingCapacity, availabilityMap, catStats])
+      myTeam.length, draftPicks.size, rosterState.remainingCapacity, catStats])
 
   // ── Top recommendation with explanation ──
   const topRecommendation = useMemo((): DraftRecommendation | null => {
