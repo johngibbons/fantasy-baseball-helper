@@ -839,6 +839,19 @@ export default function DraftBoardPage() {
       categoryStandings, otherTeamTotals, strategyMap, teamCategories, leagueTeams.length,
       myTeam.length, draftPicks.size, rosterState.remainingCapacity, catStats])
 
+  // ── Score rank + recommendation zone ──
+  const scoreRankMap = useMemo(() => {
+    const entries = [...draftScoreMap.entries()]
+      .sort((a, b) => b[1].score - a[1].score)
+    const topScore = entries[0]?.[1].score ?? 0
+    const threshold = topScore * 0.75
+    const map = new Map<number, { rank: number; inZone: boolean }>()
+    entries.forEach(([mlbId, ds], i) => {
+      map.set(mlbId, { rank: i + 1, inZone: ds.score >= threshold && ds.score > 0 })
+    })
+    return { map, threshold }
+  }, [draftScoreMap])
+
   // ── Top recommendation with explanation ──
   const topRecommendation = useMemo((): DraftRecommendation | null => {
     if (!myTeamId) return null
@@ -1488,6 +1501,25 @@ export default function DraftBoardPage() {
                         }
                       }
 
+                      // Recommendation zone divider: when sorted by score, separate in-zone from out-of-zone
+                      if (!isDrafted && idx > 0 && !showDrafted && sortKey === 'score') {
+                        const prevPlayer = displayList[idx - 1]
+                        const prevInZone = !draftedIds.has(prevPlayer?.mlb_id) && (scoreRankMap.map.get(prevPlayer?.mlb_id)?.inZone ?? false)
+                        const curInZone = scoreRankMap.map.get(p.mlb_id)?.inZone ?? false
+                        if (prevInZone && !curInZone) {
+                          const colSpan = 7 + (hasAdpData ? 1 : 0) + (myTeamId != null && hasAdpData ? 1 : 0)
+                          rows.push(
+                            <tr key="zone-divider" className="bg-gray-800/30 border-y border-gray-700/40">
+                              <td colSpan={colSpan} className="px-3 py-1 text-center">
+                                <span className="text-[10px] font-medium text-gray-500 tracking-wider">
+                                  — below recommendation line —
+                                </span>
+                              </td>
+                            </tr>
+                          )
+                        }
+                      }
+
                       rows.push(
                         <tr key={p.mlb_id} className={`${rowBg} hover:bg-gray-800/80 transition-colors border-b border-gray-800/50`}>
                           <td className="px-3 py-1.5">
@@ -1593,19 +1625,16 @@ export default function DraftBoardPage() {
                               const showScore = hasAdpData && myTeamId != null
 
                               if (showScore && ds) {
+                                const rankInfo = scoreRankMap.map.get(p.mlb_id)
+                                const inZone = rankInfo?.inZone ?? false
                                 return (
-                                  <div className="flex items-center justify-end gap-1">
-                                    {ds.badge === 'NOW' && (
-                                      <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">
-                                        NOW
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    {inZone && rankInfo && (
+                                      <span className="border-l-2 border-emerald-500 pl-1.5 text-[10px] font-bold text-white tabular-nums">
+                                        #{rankInfo.rank}
                                       </span>
                                     )}
-                                    {ds.badge === 'WAIT' && (
-                                      <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">
-                                        WAIT
-                                      </span>
-                                    )}
-                                    <span className={`font-bold tabular-nums text-xs ${ds.score > 0 ? 'text-purple-400' : 'text-gray-500'}`}>
+                                    <span className={`font-bold tabular-nums text-xs ${inZone ? 'text-purple-400' : 'text-gray-600'}`}>
                                       {ds.score.toFixed(1)}
                                     </span>
                                   </div>
