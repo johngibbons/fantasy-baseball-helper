@@ -770,7 +770,12 @@ export default function DraftResultsPage() {
                                   {pos}
                                 </span>
                                 <span className={`truncate max-w-[60px] ${isMyPick ? 'text-blue-300 font-bold' : 'text-gray-400'}`}>
-                                  {player.full_name.split(' ').pop()}
+                                  {(() => {
+                                    const parts = player.full_name.split(' ')
+                                    const suffixes = new Set(['Jr.', 'Jr', 'Sr.', 'Sr', 'II', 'III', 'IV', 'V'])
+                                    while (parts.length > 1 && suffixes.has(parts[parts.length - 1])) parts.pop()
+                                    return parts.length > 1 ? parts[parts.length - 1] : parts[0]
+                                  })()}
                                 </span>
                               </div>
                             </td>
