@@ -92,6 +92,8 @@ def main() -> None:
     parser.add_argument("--adp-sigma", type=float, default=None)
     parser.add_argument("--confidence-start", type=int, default=None)
     parser.add_argument("--confidence-end", type=int, default=None)
+    parser.add_argument("--window-vona", action="store_true",
+                        help="Use window VONA (availability-weighted replacement)")
 
     args = parser.parse_args()
 
@@ -119,6 +121,8 @@ def main() -> None:
         val = getattr(args, arg_name)
         if val is not None:
             overrides[config_name] = val
+    if args.window_vona:
+        overrides["USE_WINDOW_VONA"] = True
 
     default_config = SimConfig()
 

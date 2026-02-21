@@ -260,9 +260,9 @@ def get_normalized_value(player: Player, cat_stats: dict[str, CatStats]) -> floa
 
 def compute_vona(
     player: Player,
-    available_by_position: dict[str, list[tuple[int, float]]],
+    available_by_position: dict[str, list[tuple[int, float, float]]],
 ) -> float:
-    """Compute VONA for a player. available_by_position maps position -> [(mlb_id, normalized_value)] sorted desc."""
+    """Compute VONA for a player. available_by_position maps position -> [(mlb_id, normalized_value, adp)] sorted desc."""
     if player.player_type == "pitcher":
         primary_pos = player.pitcher_role()
     else:
@@ -271,7 +271,7 @@ def compute_vona(
     pos_players = available_by_position.get(primary_pos, [])
     my_idx = -1
     my_value = 0.0
-    for i, (mid, val) in enumerate(pos_players):
+    for i, (mid, val, _adp) in enumerate(pos_players):
         if mid == player.mlb_id:
             my_idx = i
             my_value = val
@@ -285,18 +285,89 @@ def compute_vona(
     return 0.0
 
 
+def compute_window_vona(
+    player: Player,
+    available_by_position: dict[str, list[tuple[int, float, float]]],
+    current_pick: int,
+    picks_until_mine: int,
+    adp_sigma: float,
+) -> float:
+    """Compute window VONA: value gap vs expected best replacement at next pick.
+
+    Instead of comparing against the literal next-best player (who may still be
+    available later), computes the expected value of the best player at this
+    position that will still be available when we pick again.
+
+    For each alternative, we compute P(still available at next pick) from ADP,
+    then find the expected value of the best remaining option if we wait.
+    """
+    if player.player_type == "pitcher":
+        primary_pos = player.pitcher_role()
+    else:
+        primary_pos = player.get_positions()[0]
+
+    pos_players = available_by_position.get(primary_pos, [])
+
+    # Find this player's value
+    my_value = 0.0
+    found = False
+    for mid, val, _adp in pos_players:
+        if mid == player.mlb_id:
+            my_value = val
+            found = True
+            break
+    if not found:
+        return 0.0
+
+    # Collect alternatives with their availability at our next pick
+    # pos_players is sorted desc by value
+    alternatives: list[tuple[float, float]] = []  # (value, P(available at next pick))
+    for mid, val, adp in pos_players:
+        if mid == player.mlb_id:
+            continue
+        p_avail = compute_availability(adp, current_pick, picks_until_mine, adp_sigma)
+        alternatives.append((val, p_avail))
+
+    if not alternatives:
+        return my_value  # only player at position
+
+    # Expected value of best replacement if we wait:
+    # For each alternative (sorted desc by value), compute the probability
+    # that it's the best available option. P(player_i is best available) =
+    # P(available_i) * product(P(gone_j) for all j better than i).
+    # Expected replacement = sum(value_i * P(i is best available)).
+    #
+    # Also account for the scenario where ALL alternatives are gone:
+    # in that case replacement value = 0 (no one left at position).
+    expected_replacement = 0.0
+    p_all_gone_so_far = 1.0  # probability that all better alternatives are gone
+
+    for val, p_avail in alternatives:
+        # P(this is the best available) = P(all better ones gone) * P(this one available)
+        p_is_best = p_all_gone_so_far * p_avail
+        expected_replacement += val * p_is_best
+        # Update: for the next (worse) player, this one also needs to be gone
+        p_all_gone_so_far *= (1.0 - p_avail)
+
+    # p_all_gone_so_far is now P(every alternative is gone) — replacement = 0 in that case
+    # (already handled since we only add value when someone is available)
+
+    return my_value - expected_replacement
+
+
 def build_available_by_position(
     available: list[Player],
     cat_stats: dict[str, CatStats],
-) -> dict[str, list[tuple[int, float]]]:
-    """Build position -> [(mlb_id, normalized_value)] sorted desc by value."""
-    by_pos: dict[str, list[tuple[int, float]]] = {}
+) -> dict[str, list[tuple[int, float, float]]]:
+    """Build position -> [(mlb_id, normalized_value, adp)] sorted desc by value."""
+    by_pos: dict[str, list[tuple[int, float, float]]] = {}
     for p in available:
         nv = get_normalized_value(p, cat_stats)
+        adp = p.espn_adp if p.espn_adp is not None else 999.0
         for pos in p.get_positions():
             if pos not in by_pos:
                 by_pos[pos] = []
-            by_pos[pos].append((p.mlb_id, nv))
+            by_pos[pos].append((p.mlb_id, nv, adp))
 
     for pos in by_pos:
         by_pos[pos].sort(key=lambda x: x[1], reverse=True)
@@ -321,7 +392,13 @@ def full_player_score(
     config: SimConfig,
 ) -> float:
     normalized_value = get_normalized_value(player, cat_stats)
-    vona = compute_vona(player, available_by_position)
+
+    if config.USE_WINDOW_VONA:
+        vona = compute_window_vona(
+            player, available_by_position, current_pick, picks_until_mine, config.ADP_SIGMA,
+        )
+    else:
+        vona = compute_vona(player, available_by_position)
 
     # Urgency
     urgency = 0.0
@@ -345,8 +422,8 @@ def full_player_score(
     else:
         score = normalized_value + vona * config.VONA_WEIGHT_BPA + urgency * config.URGENCY_WEIGHT_BPA
 
-    # Availability discount
-    if player.espn_adp is not None:
+    # Availability discount — skip when window VONA is active (scarcity already baked in)
+    if not config.USE_WINDOW_VONA and player.espn_adp is not None:
         avail = compute_availability(player.espn_adp, current_pick, picks_until_mine, config.ADP_SIGMA)
         score *= 1 - avail * config.AVAILABILITY_DISCOUNT
 

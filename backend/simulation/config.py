@@ -20,6 +20,9 @@ class SimConfig:
     ADP_SIGMA: float = 18.0
     OPP_BENCH_ADP_PENALTY: float = 15.0  # ADP penalty for bench-only picks
 
+    # Window VONA: use availability-weighted replacement instead of literal next-best
+    USE_WINDOW_VONA: bool = False
+
     # Standings confidence ramp
     CONFIDENCE_START: int = 40
     CONFIDENCE_END: int = 81
