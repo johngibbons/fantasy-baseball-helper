@@ -7,14 +7,8 @@
  * Projects actual stats (R, TB, OBP, ERA, etc.) rather than z-scores.
  */
 
-export interface CatDef {
-  key: string
-  label: string
-  projKey: string
-  inverted: boolean
-  rate?: boolean
-  weight?: string
-}
+import type { CatDef } from './draft-categories'
+export type { CatDef }
 
 export interface TeamRow {
   teamId: number

@@ -34,47 +34,14 @@ import {
   ROSTER_SLOTS, POSITION_TO_SLOTS, SLOT_ORDER, STARTER_SLOT_COUNT, BENCH_CONTRIBUTION,
   pitcherRole, getPositions, getEligibleSlots, optimizeRoster, type RosterResult,
 } from '@/lib/roster-optimizer'
+import {
+  type CatDef, HITTING_CATS, PITCHING_CATS, ALL_CATS,
+  posColor, getHeatColor, formatStat, computeTeamCategories,
+} from '@/lib/draft-categories'
+import { CategoryBar } from '@/components/CategoryBar'
 
 // ── Position filter buttons ──
 const POSITIONS = ['All', 'C', '1B', '2B', '3B', 'SS', 'OF', 'SP', 'RP']
-
-// ── Position badge colors ──
-const posColor: Record<string, string> = {
-  C: 'bg-blue-500', '1B': 'bg-amber-500', '2B': 'bg-orange-500', '3B': 'bg-purple-500',
-  SS: 'bg-red-500', OF: 'bg-emerald-500', LF: 'bg-emerald-500', CF: 'bg-emerald-500',
-  RF: 'bg-emerald-500', DH: 'bg-gray-500', SP: 'bg-sky-500', RP: 'bg-pink-500', P: 'bg-teal-500',
-  TWP: 'bg-violet-500', UTIL: 'bg-gray-500',
-}
-
-// ── Helpers ──
-
-// ── Category definitions ──
-interface CatDef {
-  key: string
-  label: string
-  projKey: string
-  inverted: boolean
-  rate?: boolean
-  weight?: string
-}
-
-const HITTING_CATS: CatDef[] = [
-  { key: 'zscore_r', label: 'R', projKey: 'proj_r', inverted: false },
-  { key: 'zscore_tb', label: 'TB', projKey: 'proj_tb', inverted: false },
-  { key: 'zscore_rbi', label: 'RBI', projKey: 'proj_rbi', inverted: false },
-  { key: 'zscore_sb', label: 'SB', projKey: 'proj_sb', inverted: false },
-  { key: 'zscore_obp', label: 'OBP', projKey: 'proj_obp', inverted: false, rate: true, weight: 'proj_pa' },
-]
-
-const PITCHING_CATS: CatDef[] = [
-  { key: 'zscore_k', label: 'K', projKey: 'proj_k', inverted: false },
-  { key: 'zscore_qs', label: 'QS', projKey: 'proj_qs', inverted: false },
-  { key: 'zscore_era', label: 'ERA', projKey: 'proj_era', inverted: true, rate: true, weight: 'proj_ip' },
-  { key: 'zscore_whip', label: 'WHIP', projKey: 'proj_whip', inverted: true, rate: true, weight: 'proj_ip' },
-  { key: 'zscore_svhd', label: 'SVHD', projKey: 'proj_svhd', inverted: false },
-]
-
-const ALL_CATS: CatDef[] = [...HITTING_CATS, ...PITCHING_CATS]
 
 // ── Default teams fallback ──
 const DEFAULT_NUM_TEAMS = 10
@@ -609,109 +576,10 @@ export default function DraftBoardPage() {
   }, [rosterState])
 
   // ── Draft comparison: all teams' category totals (starters full, bench discounted) ──
-  const teamCategories = useMemo(() => {
-    interface TeamData {
-      totals: Record<string, number>       // z-score sums (for MCW model)
-      statTotals: Record<string, number>   // projected stat totals (for display)
-      totalPA: number
-      totalIP: number
-      weightedOBP: number
-      weightedERA: number
-      weightedWHIP: number
-      count: number
-      total: number
-    }
-    const teams = new Map<number, TeamData>()
-
-    for (const [teamId, roster] of teamRosters) {
-      if (teamId === -1) continue // exclude unknown
-      const t: TeamData = {
-        totals: {}, statTotals: {}, totalPA: 0, totalIP: 0,
-        weightedOBP: 0, weightedERA: 0, weightedWHIP: 0,
-        count: 0, total: 0,
-      }
-      teams.set(teamId, t)
-
-      // Accumulate starters at full weight, bench at BENCH_CONTRIBUTION
-      const weighted: [RankedPlayer[], number][] = [
-        [roster.starters, 1],
-        [roster.bench, BENCH_CONTRIBUTION],
-      ]
-      for (const [players, weight] of weighted) {
-        for (const p of players) {
-          t.count++
-
-          // Accumulate z-scores (powers MCW model)
-          for (const cat of ALL_CATS) {
-            const val = (p as unknown as Record<string, number>)[cat.key] ?? 0
-            t.totals[cat.key] = (t.totals[cat.key] ?? 0) + val * weight
-            t.total += val * weight
-          }
-
-          // Accumulate projected stats for display
-          const pd = p as unknown as Record<string, number>
-          // Counting stats: sum directly
-          for (const cat of ALL_CATS) {
-            if (!cat.rate) {
-              t.statTotals[cat.projKey] = (t.statTotals[cat.projKey] ?? 0) + (pd[cat.projKey] ?? 0) * weight
-            }
-          }
-          // PA/IP accumulation
-          t.totalPA += (pd.proj_pa ?? 0) * weight
-          t.totalIP += (pd.proj_ip ?? 0) * weight
-          // Weighted rate components
-          t.weightedOBP += (pd.proj_obp ?? 0) * (pd.proj_pa ?? 0) * weight
-          t.weightedERA += (pd.proj_era ?? 0) * (pd.proj_ip ?? 0) * weight
-          t.weightedWHIP += (pd.proj_whip ?? 0) * (pd.proj_ip ?? 0) * weight
-        }
-      }
-    }
-
-    // Compute final rate stats from weighted components
-    for (const [, t] of teams) {
-      t.statTotals['proj_obp'] = t.totalPA > 0 ? t.weightedOBP / t.totalPA : 0
-      t.statTotals['proj_era'] = t.totalIP > 0 ? t.weightedERA / t.totalIP : 0
-      t.statTotals['proj_whip'] = t.totalIP > 0 ? t.weightedWHIP / t.totalIP : 0
-    }
-
-    // Build rows
-    const rows = [...teams.entries()]
-      .map(([teamId, data]) => ({
-        teamId,
-        teamName: teamNameMap.get(teamId) ?? `Team ${teamId}`,
-        expectedWins: 0,
-        ...data,
-      }))
-
-    // Compute per-category ranks from projected stats (1 = best)
-    const catRanks = new Map<string, Map<number, number>>()
-    for (const cat of ALL_CATS) {
-      const sorted = [...rows].sort((a, b) => {
-        const aVal = a.statTotals[cat.projKey] ?? 0
-        const bVal = b.statTotals[cat.projKey] ?? 0
-        return cat.inverted ? aVal - bVal : bVal - aVal
-      })
-      const rankMap = new Map<number, number>()
-      sorted.forEach((r, i) => rankMap.set(r.teamId, i + 1))
-      catRanks.set(cat.key, rankMap)
-    }
-
-    // Compute expected weekly wins per team from category ranks
-    const numTeams = rows.length
-    for (const row of rows) {
-      let ew = 0
-      for (const cat of ALL_CATS) {
-        const rank = catRanks.get(cat.key)?.get(row.teamId) ?? numTeams
-        ew += numTeams > 1 ? (numTeams - rank) / (numTeams - 1) : 0
-      }
-      row.expectedWins = ew
-    }
-
-    // Sort by expected wins descending
-    rows.sort((a, b) => b.expectedWins - a.expectedWins)
-
-    return { rows, catRanks, teamCount: rows.length }
-  }, [teamRosters, teamNameMap])
+  const teamCategories = useMemo(
+    () => computeTeamCategories(teamRosters, teamNameMap),
+    [teamRosters, teamNameMap],
+  )
 
   // ── Category standings analysis (MCW model) ──
   const categoryStandings = useMemo((): CategoryAnalysis[] => {
@@ -1329,6 +1197,25 @@ export default function DraftBoardPage() {
             )}
           </button>
         </div>
+
+        {/* Draft Complete Banner */}
+        {pickSchedule.length > 0 && currentPickIndex >= pickSchedule.length && (
+          <div className="bg-emerald-950/50 border border-emerald-700 rounded-xl mb-4 p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">&#9989;</span>
+              <div>
+                <h3 className="text-emerald-300 font-bold text-sm">Draft Complete!</h3>
+                <p className="text-emerald-400/70 text-xs mt-0.5">All {pickSchedule.length} picks have been made.</p>
+              </div>
+            </div>
+            <Link
+              href="/draft/results"
+              className="px-4 py-2 text-sm font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition-colors"
+            >
+              View Results &rarr;
+            </Link>
+          </div>
+        )}
 
         {/* Draft Order Editor */}
         {showDraftOrder && (
@@ -2313,35 +2200,6 @@ export default function DraftBoardPage() {
   )
 }
 
-// ── Heatmap color helper ──
-function getHeatColor(rank: number, total: number): string {
-  if (total <= 1) return 'rgb(52, 211, 153)' // emerald
-  // Map rank 1→green, rank N→red
-  const t = (rank - 1) / (total - 1) // 0 = best, 1 = worst
-  // Green (52, 211, 153) → Yellow (234, 179, 8) → Red (239, 68, 68)
-  if (t <= 0.5) {
-    const s = t * 2
-    const r = Math.round(52 + (234 - 52) * s)
-    const g = Math.round(211 + (179 - 211) * s)
-    const b = Math.round(153 + (8 - 153) * s)
-    return `rgb(${r}, ${g}, ${b})`
-  } else {
-    const s = (t - 0.5) * 2
-    const r = Math.round(234 + (239 - 234) * s)
-    const g = Math.round(179 + (68 - 179) * s)
-    const b = Math.round(8 + (68 - 8) * s)
-    return `rgb(${r}, ${g}, ${b})`
-  }
-}
-
-// ── Stat formatting for projected stats ──
-function formatStat(cat: CatDef, value: number): string {
-  if (cat.label === 'OBP') return value.toFixed(3)
-  if (cat.label === 'ERA' || cat.label === 'WHIP') return value.toFixed(2)
-  return Math.round(value).toString()
-}
-
-// ── Category balance bar component ──
 // ── Sortable table header for draft board ──
 type DraftSortKey = 'rank' | 'adp' | 'avail' | 'name' | 'pos' | 'team' | 'value' | 'score'
 
@@ -2366,28 +2224,3 @@ function DraftTh({ label, field, sortKey, sortAsc, onSort, align = 'left', class
   )
 }
 
-function CategoryBar({ label, value, isWeakest }: { label: string; value: number; isWeakest: boolean }) {
-  // Scale bar: clamp to [-10, 10] for display
-  const maxVal = 10
-  const clamped = Math.max(-maxVal, Math.min(maxVal, value))
-  const pct = Math.abs(clamped) / maxVal * 100
-
-  return (
-    <div className={`flex items-center gap-2 py-0.5 ${isWeakest ? 'bg-red-950/30 -mx-2 px-2 rounded' : ''}`}>
-      <span className={`w-8 text-[10px] font-bold tabular-nums text-right shrink-0 ${isWeakest ? 'text-red-400' : 'text-gray-400'}`}>
-        {label}
-      </span>
-      <div className="flex-1 h-3 bg-gray-800 rounded-full overflow-hidden relative">
-        <div
-          className={`h-full rounded-full transition-all ${
-            value >= 0 ? 'bg-emerald-500/60' : 'bg-red-500/60'
-          } ${isWeakest ? (value >= 0 ? 'bg-emerald-500/40' : 'bg-red-500/80') : ''}`}
-          style={{ width: `${Math.max(pct, 2)}%` }}
-        />
-      </div>
-      <span className={`w-9 text-[10px] font-bold tabular-nums text-right shrink-0 ${value >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-        {value > 0 ? '+' : ''}{value.toFixed(1)}
-      </span>
-    </div>
-  )
-}
