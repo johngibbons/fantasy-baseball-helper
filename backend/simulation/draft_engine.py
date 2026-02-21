@@ -156,10 +156,11 @@ def simulate_draft(
             result.pick_order.append(chosen.mlb_id)
 
         else:
-            # === OPPONENT PICK: ADP + noise ===
+            # === OPPONENT PICK: ADP + noise + roster need ===
             chosen = _opponent_pick(
                 available_list, available_set, player_by_id,
                 rosters[team_idx], rng, config.ADP_SIGMA,
+                config.OPP_BENCH_ADP_PENALTY,
             )
             if chosen is None:
                 continue
@@ -183,14 +184,21 @@ def _opponent_pick(
     roster: RosterState,
     rng: random.Random,
     adp_sigma: float,
+    bench_adp_penalty: float,
 ) -> Player | None:
-    """Opponent picks by ADP + gaussian noise, first that fits roster."""
+    """Opponent picks by ADP + noise, penalizing bench-only players.
+
+    Players that only fill a bench slot get a penalty added to their
+    effective ADP, making opponents prefer filling starting roster needs.
+    """
     candidates: list[tuple[float, int]] = []
     for p in available_list:
         if p.mlb_id not in available_set:
             continue
         adp = p.espn_adp if p.espn_adp is not None else 999.0
         noisy_adp = adp + rng.gauss(0, adp_sigma)
+        if not roster.has_starting_need(p):
+            noisy_adp += bench_adp_penalty
         candidates.append((noisy_adp, p.mlb_id))
 
     candidates.sort(key=lambda x: x[0])

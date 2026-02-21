@@ -18,6 +18,7 @@ class SimConfig:
 
     # Opponent model
     ADP_SIGMA: float = 18.0
+    OPP_BENCH_ADP_PENALTY: float = 15.0  # ADP penalty for bench-only picks
 
     # Standings confidence ramp
     CONFIDENCE_START: int = 40
