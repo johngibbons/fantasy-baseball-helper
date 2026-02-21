@@ -47,29 +47,18 @@ export interface ProjectedStanding {
  * @param teamRows - Current team data (from teamCategories.rows) with stat totals
  * @param availablePlayers - Undrafted players with projection data
  * @param cats - Category definitions with projKey, inverted, rate, weight
- * @param rosterSize - Total roster slots per team
- * @param pickSchedule - Flat pick schedule array
- * @param currentPickIndex - Current pick index in the schedule
+ * @param remainingStarterSlots - Map of teamId → number of unfilled starter slots
  */
 export function projectStandings(
   teamRows: TeamRow[],
   availablePlayers: { mlb_id: number; zscores: Record<string, number>; stats: Record<string, number> }[],
   cats: CatDef[],
-  rosterSize: number,
-  pickSchedule: number[],
-  currentPickIndex: number
+  remainingStarterSlots: Map<number, number>
 ): ProjectedStanding[] {
   if (teamRows.length === 0) return []
 
-  // Count remaining picks per team from the schedule
-  const remainingPicks = new Map<number, number>()
-  for (let i = currentPickIndex; i < pickSchedule.length; i++) {
-    const tid = pickSchedule[i]
-    remainingPicks.set(tid, (remainingPicks.get(tid) ?? 0) + 1)
-  }
-
-  // Total remaining picks across all teams
-  const totalRemainingPicks = [...remainingPicks.values()].reduce((a, b) => a + b, 0)
+  // Total remaining starter slots across all teams
+  const totalRemainingPicks = [...remainingStarterSlots.values()].reduce((a, b) => a + b, 0)
   if (totalRemainingPicks === 0) {
     // No more picks — projected = current, but still compute ranks and wins
     const standings: ProjectedStanding[] = teamRows.map(row => ({
@@ -124,7 +113,7 @@ export function projectStandings(
 
   // Project each team's totals
   const projected: ProjectedStanding[] = teamRows.map(row => {
-    const teamRemaining = remainingPicks.get(row.teamId) ?? 0
+    const teamRemaining = remainingStarterSlots.get(row.teamId) ?? 0
     const share = teamRemaining / totalRemainingPicks
 
     // Z-score projected totals (for MCW model compatibility)

@@ -30,6 +30,10 @@ import {
 import { computeTiers } from '@/lib/tier-engine'
 import { computeAvailability } from '@/lib/pick-predictor'
 import { projectStandings, type ProjectedStanding } from '@/lib/projected-standings'
+import {
+  ROSTER_SLOTS, POSITION_TO_SLOTS, SLOT_ORDER, STARTER_SLOT_COUNT, BENCH_CONTRIBUTION,
+  pitcherRole, getPositions, getEligibleSlots, optimizeRoster, type RosterResult,
+} from '@/lib/roster-optimizer'
 
 // ── Position filter buttons ──
 const POSITIONS = ['All', 'C', '1B', '2B', '3B', 'SS', 'OF', 'SP', 'RP']
@@ -42,53 +46,7 @@ const posColor: Record<string, string> = {
   TWP: 'bg-violet-500', UTIL: 'bg-gray-500',
 }
 
-// ── Roster slot configuration ──
-const ROSTER_SLOTS: Record<string, number> = {
-  C: 1, '1B': 1, '2B': 1, '3B': 1, SS: 1, OF: 3, UTIL: 2, SP: 3, RP: 2, P: 2, BE: 8,
-}
-
-// Maps ESPN positions to the roster slots they can fill (most restrictive first)
-const POSITION_TO_SLOTS: Record<string, string[]> = {
-  C: ['C', 'UTIL', 'BE'], '1B': ['1B', 'UTIL', 'BE'], '2B': ['2B', 'UTIL', 'BE'],
-  '3B': ['3B', 'UTIL', 'BE'], SS: ['SS', 'UTIL', 'BE'],
-  OF: ['OF', 'UTIL', 'BE'], LF: ['OF', 'UTIL', 'BE'], CF: ['OF', 'UTIL', 'BE'], RF: ['OF', 'UTIL', 'BE'],
-  DH: ['UTIL', 'BE'],
-  SP: ['SP', 'P', 'BE'], RP: ['RP', 'P', 'BE'],
-  TWP: ['UTIL', 'SP', 'P', 'BE'],
-}
-
 // ── Helpers ──
-
-/** Classify a pitcher as SP or RP using z-score data (matches zscores.py logic) */
-function pitcherRole(p: RankedPlayer): 'SP' | 'RP' {
-  if (p.zscore_qs && p.zscore_qs !== 0) return 'SP'
-  if (p.zscore_svhd && p.zscore_svhd !== 0) return 'RP'
-  return 'SP' // default — matches backend's IP >= 80 heuristic
-}
-
-/** Parse eligible_positions string into raw position list, inferring SP/RP for pitchers */
-function getPositions(p: RankedPlayer): string[] {
-  if (p.eligible_positions) {
-    const positions = p.eligible_positions.split('/')
-    // Sort DH to the end — it only fills UTIL, so a real position should take priority
-    // for display and VONA scarcity calculations
-    positions.sort((a, b) => (a === 'DH' ? 1 : 0) - (b === 'DH' ? 1 : 0))
-    return positions
-  }
-  if (p.player_type === 'pitcher') return [pitcherRole(p)]
-  return [p.primary_position]
-}
-
-/** Parse eligible_positions string into array of roster slots a player can fill */
-function getEligibleSlots(p: RankedPlayer): string[] {
-  const positions = getPositions(p)
-  const slotSet = new Set<string>()
-  for (const pos of positions) {
-    const slots = POSITION_TO_SLOTS[pos]
-    if (slots) slots.forEach((s) => slotSet.add(s))
-  }
-  return [...slotSet]
-}
 
 // ── Category definitions ──
 interface CatDef {
@@ -117,9 +75,6 @@ const PITCHING_CATS: CatDef[] = [
 ]
 
 const ALL_CATS: CatDef[] = [...HITTING_CATS, ...PITCHING_CATS]
-
-// ── Roster slot display order ──
-const SLOT_ORDER = ['C', '1B', '2B', '3B', 'SS', 'OF', 'UTIL', 'SP', 'RP', 'P', 'BE']
 
 // ── Default teams fallback ──
 const DEFAULT_NUM_TEAMS = 10
@@ -613,48 +568,48 @@ export default function DraftBoardPage() {
 
   const myTeamZScore = useMemo(() => myTeam.reduce((s, p) => s + (p.total_zscore || 0), 0), [myTeam])
 
-  // ── Roster assignment (greedy, most constrained first) ──
-  const rosterState = useMemo(() => {
-    const capacity: Record<string, number> = { ...ROSTER_SLOTS }
-    const assignments: { slot: string; player: RankedPlayer }[] = []
-    const unassigned: RankedPlayer[] = []
-
-    // Sort by fewest eligible slots first (most constrained)
-    const sorted = [...myTeam].sort((a, b) => getEligibleSlots(a).length - getEligibleSlots(b).length)
-
-    for (const player of sorted) {
-      const slots = getEligibleSlots(player)
-      let placed = false
-      for (const slot of slots) {
-        if ((capacity[slot] || 0) > 0) {
-          capacity[slot]--
-          assignments.push({ slot, player })
-          placed = true
-          break
-        }
-      }
-      if (!placed) unassigned.push(player)
+  // ── Per-team roster optimization (shared across memos) ──
+  const teamRosters = useMemo(() => {
+    const playerMap = new Map(allPlayers.map(p => [p.mlb_id, p]))
+    const grouped = new Map<number, RankedPlayer[]>()
+    for (const [mlbId, teamId] of draftPicks) {
+      const p = playerMap.get(mlbId)
+      if (!p) continue
+      if (!grouped.has(teamId)) grouped.set(teamId, [])
+      grouped.get(teamId)!.push(p)
     }
+    const result = new Map<number, RosterResult>()
+    for (const [teamId, players] of grouped) {
+      result.set(teamId, optimizeRoster(players))
+    }
+    return result
+  }, [allPlayers, draftPicks])
 
-    return { assignments, remainingCapacity: capacity, unassigned }
-  }, [myTeam])
+  // ── My team roster assignment (derived from teamRosters) ──
+  const rosterState = useMemo(
+    () => teamRosters.get(myTeamId!) ?? optimizeRoster([]),
+    [teamRosters, myTeamId]
+  )
 
-  // ── Category balance (my team) ──
+  // ── Category balance (my team: starters at full weight, bench at BENCH_CONTRIBUTION) ──
   const categoryBalance = useMemo(() => {
     const totals: Record<string, number> = {}
     for (const cat of ALL_CATS) totals[cat.key] = 0
-    for (const p of myTeam) {
+    for (const p of rosterState.starters) {
       for (const cat of ALL_CATS) {
         totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0)
       }
     }
+    for (const p of rosterState.bench) {
+      for (const cat of ALL_CATS) {
+        totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0) * BENCH_CONTRIBUTION
+      }
+    }
     return totals
-  }, [myTeam])
+  }, [rosterState])
 
-  // ── Draft comparison: all teams' category totals ──
+  // ── Draft comparison: all teams' category totals (starters full, bench discounted) ──
   const teamCategories = useMemo(() => {
-    const playerMap = new Map(allPlayers.map(p => [p.mlb_id, p]))
-
     interface TeamData {
       totals: Record<string, number>       // z-score sums (for MCW model)
       statTotals: Record<string, number>   // projected stat totals (for display)
@@ -668,39 +623,48 @@ export default function DraftBoardPage() {
     }
     const teams = new Map<number, TeamData>()
 
-    for (const [mlbId, teamId] of draftPicks) {
-      const p = playerMap.get(mlbId)
-      if (!p) continue
-      if (!teams.has(teamId)) teams.set(teamId, {
+    for (const [teamId, roster] of teamRosters) {
+      if (teamId === -1) continue // exclude unknown
+      const t: TeamData = {
         totals: {}, statTotals: {}, totalPA: 0, totalIP: 0,
         weightedOBP: 0, weightedERA: 0, weightedWHIP: 0,
         count: 0, total: 0,
-      })
-      const t = teams.get(teamId)!
-      t.count++
-
-      // Accumulate z-scores (unchanged — powers MCW model)
-      for (const cat of ALL_CATS) {
-        const val = (p as unknown as Record<string, number>)[cat.key] ?? 0
-        t.totals[cat.key] = (t.totals[cat.key] ?? 0) + val
-        t.total += val
       }
+      teams.set(teamId, t)
 
-      // Accumulate projected stats for display
-      const pd = p as unknown as Record<string, number>
-      // Counting stats: sum directly
-      for (const cat of ALL_CATS) {
-        if (!cat.rate) {
-          t.statTotals[cat.projKey] = (t.statTotals[cat.projKey] ?? 0) + (pd[cat.projKey] ?? 0)
+      // Accumulate starters at full weight, bench at BENCH_CONTRIBUTION
+      const weighted: [RankedPlayer[], number][] = [
+        [roster.starters, 1],
+        [roster.bench, BENCH_CONTRIBUTION],
+      ]
+      for (const [players, weight] of weighted) {
+        for (const p of players) {
+          t.count++
+
+          // Accumulate z-scores (powers MCW model)
+          for (const cat of ALL_CATS) {
+            const val = (p as unknown as Record<string, number>)[cat.key] ?? 0
+            t.totals[cat.key] = (t.totals[cat.key] ?? 0) + val * weight
+            t.total += val * weight
+          }
+
+          // Accumulate projected stats for display
+          const pd = p as unknown as Record<string, number>
+          // Counting stats: sum directly
+          for (const cat of ALL_CATS) {
+            if (!cat.rate) {
+              t.statTotals[cat.projKey] = (t.statTotals[cat.projKey] ?? 0) + (pd[cat.projKey] ?? 0) * weight
+            }
+          }
+          // PA/IP accumulation
+          t.totalPA += (pd.proj_pa ?? 0) * weight
+          t.totalIP += (pd.proj_ip ?? 0) * weight
+          // Weighted rate components
+          t.weightedOBP += (pd.proj_obp ?? 0) * (pd.proj_pa ?? 0) * weight
+          t.weightedERA += (pd.proj_era ?? 0) * (pd.proj_ip ?? 0) * weight
+          t.weightedWHIP += (pd.proj_whip ?? 0) * (pd.proj_ip ?? 0) * weight
         }
       }
-      // PA/IP accumulation
-      t.totalPA += pd.proj_pa ?? 0
-      t.totalIP += pd.proj_ip ?? 0
-      // Weighted rate components
-      t.weightedOBP += (pd.proj_obp ?? 0) * (pd.proj_pa ?? 0)
-      t.weightedERA += (pd.proj_era ?? 0) * (pd.proj_ip ?? 0)
-      t.weightedWHIP += (pd.proj_whip ?? 0) * (pd.proj_ip ?? 0)
     }
 
     // Compute final rate stats from weighted components
@@ -712,7 +676,6 @@ export default function DraftBoardPage() {
 
     // Build rows
     const rows = [...teams.entries()]
-      .filter(([tid]) => tid !== -1) // exclude unknown
       .map(([teamId, data]) => ({
         teamId,
         teamName: teamNameMap.get(teamId) ?? `Team ${teamId}`,
@@ -748,7 +711,7 @@ export default function DraftBoardPage() {
     rows.sort((a, b) => b.expectedWins - a.expectedWins)
 
     return { rows, catRanks, teamCount: rows.length }
-  }, [allPlayers, draftPicks, teamNameMap])
+  }, [teamRosters, teamNameMap])
 
   // ── Category standings analysis (MCW model) ──
   const categoryStandings = useMemo((): CategoryAnalysis[] => {
@@ -1045,29 +1008,12 @@ export default function DraftBoardPage() {
   // ── Opponent needs ──
   const opponentNeeds = useMemo(() => {
     if (!myTeamId || leagueTeams.length < 2) return []
-    const playerMap = new Map(allPlayers.map(p => [p.mlb_id, p]))
 
     return leagueTeams
       .filter(t => t.id !== myTeamId)
       .map(team => {
-        // Get this team's drafted players
-        const teamPlayers = [...draftPicks.entries()]
-          .filter(([, tid]) => tid === team.id)
-          .map(([mlbId]) => playerMap.get(mlbId))
-          .filter((p): p is RankedPlayer => p != null)
-
-        // Run greedy roster assignment (same algorithm as my team)
-        const capacity: Record<string, number> = { ...ROSTER_SLOTS }
-        const sorted = [...teamPlayers].sort((a, b) => getEligibleSlots(a).length - getEligibleSlots(b).length)
-        for (const player of sorted) {
-          const slots = getEligibleSlots(player)
-          for (const slot of slots) {
-            if ((capacity[slot] || 0) > 0) {
-              capacity[slot]--
-              break
-            }
-          }
-        }
+        const roster = teamRosters.get(team.id)
+        const capacity = roster ? { ...roster.remainingCapacity } : { ...ROSTER_SLOTS }
 
         // Compute open roster slots (remaining capacity per slot, excluding bench)
         const openSlots: { slot: string; remaining: number }[] = []
@@ -1078,12 +1024,19 @@ export default function DraftBoardPage() {
           }
         }
 
-        // Compute weakest 3 categories
+        // Compute weakest 3 categories (starters full, bench discounted)
         const totals: Record<string, number> = {}
         for (const cat of ALL_CATS) totals[cat.key] = 0
-        for (const p of teamPlayers) {
-          for (const cat of ALL_CATS) {
-            totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0)
+        if (roster) {
+          for (const p of roster.starters) {
+            for (const cat of ALL_CATS) {
+              totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0)
+            }
+          }
+          for (const p of roster.bench) {
+            for (const cat of ALL_CATS) {
+              totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0) * BENCH_CONTRIBUTION
+            }
           }
         }
         const weakCats = ALL_CATS
@@ -1097,14 +1050,14 @@ export default function DraftBoardPage() {
         return {
           teamId: team.id,
           teamName: team.name,
-          pickCount: teamPlayers.length,
+          pickCount: roster ? roster.starters.length + roster.bench.length : 0,
           openSlots,
           weakCats,
           nextPickIn,
         }
       })
       .sort((a, b) => a.nextPickIn - b.nextPickIn)
-  }, [myTeamId, leagueTeams, allPlayers, draftPicks, currentPickIndex, pickSchedule, draftOrder])
+  }, [myTeamId, leagueTeams, teamRosters, currentPickIndex, pickSchedule, draftOrder])
 
   // ── Projected standings ──
   const projectedStandingsData = useMemo((): ProjectedStanding[] => {
@@ -1124,15 +1077,20 @@ export default function DraftBoardPage() {
         return { mlb_id: p.mlb_id, zscores, stats }
       })
 
+    const remainingStarters = new Map<number, number>()
+    for (const team of leagueTeams) {
+      const roster = teamRosters.get(team.id)
+      const filled = roster ? roster.starters.length : 0
+      remainingStarters.set(team.id, Math.max(0, STARTER_SLOT_COUNT - filled))
+    }
+
     return projectStandings(
       teamCategories.rows,
       availablePlayers,
       ALL_CATS,
-      Object.values(ROSTER_SLOTS).reduce((a, b) => a + b, 0),
-      pickSchedule,
-      currentPickIndex
+      remainingStarters
     )
-  }, [teamCategories, allPlayers, draftedIds, pickSchedule, currentPickIndex])
+  }, [teamCategories, allPlayers, draftedIds, leagueTeams, teamRosters])
 
   const handleSort = useCallback((key: typeof sortKey) => {
     if (sortKey === key) {
