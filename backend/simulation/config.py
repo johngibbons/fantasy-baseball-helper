@@ -44,6 +44,9 @@ class SimConfig:
     # Surplus value (VORP): use per-position replacement-level-adjusted value in BPA
     USE_SURPLUS_VALUE: bool = True
 
+    # Restrict normalization pool to draftable universe (top N by overall_rank)
+    RESTRICT_NORM_POOL: bool = True
+
     # Standings confidence ramp
     CONFIDENCE_START: int = 40
     CONFIDENCE_END: int = 81

@@ -656,10 +656,13 @@ export default function DraftBoardPage() {
   // than pitcher rate stats, creating a ~12-point inherent offset in raw sums.
   const catStats = useMemo(() => {
     const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
+    const numTeams = leagueTeams.length || DEFAULT_NUM_TEAMS
+    const draftableLimit = numTeams * 25
+    const normPool = [...availablePlayers].sort((a, b) => a.overall_rank - b.overall_rank).slice(0, draftableLimit)
     const stats: Record<string, { mean: number; stdev: number }> = {}
     for (const cat of ALL_CATS) {
       const isHitterCat = HITTING_CATS.some(c => c.key === cat.key)
-      const relevant = availablePlayers.filter(p =>
+      const relevant = normPool.filter(p =>
         isHitterCat ? p.player_type === 'hitter' : p.player_type === 'pitcher'
       )
       const values = relevant.map(p => (p[cat.key as keyof RankedPlayer] as number) ?? 0)
@@ -668,7 +671,7 @@ export default function DraftBoardPage() {
       stats[cat.key] = { mean, stdev: Math.sqrt(variance) || 1 }
     }
     return stats
-  }, [allPlayers, draftedIds])
+  }, [allPlayers, draftedIds, leagueTeams.length])
 
   // Sum of standardized z-scores (centered + scaled) — used for VONA and BPA scoring
   const getNormalizedValue = useCallback((p: RankedPlayer): number => {

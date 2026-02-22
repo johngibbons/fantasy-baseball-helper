@@ -106,6 +106,8 @@ def main() -> None:
                         help="Use window VONA (availability-weighted replacement)")
     parser.add_argument("--no-surplus-value", action="store_true",
                         help="Disable surplus value (VORP) in BPA formula (on by default)")
+    parser.add_argument("--no-restrict-norm-pool", action="store_true",
+                        help="Disable normalization pool restriction (use full player pool)")
 
     args = parser.parse_args()
 
@@ -147,6 +149,8 @@ def main() -> None:
         overrides["USE_WINDOW_VONA"] = True
     if args.no_surplus_value:
         overrides["USE_SURPLUS_VALUE"] = False
+    if args.no_restrict_norm_pool:
+        overrides["RESTRICT_NORM_POOL"] = False
     if args.h2h_weight_scale is not None:
         overrides["H2H_WEIGHT_SCALE"] = args.h2h_weight_scale
 

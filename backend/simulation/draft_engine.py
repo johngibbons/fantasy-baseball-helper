@@ -98,7 +98,13 @@ def simulate_draft(
             # Recompute catStats at round boundaries
             if current_round != cat_stats_round:
                 avail_players = [p for p in available_list if p.mlb_id in available_set]
-                cat_stats = compute_cat_stats(avail_players)
+                # Restrict normalization pool to draftable universe
+                if config.RESTRICT_NORM_POOL:
+                    draftable_limit = num_teams * num_rounds
+                    norm_pool = sorted(avail_players, key=lambda p: p.overall_rank)[:draftable_limit]
+                else:
+                    norm_pool = avail_players
+                cat_stats = compute_cat_stats(norm_pool)
                 replacement_levels = compute_replacement_levels(avail_players, cat_stats, num_teams)
                 cat_stats_round = current_round
 
