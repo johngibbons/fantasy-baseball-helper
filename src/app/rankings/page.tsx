@@ -240,8 +240,8 @@ export default function RankingsPage() {
 
                         {/* Position */}
                         <td className="px-2 py-[7px] text-center">
-                          <span className={`text-[11px] font-bold ${posColors[p.primary_position] || 'text-gray-500'}`}>
-                            {p.primary_position}
+                          <span className={`text-[11px] font-bold ${posColors[p.eligible_positions?.split('/')[0] ?? p.primary_position] || 'text-gray-500'}`}>
+                            {p.eligible_positions?.split('/').join(', ') ?? p.primary_position}
                           </span>
                         </td>
 

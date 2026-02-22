@@ -5,6 +5,10 @@ from dataclasses import dataclass, replace
 
 @dataclass(frozen=True)
 class SimConfig:
+    # MCW strategy multipliers (how much MCW credit each category strategy gets)
+    LOCK_MCW_WEIGHT: float = 1.0    # rank 1-2 with big gap below
+    TARGET_MCW_WEIGHT: float = 1.0  # rank 3-8, where marginal improvement flips matchups
+
     # computeDraftScore coefficients
     MCW_WEIGHT: float = 21.0
     VONA_WEIGHT_MCW: float = 0.16
@@ -31,6 +35,10 @@ class SimConfig:
     # Standings confidence ramp
     CONFIDENCE_START: int = 40
     CONFIDENCE_END: int = 81
+
+    # Composition steering (None = unconstrained)
+    TARGET_SP: int | None = None   # target total SP count
+    TARGET_RP: int | None = None   # target total RP count
 
     # League settings
     NUM_TEAMS: int = 10

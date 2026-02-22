@@ -47,10 +47,12 @@ def get_rankings(
                              AND r.zscore_svhd IS NOT NULL AND r.zscore_svhd != 0)
                          OR (p.eligible_positions LIKE '%RP%'))"""
         elif position == "OF":
-            query += " AND p.primary_position IN ('OF', 'LF', 'CF', 'RF')"
+            query += """ AND (p.primary_position IN ('OF', 'LF', 'CF', 'RF')
+                         OR p.eligible_positions LIKE '%OF%')"""
         else:
-            query += " AND p.primary_position = ?"
-            params.append(position)
+            query += """ AND (p.primary_position = ?
+                         OR ('/' || p.eligible_positions || '/') LIKE ?)"""
+            params.extend([position, f"%/{position}/%"])
 
     query += " ORDER BY r.overall_rank ASC LIMIT ? OFFSET ?"
     params.extend([limit, offset])
@@ -149,11 +151,13 @@ def get_position_summary(season: int = 2026) -> dict:
                             OR (p.eligible_positions LIKE '%RP%'))"""
             pos_params = [season]
         elif pos in ("OF", "LF", "CF", "RF"):
-            pos_clause = "p.primary_position IN ('OF', 'LF', 'CF', 'RF')"
+            pos_clause = """(p.primary_position IN ('OF', 'LF', 'CF', 'RF')
+                            OR p.eligible_positions LIKE '%OF%')"""
             pos_params = [season]
         else:
-            pos_clause = "p.primary_position = ?"
-            pos_params = [season, pos]
+            pos_clause = """(p.primary_position = ?
+                            OR ('/' || p.eligible_positions || '/') LIKE ?)"""
+            pos_params = [season, pos, f"%/{pos}/%"]
 
         rows = conn.execute(
             f"""SELECT r.mlb_id, r.overall_rank, r.total_zscore,

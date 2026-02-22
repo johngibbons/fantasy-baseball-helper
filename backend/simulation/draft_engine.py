@@ -27,6 +27,8 @@ class DraftResult:
     all_team_totals: list[dict[str, float]] = field(default_factory=list)  # team_idx -> cat totals
     pick_order: list[int] = field(default_factory=list)  # mlb_ids in pick order for my team
     bench_pitcher_count: int = 0  # pitchers assigned to bench for my team
+    sp_count: int = 0
+    rp_count: int = 0
 
 
 def snake_order(pick_index: int, num_teams: int) -> int:
@@ -70,6 +72,8 @@ def simulate_draft(
     team_players: list[list[Player]] = [[] for _ in range(num_teams)]
     my_pick_count = 0
     my_bench_pitcher_count = 0
+    my_sp_count = 0
+    my_rp_count = 0
 
     # Precompute ADP-sorted order for opponent picks (rebuilt when pool changes significantly)
     # We'll sort once and maintain it lazily
@@ -124,6 +128,15 @@ def simulate_draft(
                 if not rosters[my_slot].can_add(p):
                     continue
                 has_need = rosters[my_slot].has_starting_need(p)
+
+                # Composition steering: once target is met, treat as bench pick
+                if has_need and p.player_type == "pitcher":
+                    role = p.pitcher_role()
+                    if role == "SP" and config.TARGET_SP is not None and my_sp_count >= config.TARGET_SP:
+                        has_need = False
+                    elif role == "RP" and config.TARGET_RP is not None and my_rp_count >= config.TARGET_RP:
+                        has_need = False
+
                 score = full_player_score(
                     player=p,
                     my_totals=team_totals[my_slot],
@@ -181,8 +194,17 @@ def simulate_draft(
             team_totals[team_idx][cat_key] += chosen.zscores.get(cat_key, 0.0) * weight
         team_players[team_idx].append(chosen)
 
+        # Track SP/RP counts for our team
+        if team_idx == my_slot and chosen.player_type == "pitcher":
+            if chosen.pitcher_role() == "SP":
+                my_sp_count += 1
+            else:
+                my_rp_count += 1
+
     result.all_team_totals = team_totals
     result.bench_pitcher_count = my_bench_pitcher_count
+    result.sp_count = my_sp_count
+    result.rp_count = my_rp_count
     return result
 
 
