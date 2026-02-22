@@ -1695,6 +1695,195 @@ export default function DraftBoardPage() {
           <div className="lg:col-span-1">
             <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto space-y-4">
 
+              {/* Suggestions */}
+              <div className="bg-gray-900 rounded-xl border border-gray-800">
+                <div className="px-4 py-3 border-b border-gray-800">
+                  <h2 className="font-bold text-white text-sm">Suggestions</h2>
+                </div>
+                <div className="px-3 py-2 space-y-2">
+                  {/* Recommendation Card */}
+                  {topRecommendation && (() => {
+                    const { primary, explanation, runnersUp } = topRecommendation
+                    const topGains = primary.categoryGains
+                      .filter(g => g.winProbAfter - g.winProbBefore > 0.02)
+                      .sort((a, b) => (b.winProbAfter - b.winProbBefore) - (a.winProbAfter - a.winProbBefore))
+                      .slice(0, 3)
+                    return (
+                      <div>
+                        <div className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider mb-1">Recommended pick</div>
+                        {/* Primary recommendation */}
+                        <div className="py-2 px-2.5 rounded-lg bg-purple-950/30 border border-purple-800/30 mb-1.5">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[primary.position] || 'bg-gray-600'}`}>
+                              {primary.position}
+                            </span>
+                            <span className="text-sm font-bold text-white truncate">{primary.fullName}</span>
+                            <div className="flex items-center gap-1 ml-auto shrink-0">
+                              {primary.badge === 'NOW' && (
+                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
+                              )}
+                              {primary.badge === 'WAIT' && (
+                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">WAIT</span>
+                              )}
+                              <span className="text-xs font-bold tabular-nums text-purple-400">{primary.score.toFixed(1)}</span>
+                            </div>
+                          </div>
+                          {/* Category win probability shifts */}
+                          {topGains.length > 0 && (
+                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mb-1.5">
+                              {topGains.map(g => (
+                                <span key={g.catKey} className="text-[10px] tabular-nums">
+                                  <span className="text-gray-500">{g.label}:</span>{' '}
+                                  <span className="text-gray-400">{Math.round(g.winProbBefore * 100)}%</span>
+                                  <span className="text-gray-600 mx-0.5">&rarr;</span>
+                                  <span className="text-emerald-400 font-bold">{Math.round(g.winProbAfter * 100)}%</span>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          {/* Score breakdown */}
+                          <div className="flex gap-3 text-[9px] text-gray-500 mb-1">
+                            {primary.mcw > 0 && <span>MCW <span className="text-purple-400 font-bold">{primary.mcw.toFixed(2)}</span></span>}
+                            <span>VONA <span className="text-emerald-400 font-bold">{primary.vona.toFixed(1)}</span></span>
+                            {primary.urgency > 0 && <span>URG <span className="text-yellow-400 font-bold">{primary.urgency.toFixed(0)}</span></span>}
+                          </div>
+                          {/* Explanation */}
+                          <div className="text-[10px] text-gray-400 leading-snug">{explanation}</div>
+                        </div>
+                        {/* Runners up */}
+                        {runnersUp.map((ru) => (
+                          <div
+                            key={ru.mlbId}
+                            className="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-gray-800/30 mb-0.5"
+                          >
+                            <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[ru.position] || 'bg-gray-600'}`}>
+                              {ru.position}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-white truncate">{ru.fullName}</div>
+                              {ru.categoryGains.filter(g => g.winProbAfter - g.winProbBefore > 0.02).length > 0 && (
+                                <div className="text-[9px] text-gray-500">
+                                  {ru.categoryGains
+                                    .filter(g => g.winProbAfter - g.winProbBefore > 0.02)
+                                    .sort((a, b) => (b.winProbAfter - b.winProbBefore) - (a.winProbAfter - a.winProbBefore))
+                                    .slice(0, 2)
+                                    .map(g => `${g.label}: ${Math.round(g.winProbBefore * 100)}%\u2192${Math.round(g.winProbAfter * 100)}%`)
+                                    .join(' ')}
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {ru.badge === 'NOW' && (
+                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
+                              )}
+                              <span className="text-[10px] font-bold tabular-nums text-purple-400">{ru.score.toFixed(1)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
+                  {/* Fallback: simple top scores when no recommendation card */}
+                  {!topRecommendation && hasAdpData && myTeamId != null && (() => {
+                    const topScores = [...draftScoreMap.entries()]
+                      .sort((a, b) => b[1].score - a[1].score)
+                      .slice(0, 3)
+                      .map(([mlbId, ds]) => ({ player: allPlayers.find(p => p.mlb_id === mlbId)!, ...ds }))
+                      .filter(x => x.player)
+                    if (topScores.length === 0) return null
+                    return (
+                      <div>
+                        <div className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider mb-1">Top scores</div>
+                        {topScores.map(({ player, score, badge }) => (
+                          <div
+                            key={player.mlb_id}
+                            className="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-purple-950/30 border border-purple-800/30 mb-0.5"
+                          >
+                            <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[getPositions(player)[0]] || 'bg-gray-600'}`}>
+                              {getPositions(player)[0]}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-white truncate">{player.full_name}</div>
+                              <div className="text-[10px] text-gray-500">
+                                #{player.overall_rank}
+                                {player.espn_adp != null && <> &middot; ADP {Math.round(player.espn_adp)}</>}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {badge === 'NOW' && (
+                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
+                              )}
+                              {badge === 'WAIT' && (
+                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">WAIT</span>
+                              )}
+                              <span className="text-[10px] font-bold tabular-nums text-purple-400">{score.toFixed(1)}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
+
+                  {/* Best by need */}
+                  {bestByNeed.length > 0 && (
+                    <div>
+                      <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">Best by need</div>
+                      {bestByNeed.map(({ slot, player }) => {
+                        const isTop = topSuggestion?.player.mlb_id === player.mlb_id
+                        return (
+                          <div
+                            key={`${slot}-${player.mlb_id}`}
+                            className={`flex items-center gap-2 py-1.5 px-2 rounded-lg ${
+                              isTop ? 'bg-emerald-950/50 border border-emerald-800/50' : ''
+                            }`}
+                          >
+                            <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[slot] || 'bg-gray-600'}`}>
+                              {slot}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-white truncate">{player.full_name}</div>
+                              <div className="text-[10px] text-gray-500">#{player.overall_rank}</div>
+                            </div>
+                            <span className={`text-[10px] font-bold tabular-nums shrink-0 ${isTop ? 'text-emerald-300' : 'text-emerald-400'}`}>
+                              +{player.total_zscore.toFixed(1)}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* ADP Steals */}
+                  {hasAdpData && adpSteals.length > 0 && (
+                    <div>
+                      <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1 mt-1">ADP steals</div>
+                      {adpSteals.map((p) => (
+                        <div key={p.mlb_id} className="flex items-center gap-2 py-1.5 px-2">
+                          <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[p.primary_position] || 'bg-gray-600'}`}>
+                            {p.primary_position}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-white truncate">{p.full_name}</div>
+                            <div className="text-[10px] text-gray-500">
+                              #{p.overall_rank} <span className="text-gray-600">&middot;</span> ADP {Math.round(p.espn_adp!)}
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-bold text-emerald-400 shrink-0">
+                            +{Math.abs(Math.round(p.adp_diff!))}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {bestByNeed.length === 0 && adpSteals.length === 0 && (
+                    <div className="py-4 text-center text-xs text-gray-600">
+                      Pick players to see suggestions
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Section 1: Roster Grid */}
               <div className="bg-gray-900 rounded-xl border border-gray-800">
                 <div className="px-4 py-3 border-b border-gray-800">
@@ -2060,194 +2249,6 @@ export default function DraftBoardPage() {
                 </div>
               )}
 
-              {/* Section 4: Suggested Picks */}
-              <div className="bg-gray-900 rounded-xl border border-gray-800">
-                <div className="px-4 py-3 border-b border-gray-800">
-                  <h2 className="font-bold text-white text-sm">Suggestions</h2>
-                </div>
-                <div className="px-3 py-2 space-y-2">
-                  {/* Recommendation Card */}
-                  {topRecommendation && (() => {
-                    const { primary, explanation, runnersUp } = topRecommendation
-                    const topGains = primary.categoryGains
-                      .filter(g => g.winProbAfter - g.winProbBefore > 0.02)
-                      .sort((a, b) => (b.winProbAfter - b.winProbBefore) - (a.winProbAfter - a.winProbBefore))
-                      .slice(0, 3)
-                    return (
-                      <div>
-                        <div className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider mb-1">Recommended pick</div>
-                        {/* Primary recommendation */}
-                        <div className="py-2 px-2.5 rounded-lg bg-purple-950/30 border border-purple-800/30 mb-1.5">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[primary.position] || 'bg-gray-600'}`}>
-                              {primary.position}
-                            </span>
-                            <span className="text-sm font-bold text-white truncate">{primary.fullName}</span>
-                            <div className="flex items-center gap-1 ml-auto shrink-0">
-                              {primary.badge === 'NOW' && (
-                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
-                              )}
-                              {primary.badge === 'WAIT' && (
-                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">WAIT</span>
-                              )}
-                              <span className="text-xs font-bold tabular-nums text-purple-400">{primary.score.toFixed(1)}</span>
-                            </div>
-                          </div>
-                          {/* Category win probability shifts */}
-                          {topGains.length > 0 && (
-                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 mb-1.5">
-                              {topGains.map(g => (
-                                <span key={g.catKey} className="text-[10px] tabular-nums">
-                                  <span className="text-gray-500">{g.label}:</span>{' '}
-                                  <span className="text-gray-400">{Math.round(g.winProbBefore * 100)}%</span>
-                                  <span className="text-gray-600 mx-0.5">&rarr;</span>
-                                  <span className="text-emerald-400 font-bold">{Math.round(g.winProbAfter * 100)}%</span>
-                                </span>
-                              ))}
-                            </div>
-                          )}
-                          {/* Score breakdown */}
-                          <div className="flex gap-3 text-[9px] text-gray-500 mb-1">
-                            {primary.mcw > 0 && <span>MCW <span className="text-purple-400 font-bold">{primary.mcw.toFixed(2)}</span></span>}
-                            <span>VONA <span className="text-emerald-400 font-bold">{primary.vona.toFixed(1)}</span></span>
-                            {primary.urgency > 0 && <span>URG <span className="text-yellow-400 font-bold">{primary.urgency.toFixed(0)}</span></span>}
-                          </div>
-                          {/* Explanation */}
-                          <div className="text-[10px] text-gray-400 leading-snug">{explanation}</div>
-                        </div>
-                        {/* Runners up */}
-                        {runnersUp.map((ru) => (
-                          <div
-                            key={ru.mlbId}
-                            className="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-gray-800/30 mb-0.5"
-                          >
-                            <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[ru.position] || 'bg-gray-600'}`}>
-                              {ru.position}
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-white truncate">{ru.fullName}</div>
-                              {ru.categoryGains.filter(g => g.winProbAfter - g.winProbBefore > 0.02).length > 0 && (
-                                <div className="text-[9px] text-gray-500">
-                                  {ru.categoryGains
-                                    .filter(g => g.winProbAfter - g.winProbBefore > 0.02)
-                                    .sort((a, b) => (b.winProbAfter - b.winProbBefore) - (a.winProbAfter - a.winProbBefore))
-                                    .slice(0, 2)
-                                    .map(g => `${g.label}: ${Math.round(g.winProbBefore * 100)}%\u2192${Math.round(g.winProbAfter * 100)}%`)
-                                    .join(' ')}
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-1 shrink-0">
-                              {ru.badge === 'NOW' && (
-                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
-                              )}
-                              <span className="text-[10px] font-bold tabular-nums text-purple-400">{ru.score.toFixed(1)}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  })()}
-                  {/* Fallback: simple top scores when no recommendation card */}
-                  {!topRecommendation && hasAdpData && myTeamId != null && (() => {
-                    const topScores = [...draftScoreMap.entries()]
-                      .sort((a, b) => b[1].score - a[1].score)
-                      .slice(0, 3)
-                      .map(([mlbId, ds]) => ({ player: allPlayers.find(p => p.mlb_id === mlbId)!, ...ds }))
-                      .filter(x => x.player)
-                    if (topScores.length === 0) return null
-                    return (
-                      <div>
-                        <div className="text-[10px] text-purple-400 font-semibold uppercase tracking-wider mb-1">Top scores</div>
-                        {topScores.map(({ player, score, badge }) => (
-                          <div
-                            key={player.mlb_id}
-                            className="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-purple-950/30 border border-purple-800/30 mb-0.5"
-                          >
-                            <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[getPositions(player)[0]] || 'bg-gray-600'}`}>
-                              {getPositions(player)[0]}
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-white truncate">{player.full_name}</div>
-                              <div className="text-[10px] text-gray-500">
-                                #{player.overall_rank}
-                                {player.espn_adp != null && <> &middot; ADP {Math.round(player.espn_adp)}</>}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1 shrink-0">
-                              {badge === 'NOW' && (
-                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
-                              )}
-                              {badge === 'WAIT' && (
-                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">WAIT</span>
-                              )}
-                              <span className="text-[10px] font-bold tabular-nums text-purple-400">{score.toFixed(1)}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )
-                  })()}
-
-                  {/* Best by need */}
-                  {bestByNeed.length > 0 && (
-                    <div>
-                      <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1">Best by need</div>
-                      {bestByNeed.map(({ slot, player }) => {
-                        const isTop = topSuggestion?.player.mlb_id === player.mlb_id
-                        return (
-                          <div
-                            key={`${slot}-${player.mlb_id}`}
-                            className={`flex items-center gap-2 py-1.5 px-2 rounded-lg ${
-                              isTop ? 'bg-emerald-950/50 border border-emerald-800/50' : ''
-                            }`}
-                          >
-                            <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[slot] || 'bg-gray-600'}`}>
-                              {slot}
-                            </span>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-xs text-white truncate">{player.full_name}</div>
-                              <div className="text-[10px] text-gray-500">#{player.overall_rank}</div>
-                            </div>
-                            <span className={`text-[10px] font-bold tabular-nums shrink-0 ${isTop ? 'text-emerald-300' : 'text-emerald-400'}`}>
-                              +{player.total_zscore.toFixed(1)}
-                            </span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
-
-                  {/* ADP Steals */}
-                  {hasAdpData && adpSteals.length > 0 && (
-                    <div>
-                      <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1 mt-1">ADP steals</div>
-                      {adpSteals.map((p) => (
-                        <div key={p.mlb_id} className="flex items-center gap-2 py-1.5 px-2">
-                          <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[p.primary_position] || 'bg-gray-600'}`}>
-                            {p.primary_position}
-                          </span>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-xs text-white truncate">{p.full_name}</div>
-                            <div className="text-[10px] text-gray-500">
-                              #{p.overall_rank} <span className="text-gray-600">&middot;</span> ADP {Math.round(p.espn_adp!)}
-                            </div>
-                          </div>
-                          <span className="text-[10px] font-bold text-emerald-400 shrink-0">
-                            +{Math.abs(Math.round(p.adp_diff!))}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {bestByNeed.length === 0 && adpSteals.length === 0 && (
-                    <div className="py-4 text-center text-xs text-gray-600">
-                      Pick players to see suggestions
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
           </div>
         </div>
