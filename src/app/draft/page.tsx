@@ -709,28 +709,16 @@ export default function DraftBoardPage() {
     for (const pos of Object.keys(byPosition)) {
       byPosition[pos].sort((a, b) => b.nv - a.nv)
     }
-    const vona = new Map<number, number>()
-    for (const p of availablePlayers) {
-      const primaryPos = p.player_type === 'pitcher' ? pitcherRole(p) : getPositions(p)[0]
-      const posPlayers = byPosition[primaryPos] || []
-      const myValue = getNormalizedValue(p)
-
-      // Collect alternatives (everyone else at this position, sorted desc by value)
+    // Compute window VONA at a single position for a given player
+    const windowVonaAtPosition = (mlbId: number, myValue: number, pos: string): number => {
+      const posPlayers = byPosition[pos] || []
       const alternatives: { nv: number; adp: number }[] = []
       for (const entry of posPlayers) {
-        if (entry.player.mlb_id !== p.mlb_id) {
+        if (entry.player.mlb_id !== mlbId) {
           alternatives.push(entry)
         }
       }
-
-      if (alternatives.length === 0) {
-        vona.set(p.mlb_id, myValue)
-        continue
-      }
-
-      // Expected value of best replacement if we wait:
-      // Walk alternatives best-to-worst. For each, P(it's the best still available) =
-      // P(all better ones gone) × P(this one available). Weight value by that probability.
+      if (alternatives.length === 0) return myValue
       let expectedReplacement = 0
       let pAllGoneSoFar = 1.0
       for (const alt of alternatives) {
@@ -739,9 +727,18 @@ export default function DraftBoardPage() {
         expectedReplacement += alt.nv * pIsBest
         pAllGoneSoFar *= (1 - pAvail)
       }
-      // pAllGoneSoFar is now P(every alternative is gone) — replacement = 0 in that case
+      return myValue - expectedReplacement
+    }
 
-      vona.set(p.mlb_id, myValue - expectedReplacement)
+    const vona = new Map<number, number>()
+    for (const p of availablePlayers) {
+      const myValue = getNormalizedValue(p)
+      const positions = p.player_type === 'pitcher' ? [pitcherRole(p)] : getPositions(p)
+      let bestVona = -Infinity
+      for (const pos of positions) {
+        bestVona = Math.max(bestVona, windowVonaAtPosition(p.mlb_id, myValue, pos))
+      }
+      vona.set(p.mlb_id, bestVona === -Infinity ? 0 : bestVona)
     }
     return vona
   }, [allPlayers, draftedIds, recalcData, catStats, currentPickIndex, picksUntilMine])

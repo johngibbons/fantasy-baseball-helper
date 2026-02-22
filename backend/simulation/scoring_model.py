@@ -161,6 +161,7 @@ def compute_mcw(
     other_team_totals: dict[str, list[float]],
     strategies: dict[str, str],
     num_teams: int,
+    config: SimConfig | None = None,
 ) -> float:
     mcw = 0.0
     for cat_key in ALL_CAT_KEYS:
@@ -196,6 +197,14 @@ def compute_mcw(
                 if gap_before > 0:
                     gap_closed = (gap_before - gap_after) / gap_before
                     marginal_win = (gap_closed ** 1.5) * 0.55 / (num_teams - 1)
+
+        # Apply strategy multiplier: lock categories get reduced credit,
+        # target categories get boosted credit
+        if config is not None:
+            if strategy == "lock":
+                marginal_win *= config.LOCK_MCW_WEIGHT
+            elif strategy == "target":
+                marginal_win *= config.TARGET_MCW_WEIGHT
 
         mcw += marginal_win
 
@@ -258,21 +267,17 @@ def get_normalized_value(player: Player, cat_stats: dict[str, CatStats]) -> floa
     return total
 
 
-def compute_vona(
-    player: Player,
+def _vona_at_position(
+    mlb_id: int,
+    pos: str,
     available_by_position: dict[str, list[tuple[int, float, float]]],
 ) -> float:
-    """Compute VONA for a player. available_by_position maps position -> [(mlb_id, normalized_value, adp)] sorted desc."""
-    if player.player_type == "pitcher":
-        primary_pos = player.pitcher_role()
-    else:
-        primary_pos = player.get_positions()[0]
-
-    pos_players = available_by_position.get(primary_pos, [])
+    """Compute VONA at a single position."""
+    pos_players = available_by_position.get(pos, [])
     my_idx = -1
     my_value = 0.0
     for i, (mid, val, _adp) in enumerate(pos_players):
-        if mid == player.mlb_id:
+        if mid == mlb_id:
             my_idx = i
             my_value = val
             break
@@ -285,34 +290,31 @@ def compute_vona(
     return 0.0
 
 
-def compute_window_vona(
+def compute_vona(
     player: Player,
+    available_by_position: dict[str, list[tuple[int, float, float]]],
+) -> float:
+    """Compute VONA for a player. Returns the max VONA across all eligible positions."""
+    positions = [player.pitcher_role()] if player.player_type == "pitcher" else player.get_positions()
+    return max((_vona_at_position(player.mlb_id, pos, available_by_position) for pos in positions), default=0.0)
+
+
+def _window_vona_at_position(
+    mlb_id: int,
+    pos: str,
     available_by_position: dict[str, list[tuple[int, float, float]]],
     current_pick: int,
     picks_until_mine: int,
     adp_sigma: float,
 ) -> float:
-    """Compute window VONA: value gap vs expected best replacement at next pick.
-
-    Instead of comparing against the literal next-best player (who may still be
-    available later), computes the expected value of the best player at this
-    position that will still be available when we pick again.
-
-    For each alternative, we compute P(still available at next pick) from ADP,
-    then find the expected value of the best remaining option if we wait.
-    """
-    if player.player_type == "pitcher":
-        primary_pos = player.pitcher_role()
-    else:
-        primary_pos = player.get_positions()[0]
-
-    pos_players = available_by_position.get(primary_pos, [])
+    """Compute window VONA at a single position."""
+    pos_players = available_by_position.get(pos, [])
 
     # Find this player's value
     my_value = 0.0
     found = False
     for mid, val, _adp in pos_players:
-        if mid == player.mlb_id:
+        if mid == mlb_id:
             my_value = val
             found = True
             break
@@ -323,7 +325,7 @@ def compute_window_vona(
     # pos_players is sorted desc by value
     alternatives: list[tuple[float, float]] = []  # (value, P(available at next pick))
     for mid, val, adp in pos_players:
-        if mid == player.mlb_id:
+        if mid == mlb_id:
             continue
         p_avail = compute_availability(adp, current_pick, picks_until_mine, adp_sigma)
         alternatives.append((val, p_avail))
@@ -353,6 +355,27 @@ def compute_window_vona(
     # (already handled since we only add value when someone is available)
 
     return my_value - expected_replacement
+
+
+def compute_window_vona(
+    player: Player,
+    available_by_position: dict[str, list[tuple[int, float, float]]],
+    current_pick: int,
+    picks_until_mine: int,
+    adp_sigma: float,
+) -> float:
+    """Compute window VONA: max across all eligible positions.
+
+    For each position, computes the value gap vs expected best replacement at
+    next pick, accounting for the probability each alternative gets taken.
+    Returns the max across all positions — the player's scarcity value is
+    determined by their most constrained position.
+    """
+    positions = [player.pitcher_role()] if player.player_type == "pitcher" else player.get_positions()
+    return max(
+        (_window_vona_at_position(player.mlb_id, pos, available_by_position, current_pick, picks_until_mine, adp_sigma) for pos in positions),
+        default=0.0,
+    )
 
 
 def build_available_by_position(
@@ -415,7 +438,7 @@ def full_player_score(
     has_mcw = total_picks_made >= 2 * config.NUM_TEAMS  # need some data from all teams
 
     if has_mcw and confidence > 0:
-        mcw = compute_mcw(player.zscores, my_totals, other_team_totals, strategies, config.NUM_TEAMS)
+        mcw = compute_mcw(player.zscores, my_totals, other_team_totals, strategies, config.NUM_TEAMS, config)
         score = compute_draft_score(mcw, vona, urgency, roster_fit, confidence, draft_progress, config)
         # Blend with BPA when confidence is low
         raw_score = normalized_value + vona * config.VONA_WEIGHT_BPA + urgency * config.URGENCY_WEIGHT_BPA
