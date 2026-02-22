@@ -87,6 +87,33 @@ class Player:
         return PITCHING_CAT_KEYS if self.player_type == "pitcher" else HITTING_CAT_KEYS
 
 
+# H2H category weights baked into stored z-scores (from analysis/zscores.py)
+_H2H_WEIGHTS = {
+    "zscore_r": 0.92, "zscore_tb": 0.95, "zscore_rbi": 0.96, "zscore_sb": 1.15, "zscore_obp": 1.02,
+    "zscore_k": 1.02, "zscore_qs": 0.98, "zscore_era": 0.95, "zscore_whip": 0.97, "zscore_svhd": 1.14,
+}
+
+
+def rescale_h2h_weights(players: list[Player], scale: float) -> None:
+    """Adjust H2H correlation weights on loaded z-scores.
+
+    scale=1.0 keeps current weights (no-op). scale=0.0 removes them entirely.
+    scale=0.5 halves the adjustment (weight halfway between 1.0 and current).
+    Modifies players in place and recalculates total_zscore.
+    """
+    if scale == 1.0:
+        return
+    for p in players:
+        cats = PITCHING_CAT_KEYS if p.player_type == "pitcher" else HITTING_CAT_KEYS
+        total = 0.0
+        for cat in cats:
+            old_weight = _H2H_WEIGHTS[cat]
+            new_weight = 1.0 + (old_weight - 1.0) * scale
+            p.zscores[cat] = p.zscores[cat] * new_weight / old_weight
+            total += p.zscores[cat]
+        p.total_zscore = total
+
+
 def load_players(db_path: Optional[str] = None, season: int = 2026) -> list[Player]:
     if db_path is None:
         db_path = str(Path(__file__).parent.parent / "fantasy_baseball.db")

@@ -29,6 +29,15 @@ class SimConfig:
     ADP_SIGMA: float = 18.0
     OPP_BENCH_ADP_PENALTY: float = 15.0  # ADP penalty for bench-only picks
 
+    # Scale BPA urgency by draft progress (reduces urgency in early rounds)
+    SCALE_BPA_URGENCY: bool = False
+
+    # Slot scarcity: use 1/remaining_capacity instead of binary roster fit
+    USE_SLOT_SCARCITY: bool = False
+
+    # Variable ADP sigma: sigma = 10 + 0.1 * ADP instead of fixed 18
+    USE_VARIABLE_SIGMA: bool = False
+
     # Window VONA: use availability-weighted replacement instead of literal next-best
     USE_WINDOW_VONA: bool = False
 
@@ -39,6 +48,7 @@ class SimConfig:
     # Composition steering (None = unconstrained)
     TARGET_SP: int | None = None   # target total SP count
     TARGET_RP: int | None = None   # target total RP count
+    MAX_HITTERS: int | None = None # max hitters before treating as bench
 
     # League settings
     NUM_TEAMS: int = 10

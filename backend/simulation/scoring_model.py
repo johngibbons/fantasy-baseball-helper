@@ -36,6 +36,11 @@ def _normal_cdf(x: float) -> float:
     return 0.5 * (1.0 + sign * y)
 
 
+def variable_adp_sigma(adp: float) -> float:
+    """Compute ADP-dependent sigma: tighter for consensus picks, wider for late rounds."""
+    return 10.0 + 0.1 * adp
+
+
 def compute_availability(espn_adp: float, current_pick: int, picks_until_mine: int, sigma: float = 18.0) -> float:
     target_pick = current_pick + picks_until_mine
     z = (target_pick - espn_adp) / sigma
@@ -217,7 +222,7 @@ def compute_draft_score(
     mcw: float,
     vona: float,
     urgency: float,
-    roster_fit: int,
+    roster_fit: float,
     confidence: float,
     draft_progress: float,
     config: SimConfig,
@@ -327,7 +332,8 @@ def _window_vona_at_position(
     for mid, val, adp in pos_players:
         if mid == mlb_id:
             continue
-        p_avail = compute_availability(adp, current_pick, picks_until_mine, adp_sigma)
+        sigma = variable_adp_sigma(adp) if adp_sigma < 0 else adp_sigma
+        p_avail = compute_availability(adp, current_pick, picks_until_mine, sigma)
         alternatives.append((val, p_avail))
 
     if not alternatives:
@@ -407,7 +413,7 @@ def full_player_score(
     strategies: dict[str, str],
     cat_stats: dict[str, CatStats],
     available_by_position: dict[str, list[tuple[int, float]]],
-    has_starting_need: bool,
+    has_starting_need: float,
     current_pick: int,
     picks_until_mine: int,
     total_picks_made: int,
@@ -417,9 +423,11 @@ def full_player_score(
 ) -> float:
     normalized_value = get_normalized_value(player, cat_stats)
 
+    effective_sigma = -1.0 if config.USE_VARIABLE_SIGMA else config.ADP_SIGMA
+
     if config.USE_WINDOW_VONA:
         vona = compute_window_vona(
-            player, available_by_position, current_pick, picks_until_mine, config.ADP_SIGMA,
+            player, available_by_position, current_pick, picks_until_mine, effective_sigma,
         )
     else:
         vona = compute_vona(player, available_by_position)
@@ -430,30 +438,33 @@ def full_player_score(
         adp_gap = player.espn_adp - current_pick
         urgency = max(0.0, min(15.0, picks_until_mine - adp_gap))
 
-    roster_fit = 1 if has_starting_need else 0
+    roster_fit = has_starting_need  # float: 0.0 (bench), 1.0 (binary), or scarcity gradient
 
     confidence = standings_confidence(total_picks_made, config)
     draft_progress = min(1.0, my_pick_count / 25)  # 25 rounds
 
     has_mcw = total_picks_made >= 2 * config.NUM_TEAMS  # need some data from all teams
 
+    bpa_urgency_weight = config.URGENCY_WEIGHT_BPA * (draft_progress if config.SCALE_BPA_URGENCY else 1.0)
+
     if has_mcw and confidence > 0:
         mcw = compute_mcw(player.zscores, my_totals, other_team_totals, strategies, config.NUM_TEAMS, config)
         score = compute_draft_score(mcw, vona, urgency, roster_fit, confidence, draft_progress, config)
         # Blend with BPA when confidence is low
-        raw_score = normalized_value + vona * config.VONA_WEIGHT_BPA + urgency * config.URGENCY_WEIGHT_BPA
+        raw_score = normalized_value + vona * config.VONA_WEIGHT_BPA + urgency * bpa_urgency_weight
         score = score * confidence + raw_score * (1 - confidence)
     else:
-        score = normalized_value + vona * config.VONA_WEIGHT_BPA + urgency * config.URGENCY_WEIGHT_BPA
+        score = normalized_value + vona * config.VONA_WEIGHT_BPA + urgency * bpa_urgency_weight
 
     # Availability discount — skip when window VONA is active (scarcity already baked in)
     if not config.USE_WINDOW_VONA and player.espn_adp is not None:
-        avail = compute_availability(player.espn_adp, current_pick, picks_until_mine, config.ADP_SIGMA)
+        avail_sigma = variable_adp_sigma(player.espn_adp) if config.USE_VARIABLE_SIGMA else config.ADP_SIGMA
+        avail = compute_availability(player.espn_adp, current_pick, picks_until_mine, avail_sigma)
         score *= 1 - avail * config.AVAILABILITY_DISCOUNT
 
     # Bench penalty — pitcher-aware: softer penalty for first few bench pitchers
     # (daily league streaming/swap value), then saturates to full penalty
-    if not has_starting_need and draft_progress > 0.15:
+    if has_starting_need == 0 and draft_progress > 0.15:
         if player.player_type == "pitcher":
             saturation = min(1.0, bench_pitcher_count / 3)
             floor = 0.65 - saturation * 0.30

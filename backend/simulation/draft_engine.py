@@ -74,6 +74,7 @@ def simulate_draft(
     my_bench_pitcher_count = 0
     my_sp_count = 0
     my_rp_count = 0
+    my_hitter_count = 0
 
     # Precompute ADP-sorted order for opponent picks (rebuilt when pool changes significantly)
     # We'll sort once and maintain it lazily
@@ -136,6 +137,13 @@ def simulate_draft(
                         has_need = False
                     elif role == "RP" and config.TARGET_RP is not None and my_rp_count >= config.TARGET_RP:
                         has_need = False
+                if has_need and p.player_type == "hitter" and config.MAX_HITTERS is not None and my_hitter_count >= config.MAX_HITTERS:
+                    has_need = False
+
+                if config.USE_SLOT_SCARCITY and has_need:
+                    roster_need = rosters[my_slot].slot_scarcity(p)
+                else:
+                    roster_need = 1.0 if has_need else 0.0
 
                 score = full_player_score(
                     player=p,
@@ -144,7 +152,7 @@ def simulate_draft(
                     strategies=strategies,
                     cat_stats=cat_stats,
                     available_by_position=available_by_position,
-                    has_starting_need=has_need,
+                    has_starting_need=roster_need,
                     current_pick=pick_idx,
                     picks_until_mine=pum,
                     total_picks_made=pick_idx,
@@ -173,9 +181,10 @@ def simulate_draft(
 
         else:
             # === OPPONENT PICK: ADP + noise + roster need ===
+            opp_sigma = -1.0 if config.USE_VARIABLE_SIGMA else config.ADP_SIGMA
             chosen = _opponent_pick(
                 available_list, available_set, player_by_id,
-                rosters[team_idx], rng, config.ADP_SIGMA,
+                rosters[team_idx], rng, opp_sigma,
                 config.OPP_BENCH_ADP_PENALTY,
             )
             if chosen is None:
@@ -194,12 +203,15 @@ def simulate_draft(
             team_totals[team_idx][cat_key] += chosen.zscores.get(cat_key, 0.0) * weight
         team_players[team_idx].append(chosen)
 
-        # Track SP/RP counts for our team
-        if team_idx == my_slot and chosen.player_type == "pitcher":
-            if chosen.pitcher_role() == "SP":
-                my_sp_count += 1
+        # Track SP/RP/hitter counts for our team
+        if team_idx == my_slot:
+            if chosen.player_type == "pitcher":
+                if chosen.pitcher_role() == "SP":
+                    my_sp_count += 1
+                else:
+                    my_rp_count += 1
             else:
-                my_rp_count += 1
+                my_hitter_count += 1
 
     result.all_team_totals = team_totals
     result.bench_pitcher_count = my_bench_pitcher_count
@@ -227,7 +239,8 @@ def _opponent_pick(
         if p.mlb_id not in available_set:
             continue
         adp = p.espn_adp if p.espn_adp is not None else 999.0
-        noisy_adp = adp + rng.gauss(0, adp_sigma)
+        effective_sigma = (10.0 + 0.1 * adp) if adp_sigma < 0 else adp_sigma
+        noisy_adp = adp + rng.gauss(0, effective_sigma)
         if not roster.has_starting_need(p):
             noisy_adp += bench_adp_penalty
         candidates.append((noisy_adp, p.mlb_id))

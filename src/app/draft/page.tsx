@@ -847,11 +847,30 @@ export default function DraftBoardPage() {
       myTeam.length, draftPicks.size, rosterState.remainingCapacity, catStats])
 
   // ── Score rank + recommendation zone ──
+  // Zone uses stddev of top scores to adapt to score distribution.
+  // Tight clusters → narrow zone; spread out scores → wider zone.
+  // Clamped to [3, 8] players to avoid degenerate cases.
   const scoreRankMap = useMemo(() => {
     const entries = [...draftScoreMap.entries()]
       .sort((a, b) => b[1].score - a[1].score)
     const topScore = entries[0]?.[1].score ?? 0
-    const threshold = topScore * 0.75
+
+    // Compute stddev of top ~15 scores for distribution-aware threshold
+    const topN = entries.slice(0, Math.min(15, entries.length))
+    const scores = topN.map(([, ds]) => ds.score)
+    const mean = scores.reduce((a, b) => a + b, 0) / (scores.length || 1)
+    const std = Math.sqrt(scores.reduce((a, s) => a + (s - mean) ** 2, 0) / (scores.length || 1))
+    const rawThreshold = topScore - std
+
+    // Count how many are above the raw threshold, then clamp to [3, 8]
+    let zoneCount = 0
+    for (const [, ds] of entries) {
+      if (ds.score >= rawThreshold && ds.score > 0) zoneCount++
+      else break
+    }
+    zoneCount = Math.max(3, Math.min(8, zoneCount))
+    const threshold = entries[Math.min(zoneCount - 1, entries.length - 1)]?.[1].score ?? 0
+
     const map = new Map<number, { rank: number; inZone: boolean }>()
     entries.forEach(([mlbId, ds], i) => {
       map.set(mlbId, { rank: i + 1, inZone: ds.score >= threshold && ds.score > 0 })

@@ -19,20 +19,22 @@ from backend.simulation.evaluate import evaluate_draft
 from backend.simulation.player_pool import load_players, ALL_CAT_KEYS, CAT_LABELS
 from backend.simulation.report import print_report
 
-# (label, TARGET_SP, TARGET_RP)
-CONFIGS: list[tuple[str, int | None, int | None]] = [
-    ("unconstrained", None, None),
-    ("5SP-4RP", 5, 4),
-    ("4SP-5RP", 4, 5),
-    ("5SP-5RP", 5, 5),
-    ("6SP-4RP", 6, 4),
-    ("4SP-6RP", 4, 6),
-    ("6SP-5RP", 6, 5),
-    ("7SP-4RP", 7, 4),
-    ("5SP-6RP", 5, 6),
-    ("7SP-5RP", 7, 5),
-    ("6SP-6RP", 6, 6),
-    ("8SP-4RP", 8, 4),
+# (label, TARGET_SP, TARGET_RP, MAX_HITTERS)
+CONFIGS: list[tuple[str, int | None, int | None, int | None]] = [
+    ("unconstrained",  None, None, None),
+    # Hitter caps — force more pitchers
+    ("max-14H",        None, None, 14),
+    ("max-13H",        None, None, 13),
+    ("max-12H",        None, None, 12),
+    # Hitter cap + SP/RP steering
+    ("max-14H 7SP",    7,    None, 14),
+    ("max-14H 5RP",    None, 5,    14),
+    ("max-13H 8SP",    8,    None, 13),
+    ("max-13H 7SP",    7,    None, 13),
+    ("max-13H 6RP",    None, 6,    13),
+    # Pitcher caps — from original sweep (for reference)
+    ("4SP-5RP",        4,    5,    None),
+    ("4SP-6RP",        4,    6,    None),
 ]
 
 
@@ -40,12 +42,13 @@ def run_config(
     label: str,
     target_sp: int | None,
     target_rp: int | None,
+    max_hitters: int | None,
     players: list,
     num_sims: int,
     seed: int | None,
     num_teams: int,
 ) -> list[dict]:
-    config = SimConfig(TARGET_SP=target_sp, TARGET_RP=target_rp)
+    config = SimConfig(TARGET_SP=target_sp, TARGET_RP=target_rp, MAX_HITTERS=max_hitters)
     sims_per_slot = num_sims // num_teams
     results: list[dict] = []
     rng = random.Random(seed)
@@ -69,16 +72,16 @@ def run_sweep(num_sims: int, seed: int | None) -> None:
     num_teams = 10
     sims_per_slot = num_sims // num_teams
 
-    all_results: list[tuple[str, int | None, int | None, list[dict], float]] = []
+    all_results: list[tuple[str, list[dict], float]] = []
 
-    for label, target_sp, target_rp in CONFIGS:
+    for label, target_sp, target_rp, max_hitters in CONFIGS:
         t0 = time.time()
-        results = run_config(label, target_sp, target_rp, players, num_sims, seed, num_teams)
+        results = run_config(label, target_sp, target_rp, max_hitters, players, num_sims, seed, num_teams)
         elapsed = time.time() - t0
 
         print_report(results, num_sims, sims_per_slot, num_teams, seed, config_label=label)
         print(f"  ({elapsed:.1f}s)")
-        all_results.append((label, target_sp, target_rp, results, elapsed))
+        all_results.append((label, results, elapsed))
 
     # Summary table
     print("\n" + "=" * 88)
@@ -89,7 +92,7 @@ def run_sweep(num_sims: int, seed: int | None) -> None:
 
     ranked: list[tuple[str, float, float, float, float, float, float, list[dict]]] = []
 
-    for label, target_sp, target_rp, results, _ in all_results:
+    for label, results, _ in all_results:
         wins = [r["expected_wins"] for r in results]
         mean_wins = sum(wins) / len(wins)
         variance = sum((w - mean_wins) ** 2 for w in wins) / len(wins)
@@ -117,8 +120,8 @@ def run_sweep(num_sims: int, seed: int | None) -> None:
     best = ranked[0]
     print(f"  Best: {best[0]} -> {best[1]:.3f} wins/week")
 
-    # Per-category win rates for top 3
-    print(f"\n{'PER-CATEGORY WIN RATES (Top 3 Configs)':^88}")
+    # Per-category win rates for top 5
+    print(f"\n{'PER-CATEGORY WIN RATES (Top 5 Configs)':^88}")
     print("=" * 88)
 
     # Header
@@ -129,7 +132,7 @@ def run_sweep(num_sims: int, seed: int | None) -> None:
     print(cat_header)
     print("-" * 88)
 
-    for label, mean_wins, _, _, _, _, _, results in ranked[:3]:
+    for label, mean_wins, _, _, _, _, _, results in ranked[:5]:
         cat_avgs: dict[str, float] = {}
         for cat_key in ALL_CAT_KEYS:
             vals = [r["cat_win_probs"][cat_key] for r in results]

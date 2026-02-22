@@ -30,6 +30,23 @@ class RosterState:
                 return True
         return False
 
+    def slot_scarcity(self, player: Player) -> float:
+        """Returns roster fit weighted by slot scarcity.
+
+        1/remaining_capacity of the most constrained eligible starting slot.
+        Returns 0 if no starting slot available (bench only).
+        E.g., last C slot → 1.0, one of 3 OF slots → 0.33.
+        """
+        min_cap = 0
+        for slot in self._eligible_slots_ordered(player):
+            if slot == "BE":
+                continue
+            cap = self.capacity.get(slot, 0)
+            if cap > 0:
+                if min_cap == 0 or cap < min_cap:
+                    min_cap = cap
+        return 1.0 / min_cap if min_cap > 0 else 0.0
+
     def _eligible_slots_ordered(self, player: Player) -> list[str]:
         """Get eligible slots in POSITION_TO_SLOTS order (most restrictive first)."""
         positions = player.get_positions()
