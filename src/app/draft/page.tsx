@@ -685,6 +685,58 @@ export default function DraftBoardPage() {
     return total
   }, [catStats, recalcData])
 
+  // ── Replacement levels for surplus value (VORP) ──
+  const POSITION_DEMAND_SLOTS: Record<string, number> = { C: 1, '1B': 1, '2B': 1, '3B': 1, SS: 1, OF: 3, SP: 3, RP: 2 }
+  const OF_ALIASES: Record<string, string> = { LF: 'OF', CF: 'OF', RF: 'OF' }
+  const normalizePos = (pos: string) => OF_ALIASES[pos] ?? pos
+
+  const replacementLevels = useMemo(() => {
+    const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
+    const numTeams = leagueTeams.length || DEFAULT_NUM_TEAMS
+    const byPos: Record<string, number[]> = {}
+    for (const p of availablePlayers) {
+      const nv = getNormalizedValue(p)
+      if (p.player_type === 'pitcher') {
+        const pos = pitcherRole(p)
+        if (POSITION_DEMAND_SLOTS[pos] != null) {
+          if (!byPos[pos]) byPos[pos] = []
+          byPos[pos].push(nv)
+        }
+      } else {
+        for (const rawPos of getPositions(p)) {
+          const pos = normalizePos(rawPos)
+          if (POSITION_DEMAND_SLOTS[pos] != null) {
+            if (!byPos[pos]) byPos[pos] = []
+            byPos[pos].push(nv)
+          }
+        }
+      }
+    }
+    const levels: Record<string, number> = {}
+    for (const [pos, slots] of Object.entries(POSITION_DEMAND_SLOTS)) {
+      const nvs = (byPos[pos] || []).sort((a, b) => b - a)
+      const depth = slots * numTeams
+      const idx = Math.min(depth - 1, nvs.length - 1)
+      levels[pos] = idx >= 0 ? nvs[idx] : 0
+    }
+    return levels
+  }, [allPlayers, draftedIds, catStats, leagueTeams.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const getSurplusValue = useCallback((p: RankedPlayer, nv: number): number => {
+    const positions = p.player_type === 'pitcher'
+      ? [pitcherRole(p)]
+      : [...new Set(getPositions(p).map(normalizePos))]
+    let best: number | null = null
+    for (const pos of positions) {
+      const repl = replacementLevels[pos]
+      if (repl != null) {
+        const surplus = nv - repl
+        if (best === null || surplus > best) best = surplus
+      }
+    }
+    return best ?? nv
+  }, [replacementLevels])
+
   // ── Picks until my next turn (needed by window VONA and availability) ──
   const picksUntilMine = useMemo(
     () => myTeamId != null ? getPicksUntilNextTurn(currentPickIndex, pickSchedule.length > 0 ? pickSchedule : draftOrder, myTeamId) : 999,
@@ -813,14 +865,15 @@ export default function DraftBoardPage() {
 
       let score: number
       const normalizedValue = getNormalizedValue(p)
+      const surplusValue = getSurplusValue(p, normalizedValue)
       if (hasMCW && confidence > 0) {
         score = computeDraftScore(mcw, vona, urgency, rosterFit, confidence, draftProgress)
-        // Blend with raw value when confidence is low
-        const rawScore = normalizedValue + vona * 0.42 + urgency * 0.55
+        // Blend with BPA (using surplus value) when confidence is low
+        const rawScore = surplusValue + vona * 0.42 + urgency * 0.55
         score = score * confidence + rawScore * (1 - confidence)
       } else {
-        // Fallback: BPA formula
-        score = normalizedValue + vona * 0.42 + urgency * 0.55
+        // Fallback: BPA formula using surplus value
+        score = surplusValue + vona * 0.42 + urgency * 0.55
       }
 
       // ── Multiplicative adjustments so #1 score = "pick this player now" ──
@@ -844,7 +897,8 @@ export default function DraftBoardPage() {
     return map
   }, [allPlayers, draftedIds, vonaMap, myTeamId, currentPickIndex, picksUntilMine, recalcData,
       categoryStandings, otherTeamTotals, strategyMap, teamCategories, leagueTeams.length,
-      myTeam.length, draftPicks.size, rosterState.remainingCapacity, catStats])
+      myTeam.length, draftPicks.size, rosterState.remainingCapacity, catStats,
+      replacementLevels, getSurplusValue])
 
   // ── Score rank + recommendation zone ──
   // Zone uses stddev of top scores to adapt to score distribution.

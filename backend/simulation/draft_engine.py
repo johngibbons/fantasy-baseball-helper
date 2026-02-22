@@ -13,6 +13,7 @@ from .scoring_model import (
     analyze_category_standings,
     detect_strategy,
     compute_cat_stats,
+    compute_replacement_levels,
     build_available_by_position,
     full_player_score,
     CatStats,
@@ -79,6 +80,7 @@ def simulate_draft(
     # Precompute ADP-sorted order for opponent picks (rebuilt when pool changes significantly)
     # We'll sort once and maintain it lazily
     cat_stats: dict[str, CatStats] = {}
+    replacement_levels: dict[str, float] = {}
     cat_stats_round: int = -1  # last round we computed cat_stats
 
     result = DraftResult(my_slot=my_slot)
@@ -97,6 +99,7 @@ def simulate_draft(
             if current_round != cat_stats_round:
                 avail_players = [p for p in available_list if p.mlb_id in available_set]
                 cat_stats = compute_cat_stats(avail_players)
+                replacement_levels = compute_replacement_levels(avail_players, cat_stats, num_teams)
                 cat_stats_round = current_round
 
             avail_players = [p for p in available_list if p.mlb_id in available_set]
@@ -159,6 +162,7 @@ def simulate_draft(
                     my_pick_count=my_pick_count,
                     config=config,
                     bench_pitcher_count=my_bench_pitcher_count,
+                    replacement_levels=replacement_levels,
                 )
                 if score > best_score:
                     best_score = score

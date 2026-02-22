@@ -41,6 +41,9 @@ class SimConfig:
     # Window VONA: use availability-weighted replacement instead of literal next-best
     USE_WINDOW_VONA: bool = False
 
+    # Surplus value (VORP): use per-position replacement-level-adjusted value in BPA
+    USE_SURPLUS_VALUE: bool = True
+
     # Standings confidence ramp
     CONFIDENCE_START: int = 40
     CONFIDENCE_END: int = 81

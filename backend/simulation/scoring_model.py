@@ -16,6 +16,19 @@ from .player_pool import (
 )
 
 
+# ── Position demand slots (starting roster, excluding flex) ──
+POSITION_DEMAND_SLOTS: dict[str, int] = {
+    "C": 1, "1B": 1, "2B": 1, "3B": 1, "SS": 1, "OF": 3, "SP": 3, "RP": 2,
+}
+
+_OF_ALIASES: dict[str, str] = {"LF": "OF", "CF": "OF", "RF": "OF"}
+
+
+def _normalize_position(pos: str) -> str:
+    """Normalize OF sub-positions (LF/CF/RF) to OF."""
+    return _OF_ALIASES.get(pos, pos)
+
+
 # ── Normal CDF (from pick-predictor.ts) ──
 
 def _normal_cdf(x: float) -> float:
@@ -272,6 +285,69 @@ def get_normalized_value(player: Player, cat_stats: dict[str, CatStats]) -> floa
     return total
 
 
+def compute_replacement_levels(
+    available_players: list[Player],
+    cat_stats: dict[str, CatStats],
+    num_teams: int,
+) -> dict[str, float]:
+    """Compute replacement-level NV for each position.
+
+    Replacement level = NV of the player at rank (slots × num_teams) in the
+    available pool at that position. This is the standard VORP baseline.
+    """
+    by_pos: dict[str, list[float]] = {}
+    for p in available_players:
+        nv = get_normalized_value(p, cat_stats)
+        if p.player_type == "pitcher":
+            pos = p.pitcher_role()
+        else:
+            for raw_pos in p.get_positions():
+                pos = _normalize_position(raw_pos)
+                if pos in POSITION_DEMAND_SLOTS:
+                    if pos not in by_pos:
+                        by_pos[pos] = []
+                    by_pos[pos].append(nv)
+            continue
+        if pos in POSITION_DEMAND_SLOTS:
+            if pos not in by_pos:
+                by_pos[pos] = []
+            by_pos[pos].append(nv)
+
+    replacement_levels: dict[str, float] = {}
+    for pos, slots in POSITION_DEMAND_SLOTS.items():
+        nvs = by_pos.get(pos, [])
+        nvs.sort(reverse=True)
+        depth = slots * num_teams
+        idx = min(depth - 1, len(nvs) - 1)
+        replacement_levels[pos] = nvs[idx] if idx >= 0 else 0.0
+    return replacement_levels
+
+
+def compute_surplus_value(
+    player: Player,
+    normalized_value: float,
+    replacement_levels: dict[str, float],
+) -> float:
+    """Compute surplus value (VORP): max(NV - replacement) across eligible positions."""
+    if player.player_type == "pitcher":
+        positions = [player.pitcher_role()]
+    else:
+        positions = [_normalize_position(p) for p in player.get_positions()]
+    # Deduplicate (e.g., LF + CF + RF all map to OF)
+    seen: set[str] = set()
+    best = None
+    for pos in positions:
+        if pos in seen:
+            continue
+        seen.add(pos)
+        repl = replacement_levels.get(pos)
+        if repl is not None:
+            surplus = normalized_value - repl
+            if best is None or surplus > best:
+                best = surplus
+    return best if best is not None else normalized_value
+
+
 def _vona_at_position(
     mlb_id: int,
     pos: str,
@@ -420,8 +496,14 @@ def full_player_score(
     my_pick_count: int,
     config: SimConfig,
     bench_pitcher_count: int = 0,
+    replacement_levels: dict[str, float] | None = None,
 ) -> float:
     normalized_value = get_normalized_value(player, cat_stats)
+
+    if config.USE_SURPLUS_VALUE and replacement_levels is not None:
+        bpa_value = compute_surplus_value(player, normalized_value, replacement_levels)
+    else:
+        bpa_value = normalized_value
 
     effective_sigma = -1.0 if config.USE_VARIABLE_SIGMA else config.ADP_SIGMA
 
@@ -451,10 +533,10 @@ def full_player_score(
         mcw = compute_mcw(player.zscores, my_totals, other_team_totals, strategies, config.NUM_TEAMS, config)
         score = compute_draft_score(mcw, vona, urgency, roster_fit, confidence, draft_progress, config)
         # Blend with BPA when confidence is low
-        raw_score = normalized_value + vona * config.VONA_WEIGHT_BPA + urgency * bpa_urgency_weight
+        raw_score = bpa_value + vona * config.VONA_WEIGHT_BPA + urgency * bpa_urgency_weight
         score = score * confidence + raw_score * (1 - confidence)
     else:
-        score = normalized_value + vona * config.VONA_WEIGHT_BPA + urgency * bpa_urgency_weight
+        score = bpa_value + vona * config.VONA_WEIGHT_BPA + urgency * bpa_urgency_weight
 
     # Availability discount — skip when window VONA is active (scarcity already baked in)
     if not config.USE_WINDOW_VONA and player.espn_adp is not None:

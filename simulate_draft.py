@@ -104,6 +104,8 @@ def main() -> None:
                         help="Use ADP-dependent sigma (10 + 0.1*ADP) instead of fixed 18")
     parser.add_argument("--window-vona", action="store_true",
                         help="Use window VONA (availability-weighted replacement)")
+    parser.add_argument("--no-surplus-value", action="store_true",
+                        help="Disable surplus value (VORP) in BPA formula (on by default)")
 
     args = parser.parse_args()
 
@@ -143,6 +145,8 @@ def main() -> None:
         overrides["USE_VARIABLE_SIGMA"] = True
     if args.window_vona:
         overrides["USE_WINDOW_VONA"] = True
+    if args.no_surplus_value:
+        overrides["USE_SURPLUS_VALUE"] = False
     if args.h2h_weight_scale is not None:
         overrides["H2H_WEIGHT_SCALE"] = args.h2h_weight_scale
 
