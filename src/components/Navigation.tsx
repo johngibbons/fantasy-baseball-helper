@@ -22,7 +22,7 @@ export default function Navigation() {
           <Link href="/" className="text-sm font-bold text-white tracking-tight shrink-0">
             <span className="text-blue-500">&#9670;</span> Fantasy Baseball
           </Link>
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             {navItems.map((item) => {
               const isActive =
                 item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
@@ -30,7 +30,7 @@ export default function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors shrink-0 ${
                     isActive
                       ? 'text-white bg-white/10'
                       : 'text-gray-500 hover:text-gray-300'

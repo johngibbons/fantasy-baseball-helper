@@ -100,6 +100,7 @@ export default function DraftBoardPage() {
   const [recalculating, setRecalculating] = useState(false)
   const [sortKey, setSortKey] = useState<'rank' | 'adp' | 'avail' | 'name' | 'pos' | 'team' | 'value' | 'score'>('rank')
   const [sortAsc, setSortAsc] = useState(true)
+  const [mobileTab, setMobileTab] = useState<'board' | 'info'>('board')
 
   // ── Team-aware draft state ──
   const [leagueTeams, setLeagueTeams] = useState<DraftTeam[]>([])
@@ -1172,8 +1173,8 @@ export default function DraftBoardPage() {
 
   return (
     <main className="min-h-screen bg-gray-950">
-      <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="flex items-end justify-between mb-5">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6">
+        <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
           <div>
             <h1 className="text-2xl font-bold text-white">Draft Board</h1>
             <p className="text-sm text-gray-500 mt-0.5">
@@ -1216,7 +1217,7 @@ export default function DraftBoardPage() {
         </div>
 
         {/* Draft Toolbar */}
-        <div className={`bg-gray-900 rounded-xl border mb-4 p-3 flex flex-wrap items-center gap-4 ${isMyTeamOnClock ? 'border-blue-600 shadow-lg shadow-blue-500/10' : 'border-gray-800'}`}>
+        <div className={`bg-gray-900 rounded-xl border mb-4 p-3 flex flex-wrap items-center gap-2 lg:gap-4 ${isMyTeamOnClock ? 'border-blue-600 shadow-lg shadow-blue-500/10' : 'border-gray-800'}`}>
           <div className="flex items-center gap-3 text-sm">
             <span className="text-gray-500">Round</span>
             <span className="font-bold text-white tabular-nums">{currentRound}</span>
@@ -1473,8 +1474,34 @@ export default function DraftBoardPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+          {/* Mobile tab switcher */}
+          <div className="col-span-full lg:hidden sticky top-0 z-20 bg-gray-950 pb-2 -mt-1">
+            <div className="flex rounded-lg bg-gray-900 border border-gray-800 p-0.5">
+              <button
+                onClick={() => setMobileTab('board')}
+                className={`flex-1 py-2 text-xs font-semibold rounded-md transition-colors ${
+                  mobileTab === 'board'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                Board
+              </button>
+              <button
+                onClick={() => setMobileTab('info')}
+                className={`flex-1 py-2 text-xs font-semibold rounded-md transition-colors ${
+                  mobileTab === 'info'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-gray-400 hover:text-gray-200'
+                }`}
+              >
+                Info
+              </button>
+            </div>
+          </div>
+
           {/* Main board */}
-          <div className="lg:col-span-3">
+          <div className={`lg:col-span-3 ${mobileTab === 'board' ? '' : 'hidden'} lg:!block`}>
             {/* Filters */}
             <div className="bg-gray-900 rounded-xl border border-gray-800 p-3 mb-4 flex flex-wrap gap-3 items-center">
               <div className="flex gap-1">
@@ -1515,7 +1542,7 @@ export default function DraftBoardPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-800 bg-gray-900/80">
-                      <th className="px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-28">Draft</th>
+                      <th className="px-2 lg:px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-20 lg:w-28">Draft</th>
                       <DraftTh label="#" field="rank" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" className="w-14" />
                       {hasAdpData && (
                         <DraftTh label="ADP" field="adp" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-16" />
@@ -1525,7 +1552,7 @@ export default function DraftBoardPage() {
                       )}
                       <DraftTh label="Player" field="name" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" />
                       <DraftTh label="Pos" field="pos" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" className="w-24" />
-                      <DraftTh label="Team" field="team" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" />
+                      <DraftTh label="Team" field="team" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" className="hidden lg:table-cell" />
                       <DraftTh label="Value" field="value" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-20">
                         {recalcData && (
                           <span className="text-[8px] px-1 py-0.5 rounded bg-indigo-900 text-indigo-300 font-bold normal-case tracking-normal">Dyn</span>
@@ -1538,7 +1565,7 @@ export default function DraftBoardPage() {
                         sortAsc={sortAsc}
                         onSort={handleSort}
                         align="right"
-                        className="w-28"
+                        className="w-20 lg:w-28"
                       />
                     </tr>
                   </thead>
@@ -1606,7 +1633,7 @@ export default function DraftBoardPage() {
 
                       rows.push(
                         <tr key={p.mlb_id} className={`${rowBg} hover:bg-gray-800/80 transition-colors border-b border-gray-800/50`}>
-                          <td className="px-3 py-1.5">
+                          <td className="px-2 lg:px-3 py-1.5">
                             {isDrafted ? (
                               <div className="flex items-center gap-1">
                                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
@@ -1631,7 +1658,7 @@ export default function DraftBoardPage() {
                             ) : (
                               <button
                                 onClick={() => draftPlayer(p.mlb_id)}
-                                className={`px-3 py-1 text-[10px] rounded-md font-bold uppercase tracking-wide transition-all ${
+                                className={`px-2 lg:px-3 py-1 text-[10px] rounded-md font-bold uppercase tracking-wide transition-all ${
                                   isMyTeamOnClock
                                     ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20 hover:bg-blue-500'
                                     : 'bg-gray-800 text-gray-300 border border-gray-700 hover:bg-gray-700'
@@ -1641,9 +1668,9 @@ export default function DraftBoardPage() {
                               </button>
                             )}
                           </td>
-                          <td className="px-3 py-1.5 text-gray-500 font-mono text-xs tabular-nums">{p.overall_rank}</td>
+                          <td className="px-2 lg:px-3 py-1.5 text-gray-500 font-mono text-xs tabular-nums">{p.overall_rank}</td>
                           {hasAdpData && (
-                            <td className="px-3 py-1.5 text-right">
+                            <td className="px-2 lg:px-3 py-1.5 text-right">
                               {p.espn_adp != null ? (
                                 <div className="flex items-center justify-end gap-1">
                                   <span className="text-xs text-gray-500 tabular-nums">{Math.round(p.espn_adp)}</span>
@@ -1659,7 +1686,7 @@ export default function DraftBoardPage() {
                             </td>
                           )}
                           {myTeamId != null && hasAdpData && (
-                            <td className="px-3 py-1.5 text-right">
+                            <td className="px-2 lg:px-3 py-1.5 text-right">
                               {!isDrafted && (() => {
                                 const avail = availabilityMap.get(p.mlb_id)
                                 if (avail == null) return <span className="text-xs text-gray-700">--</span>
@@ -1669,12 +1696,12 @@ export default function DraftBoardPage() {
                               })()}
                             </td>
                           )}
-                          <td className="px-3 py-1.5">
+                          <td className="px-2 lg:px-3 py-1.5">
                             <Link href={`/player/${p.mlb_id}`} className="font-medium text-white hover:text-blue-400 transition-colors text-sm">
                               {p.full_name}
                             </Link>
                           </td>
-                          <td className="px-3 py-1.5">
+                          <td className="px-2 lg:px-3 py-1.5">
                             <div className="flex items-center gap-1">
                               <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[10px] font-bold text-white ${posColor[displayPos] || 'bg-gray-600'}`}>
                                 {displayPos}
@@ -1691,8 +1718,8 @@ export default function DraftBoardPage() {
                               )}
                             </div>
                           </td>
-                          <td className="px-3 py-1.5 text-gray-400 text-sm">{p.team}</td>
-                          <td className="px-3 py-1.5 text-right">
+                          <td className="px-2 lg:px-3 py-1.5 text-gray-400 text-sm hidden lg:table-cell">{p.team}</td>
+                          <td className="px-2 lg:px-3 py-1.5 text-right">
                             {(() => {
                               const value = getPlayerValue(p)
                               return (
@@ -1702,7 +1729,7 @@ export default function DraftBoardPage() {
                               )
                             })()}
                           </td>
-                          <td className="px-3 py-1.5 text-right">
+                          <td className="px-2 lg:px-3 py-1.5 text-right">
                             {!isDrafted && (() => {
                               const ds = draftScoreMap.get(p.mlb_id)
                               const vona = vonaMap.get(p.mlb_id)
@@ -1749,8 +1776,8 @@ export default function DraftBoardPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto space-y-4">
+          <div className={`lg:col-span-1 ${mobileTab === 'info' ? '' : 'hidden'} lg:!block`}>
+            <div className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] overflow-y-auto space-y-4">
 
               {/* Suggestions */}
               <div className="bg-gray-900 rounded-xl border border-gray-800">
@@ -2324,7 +2351,7 @@ function DraftTh({ label, field, sortKey, sortAsc, onSort, align = 'left', class
   const active = sortKey === field
   return (
     <th
-      className={`px-3 py-2.5 ${align === 'right' ? 'text-right' : 'text-left'} text-[11px] font-semibold uppercase tracking-wider cursor-pointer select-none transition-colors whitespace-nowrap ${
+      className={`px-2 lg:px-3 py-2.5 ${align === 'right' ? 'text-right' : 'text-left'} text-[11px] font-semibold uppercase tracking-wider cursor-pointer select-none transition-colors whitespace-nowrap ${
         active ? 'text-blue-400' : 'text-gray-400 hover:text-gray-200'
       } ${className}`}
       onClick={() => onSort(field)}
