@@ -35,6 +35,7 @@ import {
   PITCHER_BENCH_CONTRIBUTION, HITTER_BENCH_CONTRIBUTION,
   pitcherRole, getPositions, getEligibleSlots, optimizeRoster, type RosterResult,
 } from '@/lib/roster-optimizer'
+import { getManagerProfile, getManagerName, getLeaguePosADP, LEAGUE_POS_ADP } from '@/lib/draft-history'
 import {
   type CatDef, HITTING_CATS, PITCHING_CATS, ALL_CATS,
   posColor, getHeatColor, formatStat, computeTeamCategories,
@@ -1296,6 +1297,75 @@ export default function DraftBoardPage() {
           </button>
         </div>
 
+        {/* Manager Tendencies + League Position Timing */}
+        {(() => {
+          const profile = getManagerProfile(activeTeamId)
+          const managerName = getManagerName(activeTeamId)
+          if (!profile) return null
+          // Position run alerts for current round
+          const posAlerts = LEAGUE_POS_ADP.filter(
+            p => p.peakRange[0] >= 4 && currentRound >= p.peakRange[0] && currentRound <= p.peakRange[0] + 1
+          )
+          return (
+            <div className="bg-gray-900/60 rounded-xl border border-gray-800 mb-4 p-3 flex flex-wrap items-start gap-4 text-xs">
+              <div className="flex flex-col gap-1.5 min-w-0">
+                <span className="text-gray-500 font-semibold uppercase tracking-wider text-[10px]">
+                  {managerName} &mdash; Draft Tendencies
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {profile.labels.map((label) => (
+                    <span key={label} className="px-2 py-0.5 rounded-md bg-gray-800 text-gray-300 text-[11px]">
+                      {label}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-3 text-gray-500 text-[11px] mt-0.5">
+                  <span>1st SP: <span className="text-gray-300">~Rd {profile.firstSP}</span></span>
+                  <span>1st RP: <span className="text-gray-300">~Rd {profile.firstRP}</span></span>
+                  <span>1st C: <span className="text-gray-300">~Rd {profile.firstC}</span></span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5 ml-auto min-w-0">
+                <span className="text-gray-500 font-semibold uppercase tracking-wider text-[10px]">
+                  Early Rounds (1–8)
+                </span>
+                <div className="flex gap-2">
+                  {(['SP', 'RP', 'C', 'IF', 'OF'] as const).map((grp) => (
+                    <div key={grp} className="flex flex-col items-center">
+                      <div className="w-8 bg-gray-800 rounded-sm overflow-hidden flex items-end" style={{ height: 28 }}>
+                        <div
+                          className={`w-full rounded-sm ${
+                            grp === 'SP' ? 'bg-blue-500/60' :
+                            grp === 'RP' ? 'bg-purple-500/60' :
+                            grp === 'C'  ? 'bg-yellow-500/60' :
+                            grp === 'IF' ? 'bg-emerald-500/60' :
+                                           'bg-orange-500/60'
+                          }`}
+                          style={{ height: `${Math.max(profile.earlyPct[grp], 4)}%` }}
+                        />
+                      </div>
+                      <span className="text-[9px] text-gray-500 mt-0.5">{grp}</span>
+                      <span className="text-[9px] text-gray-400">{profile.earlyPct[grp]}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {posAlerts.length > 0 && (
+                <div className="flex flex-col gap-1 border-l border-gray-800 pl-4">
+                  <span className="text-gray-500 font-semibold uppercase tracking-wider text-[10px]">
+                    Position Runs
+                  </span>
+                  {posAlerts.map((a) => (
+                    <span key={a.position} className="text-amber-400/80 text-[11px]">
+                      {a.position} run typically Rds {a.peakRange[0]}–{a.peakRange[1]}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })()}
+
         {/* Draft Complete Banner */}
         {pickSchedule.length > 0 && currentPickIndex >= pickSchedule.length && (
           <div className="bg-emerald-950/50 border border-emerald-700 rounded-xl mb-4 p-4 flex items-center justify-between">
@@ -1716,9 +1786,20 @@ export default function DraftBoardPage() {
                           </td>
                           <td className="px-2 lg:px-3 py-1.5">
                             <div className="flex items-center gap-1">
-                              <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[10px] font-bold text-white ${posColor[displayPos] || 'bg-gray-600'}`}>
-                                {displayPos}
-                              </span>
+                              {(() => {
+                                const ladp = getLeaguePosADP(displayPos)
+                                const tip = ladp
+                                  ? `${displayPos} — League: first off board Rd ${ladp.firstOffBoard}, peak Rds ${ladp.peakRange[0]}–${ladp.peakRange[1]}, ~${ladp.perDraft}/draft`
+                                  : displayPos
+                                return (
+                                  <span
+                                    className={`inline-flex items-center justify-center w-8 h-5 rounded text-[10px] font-bold text-white ${posColor[displayPos] || 'bg-gray-600'}`}
+                                    title={tip}
+                                  >
+                                    {displayPos}
+                                  </span>
+                                )
+                              })()}
                               {extraPositions.length > 0 && (
                                 <span className="text-[10px] text-gray-500">
                                   {extraPositions.join(' ')}
@@ -1972,6 +2053,26 @@ export default function DraftBoardPage() {
                       ))}
                     </div>
                   )}
+
+                  {/* League Position Timing */}
+                  <div>
+                    <div className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider mb-1 mt-1">League Position Timing</div>
+                    <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+                      {LEAGUE_POS_ADP.map((p) => {
+                        const inPeak = currentRound >= p.peakRange[0] && currentRound <= p.peakRange[1]
+                        return (
+                          <div key={p.position} className="flex items-center justify-between text-[11px] py-0.5">
+                            <span className={inPeak ? 'text-amber-400 font-semibold' : 'text-gray-500'}>
+                              {p.position}
+                            </span>
+                            <span className={inPeak ? 'text-amber-400/70' : 'text-gray-600'}>
+                              Rds {p.peakRange[0]}–{p.peakRange[1]}
+                            </span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
 
                   {bestByNeed.length === 0 && adpSteals.length === 0 && (
                     <div className="py-4 text-center text-xs text-gray-600">
