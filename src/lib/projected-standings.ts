@@ -68,6 +68,20 @@ export function projectStandings(
     return computeRanksAndWins(standings, cats)
   }
 
+  // Limit pool to the top N players that will actually be drafted,
+  // where N = totalRemainingPicks. Including all undrafted players
+  // (many of whom will go undrafted) inflates projections.
+  const poolPlayers = [...availablePlayers]
+    .sort((a, b) => {
+      let aTotal = 0, bTotal = 0
+      for (const cat of cats) {
+        aTotal += (a.zscores[cat.key] ?? 0)
+        bTotal += (b.zscores[cat.key] ?? 0)
+      }
+      return bTotal - aTotal
+    })
+    .slice(0, totalRemainingPicks)
+
   // Compute pool totals for counting stats and rate stat components
   let poolPA = 0
   let poolIP = 0
@@ -79,7 +93,7 @@ export function projectStandings(
     if (!cat.rate) poolStatTotals[cat.projKey] = 0
   }
 
-  for (const p of availablePlayers) {
+  for (const p of poolPlayers) {
     // Counting stats
     for (const cat of cats) {
       if (!cat.rate) {
@@ -99,7 +113,7 @@ export function projectStandings(
   // Also sum z-score pool for projectedTotals (used by MCW model downstream)
   const poolZscores: Record<string, number> = {}
   for (const cat of cats) poolZscores[cat.key] = 0
-  for (const p of availablePlayers) {
+  for (const p of poolPlayers) {
     for (const cat of cats) {
       poolZscores[cat.key] += (p.zscores[cat.key] ?? 0)
     }
