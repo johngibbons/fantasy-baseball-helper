@@ -47,6 +47,9 @@ const POSITIONS = ['All', 'C', '1B', '2B', '3B', 'SS', 'OF', 'SP', 'RP']
 // ── Default teams fallback ──
 const DEFAULT_NUM_TEAMS = 10
 
+// ── Default draft order (reverse of 2025 final standings) ──
+const DEFAULT_DRAFT_ORDER = [5, 9, 2, 8, 3, 10, 4, 6, 1, 7]
+
 // ── Snake order helper ──
 function getActiveTeamId(pickIndex: number, order: number[]): number {
   if (order.length === 0) return -1
@@ -264,10 +267,7 @@ export default function DraftBoardPage() {
     fetchLeagueTeams().then((teams) => {
       setLeagueTeams(teams)
       saveTeamsToStorage(teams)
-      // Default draft order: reverse of 2025 final standings (worst record picks first)
-      // 2025 final: WORK(7), COUG(1), BP(6), SHC(4), BLEW(10), TR(3), NOTO(8), BOOM(2), ROP(9), JAMC(5)
-      const defaultOrder = [5, 9, 2, 8, 3, 10, 4, 6, 1, 7]
-      setDraftOrder(prev => prev.length > 0 ? prev : defaultOrder)
+      setDraftOrder(prev => prev.length > 0 ? prev : DEFAULT_DRAFT_ORDER)
     })
   }, [])
 
@@ -444,7 +444,7 @@ export default function DraftBoardPage() {
   }, [keeperMlbIds])
 
   const resetDraft = () => {
-    if (confirm('Reset all draft picks? (Keepers and pick trades will be preserved)')) {
+    if (confirm('Reset all draft picks? (Draft order, keepers, and pick trades will be preserved)')) {
       setRecalcData(null)
       setOverrideTeam(null)
       setPickLog([])
@@ -1211,7 +1211,7 @@ export default function DraftBoardPage() {
               onClick={resetDraft}
               className="px-4 py-2 text-xs font-semibold bg-red-950 text-red-400 border border-red-800 rounded-lg hover:bg-red-900 transition-colors"
             >
-              Reset Draft
+              Reset Picks
             </button>
           </div>
         </div>
@@ -1318,7 +1318,20 @@ export default function DraftBoardPage() {
         {/* Draft Order Editor */}
         {showDraftOrder && (
           <div className="bg-gray-900 rounded-xl border border-gray-800 mb-4 p-4">
-            <h3 className="text-sm font-bold text-white mb-3">Draft Order</h3>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-white">Draft Order</h3>
+              <button
+                onClick={() => {
+                  if (confirm('Reset draft order to default? This will also clear pick trades.')) {
+                    setDraftOrder(DEFAULT_DRAFT_ORDER)
+                    setPickTrades([])
+                  }
+                }}
+                className="px-2.5 py-1 text-[10px] font-semibold bg-gray-800 text-gray-400 border border-gray-700 rounded-md hover:bg-gray-700 hover:text-white transition-colors"
+              >
+                Reset Order
+              </button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {draftOrder.map((teamId, idx) => {
                 const team = leagueTeams.find(t => t.id === teamId)
