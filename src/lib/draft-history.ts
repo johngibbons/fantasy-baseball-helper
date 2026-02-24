@@ -9,16 +9,16 @@
 
 // ── Team ID → Manager name mapping (ESPN league team IDs, stable across seasons) ──
 export const TEAM_MANAGER: Record<number, string> = {
-  1: 'Matt Wayne',
-  2: 'John Gibbons',
-  3: 'Bryan Lewis',
-  4: 'Jess Barron',
-  5: 'Harris Cook',
-  6: 'Eric Mercado',
-  7: 'David Rotatori',
-  8: 'Jason McComb',
-  9: 'Chris Herbst',
-  10: 'Tim Riker',
+  1: 'Jess Barron',       // COUG – Atlanta Cougars
+  2: 'Chris Herbst',      // BOOM – You're F****** Out
+  3: 'Tim Riker',         // TR   – Rikers Island
+  4: 'Harris Cook',       // SHC  – Tax Nation
+  5: 'Jason McComb',      // JAMC – Last Place Champs
+  6: 'Matt Wayne',        // BP   – Batt Payne
+  7: 'David Rotatori',    // WORK – This Ain't No Hobby
+  8: 'John Gibbons',      // NOTO – The Notorious G.I.B.
+  9: 'Eric Mercado',      // ROP  – Trash Pandas
+  10: 'Bryan Lewis',      // BLEW – Mile High And Tight
 }
 
 // ── Position group for tendency analysis ──
