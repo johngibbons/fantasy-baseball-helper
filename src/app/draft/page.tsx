@@ -35,7 +35,7 @@ import {
   PITCHER_BENCH_CONTRIBUTION, HITTER_BENCH_CONTRIBUTION,
   pitcherRole, getPositions, getEligibleSlots, optimizeRoster, type RosterResult,
 } from '@/lib/roster-optimizer'
-import { getManagerProfile, getManagerName, getLeaguePosADP, LEAGUE_POS_ADP } from '@/lib/draft-history'
+import { getManagerProfile, getManagerName, getLeaguePosADP, LEAGUE_POS_ADP, getDraftHistory } from '@/lib/draft-history'
 import {
   type CatDef, HITTING_CATS, PITCHING_CATS, ALL_CATS,
   posColor, getHeatColor, formatStat, computeTeamCategories,
@@ -1783,6 +1783,15 @@ export default function DraftBoardPage() {
                             <Link href={`/player/${p.mlb_id}`} className="font-medium text-white hover:text-blue-400 transition-colors text-sm">
                               {p.full_name}
                             </Link>
+                            {(() => {
+                              const dh = getDraftHistory(p.full_name)
+                              if (!dh) return null
+                              return (
+                                <div className="text-[10px] text-gray-500 leading-tight">
+                                  Rd {dh.round} &rsquo;{String(dh.year).slice(2)}
+                                </div>
+                              )
+                            })()}
                           </td>
                           <td className="px-2 lg:px-3 py-1.5">
                             <div className="flex items-center gap-1">

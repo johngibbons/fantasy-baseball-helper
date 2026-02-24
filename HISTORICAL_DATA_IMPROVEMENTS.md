@@ -23,7 +23,7 @@ https://docs.google.com/spreadsheets/d/1DtC9isTCknEFil9A08416kgjF9oOLv6YxIp6R3yk
 - "Jason McComb tends to reach for closers"
 - "Harris Cook prioritizes pitching early"
 
-**Status:** In progress
+**Status:** Done — `src/lib/draft-history.ts` + tendencies panel on draft board. Shows manager labels, first SP/RP/C round averages, early-round position % bar chart, and position run alerts.
 
 ---
 
@@ -33,7 +33,7 @@ https://docs.google.com/spreadsheets/d/1DtC9isTCknEFil9A08416kgjF9oOLv6YxIp6R3yk
 
 **How it helps:** This league drafts differently than the general population. Historical data can show "catchers typically go in rounds 8–12" or "there's usually a closer run in round 11." Improves the availability model in `pick-predictor.ts` and helps time position runs.
 
-**Status:** In progress
+**Status:** Done — `LEAGUE_POS_ADP` data in `src/lib/draft-history.ts`. Sidebar "League Position Timing" grid highlights active position windows. Position badges have hover tooltips with league ADP info.
 
 ---
 
@@ -43,7 +43,7 @@ https://docs.google.com/spreadsheets/d/1DtC9isTCknEFil9A08416kgjF9oOLv6YxIp6R3yk
 
 **How it helps:** The keeper page already does surplus value analysis, but historical data would show real examples from this league. Useful for evaluating 2026 keeper decisions.
 
-**Status:** Not started
+**Status:** Done — `KEEPER_HISTORY` data in `src/lib/draft-history.ts` with `getKeeperHistory()` helper. Collapsible "Keeper History" panel in keepers page sidebar shows multi-year keeper lifecycles with escalating round costs, active keeper badges, and manager attribution.
 
 ---
 
@@ -53,4 +53,4 @@ https://docs.google.com/spreadsheets/d/1DtC9isTCknEFil9A08416kgjF9oOLv6YxIp6R3yk
 
 **How it helps:** Quick reality check against the model's ranking — see where a player actually went last year in this league.
 
-**Status:** Not started
+**Status:** Done — `RECENT_DRAFT_HISTORY` map in `src/lib/draft-history.ts` with `getDraftHistory()` lookup and `normalizeName()` matching. Subtle "Rd X 'YY" annotation below player names on the draft board for ~300 players from 2023–2025 drafts.

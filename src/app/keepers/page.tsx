@@ -15,6 +15,7 @@ import {
   type DraftTeam,
   type LeagueKeeperEntry,
 } from '@/lib/league-teams'
+import { getKeeperHistory, type KeeperHistory } from '@/lib/draft-history'
 
 // ── Constants ──
 const NUM_TEAMS = 10
@@ -1173,6 +1174,9 @@ export default function KeepersPage() {
 
                   {/* League Keepers Summary */}
                   <LeagueKeepersSummaryPanel summary={leagueKeepersSummary} myTeamId={myTeamId} />
+
+                  {/* Keeper History */}
+                  <KeeperHistoryPanel />
                 </div>
               </div>
             )}
@@ -1282,6 +1286,7 @@ export default function KeepersPage() {
               {/* Sidebar */}
               <div className="space-y-4">
                 <LeagueKeepersSummaryPanel summary={leagueKeepersSummary} myTeamId={myTeamId} />
+                <KeeperHistoryPanel />
               </div>
             </div>
           </>
@@ -1380,6 +1385,75 @@ function KeeperCategoryBalance({ keepers, title }: { keepers: KeeperWithSurplus[
           Gaps: <span className="text-red-400 font-semibold">{gaps.map(g => g.label).join(', ')}</span>
           <span className="text-gray-600"> — target in draft</span>
         </div>
+      )}
+    </div>
+  )
+}
+
+// ── Keeper History Panel ──
+function KeeperHistoryPanel() {
+  const [expanded, setExpanded] = useState(false)
+  const histories = useMemo(() => getKeeperHistory(), [])
+  const multiYear = histories.filter(h => h.entries.length >= 2)
+  const display = expanded ? multiYear : multiYear.slice(0, 8)
+
+  return (
+    <div className="bg-gray-900 rounded-xl border border-gray-800 p-4">
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="w-full flex items-center justify-between mb-3"
+      >
+        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+          Keeper History
+        </h3>
+        <span className="text-[10px] text-gray-500">
+          {expanded ? '▲ Less' : `▼ ${multiYear.length} keepers`}
+        </span>
+      </button>
+      <div className="space-y-2.5">
+        {display.map((h) => {
+          const lastEntry = h.entries[h.entries.length - 1]
+          const isActive = lastEntry.year >= 2026
+          return (
+            <div key={h.playerName}>
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span className={`text-[11px] font-semibold ${isActive ? 'text-emerald-400' : 'text-gray-300'}`}>
+                  {h.playerName}
+                </span>
+                {isActive && (
+                  <span className="text-[8px] px-1 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-medium leading-none">
+                    ACTIVE
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-0.5 pl-2 text-[10px] text-gray-500">
+                <span className="text-gray-600">{h.entries[0].manager}</span>
+                <span className="mx-1 text-gray-700">·</span>
+                {h.entries.map((e, i) => (
+                  <span key={i} className="flex items-center gap-0.5">
+                    {i > 0 && <span className="text-gray-700 mx-0.5">&rarr;</span>}
+                    <span className={`px-1 py-0.5 rounded font-mono ${
+                      e.year >= 2026
+                        ? 'bg-emerald-500/15 text-emerald-400'
+                        : 'bg-gray-800 text-gray-400'
+                    }`}>
+                      Rd {e.roundCost}
+                    </span>
+                    <span className="text-gray-600">&rsquo;{String(e.year).slice(2)}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      {multiYear.length > 8 && (
+        <button
+          onClick={() => setExpanded(e => !e)}
+          className="mt-3 w-full text-[10px] text-gray-500 hover:text-gray-400 transition-colors"
+        >
+          {expanded ? 'Show less' : `Show all ${multiYear.length} keepers...`}
+        </button>
       )}
     </div>
   )
