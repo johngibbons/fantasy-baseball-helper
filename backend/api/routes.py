@@ -236,6 +236,56 @@ def put_draft_state(body: DraftStateBody):
     return {"ok": True}
 
 
+# ── Keepers state persistence ──
+
+
+class KeepersStateBody(BaseModel):
+    season: int
+    state: Any
+
+
+def _ensure_keepers_state_table(conn):
+    """Create the keepers_state table if it doesn't exist (self-healing migration)."""
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS keepers_state (
+            season INTEGER PRIMARY KEY,
+            state_json TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+
+
+@router.get("/keepers/state")
+def get_keepers_state(season: int = Query(2026)):
+    """Fetch persisted keepers state for a season."""
+    conn = get_connection()
+    _ensure_keepers_state_table(conn)
+    row = conn.execute(
+        "SELECT state_json FROM keepers_state WHERE season = ?", (season,)
+    ).fetchone()
+    conn.close()
+    if not row:
+        return {"state": None}
+    return {"state": json.loads(row["state_json"])}
+
+
+@router.put("/keepers/state")
+def put_keepers_state(body: KeepersStateBody):
+    """Upsert keepers state for a season."""
+    state_json = json.dumps(body.state)
+    conn = get_connection()
+    _ensure_keepers_state_table(conn)
+    conn.execute(
+        """INSERT INTO keepers_state (season, state_json) VALUES (?, ?)
+           ON CONFLICT (season) DO UPDATE SET state_json = ?, updated_at = CURRENT_TIMESTAMP""",
+        (body.season, state_json, state_json),
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+
 @router.get("/stats/summary")
 def stats_summary(season: int = Query(2026)):
     """Summary statistics for the dashboard."""

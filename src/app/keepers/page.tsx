@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import {
   getDraftBoard,
@@ -301,6 +301,76 @@ function saveOtherTeamResolved(teamId: number, resolved: ResolvedKeeper[]) {
   localStorage.setItem(`keeperOtherResolved_${teamId}`, JSON.stringify(resolved))
 }
 
+/** Hydrate localStorage from server state (runs on mount before team setup) */
+function hydrateFromServerState(state: Record<string, unknown>) {
+  try {
+    if (state.myTeamId != null) {
+      localStorage.setItem('keeperMyTeamId', String(state.myTeamId))
+    }
+    const roster = state.roster as Record<string, unknown> | undefined
+    if (roster) {
+      for (const [id, data] of Object.entries(roster)) {
+        localStorage.setItem(`keeperRoster_${id}`, JSON.stringify(data))
+      }
+    }
+    const resolved = state.resolved as Record<string, unknown> | undefined
+    if (resolved) {
+      for (const [id, data] of Object.entries(resolved)) {
+        localStorage.setItem(`keeperResolved_${id}`, JSON.stringify(data))
+      }
+    }
+    const selected = state.selected as Record<string, unknown> | undefined
+    if (selected) {
+      for (const [id, data] of Object.entries(selected)) {
+        localStorage.setItem(`keeperSelected_${id}`, JSON.stringify(data))
+      }
+    }
+    const other = state.other as Record<string, unknown> | undefined
+    if (other) {
+      for (const [id, data] of Object.entries(other)) {
+        localStorage.setItem(`keeperOther_${id}`, JSON.stringify(data))
+      }
+    }
+    const otherResolved = state.otherResolved as Record<string, unknown> | undefined
+    if (otherResolved) {
+      for (const [id, data] of Object.entries(otherResolved)) {
+        localStorage.setItem(`keeperOtherResolved_${id}`, JSON.stringify(data))
+      }
+    }
+  } catch { /* ignore */ }
+}
+
+/** Collect all keepers state from localStorage into a single document for server sync */
+function collectKeepersState(myTeamId: number | null, teamIds: number[]): Record<string, unknown> {
+  const rosterMap: Record<number, RosterEntry[]> = {}
+  const resolvedMap: Record<number, unknown> = {}
+  const selectedMap: Record<number, number[]> = {}
+  const otherMap: Record<number, OtherTeamKeeperEntry[]> = {}
+  const otherResolvedMap: Record<number, ResolvedKeeper[]> = {}
+
+  for (const id of teamIds) {
+    const r = loadTeamRoster(id)
+    if (r) rosterMap[id] = r
+    const res = loadTeamResolved(id)
+    if (res) resolvedMap[id] = res
+    const sel = loadTeamSelected(id)
+    if (sel.size > 0) selectedMap[id] = [...sel]
+    const oe = loadOtherTeamKeepers(id)
+    if (oe.some(e => e.name.trim())) otherMap[id] = oe
+    const or = loadOtherTeamResolved(id)
+    if (or.length > 0) otherResolvedMap[id] = or
+  }
+
+  return {
+    myTeamId,
+    roster: rosterMap,
+    resolved: resolvedMap,
+    selected: selectedMap,
+    other: otherMap,
+    otherResolved: otherResolvedMap,
+  }
+}
+
 /** Migrate old single-team localStorage keys to per-team keys */
 function migrateOldStorage(myTeamId: number) {
   try {
@@ -352,6 +422,12 @@ export default function KeepersPage() {
   // Export state
   const [exportMessage, setExportMessage] = useState<string | null>(null)
 
+  // Server sync state
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const serverHydratedRef = useRef(false)
+
   // Computed: is viewing my team?
   const isMyTeam = selectedTeamId != null && selectedTeamId === myTeamId
 
@@ -362,11 +438,23 @@ export default function KeepersPage() {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
 
-    fetchLeagueTeams().then((teams) => {
+    fetchLeagueTeams().then(async (teams) => {
       setLeagueTeams(teams)
       saveTeamsToStorage(teams)
 
-      // Restore persisted myTeamId
+      // Try server state first to hydrate localStorage
+      try {
+        const res = await fetch('/api/v2/keepers/state?season=2026')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.state) {
+            hydrateFromServerState(data.state as Record<string, unknown>)
+            serverHydratedRef.current = true
+          }
+        }
+      } catch { /* fall through to localStorage */ }
+
+      // Restore persisted myTeamId (may have been updated by server hydration)
       try {
         const savedMyTeam = localStorage.getItem('keeperMyTeamId')
         if (savedMyTeam) {
@@ -434,6 +522,32 @@ export default function KeepersPage() {
       saveTeamSelected(myTeamId, selectedKeepers)
     }
   }, [selectedKeepers, myTeamId, selectedTeamId])
+
+  // Debounced server save (mirrors draft page pattern)
+  useEffect(() => {
+    if (leagueTeams.length === 0 || myTeamId == null) return
+
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current)
+    if (fadeTimerRef.current) clearTimeout(fadeTimerRef.current)
+    saveTimerRef.current = setTimeout(() => {
+      const state = collectKeepersState(myTeamId, leagueTeams.map(t => t.id))
+      setSaveStatus('saving')
+      fetch('/api/v2/keepers/state', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ season: 2026, state }),
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error('Save failed')
+          setSaveStatus('saved')
+          fadeTimerRef.current = setTimeout(() => setSaveStatus('idle'), 3000)
+        })
+        .catch(() => {
+          setSaveStatus('error')
+        })
+    }, 2000)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roster, selectedKeepers, resolvedPlayers, otherEntries, otherResolved, myTeamId, leagueTeams])
 
   // Resolve my team's players against DB
   const handleResolve = useCallback(async () => {
@@ -714,6 +828,14 @@ export default function KeepersPage() {
             <h1 className="text-2xl font-bold text-white">Keeper Analysis</h1>
             <p className="text-sm text-gray-500 mt-1">
               Manage keepers for all teams, then export to draft
+              {saveStatus !== 'idle' && (
+                <>
+                  <span className="text-gray-600 mx-1.5">/</span>
+                  {saveStatus === 'saving' && <span className="text-gray-400">Saving…</span>}
+                  {saveStatus === 'saved' && <span className="text-emerald-400">Saved</span>}
+                  {saveStatus === 'error' && <span className="text-amber-400">Save failed</span>}
+                </>
+              )}
             </p>
           </div>
           <div className="flex gap-2 items-center">
