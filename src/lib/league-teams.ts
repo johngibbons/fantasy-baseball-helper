@@ -1,8 +1,16 @@
 // ── Shared team types, loading, storage, and keeper-draft utilities ──
 
+import { TEAM_MANAGER } from './draft-history'
+
 export interface DraftTeam {
   id: number
   name: string
+}
+
+/** Return team name with owner, e.g. "Team NOTO (John Gibbons)" */
+export function teamDisplayName(team: DraftTeam): string {
+  const owner = TEAM_MANAGER[team.id]
+  return owner ? `${team.name} (${owner})` : team.name
 }
 
 export interface LeagueKeeperEntry {

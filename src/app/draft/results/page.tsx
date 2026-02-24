@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { getDraftBoard, type RankedPlayer } from '@/lib/valuations-api'
-import { fetchLeagueTeams } from '@/lib/league-teams'
+import { fetchLeagueTeams, teamDisplayName } from '@/lib/league-teams'
 import {
   analyzeCategoryStandings,
   detectStrategy,
@@ -100,6 +100,12 @@ export default function DraftResultsPage() {
     const m = new Map<number, string>()
     for (const t of leagueTeams) m.set(t.id, t.name)
     m.set(-1, 'Unknown')
+    return m
+  }, [leagueTeams])
+
+  const teamDisplayMap = useMemo(() => {
+    const m = new Map<number, string>()
+    for (const t of leagueTeams) m.set(t.id, teamDisplayName(t))
     return m
   }, [leagueTeams])
 
@@ -269,7 +275,7 @@ export default function DraftResultsPage() {
           <div>
             <h1 className="text-2xl font-bold text-white">Draft Results</h1>
             <p className="text-sm text-gray-500 mt-0.5">
-              {teamNameMap.get(myTeamId) ?? `Team ${myTeamId}`} &middot; {pickSchedule.length} picks &middot; {leagueTeams.length} teams
+              {teamDisplayMap.get(myTeamId) ?? `Team ${myTeamId}`} &middot; {pickSchedule.length} picks &middot; {leagueTeams.length} teams
             </p>
           </div>
           <Link

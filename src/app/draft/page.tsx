@@ -6,6 +6,7 @@ import { getDraftBoard, recalculateDraftValues, RankedPlayer } from '@/lib/valua
 import {
   fetchLeagueTeams,
   saveTeamsToStorage,
+  teamDisplayName,
   keeperPickIndex,
   generateSnakeSchedule,
   keeperPickIndexFromSchedule,
@@ -1229,7 +1230,7 @@ export default function DraftBoardPage() {
           <div className="flex items-center gap-2">
             <span className="text-gray-500 text-sm">On the clock:</span>
             <span className={`font-bold text-sm ${isMyTeamOnClock ? 'text-blue-400' : 'text-white'}`}>
-              {activeTeam?.name ?? `Team ${activeTeamId}`}
+              {activeTeam ? teamDisplayName(activeTeam) : `Team ${activeTeamId}`}
             </span>
           </div>
 
@@ -1242,7 +1243,7 @@ export default function DraftBoardPage() {
             >
               <option value="">Select...</option>
               {leagueTeams.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
+                <option key={t.id} value={t.id}>{teamDisplayName(t)}</option>
               ))}
             </select>
           </div>
@@ -1256,7 +1257,7 @@ export default function DraftBoardPage() {
             >
               <option value="">Auto</option>
               {leagueTeams.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
+                <option key={t.id} value={t.id}>{teamDisplayName(t)}</option>
               ))}
             </select>
           </div>
@@ -1408,7 +1409,7 @@ export default function DraftBoardPage() {
                 return (
                   <div key={teamId} className="flex items-center gap-1.5 bg-gray-800 rounded-lg px-2.5 py-1.5">
                     <span className="text-[10px] text-gray-500 font-bold tabular-nums w-4">{idx + 1}.</span>
-                    <span className="text-xs text-white">{team?.name ?? `Team ${teamId}`}</span>
+                    <span className="text-xs text-white">{team ? teamDisplayName(team) : `Team ${teamId}`}</span>
                     <div className="flex flex-col gap-0.5 ml-1">
                       <button
                         onClick={() => {

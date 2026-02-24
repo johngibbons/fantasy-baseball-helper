@@ -12,6 +12,7 @@ import {
 import {
   fetchLeagueTeams,
   saveTeamsToStorage,
+  teamDisplayName,
   type DraftTeam,
   type LeagueKeeperEntry,
 } from '@/lib/league-teams'
@@ -730,7 +731,7 @@ export default function KeepersPage() {
               >
                 <option value="">Select...</option>
                 {leagueTeams.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name}</option>
+                  <option key={t.id} value={t.id}>{teamDisplayName(t)}</option>
                 ))}
               </select>
             </div>
@@ -775,7 +776,7 @@ export default function KeepersPage() {
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
                 }`}
               >
-                {team.name}
+                {teamDisplayName(team)}
                 {isMine && <span className="text-[8px] opacity-70">(me)</span>}
                 {hasKeepers && <span className={`w-1.5 h-1.5 rounded-full ${isActive ? 'bg-white/60' : 'bg-emerald-500'}`} />}
               </button>
@@ -789,7 +790,7 @@ export default function KeepersPage() {
           <>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-gray-300">
-                {leagueTeams.find(t => t.id === myTeamId)?.name} — Full Keeper Analysis
+                {(() => { const t = leagueTeams.find(t => t.id === myTeamId); return t ? teamDisplayName(t) : '' })()} — Full Keeper Analysis
               </h2>
               <div className="flex gap-2">
                 {showAnalysis && (
@@ -1186,7 +1187,7 @@ export default function KeepersPage() {
           <>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-sm font-semibold text-gray-300">
-                {leagueTeams.find(t => t.id === selectedTeamId)?.name} — Keeper Entry
+                {(() => { const t = leagueTeams.find(t => t.id === selectedTeamId); return t ? teamDisplayName(t) : '' })()} — Keeper Entry
               </h2>
               <button
                 onClick={clearOtherTeam}
@@ -1319,7 +1320,7 @@ function LeagueKeepersSummaryPanel({
           return (
             <div key={team.id}>
               <div className={`text-[11px] font-semibold mb-0.5 ${isMine ? 'text-blue-400' : 'text-gray-400'}`}>
-                {team.name}
+                {teamDisplayName(team)}
               </div>
               {keepers.length === 0 ? (
                 <div className="text-[10px] text-gray-600 italic pl-2">(none)</div>
