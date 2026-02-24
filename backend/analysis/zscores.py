@@ -235,20 +235,27 @@ def _blend_projection_rows(
       - Hitters: THE BAT X 0.40, Steamer 0.30, ZiPS 0.30
       - Pitchers: Steamer 0.40, THE BAT X 0.30, ZiPS 0.30
 
-    If a player has a 'statcast_adjusted' row, excludes 'trend' for that player
-    (since statcast_adjusted already incorporates trend data).
+    The 'trend' and 'statcast_adjusted' sources are excluded from blending
+    when expert projections are available.  These internal sources use
+    historical stats that penalise players with injury-shortened seasons,
+    while the expert systems (Steamer, THEBATX, ZiPS) already incorporate
+    Statcast data and injury recovery timelines.  Trend/statcast_adjusted
+    are only used as a fallback for players with no expert projections.
 
     Returns:
         (blended_rows, player_count, avg_sources_per_player)
     """
+    _EXPERT_SOURCES = {"steamer", "thebatx", "zips"}
+    _INTERNAL_SOURCES = {"trend", "statcast_adjusted"}
+
     # Source-specific weights (keys must match the 'source' column values)
     _SOURCE_WEIGHTS = {
         "hitter": {
             "thebatx": 0.40,
             "steamer": 0.30,
             "zips": 0.30,
-            "statcast_adjusted": 0.40,  # derived from trend + Statcast; treat like thebatx tier
-            "trend": 0.20,               # fallback weight when no better source exists
+            "statcast_adjusted": 0.40,
+            "trend": 0.20,
         },
         "pitcher": {
             "steamer": 0.40,
@@ -267,10 +274,13 @@ def _blend_projection_rows(
     blended = []
     total_source_count = 0
     for mlb_id, player_rows in by_player.items():
-        # If player has statcast_adjusted, exclude trend
+        # Exclude trend/statcast_adjusted when any expert source is available.
+        # They use historical stats that penalise injury-shortened seasons;
+        # expert systems already account for Statcast and injury recovery.
         sources = {r["source"] for r in player_rows}
-        if "statcast_adjusted" in sources:
-            player_rows = [r for r in player_rows if r["source"] != "trend"]
+        has_expert = bool(sources & _EXPERT_SOURCES)
+        if has_expert:
+            player_rows = [r for r in player_rows if r["source"] not in _INTERNAL_SOURCES]
 
         total_source_count += len(player_rows)
         first = player_rows[0]
