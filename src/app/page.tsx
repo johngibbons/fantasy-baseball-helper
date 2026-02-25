@@ -14,22 +14,64 @@ export default function Dashboard() {
   const [summary, setSummary] = useState<StatsSummary | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [refreshMsg, setRefreshMsg] = useState<string | null>(null)
 
-  useEffect(() => {
+  const loadSummary = () => {
+    setLoading(true)
     getStatsSummary()
       .then(setSummary)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { loadSummary() }, [])
+
+  const handleRefreshProjections = async () => {
+    setRefreshing(true)
+    setRefreshMsg(null)
+    try {
+      const res = await fetch('/api/v2/projections/refresh?season=2026', { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.detail || `HTTP ${res.status}`)
+      }
+      const data = await res.json()
+      setRefreshMsg(`Updated: ${data.total_players} players from FanGraphs`)
+      loadSummary()
+    } catch (e) {
+      setRefreshMsg(`Failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   return (
     <main className="min-h-screen bg-gray-950">
       <div className="max-w-7xl mx-auto px-6 py-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-          <p className="text-gray-500 text-sm mt-0.5">
-            H2H Categories &middot; R, TB, RBI, SB, OBP | K, QS, ERA, WHIP, SVHD
-          </p>
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+            <p className="text-gray-500 text-sm mt-0.5">
+              H2H Categories &middot; R, TB, RBI, SB, OBP | K, QS, ERA, WHIP, SVHD
+            </p>
+          </div>
+          {summary && (
+            <div className="flex items-center gap-3">
+              {refreshMsg && (
+                <span className={`text-xs ${refreshMsg.startsWith('Failed') ? 'text-red-400' : 'text-emerald-400'}`}>
+                  {refreshMsg}
+                </span>
+              )}
+              <button
+                onClick={handleRefreshProjections}
+                disabled={refreshing}
+                className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-300 text-xs font-medium rounded-md border border-gray-700 transition-colors"
+              >
+                {refreshing ? 'Fetching...' : 'Refresh Projections'}
+              </button>
+            </div>
+          )}
         </div>
 
         {loading ? (
