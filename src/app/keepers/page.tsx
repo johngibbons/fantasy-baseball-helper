@@ -481,6 +481,7 @@ export default function KeepersPage() {
     if (selectedTeamId === myTeamId) {
       // Load my team data
       const savedRoster = loadTeamRoster(selectedTeamId)
+      const currentRoster = savedRoster || DEFAULT_ROSTER
       if (savedRoster) setRoster(savedRoster)
       else setRoster(DEFAULT_ROSTER)
 
@@ -488,6 +489,18 @@ export default function KeepersPage() {
       if (savedResolved) {
         setResolvedPlayers(savedResolved.resolved)
         setUnmatchedPlayers(savedResolved.unmatched || [])
+
+        // Re-resolve in background to refresh z-scores from backend
+        const entries = currentRoster
+          .filter((r) => r.name.trim())
+          .map((r) => ({ name: r.name, draft_round: r.draftRound, keeper_season: r.keeperSeason }))
+        if (entries.length > 0) {
+          resolveKeepers(entries).then((result) => {
+            setResolvedPlayers(result.resolved)
+            setUnmatchedPlayers(result.unmatched)
+            saveTeamResolved(selectedTeamId, result)
+          }).catch(() => { /* keep stale cache on error */ })
+        }
       } else {
         setResolvedPlayers(null)
         setUnmatchedPlayers([])
@@ -498,7 +511,20 @@ export default function KeepersPage() {
     } else {
       // Load other team data
       setOtherEntries(loadOtherTeamKeepers(selectedTeamId))
-      setOtherResolved(loadOtherTeamResolved(selectedTeamId))
+      const cachedOther = loadOtherTeamResolved(selectedTeamId)
+      setOtherResolved(cachedOther)
+
+      // Re-resolve other team in background to refresh z-scores
+      const otherKeeperEntries = loadOtherTeamKeepers(selectedTeamId)
+      const nonEmpty = otherKeeperEntries.filter(e => e.name.trim())
+      if (nonEmpty.length > 0 && cachedOther.length > 0) {
+        resolveKeepers(
+          nonEmpty.map((e) => ({ name: e.name, draft_round: e.roundCost, keeper_season: 1 }))
+        ).then((result) => {
+          setOtherResolved(result.resolved)
+          saveOtherTeamResolved(selectedTeamId, result.resolved)
+        }).catch(() => { /* keep stale cache on error */ })
+      }
     }
   }, [selectedTeamId, myTeamId])
 
