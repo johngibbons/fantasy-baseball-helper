@@ -16,7 +16,13 @@ from backend.data.mlb_api import (
     get_batting_stats,
     get_pitching_stats,
 )
-from backend.data.projections import generate_projections_from_stats, import_adp_from_csv, import_fangraphs_batting, import_fangraphs_pitching
+from backend.data.projections import (
+    generate_projections_from_stats,
+    import_adp_from_csv,
+    import_fangraphs_batting,
+    import_fangraphs_pitching,
+    fetch_all_fangraphs_projections,
+)
 from backend.data.statcast import sync_statcast_data
 from backend.data.statcast_adjustments import apply_statcast_adjustments
 from backend.analysis.zscores import calculate_all_zscores
@@ -308,9 +314,16 @@ async def run_full_sync(season: int = 2025, stats_seasons: list[int] = None):
         except Exception as e:
             logger.warning(f"Statcast sync failed for {s} (non-fatal): {e}")
 
-    # 4. Import FanGraphs CSV projections
-    logger.info("Importing CSV projections...")
-    import_csv_projections(season)
+    # 4. Import FanGraphs projections (API first, CSV fallback)
+    logger.info("Importing FanGraphs projections...")
+    api_results = {}
+    try:
+        api_results = fetch_all_fangraphs_projections(season)
+    except Exception as e:
+        logger.warning(f"FanGraphs API fetch failed (non-fatal): {e}")
+    if sum(api_results.values()) == 0:
+        logger.info("Falling back to CSV projections...")
+        import_csv_projections(season)
 
     # 5. Generate projections from historical stats
     logger.info("Generating trend-based projections...")
@@ -353,10 +366,22 @@ def main():
     parser.add_argument("--projections-only", action="store_true", help="Only generate projections")
     parser.add_argument("--rankings-only", action="store_true", help="Only calculate rankings")
     parser.add_argument("--adp-only", action="store_true", help="Only import ADP data from projection CSVs")
+    parser.add_argument("--fetch-projections", action="store_true",
+                        help="Fetch projections from FanGraphs API (replaces manual CSV download)")
 
     args = parser.parse_args()
 
-    if args.players_only:
+    if args.fetch_projections:
+        init_db()
+        results = fetch_all_fangraphs_projections(args.season)
+        total = sum(results.values())
+        if total > 0:
+            logger.info(f"Fetched {total} projections from FanGraphs API: {results}")
+            logger.info("Recalculating rankings...")
+            calculate_all_zscores(args.season)
+        else:
+            logger.warning("No projections fetched from FanGraphs API")
+    elif args.players_only:
         asyncio.run(sync_players(args.season))
     elif args.stats_only:
         seasons = args.stats_seasons or [args.season - 1]

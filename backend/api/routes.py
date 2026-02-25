@@ -325,6 +325,42 @@ def stats_summary(season: int = Query(2026)):
     }
 
 
+# ── Projection refresh ──
+
+
+@router.post("/projections/refresh")
+def refresh_projections(season: int = Query(2026)):
+    """Fetch latest projections from FanGraphs API and recalculate rankings.
+
+    Replaces the need to manually download and import CSV files.
+    """
+    import logging
+    from backend.data.projections import fetch_all_fangraphs_projections
+
+    logger = logging.getLogger(__name__)
+
+    try:
+        results = fetch_all_fangraphs_projections(season)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"FanGraphs API error: {e}")
+
+    total = sum(results.values())
+    if total == 0:
+        raise HTTPException(status_code=502, detail="FanGraphs API returned no projection data")
+
+    try:
+        calculate_all_zscores(season)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ranking recalculation failed: {e}")
+
+    return {
+        "ok": True,
+        "projections_imported": results,
+        "total_players": total,
+        "message": f"Fetched {total} projections from FanGraphs and recalculated rankings",
+    }
+
+
 # ── Keeper resolution ──
 
 

@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.routes import router
 from backend.database import init_db, get_connection
-from backend.data.projections import generate_projections_from_stats, import_adp_from_csv
+from backend.data.projections import generate_projections_from_stats, import_adp_from_csv, fetch_all_fangraphs_projections
 from backend.data.statcast_adjustments import apply_statcast_adjustments
 from backend.analysis.zscores import calculate_all_zscores
 from backend.data.sync import import_csv_projections
@@ -54,10 +54,21 @@ def startup():
 
     logger.info(f"Startup recalculation for season {_SEASON} ({player_count} active players)")
 
+    # Try FanGraphs API first, fall back to CSVs
+    fg_total = 0
     try:
-        import_csv_projections(_SEASON)
+        fg_results = fetch_all_fangraphs_projections(_SEASON)
+        fg_total = sum(fg_results.values())
+        if fg_total > 0:
+            logger.info(f"Imported {fg_total} projections from FanGraphs API")
     except Exception as e:
-        logger.warning(f"CSV projection import failed (non-fatal): {e}")
+        logger.warning(f"FanGraphs API fetch failed (non-fatal): {e}")
+
+    if fg_total == 0:
+        try:
+            import_csv_projections(_SEASON)
+        except Exception as e:
+            logger.warning(f"CSV projection import failed (non-fatal): {e}")
 
     try:
         generate_projections_from_stats(_SEASON)

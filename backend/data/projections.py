@@ -1,12 +1,17 @@
-"""Parse and import projection data from CSV files (Steamer, ZiPS, THE BAT X, etc.)
-and generate simple trend-based projections from historical stats."""
+"""Parse and import projection data from CSV files or FanGraphs API
+(Steamer, ZiPS, THE BAT X, etc.) and generate simple trend-based
+projections from historical stats."""
 
 import csv
 import logging
+import time
 import unicodedata
 from datetime import date
 from pathlib import Path
 from typing import Optional
+
+import httpx
+
 from backend.database import get_connection
 
 logger = logging.getLogger(__name__)
@@ -208,6 +213,240 @@ def import_fangraphs_pitching(filepath: str, source: str, season: int = 2025):
     conn.close()
     logger.info(f"Imported {imported} {source} pitching projections from {filepath} ({skipped} skipped)")
     return imported
+
+
+# ── FanGraphs API Fetch ──
+
+_FG_API_BASE = "https://www.fangraphs.com/api/projections"
+
+# FanGraphs projection type parameter → our source name
+_FG_SOURCES = {
+    "steamer": "steamer",
+    "zips": "zips",
+    "thebatx": "thebatx",
+}
+
+# Delay between API requests (be polite)
+_FG_REQUEST_DELAY = 1.5
+
+
+def _fetch_fg_json(fg_type: str, stats: str) -> list[dict]:
+    """Fetch projection JSON from FanGraphs API.
+
+    Args:
+        fg_type: Projection type param (e.g. 'steamer', 'zips', 'thebatx')
+        stats: 'bat' for batting, 'pit' for pitching
+
+    Returns:
+        List of player projection dicts.
+    """
+    url = f"{_FG_API_BASE}?type={fg_type}&stats={stats}&pos=all&team=0&players=0"
+    headers = {
+        "User-Agent": "FantasyBaseballHelper/1.0",
+        "Accept": "application/json",
+    }
+    logger.info(f"Fetching FanGraphs {fg_type} {stats}: {url}")
+    resp = httpx.get(url, headers=headers, timeout=30)
+    resp.raise_for_status()
+    data = resp.json()
+    logger.info(f"  Got {len(data)} rows")
+    return data
+
+
+def _fg_resolve_mlb_id(conn, row: dict) -> Optional[int]:
+    """Resolve a FanGraphs API player to our mlb_id via xMLBAMID or name."""
+    mlbam_id = row.get("xMLBAMID") or row.get("mlbamid")
+    if mlbam_id:
+        try:
+            mid = int(mlbam_id)
+            player = conn.execute(
+                "SELECT mlb_id FROM players WHERE mlb_id = ?", (mid,)
+            ).fetchone()
+            if player:
+                return player["mlb_id"]
+        except (ValueError, TypeError):
+            pass
+
+    name = row.get("PlayerName", "").strip()
+    if not name:
+        return None
+    player = conn.execute(
+        "SELECT mlb_id FROM players WHERE full_name = ? OR full_name LIKE ?",
+        (name, f"%{name}%"),
+    ).fetchone()
+    if player:
+        return player["mlb_id"]
+    return None
+
+
+def fetch_fangraphs_batting(fg_type: str, source: str, season: int) -> int:
+    """Fetch batting projections from FanGraphs API and store in DB.
+
+    Uses the exact same DB schema as import_fangraphs_batting (CSV version).
+
+    Args:
+        fg_type: FanGraphs type parameter (e.g. 'steamer')
+        source: Our source name (e.g. 'steamer')
+        season: Projection season year
+
+    Returns:
+        Number of players imported.
+    """
+    data = _fetch_fg_json(fg_type, "bat")
+    conn = get_connection()
+    imported = 0
+    skipped = 0
+
+    for row in data:
+        mlb_id = _fg_resolve_mlb_id(conn, row)
+        if mlb_id is None:
+            skipped += 1
+            continue
+
+        pa = _safe_int(row.get("PA"))
+        ab = _safe_int(row.get("AB"))
+        hits = _safe_int(row.get("H"))
+        doubles = _safe_int(row.get("2B"))
+        triples = _safe_int(row.get("3B"))
+        hr = _safe_int(row.get("HR"))
+        singles = hits - doubles - triples - hr
+        tb = singles + (2 * doubles) + (3 * triples) + (4 * hr)
+
+        conn.execute(
+            """INSERT INTO projections
+               (mlb_id, source, season, player_type,
+                proj_pa, proj_at_bats, proj_runs, proj_hits, proj_doubles, proj_triples,
+                proj_home_runs, proj_rbi, proj_stolen_bases, proj_walks,
+                proj_strikeouts, proj_hbp, proj_sac_flies, proj_obp, proj_total_bases)
+               VALUES (?, ?, ?, 'hitter',
+                       ?, ?, ?, ?, ?, ?,
+                       ?, ?, ?, ?,
+                       ?, ?, ?, ?, ?)
+               ON CONFLICT (mlb_id, source, season, player_type) DO UPDATE SET
+                 proj_pa = EXCLUDED.proj_pa, proj_at_bats = EXCLUDED.proj_at_bats,
+                 proj_runs = EXCLUDED.proj_runs, proj_hits = EXCLUDED.proj_hits,
+                 proj_doubles = EXCLUDED.proj_doubles, proj_triples = EXCLUDED.proj_triples,
+                 proj_home_runs = EXCLUDED.proj_home_runs, proj_rbi = EXCLUDED.proj_rbi,
+                 proj_stolen_bases = EXCLUDED.proj_stolen_bases, proj_walks = EXCLUDED.proj_walks,
+                 proj_strikeouts = EXCLUDED.proj_strikeouts, proj_hbp = EXCLUDED.proj_hbp,
+                 proj_sac_flies = EXCLUDED.proj_sac_flies, proj_obp = EXCLUDED.proj_obp,
+                 proj_total_bases = EXCLUDED.proj_total_bases""",
+            (
+                mlb_id, source, season,
+                pa, ab,
+                _safe_int(row.get("R")),
+                hits, doubles, triples, hr,
+                _safe_int(row.get("RBI")),
+                _safe_int(row.get("SB")),
+                _safe_int(row.get("BB")),
+                _safe_int(row.get("SO")),
+                _safe_int(row.get("HBP")),
+                _safe_int(row.get("SF")),
+                _safe_float(row.get("OBP")),
+                tb,
+            ),
+        )
+        imported += 1
+
+    conn.commit()
+    conn.close()
+    logger.info(f"Imported {imported} {source} batting projections from FanGraphs API ({skipped} skipped)")
+    return imported
+
+
+def fetch_fangraphs_pitching(fg_type: str, source: str, season: int) -> int:
+    """Fetch pitching projections from FanGraphs API and store in DB.
+
+    Uses the exact same DB schema as import_fangraphs_pitching (CSV version).
+
+    Args:
+        fg_type: FanGraphs type parameter (e.g. 'steamer')
+        source: Our source name (e.g. 'steamer')
+        season: Projection season year
+
+    Returns:
+        Number of players imported.
+    """
+    data = _fetch_fg_json(fg_type, "pit")
+    conn = get_connection()
+    imported = 0
+    skipped = 0
+
+    for row in data:
+        mlb_id = _fg_resolve_mlb_id(conn, row)
+        if mlb_id is None:
+            skipped += 1
+            continue
+
+        conn.execute(
+            """INSERT INTO projections
+               (mlb_id, source, season, player_type,
+                proj_ip, proj_pitcher_strikeouts, proj_quality_starts,
+                proj_era, proj_whip, proj_saves, proj_holds, proj_wins,
+                proj_hits_allowed, proj_walks_allowed, proj_earned_runs)
+               VALUES (?, ?, ?, 'pitcher',
+                       ?, ?, ?,
+                       ?, ?, ?, ?, ?,
+                       ?, ?, ?)
+               ON CONFLICT (mlb_id, source, season, player_type) DO UPDATE SET
+                 proj_ip = EXCLUDED.proj_ip, proj_pitcher_strikeouts = EXCLUDED.proj_pitcher_strikeouts,
+                 proj_quality_starts = EXCLUDED.proj_quality_starts,
+                 proj_era = EXCLUDED.proj_era, proj_whip = EXCLUDED.proj_whip,
+                 proj_saves = EXCLUDED.proj_saves, proj_holds = EXCLUDED.proj_holds,
+                 proj_wins = EXCLUDED.proj_wins, proj_hits_allowed = EXCLUDED.proj_hits_allowed,
+                 proj_walks_allowed = EXCLUDED.proj_walks_allowed,
+                 proj_earned_runs = EXCLUDED.proj_earned_runs""",
+            (
+                mlb_id, source, season,
+                _safe_float(row.get("IP")),
+                _safe_int(row.get("SO")),
+                _safe_int(row.get("QS")),
+                _safe_float(row.get("ERA")),
+                _safe_float(row.get("WHIP")),
+                _safe_int(row.get("SV")),
+                _safe_int(row.get("HLD")),
+                _safe_int(row.get("W")),
+                _safe_int(row.get("H")),
+                _safe_int(row.get("BB")),
+                _safe_int(row.get("ER")),
+            ),
+        )
+        imported += 1
+
+    conn.commit()
+    conn.close()
+    logger.info(f"Imported {imported} {source} pitching projections from FanGraphs API ({skipped} skipped)")
+    return imported
+
+
+def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
+    """Fetch all projection sources from FanGraphs API.
+
+    Fetches Steamer, ZiPS, and THE BAT X batting + pitching projections.
+    This replaces the manual CSV download workflow.
+
+    Args:
+        season: Projection season year
+
+    Returns:
+        Dict mapping source name to total players imported.
+    """
+    results = {}
+    for fg_type, source in _FG_SOURCES.items():
+        try:
+            bat = fetch_fangraphs_batting(fg_type, source, season)
+            time.sleep(_FG_REQUEST_DELAY)
+            pit = fetch_fangraphs_pitching(fg_type, source, season)
+            time.sleep(_FG_REQUEST_DELAY)
+            results[source] = bat + pit
+            logger.info(f"  {source}: {bat} batters + {pit} pitchers")
+        except Exception as e:
+            logger.warning(f"Failed to fetch {source} projections from FanGraphs: {e}")
+            results[source] = 0
+
+    total = sum(results.values())
+    logger.info(f"FanGraphs API projection fetch complete: {total} total across {len(results)} sources")
+    return results
 
 
 def import_position_eligibility(filepath: str):
