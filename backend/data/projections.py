@@ -242,11 +242,14 @@ def _fetch_fg_json(fg_type: str, stats: str) -> list[dict]:
     """
     url = f"{_FG_API_BASE}?type={fg_type}&stats={stats}&pos=all&team=0&players=0"
     headers = {
-        "User-Agent": "FantasyBaseballHelper/1.0",
+        "User-Agent": "Mozilla/5.0 (compatible; FantasyBaseballHelper/1.0)",
         "Accept": "application/json",
+        "Referer": "https://www.fangraphs.com/projections",
     }
     logger.info(f"Fetching FanGraphs {fg_type} {stats}: {url}")
-    resp = httpx.get(url, headers=headers, timeout=30)
+    resp = httpx.get(url, headers=headers, timeout=30, follow_redirects=True)
+    if resp.status_code != 200:
+        logger.error(f"FanGraphs returned {resp.status_code} for {fg_type} {stats}: {resp.text[:500]}")
     resp.raise_for_status()
     data = resp.json()
     logger.info(f"  Got {len(data)} rows")

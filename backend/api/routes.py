@@ -335,6 +335,7 @@ def refresh_projections(season: int = Query(2026)):
     Replaces the need to manually download and import CSV files.
     """
     import logging
+    import traceback
     from backend.data.projections import fetch_all_fangraphs_projections
 
     logger = logging.getLogger(__name__)
@@ -342,6 +343,8 @@ def refresh_projections(season: int = Query(2026)):
     try:
         results = fetch_all_fangraphs_projections(season)
     except Exception as e:
+        tb = traceback.format_exc()
+        logger.error(f"FanGraphs API error: {e}\n{tb}")
         raise HTTPException(status_code=502, detail=f"FanGraphs API error: {e}")
 
     total = sum(results.values())
@@ -351,6 +354,8 @@ def refresh_projections(season: int = Query(2026)):
     try:
         calculate_all_zscores(season)
     except Exception as e:
+        tb = traceback.format_exc()
+        logger.error(f"Ranking recalculation failed: {e}\n{tb}")
         raise HTTPException(status_code=500, detail=f"Ranking recalculation failed: {e}")
 
     return {

@@ -32,12 +32,12 @@ export default function Dashboard() {
     setRefreshMsg(null)
     try {
       const res = await fetch('/api/v2/projections/refresh?season=2026', { method: 'POST' })
+      const data = await res.json().catch(() => null)
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.detail || `HTTP ${res.status}`)
+        const detail = data?.detail || `HTTP ${res.status}`
+        throw new Error(detail)
       }
-      const data = await res.json()
-      setRefreshMsg(`Updated: ${data.total_players} players from FanGraphs`)
+      setRefreshMsg(`Updated: ${data?.total_players ?? 0} players from FanGraphs`)
       loadSummary()
     } catch (e) {
       setRefreshMsg(`Failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
