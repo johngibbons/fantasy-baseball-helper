@@ -285,3 +285,246 @@ export async function resolveKeepers(
   if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`)
   return res.json()
 }
+
+// === In-Season Types ===
+
+export interface InseasonFreeAgent {
+  mlb_id: number
+  full_name: string
+  primary_position: string
+  team: string
+  player_type: string
+  total_zscore: number
+  mcw: number
+  category_impact: Record<string, number>
+  eligible_positions?: string
+  proj_pa?: number
+  proj_ip?: number
+}
+
+export interface SwapRecommendation {
+  add_player: {
+    mlb_id: number
+    full_name: string
+    primary_position: string
+    team: string
+    player_type: string
+    mcw: number
+  }
+  drop_player: {
+    mlb_id: number
+    full_name: string
+    primary_position: string
+    team: string
+    player_type: string
+  }
+  net_mcw: number
+  category_impact: Record<string, number>
+  horizon: string
+}
+
+export interface TradeEvalResult {
+  give_players: { mlb_id: number; full_name: string }[]
+  receive_players: { mlb_id: number; full_name: string }[]
+  my_mcw_change: number
+  partner_mcw_change: number
+  my_category_impact: Record<string, number>
+  partner_category_impact: Record<string, number>
+  is_positive_sum: boolean
+}
+
+export interface TradeProposal {
+  give_player: { mlb_id: number; full_name: string; primary_position: string; team: string }
+  receive_player: { mlb_id: number; full_name: string; primary_position: string; team: string }
+  partner_team_id: number
+  my_mcw_gain: number
+  partner_mcw_gain: number
+}
+
+export interface MatchupCategory {
+  category: string
+  my_value: number
+  opp_value: number
+  margin: number
+  threshold: number
+  status: 'winning' | 'losing' | 'swing'
+}
+
+export interface MatchupAnalysis {
+  matchup_period: number
+  my_team_id: number
+  opp_team_id: number
+  categories: MatchupCategory[]
+  projected_result: string
+  wins: number
+  losses: number
+  ties: number
+  error?: string
+}
+
+export interface CategoryStrategy {
+  category: string
+  cat_key: string
+  my_total: number
+  rank: number
+  win_prob: number
+  gap_above: number
+  gap_below: number
+  strategy: 'lock' | 'target' | 'punt' | 'neutral'
+}
+
+export interface SeasonStrategy {
+  my_team_id: number
+  num_teams: number
+  expected_category_wins: number
+  categories: CategoryStrategy[]
+  target_categories: string[]
+  lock_categories: string[]
+  punt_categories: string[]
+  error?: string
+}
+
+export interface RosterSignal {
+  mlb_id: number
+  full_name: string
+  primary_position: string
+  team: string
+  player_type: string
+  signal_type: 'drop_candidate' | 'add_target' | 'underperformer'
+  severity: 'high' | 'medium' | 'low'
+  mcw: number
+  action: string
+  description: string
+}
+
+// === In-Season API Functions ===
+
+export async function triggerInseasonSync(season: number = 2026): Promise<{ ok: boolean; last_ros_update?: string }> {
+  const url = `${BASE}/inseason/sync?season=${season}`
+  const res = await fetch(url, { method: 'POST' })
+  if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+export async function getFreeAgentRankings(opts: {
+  leagueId: string
+  season?: number
+  myTeamId: number
+  numTeams?: number
+  position?: string
+  limit?: number
+}): Promise<{ free_agents: InseasonFreeAgent[] }> {
+  return fetchApi('/inseason/free-agents', {
+    league_id: opts.leagueId,
+    season: String(opts.season ?? 2026),
+    my_team_id: String(opts.myTeamId),
+    num_teams: String(opts.numTeams ?? 10),
+    position: opts.position ?? '',
+    limit: String(opts.limit ?? 50),
+  })
+}
+
+export async function getAddDropRecommendations(opts: {
+  leagueId: string
+  season?: number
+  myTeamId: number
+  numTeams?: number
+  horizon?: 'ros' | 'week'
+  limit?: number
+}): Promise<{ recommendations: SwapRecommendation[] }> {
+  return fetchApi('/inseason/recommendations', {
+    league_id: opts.leagueId,
+    season: String(opts.season ?? 2026),
+    my_team_id: String(opts.myTeamId),
+    num_teams: String(opts.numTeams ?? 10),
+    horizon: opts.horizon ?? 'ros',
+    limit: String(opts.limit ?? 20),
+  })
+}
+
+export async function evaluateTrade(opts: {
+  leagueId: string
+  season?: number
+  myTeamId: number
+  partnerTeamId: number
+  giveIds: number[]
+  receiveIds: number[]
+  numTeams?: number
+}): Promise<TradeEvalResult> {
+  const url = `${BASE}/inseason/trade-eval`
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      league_id: opts.leagueId,
+      season: opts.season ?? 2026,
+      my_team_id: opts.myTeamId,
+      partner_team_id: opts.partnerTeamId,
+      give_ids: opts.giveIds,
+      receive_ids: opts.receiveIds,
+      num_teams: opts.numTeams ?? 10,
+    }),
+  })
+  if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`)
+  return res.json()
+}
+
+export async function findTrades(opts: {
+  leagueId: string
+  season?: number
+  myTeamId: number
+  numTeams?: number
+  limit?: number
+}): Promise<{ trades: TradeProposal[] }> {
+  return fetchApi('/inseason/trade-finder', {
+    league_id: opts.leagueId,
+    season: String(opts.season ?? 2026),
+    my_team_id: String(opts.myTeamId),
+    num_teams: String(opts.numTeams ?? 10),
+    limit: String(opts.limit ?? 20),
+  })
+}
+
+export async function getMatchupAnalysis(opts: {
+  leagueId: string
+  season?: number
+  matchupPeriod: number
+  myTeamId: number
+}): Promise<MatchupAnalysis> {
+  return fetchApi('/inseason/matchup', {
+    league_id: opts.leagueId,
+    season: String(opts.season ?? 2026),
+    matchup_period: String(opts.matchupPeriod),
+    my_team_id: String(opts.myTeamId),
+  })
+}
+
+export async function getSeasonStrategy(opts: {
+  leagueId: string
+  season?: number
+  myTeamId: number
+  numTeams?: number
+}): Promise<SeasonStrategy> {
+  return fetchApi('/inseason/strategy', {
+    league_id: opts.leagueId,
+    season: String(opts.season ?? 2026),
+    my_team_id: String(opts.myTeamId),
+    num_teams: String(opts.numTeams ?? 10),
+  })
+}
+
+export async function getRosterSignals(opts: {
+  leagueId: string
+  season?: number
+  myTeamId: number
+  numTeams?: number
+  limit?: number
+}): Promise<{ signals: RosterSignal[] }> {
+  return fetchApi('/inseason/signals', {
+    league_id: opts.leagueId,
+    season: String(opts.season ?? 2026),
+    my_team_id: String(opts.myTeamId),
+    num_teams: String(opts.numTeams ?? 10),
+    limit: String(opts.limit ?? 30),
+  })
+}

@@ -17,6 +17,7 @@ from backend.data.mlb_api import (
     get_pitching_stats,
 )
 from backend.data.projections import generate_projections_from_stats, import_adp_from_csv, import_fangraphs_batting, import_fangraphs_pitching
+from backend.data.fangraphs_api import fetch_all_ros_projections
 from backend.data.statcast import sync_statcast_data
 from backend.data.statcast_adjustments import apply_statcast_adjustments
 from backend.analysis.zscores import calculate_all_zscores
@@ -337,6 +338,31 @@ async def run_full_sync(season: int = 2025, stats_seasons: list[int] = None):
     logger.info("Full sync complete!")
 
 
+def run_inseason_sync(season: int = 2026):
+    """In-season sync: fetch ROS projections from FanGraphs and recalculate rankings.
+
+    This is the backend half of the in-season sync pipeline.  The frontend
+    handles ESPN data (matchups, ownership, standings), then calls this to
+    refresh projections and rankings.
+    """
+    init_db()
+    logger.info(f"Starting in-season sync for {season}...")
+
+    # 1. Fetch ROS projections from FanGraphs API
+    logger.info("Fetching ROS projections from FanGraphs...")
+    try:
+        results = fetch_all_ros_projections(season)
+        logger.info(f"ROS projections: {results}")
+    except Exception as e:
+        logger.warning(f"FanGraphs ROS fetch failed (non-fatal): {e}")
+
+    # 2. Recalculate z-scores and rankings with new projection data
+    logger.info("Recalculating z-scores and rankings...")
+    calculate_all_zscores(season)
+
+    logger.info("In-season sync complete!")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Sync fantasy baseball data")
     parser.add_argument("--season", type=int, default=2025, help="Target season (default: 2025)")
@@ -353,10 +379,14 @@ def main():
     parser.add_argument("--projections-only", action="store_true", help="Only generate projections")
     parser.add_argument("--rankings-only", action="store_true", help="Only calculate rankings")
     parser.add_argument("--adp-only", action="store_true", help="Only import ADP data from projection CSVs")
+    parser.add_argument("--inseason-sync", action="store_true",
+                        help="In-season sync: fetch ROS projections from FanGraphs and recalculate rankings")
 
     args = parser.parse_args()
 
-    if args.players_only:
+    if args.inseason_sync:
+        run_inseason_sync(args.season)
+    elif args.players_only:
         asyncio.run(sync_players(args.season))
     elif args.stats_only:
         seasons = args.stats_seasons or [args.season - 1]

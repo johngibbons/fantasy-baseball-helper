@@ -245,22 +245,26 @@ def _blend_projection_rows(
     Returns:
         (blended_rows, player_count, avg_sources_per_player)
     """
-    _EXPERT_SOURCES = {"steamer", "thebatx", "zips"}
+    _EXPERT_SOURCES = {
+        "steamer", "thebatx", "zips",
+        "steamer_ros", "thebatx_ros", "zips_ros",
+    }
     _INTERNAL_SOURCES = {"trend", "statcast_adjusted"}
 
     # Source-specific weights (keys must match the 'source' column values)
+    # ROS variants use the same weights as their pre-season counterparts.
     _SOURCE_WEIGHTS = {
         "hitter": {
-            "thebatx": 0.40,
-            "steamer": 0.30,
-            "zips": 0.30,
+            "thebatx": 0.40, "thebatx_ros": 0.40,
+            "steamer": 0.30, "steamer_ros": 0.30,
+            "zips": 0.30, "zips_ros": 0.30,
             "statcast_adjusted": 0.40,
             "trend": 0.20,
         },
         "pitcher": {
-            "steamer": 0.40,
-            "thebatx": 0.30,
-            "zips": 0.30,
+            "steamer": 0.40, "steamer_ros": 0.40,
+            "thebatx": 0.30, "thebatx_ros": 0.30,
+            "zips": 0.30, "zips_ros": 0.30,
             "statcast_adjusted": 0.40,
             "trend": 0.20,
         },

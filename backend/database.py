@@ -338,6 +338,72 @@ def _init_pg():
         );
     """)
 
+    # ── In-season management tables ──
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS season_state (
+            season INTEGER PRIMARY KEY,
+            season_start_date TEXT,
+            season_end_date TEXT,
+            last_ros_update TEXT
+        );
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS matchups (
+            id SERIAL PRIMARY KEY,
+            league_external_id TEXT NOT NULL,
+            season INTEGER NOT NULL,
+            matchup_period INTEGER NOT NULL,
+            home_team_id INTEGER NOT NULL,
+            away_team_id INTEGER NOT NULL,
+            UNIQUE(league_external_id, season, matchup_period, home_team_id)
+        );
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS matchup_category_scores (
+            matchup_id INTEGER NOT NULL,
+            team_id INTEGER NOT NULL,
+            category TEXT NOT NULL,
+            value REAL DEFAULT 0,
+            FOREIGN KEY (matchup_id) REFERENCES matchups(id),
+            UNIQUE(matchup_id, team_id, category)
+        );
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS player_ownership (
+            mlb_id INTEGER NOT NULL,
+            league_external_id TEXT NOT NULL,
+            season INTEGER NOT NULL,
+            owner_team_id INTEGER,
+            roster_status TEXT,
+            lineup_slot TEXT,
+            updated_at TIMESTAMP DEFAULT NOW(),
+            PRIMARY KEY (mlb_id, league_external_id, season)
+        );
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS team_season_stats (
+            league_external_id TEXT NOT NULL,
+            season INTEGER NOT NULL,
+            team_id INTEGER NOT NULL,
+            stat_r INTEGER DEFAULT 0, stat_tb INTEGER DEFAULT 0,
+            stat_rbi INTEGER DEFAULT 0, stat_sb INTEGER DEFAULT 0,
+            stat_k INTEGER DEFAULT 0, stat_qs INTEGER DEFAULT 0,
+            stat_svhd INTEGER DEFAULT 0,
+            stat_pa INTEGER DEFAULT 0, stat_ab INTEGER DEFAULT 0,
+            stat_hits INTEGER DEFAULT 0, stat_walks INTEGER DEFAULT 0,
+            stat_hbp INTEGER DEFAULT 0, stat_sf INTEGER DEFAULT 0,
+            stat_ip REAL DEFAULT 0, stat_earned_runs INTEGER DEFAULT 0,
+            stat_hits_allowed INTEGER DEFAULT 0, stat_walks_allowed INTEGER DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT NOW(),
+            PRIMARY KEY (league_external_id, season, team_id)
+        );
+    """)
+
     # Migration: add projection columns to rankings if missing
     for col, col_type, default in _RANKINGS_PROJ_COLUMNS:
         try:
@@ -560,6 +626,62 @@ def _init_sqlite():
             season INTEGER PRIMARY KEY,
             state_json TEXT NOT NULL,
             updated_at TEXT DEFAULT (datetime('now'))
+        );
+
+        -- In-season management tables
+
+        CREATE TABLE IF NOT EXISTS season_state (
+            season INTEGER PRIMARY KEY,
+            season_start_date TEXT,
+            season_end_date TEXT,
+            last_ros_update TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS matchups (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            league_external_id TEXT NOT NULL,
+            season INTEGER NOT NULL,
+            matchup_period INTEGER NOT NULL,
+            home_team_id INTEGER NOT NULL,
+            away_team_id INTEGER NOT NULL,
+            UNIQUE(league_external_id, season, matchup_period, home_team_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS matchup_category_scores (
+            matchup_id INTEGER NOT NULL,
+            team_id INTEGER NOT NULL,
+            category TEXT NOT NULL,
+            value REAL DEFAULT 0,
+            FOREIGN KEY (matchup_id) REFERENCES matchups(id),
+            UNIQUE(matchup_id, team_id, category)
+        );
+
+        CREATE TABLE IF NOT EXISTS player_ownership (
+            mlb_id INTEGER NOT NULL,
+            league_external_id TEXT NOT NULL,
+            season INTEGER NOT NULL,
+            owner_team_id INTEGER,
+            roster_status TEXT,
+            lineup_slot TEXT,
+            updated_at TEXT DEFAULT (datetime('now')),
+            PRIMARY KEY (mlb_id, league_external_id, season)
+        );
+
+        CREATE TABLE IF NOT EXISTS team_season_stats (
+            league_external_id TEXT NOT NULL,
+            season INTEGER NOT NULL,
+            team_id INTEGER NOT NULL,
+            stat_r INTEGER DEFAULT 0, stat_tb INTEGER DEFAULT 0,
+            stat_rbi INTEGER DEFAULT 0, stat_sb INTEGER DEFAULT 0,
+            stat_k INTEGER DEFAULT 0, stat_qs INTEGER DEFAULT 0,
+            stat_svhd INTEGER DEFAULT 0,
+            stat_pa INTEGER DEFAULT 0, stat_ab INTEGER DEFAULT 0,
+            stat_hits INTEGER DEFAULT 0, stat_walks INTEGER DEFAULT 0,
+            stat_hbp INTEGER DEFAULT 0, stat_sf INTEGER DEFAULT 0,
+            stat_ip REAL DEFAULT 0, stat_earned_runs INTEGER DEFAULT 0,
+            stat_hits_allowed INTEGER DEFAULT 0, stat_walks_allowed INTEGER DEFAULT 0,
+            updated_at TEXT DEFAULT (datetime('now')),
+            PRIMARY KEY (league_external_id, season, team_id)
         );
     """)
 

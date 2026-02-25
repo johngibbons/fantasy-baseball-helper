@@ -2,6 +2,7 @@
 
 import difflib
 import json
+import logging
 import unicodedata
 from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
@@ -17,7 +18,18 @@ from backend.analysis.zscores import (
     calculate_pitcher_zscores,
     calculate_all_zscores,
 )
+from backend.analysis.inseason import (
+    get_free_agent_rankings,
+    get_add_drop_recommendations,
+    evaluate_trade,
+    find_trades,
+    analyze_matchup,
+    get_season_strategy,
+    get_roster_signals,
+)
 from backend.database import get_connection
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -464,3 +476,280 @@ def resolve_keepers(body: KeeperResolveRequest):
             })
 
     return {"resolved": resolved, "unmatched": unmatched}
+
+
+# ── In-Season Management Endpoints ──
+
+
+@router.post("/inseason/sync")
+def inseason_sync(
+    season: int = Query(2026),
+):
+    """Fetch ROS projections from FanGraphs and recalculate rankings.
+
+    Called by the Next.js /api/leagues/[leagueId]/inseason-sync route
+    after it has already fetched ESPN data.
+    """
+    from backend.data.fangraphs_api import fetch_all_ros_projections
+
+    try:
+        results = fetch_all_ros_projections(season)
+    except Exception as e:
+        logger.warning(f"FanGraphs ROS fetch failed (non-fatal): {e}")
+        results = {}
+
+    # Recalculate z-scores using ROS projections
+    try:
+        calculate_all_zscores(season)
+    except Exception as e:
+        logger.error(f"Z-score recalculation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Ranking recalculation failed: {e}")
+
+    # Get last update timestamp
+    conn = get_connection()
+    state = conn.execute(
+        "SELECT last_ros_update FROM season_state WHERE season = ?", (season,)
+    ).fetchone()
+    conn.close()
+
+    return {
+        "ok": True,
+        "ros_projections": results,
+        "last_ros_update": state["last_ros_update"] if state else None,
+    }
+
+
+@router.get("/inseason/free-agents")
+def inseason_free_agents(
+    league_id: str = Query(..., description="ESPN league external ID"),
+    season: int = Query(2026),
+    my_team_id: int = Query(..., description="My ESPN team ID"),
+    num_teams: int = Query(10),
+    position: Optional[str] = Query(None),
+    limit: int = Query(50, ge=1, le=200),
+):
+    """Rank free agents by MCW relative to my team's standings."""
+    return {
+        "free_agents": get_free_agent_rankings(
+            league_id, season, my_team_id, num_teams, position, limit
+        )
+    }
+
+
+@router.get("/inseason/recommendations")
+def inseason_recommendations(
+    league_id: str = Query(..., description="ESPN league external ID"),
+    season: int = Query(2026),
+    my_team_id: int = Query(..., description="My ESPN team ID"),
+    num_teams: int = Query(10),
+    horizon: str = Query("ros", description="'ros' or 'week'"),
+    limit: int = Query(20, ge=1, le=50),
+):
+    """Get add/drop swap recommendations ranked by net MCW gain."""
+    return {
+        "recommendations": get_add_drop_recommendations(
+            league_id, season, my_team_id, num_teams, horizon, limit
+        )
+    }
+
+
+class TradeEvalRequest(BaseModel):
+    league_id: str
+    season: int = 2026
+    my_team_id: int
+    partner_team_id: int
+    give_ids: list[int]
+    receive_ids: list[int]
+    num_teams: int = 10
+
+
+@router.post("/inseason/trade-eval")
+def inseason_trade_eval(body: TradeEvalRequest):
+    """Evaluate a proposed trade between two teams."""
+    return evaluate_trade(
+        body.league_id, body.season, body.my_team_id,
+        body.partner_team_id, body.give_ids, body.receive_ids, body.num_teams
+    )
+
+
+@router.get("/inseason/trade-finder")
+def inseason_trade_finder(
+    league_id: str = Query(...),
+    season: int = Query(2026),
+    my_team_id: int = Query(...),
+    num_teams: int = Query(10),
+    limit: int = Query(20, ge=1, le=50),
+):
+    """Auto-discover positive-sum trade opportunities."""
+    return {"trades": find_trades(league_id, season, my_team_id, num_teams, limit)}
+
+
+@router.get("/inseason/matchup")
+def inseason_matchup(
+    league_id: str = Query(...),
+    season: int = Query(2026),
+    matchup_period: int = Query(...),
+    my_team_id: int = Query(...),
+):
+    """Analyze the current week's H2H matchup."""
+    return analyze_matchup(league_id, season, matchup_period, my_team_id)
+
+
+@router.get("/inseason/strategy")
+def inseason_strategy(
+    league_id: str = Query(...),
+    season: int = Query(2026),
+    my_team_id: int = Query(...),
+    num_teams: int = Query(10),
+    playoff_spots: int = Query(6),
+):
+    """Get season-long category strategy analysis."""
+    return get_season_strategy(league_id, season, my_team_id, num_teams, playoff_spots)
+
+
+class StoreMatchupRequest(BaseModel):
+    league_external_id: str
+    season: int
+    matchup_period: int
+    home_team_id: int
+    away_team_id: int
+    home_scores: dict[str, float] = {}
+    away_scores: dict[str, float] = {}
+
+
+@router.post("/inseason/store-matchup")
+def store_matchup(body: StoreMatchupRequest):
+    """Store matchup data from ESPN (called by Next.js inseason-sync route)."""
+    conn = get_connection()
+    conn.execute(
+        """INSERT INTO matchups (league_external_id, season, matchup_period, home_team_id, away_team_id)
+           VALUES (?, ?, ?, ?, ?)
+           ON CONFLICT (league_external_id, season, matchup_period, home_team_id) DO UPDATE SET
+             away_team_id = EXCLUDED.away_team_id""",
+        (body.league_external_id, body.season, body.matchup_period,
+         body.home_team_id, body.away_team_id),
+    )
+    # Get the matchup ID
+    matchup = conn.execute(
+        """SELECT id FROM matchups
+           WHERE league_external_id = ? AND season = ? AND matchup_period = ? AND home_team_id = ?""",
+        (body.league_external_id, body.season, body.matchup_period, body.home_team_id),
+    ).fetchone()
+    if matchup:
+        mid = matchup["id"]
+        for cat, val in body.home_scores.items():
+            conn.execute(
+                """INSERT INTO matchup_category_scores (matchup_id, team_id, category, value)
+                   VALUES (?, ?, ?, ?)
+                   ON CONFLICT (matchup_id, team_id, category) DO UPDATE SET value = EXCLUDED.value""",
+                (mid, body.home_team_id, cat, val),
+            )
+        for cat, val in body.away_scores.items():
+            conn.execute(
+                """INSERT INTO matchup_category_scores (matchup_id, team_id, category, value)
+                   VALUES (?, ?, ?, ?)
+                   ON CONFLICT (matchup_id, team_id, category) DO UPDATE SET value = EXCLUDED.value""",
+                (mid, body.away_team_id, cat, val),
+            )
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+
+class StoreOwnershipRequest(BaseModel):
+    espn_player_id: int
+    league_external_id: str
+    season: int
+    owner_team_id: int
+    roster_status: str = "ROSTERED"
+    lineup_slot: Optional[str] = None
+
+
+@router.post("/inseason/store-ownership")
+def store_ownership(body: StoreOwnershipRequest):
+    """Store player ownership data from ESPN (called by Next.js inseason-sync route).
+
+    Maps ESPN player ID to our mlb_id via the players table.
+    """
+    conn = get_connection()
+    # ESPN player IDs map to mlb_id in our system
+    # Try direct match first (ESPN IDs often ARE MLB IDs for recent players)
+    player = conn.execute(
+        "SELECT mlb_id FROM players WHERE mlb_id = ?", (body.espn_player_id,)
+    ).fetchone()
+
+    if player:
+        conn.execute(
+            """INSERT INTO player_ownership (mlb_id, league_external_id, season, owner_team_id, roster_status, lineup_slot)
+               VALUES (?, ?, ?, ?, ?, ?)
+               ON CONFLICT (mlb_id, league_external_id, season) DO UPDATE SET
+                 owner_team_id = EXCLUDED.owner_team_id,
+                 roster_status = EXCLUDED.roster_status,
+                 lineup_slot = EXCLUDED.lineup_slot""",
+            (player["mlb_id"], body.league_external_id, body.season,
+             body.owner_team_id, body.roster_status, body.lineup_slot),
+        )
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+
+class StoreStandingsRequest(BaseModel):
+    league_external_id: str
+    season: int
+    team_id: int
+    category_values: dict[str, float] = {}
+
+
+# ESPN stat IDs to our stat column mapping
+_ESPN_STAT_TO_COLUMN = {
+    "R": "stat_r", "TB": "stat_tb", "RBI": "stat_rbi", "SB": "stat_sb",
+    "K": "stat_k", "QS": "stat_qs", "SVHD": "stat_svhd",
+}
+
+
+@router.post("/inseason/store-standings")
+def store_standings(body: StoreStandingsRequest):
+    """Store team season stats from ESPN standings (called by Next.js inseason-sync route)."""
+    conn = get_connection()
+
+    # Extract category values from ESPN's valuesByStat format
+    vals = body.category_values
+    stat_r = int(vals.get("R", vals.get("20", 0)))
+    stat_tb = int(vals.get("TB", vals.get("12", 0)))
+    stat_rbi = int(vals.get("RBI", vals.get("13", 0)))
+    stat_sb = int(vals.get("SB", vals.get("16", 0)))
+    stat_k = int(vals.get("K", vals.get("48", 0)))
+    stat_qs = int(vals.get("QS", vals.get("63", 0)))
+    stat_svhd = int(vals.get("SVHD", 0))
+    if stat_svhd == 0:
+        stat_svhd = int(vals.get("57", 0)) + int(vals.get("60", 0))  # SV + HLD
+
+    conn.execute(
+        """INSERT INTO team_season_stats
+           (league_external_id, season, team_id,
+            stat_r, stat_tb, stat_rbi, stat_sb, stat_k, stat_qs, stat_svhd)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT (league_external_id, season, team_id) DO UPDATE SET
+             stat_r = EXCLUDED.stat_r, stat_tb = EXCLUDED.stat_tb,
+             stat_rbi = EXCLUDED.stat_rbi, stat_sb = EXCLUDED.stat_sb,
+             stat_k = EXCLUDED.stat_k, stat_qs = EXCLUDED.stat_qs,
+             stat_svhd = EXCLUDED.stat_svhd""",
+        (body.league_external_id, body.season, body.team_id,
+         stat_r, stat_tb, stat_rbi, stat_sb, stat_k, stat_qs, stat_svhd),
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+
+@router.get("/inseason/signals")
+def inseason_signals(
+    league_id: str = Query(...),
+    season: int = Query(2026),
+    my_team_id: int = Query(...),
+    num_teams: int = Query(10),
+    limit: int = Query(30, ge=1, le=100),
+):
+    """Detect roster-relevant signals (drop candidates, add targets, etc.)."""
+    return {"signals": get_roster_signals(league_id, season, my_team_id, num_teams, limit)}
