@@ -282,7 +282,9 @@ def _fg_resolve_mlb_id(conn, row: dict) -> Optional[int]:
     return None
 
 
-def fetch_fangraphs_batting(fg_type: str, source: str, season: int) -> int:
+def fetch_fangraphs_batting(
+    fg_type: str, source: str, season: int, adp_map: dict[int, float] | None = None,
+) -> int:
     """Fetch batting projections from FanGraphs API and store in DB.
 
     Uses the exact same DB schema as import_fangraphs_batting (CSV version).
@@ -291,6 +293,7 @@ def fetch_fangraphs_batting(fg_type: str, source: str, season: int) -> int:
         fg_type: FanGraphs type parameter (e.g. 'steamer')
         source: Our source name (e.g. 'steamer')
         season: Projection season year
+        adp_map: If provided, collects {mlb_id: ADP} from the response.
 
     Returns:
         Number of players imported.
@@ -351,13 +354,22 @@ def fetch_fangraphs_batting(fg_type: str, source: str, season: int) -> int:
         )
         imported += 1
 
+        # Collect ADP if present
+        if adp_map is not None:
+            adp_val = _safe_float(row.get("ADP"))
+            if adp_val > 0:
+                if mlb_id not in adp_map or adp_val < adp_map[mlb_id]:
+                    adp_map[mlb_id] = adp_val
+
     conn.commit()
     conn.close()
     logger.info(f"Imported {imported} {source} batting projections from FanGraphs API ({skipped} skipped)")
     return imported
 
 
-def fetch_fangraphs_pitching(fg_type: str, source: str, season: int) -> int:
+def fetch_fangraphs_pitching(
+    fg_type: str, source: str, season: int, adp_map: dict[int, float] | None = None,
+) -> int:
     """Fetch pitching projections from FanGraphs API and store in DB.
 
     Uses the exact same DB schema as import_fangraphs_pitching (CSV version).
@@ -366,6 +378,7 @@ def fetch_fangraphs_pitching(fg_type: str, source: str, season: int) -> int:
         fg_type: FanGraphs type parameter (e.g. 'steamer')
         source: Our source name (e.g. 'steamer')
         season: Projection season year
+        adp_map: If provided, collects {mlb_id: ADP} from the response.
 
     Returns:
         Number of players imported.
@@ -416,17 +429,51 @@ def fetch_fangraphs_pitching(fg_type: str, source: str, season: int) -> int:
         )
         imported += 1
 
+        # Collect ADP if present
+        if adp_map is not None:
+            adp_val = _safe_float(row.get("ADP"))
+            if adp_val > 0:
+                if mlb_id not in adp_map or adp_val < adp_map[mlb_id]:
+                    adp_map[mlb_id] = adp_val
+
     conn.commit()
     conn.close()
     logger.info(f"Imported {imported} {source} pitching projections from FanGraphs API ({skipped} skipped)")
     return imported
 
 
+def import_adp_from_api(adp_map: dict[int, float], season: int) -> int:
+    """Write ADP data collected from FanGraphs API into the rankings table.
+
+    Args:
+        adp_map: {mlb_id: ADP} — lowest ADP across all sources/player types
+        season: Season year
+
+    Returns:
+        Number of players updated.
+    """
+    conn = get_connection()
+    updated = 0
+    for mlb_id, adp in adp_map.items():
+        result = conn.execute(
+            """UPDATE rankings
+               SET espn_adp = ?, adp_diff = overall_rank - ?
+               WHERE mlb_id = ? AND season = ?""",
+            (adp, adp, mlb_id, season),
+        )
+        if result.rowcount > 0:
+            updated += 1
+    conn.commit()
+    conn.close()
+    logger.info(f"Imported ADP for {updated} players from FanGraphs API ({len(adp_map)} total)")
+    return updated
+
+
 def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
     """Fetch all projection sources from FanGraphs API.
 
-    Fetches Steamer, ZiPS, and THE BAT X batting + pitching projections.
-    This replaces the manual CSV download workflow.
+    Fetches Steamer, ZiPS, and THE BAT X batting + pitching projections,
+    plus ADP data from whichever source provides it.
 
     Args:
         season: Projection season year
@@ -435,11 +482,13 @@ def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
         Dict mapping source name to total players imported.
     """
     results = {}
+    adp_map: dict[int, float] = {}
+
     for fg_type, source in _FG_SOURCES.items():
         try:
-            bat = fetch_fangraphs_batting(fg_type, source, season)
+            bat = fetch_fangraphs_batting(fg_type, source, season, adp_map)
             time.sleep(_FG_REQUEST_DELAY)
-            pit = fetch_fangraphs_pitching(fg_type, source, season)
+            pit = fetch_fangraphs_pitching(fg_type, source, season, adp_map)
             time.sleep(_FG_REQUEST_DELAY)
             results[source] = bat + pit
             logger.info(f"  {source}: {bat} batters + {pit} pitchers")
@@ -447,8 +496,11 @@ def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
             logger.warning(f"Failed to fetch {source} projections from FanGraphs: {e}")
             results[source] = 0
 
-    total = sum(results.values())
-    logger.info(f"FanGraphs API projection fetch complete: {total} total across {len(results)} sources")
+    # Store collected ADP data for later (after rankings are computed)
+    results["_adp_map"] = adp_map  # type: ignore[assignment]
+
+    total = sum(v for k, v in results.items() if k != "_adp_map")
+    logger.info(f"FanGraphs API projection fetch complete: {total} total across {len(_FG_SOURCES)} sources, {len(adp_map)} players with ADP")
     return results
 
 

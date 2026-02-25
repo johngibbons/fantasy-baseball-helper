@@ -336,7 +336,7 @@ def refresh_projections(season: int = Query(2026)):
     """
     import logging
     import traceback
-    from backend.data.projections import fetch_all_fangraphs_projections
+    from backend.data.projections import fetch_all_fangraphs_projections, import_adp_from_api
 
     logger = logging.getLogger(__name__)
 
@@ -347,6 +347,7 @@ def refresh_projections(season: int = Query(2026)):
         logger.error(f"FanGraphs API error: {e}\n{tb}")
         raise HTTPException(status_code=502, detail=f"FanGraphs API error: {e}")
 
+    adp_map = results.pop("_adp_map", {})
     total = sum(results.values())
     if total == 0:
         raise HTTPException(status_code=502, detail="FanGraphs API returned no projection data")
@@ -358,11 +359,20 @@ def refresh_projections(season: int = Query(2026)):
         logger.error(f"Ranking recalculation failed: {e}\n{tb}")
         raise HTTPException(status_code=500, detail=f"Ranking recalculation failed: {e}")
 
+    # Apply ADP after rankings exist
+    adp_updated = 0
+    if adp_map:
+        try:
+            adp_updated = import_adp_from_api(adp_map, season)
+        except Exception as e:
+            logger.warning(f"ADP import failed (non-fatal): {e}")
+
     return {
         "ok": True,
         "projections_imported": results,
         "total_players": total,
-        "message": f"Fetched {total} projections from FanGraphs and recalculated rankings",
+        "adp_updated": adp_updated,
+        "message": f"Fetched {total} projections + {adp_updated} ADP values from FanGraphs",
     }
 
 

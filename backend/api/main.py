@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.routes import router
 from backend.database import init_db, get_connection
-from backend.data.projections import generate_projections_from_stats, import_adp_from_csv, fetch_all_fangraphs_projections
+from backend.data.projections import generate_projections_from_stats, import_adp_from_csv, import_adp_from_api, fetch_all_fangraphs_projections
 from backend.data.statcast_adjustments import apply_statcast_adjustments
 from backend.analysis.zscores import calculate_all_zscores
 from backend.data.sync import import_csv_projections
@@ -56,8 +56,10 @@ def startup():
 
     # Try FanGraphs API first, fall back to CSVs
     fg_total = 0
+    fg_adp_map = {}
     try:
         fg_results = fetch_all_fangraphs_projections(_SEASON)
+        fg_adp_map = fg_results.pop("_adp_map", {})
         fg_total = sum(fg_results.values())
         if fg_total > 0:
             logger.info(f"Imported {fg_total} projections from FanGraphs API")
@@ -85,10 +87,17 @@ def startup():
     except Exception as e:
         logger.error(f"Z-score calculation failed: {e}")
 
-    try:
-        import_adp_from_csv(season=_SEASON)
-    except Exception as e:
-        logger.warning(f"ADP import failed (non-fatal): {e}")
+    if fg_adp_map:
+        try:
+            adp_count = import_adp_from_api(fg_adp_map, _SEASON)
+            logger.info(f"Imported ADP for {adp_count} players from FanGraphs API")
+        except Exception as e:
+            logger.warning(f"API ADP import failed (non-fatal): {e}")
+    else:
+        try:
+            import_adp_from_csv(season=_SEASON)
+        except Exception as e:
+            logger.warning(f"CSV ADP import failed (non-fatal): {e}")
 
     logger.info("Startup recalculation complete")
 

@@ -19,6 +19,7 @@ from backend.data.mlb_api import (
 from backend.data.projections import (
     generate_projections_from_stats,
     import_adp_from_csv,
+    import_adp_from_api,
     import_fangraphs_batting,
     import_fangraphs_pitching,
     fetch_all_fangraphs_projections,
@@ -317,11 +318,13 @@ async def run_full_sync(season: int = 2025, stats_seasons: list[int] = None):
     # 4. Import FanGraphs projections (API first, CSV fallback)
     logger.info("Importing FanGraphs projections...")
     api_results = {}
+    api_adp_map = {}
     try:
         api_results = fetch_all_fangraphs_projections(season)
+        api_adp_map = api_results.pop("_adp_map", {})
     except Exception as e:
         logger.warning(f"FanGraphs API fetch failed (non-fatal): {e}")
-    if sum(api_results.values()) == 0:
+    if sum(v for k, v in api_results.items() if k != "_adp_map") == 0:
         logger.info("Falling back to CSV projections...")
         import_csv_projections(season)
 
@@ -340,12 +343,19 @@ async def run_full_sync(season: int = 2025, stats_seasons: list[int] = None):
     logger.info("Calculating z-scores and rankings...")
     calculate_all_zscores(season)
 
-    # 8. Import ADP data
+    # 8. Import ADP data (prefer API data, fall back to CSV)
     logger.info("Importing ADP data...")
-    try:
-        import_adp_from_csv(season=season)
-    except Exception as e:
-        logger.warning(f"ADP import failed (non-fatal): {e}")
+    if api_adp_map:
+        try:
+            adp_count = import_adp_from_api(api_adp_map, season)
+            logger.info(f"Imported ADP for {adp_count} players from FanGraphs API")
+        except Exception as e:
+            logger.warning(f"API ADP import failed (non-fatal): {e}")
+    else:
+        try:
+            import_adp_from_csv(season=season)
+        except Exception as e:
+            logger.warning(f"CSV ADP import failed (non-fatal): {e}")
 
     logger.info("Full sync complete!")
 
@@ -374,11 +384,15 @@ def main():
     if args.fetch_projections:
         init_db()
         results = fetch_all_fangraphs_projections(args.season)
-        total = sum(results.values())
+        adp_map = results.pop("_adp_map", {})
+        total = sum(v for v in results.values())
         if total > 0:
             logger.info(f"Fetched {total} projections from FanGraphs API: {results}")
             logger.info("Recalculating rankings...")
             calculate_all_zscores(args.season)
+            if adp_map:
+                adp_count = import_adp_from_api(adp_map, args.season)
+                logger.info(f"Imported ADP for {adp_count} players from FanGraphs API")
         else:
             logger.warning("No projections fetched from FanGraphs API")
     elif args.players_only:
