@@ -74,10 +74,14 @@ KEEPERS = [
     ("Jess Barron",     9, "Ketel Marte",     "3rd yr"),
     ("Jess Barron",    24, "Cade Smith",       "1st yr"),
     ("Jess Barron",    25, "Geraldo Perdomo",  "1st yr"),
-    ("David Rotatori", 12, "Hunter Brown",     "2nd yr"),
-    ("David Rotatori", 20, "Mason Miller",     "2nd yr"),
-    ("David Rotatori", 24, "Trevor Rogers",    "1st yr"),
-    ("David Rotatori", 25, "Kyle Bradish",     "1st yr"),
+    ("Harris Cook",    14, "Tarik Skubal",         "3rd yr"),
+    ("Harris Cook",    12, "Bryan Woo",             "2nd yr"),
+    ("Harris Cook",    13, "Pete Crow-Armstrong",   "1st yr"),
+    ("Harris Cook",    25, "Chase Burns",           "1st yr"),
+    ("David Rotatori", 12, "Hunter Brown",          "2nd yr"),
+    ("David Rotatori", 20, "Mason Miller",          "2nd yr"),
+    ("David Rotatori", 24, "Trevor Rogers",         "1st yr"),
+    ("David Rotatori", 25, "Kyle Bradish",          "1st yr"),
 ]
 
 
