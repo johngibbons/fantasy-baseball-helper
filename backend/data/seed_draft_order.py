@@ -1,12 +1,15 @@
 """
-Seed the 2026 draft state into the database.
+Seed the 2026 draft state and keepers state into the database.
 
 Computes the full draft order (trades, 25-cap, supplemental picks),
-resolves keeper MLB IDs, and writes the draft_state JSON so the
-draft board is pre-populated on first load.
+resolves keeper MLB IDs, and writes both:
+  - draft_state JSON (draft board pre-populated on first load)
+  - keepers_state JSON (keepers page pre-populated on first load)
 
-Idempotent: skips seeding if a draft has already started (non-keeper
-picks exist in the saved state).
+Draft state is idempotent: skips seeding if a draft has already
+started (non-keeper picks exist in the saved state).
+
+Keepers state always overwrites existing data.
 
 Called from backend startup (main.py) and can also be run standalone:
     python -m backend.data.seed_draft_order
@@ -313,6 +316,136 @@ def _resolve_keeper_ids(conn):
     return resolved
 
 
+# ── Keepers page state ──
+
+def _keeper_year_from_label(yr_label):
+    """Parse '1st yr' / '2nd yr' / '3rd yr' → integer."""
+    m = re.match(r"(\d+)", yr_label)
+    return int(m.group(1)) if m else 1
+
+
+def _build_keepers_state(conn, results, keeper_db):
+    """Build the keepers-page state dict from computed draft results."""
+    my_team_id = 8  # John Gibbons
+
+    # Build keeper_season lookup from KEEPERS config
+    keeper_year = {}
+    for mgr, _, player, yr_label in KEEPERS:
+        keeper_year[(mgr, player)] = _keeper_year_from_label(yr_label)
+
+    # Load ranking data for ResolvedKeeper objects
+    ranking_data = {}
+    rows = conn.execute(
+        """SELECT p.mlb_id, p.full_name, p.primary_position, p.team,
+                  p.player_type, p.eligible_positions,
+                  r.overall_rank, r.total_zscore,
+                  r.zscore_r, r.zscore_tb, r.zscore_rbi, r.zscore_sb, r.zscore_obp,
+                  r.zscore_k, r.zscore_qs, r.zscore_era, r.zscore_whip, r.zscore_svhd
+           FROM players p
+           LEFT JOIN rankings r ON p.mlb_id = r.mlb_id AND r.season = ?
+           WHERE p.is_active = 1""",
+        (SEASON,),
+    ).fetchall()
+    for row in rows:
+        ranking_data[row["mlb_id"]] = dict(row)
+
+    other = defaultdict(list)           # team_id str → [{name, roundCost}]
+    selected = defaultdict(list)        # team_id str → [mlb_id]
+    other_resolved = defaultdict(list)  # team_id str → [ResolvedKeeper]
+
+    for r in results:
+        if r["overall_pick"] != "KEEPER":
+            continue
+
+        m = re.match(r"KEEPER: (.+?) \(", r["notes"])
+        if not m:
+            continue
+        player = m.group(1)
+        mgr = r["manager"]
+        team_id = MANAGER_TO_TEAM_ID[mgr]
+        round_cost = r["round"]
+
+        if team_id == my_team_id:
+            continue  # My team keepers go in roster/resolved, not other
+
+        info = keeper_db.get((mgr, player))
+        if not info:
+            logger.error(
+                "Skipping unresolved keeper in keepers state: %s (%s)",
+                player, mgr,
+            )
+            continue
+
+        mlb_id, position = info
+        tid = str(team_id)
+
+        other[tid].append({"name": player, "roundCost": round_cost})
+        selected[tid].append(mlb_id)
+
+        rd = ranking_data.get(mlb_id, {})
+        yr = keeper_year.get((mgr, player), 1)
+        other_resolved[tid].append({
+            "name": player,
+            "mlb_id": mlb_id,
+            "matched_name": rd.get("full_name", player),
+            "match_confidence": 1.0,
+            "draft_round": round_cost,
+            "keeper_season": yr,
+            "overall_rank": rd.get("overall_rank"),
+            "total_zscore": rd.get("total_zscore"),
+            "primary_position": rd.get("primary_position", position or ""),
+            "team": rd.get("team", ""),
+            "player_type": rd.get("player_type", "hitter"),
+            "eligible_positions": rd.get("eligible_positions"),
+            "zscore_r": rd.get("zscore_r"),
+            "zscore_tb": rd.get("zscore_tb"),
+            "zscore_rbi": rd.get("zscore_rbi"),
+            "zscore_sb": rd.get("zscore_sb"),
+            "zscore_obp": rd.get("zscore_obp"),
+            "zscore_k": rd.get("zscore_k"),
+            "zscore_qs": rd.get("zscore_qs"),
+            "zscore_era": rd.get("zscore_era"),
+            "zscore_whip": rd.get("zscore_whip"),
+            "zscore_svhd": rd.get("zscore_svhd"),
+        })
+
+    return {
+        "myTeamId": my_team_id,
+        "roster": {},
+        "resolved": {},
+        "selected": dict(selected),
+        "other": dict(other),
+        "otherResolved": dict(other_resolved),
+    }
+
+
+def _seed_keepers_state(conn, results, keeper_db):
+    """Build and persist keepers-page state (always overwrites)."""
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS keepers_state (
+            season INTEGER PRIMARY KEY,
+            state_json TEXT NOT NULL,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+
+    state = _build_keepers_state(conn, results, keeper_db)
+    state_json = json.dumps(state)
+    conn.execute(
+        """INSERT INTO keepers_state (season, state_json) VALUES (?, ?)
+           ON CONFLICT (season) DO UPDATE
+           SET state_json = ?, updated_at = CURRENT_TIMESTAMP""",
+        (SEASON, state_json, state_json),
+    )
+    conn.commit()
+
+    keeper_count = sum(len(v) for v in state["other"].values())
+    logger.info("Seeded keepers state: %d keepers across %d teams",
+                keeper_count, len(state["other"]))
+    return state
+
+
 # ── Main seed function ──
 
 def seed_draft_state(force=False):
@@ -416,12 +549,16 @@ def seed_draft_state(force=False):
         (SEASON, state_json, state_json),
     )
     conn.commit()
-    conn.close()
 
     logger.info(
         "Seeded 2026 draft state: %d-pick schedule, %d keepers, %d trades",
         len(schedule), len(picks), len(pick_trades),
     )
+
+    # Seed keepers-page state (always overwrite)
+    _seed_keepers_state(conn, results, keeper_db)
+
+    conn.close()
     return draft_state
 
 
