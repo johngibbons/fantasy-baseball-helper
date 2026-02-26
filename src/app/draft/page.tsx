@@ -162,6 +162,105 @@ export default function DraftBoardPage() {
     return indices
   }, [leagueKeepersData, draftOrder, pickSchedule])
 
+  // ── Lookup maps for draft log ──
+  const keeperByIndex = useMemo(() => {
+    const m = new Map<number, LeagueKeeperEntry>()
+    if (leagueKeepersData.length === 0 || draftOrder.length === 0) return m
+    const numTeams = draftOrder.length
+    for (const k of leagueKeepersData) {
+      const idx = pickSchedule.length > 0
+        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams)
+        : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
+      if (idx >= 0) m.set(idx, k)
+    }
+    return m
+  }, [leagueKeepersData, draftOrder, pickSchedule])
+
+  const pickLogByIndex = useMemo(() => {
+    const m = new Map<number, { mlbId: number; teamId: number }>()
+    for (const entry of pickLog) m.set(entry.pickIndex, entry)
+    return m
+  }, [pickLog])
+
+  const tradeByIndex = useMemo(() => {
+    const m = new Map<number, PickTrade>()
+    for (const t of pickTrades) m.set(t.pickIndex, t)
+    return m
+  }, [pickTrades])
+
+  // ── Draft log: round-grouped schedule ──
+  type DraftSlot = {
+    pickIndex: number
+    round: number
+    pickInRound: number
+    teamId: number
+    status: 'keeper' | 'drafted' | 'current' | 'upcoming'
+    keeper?: LeagueKeeperEntry
+    player?: RankedPlayer
+    trade?: PickTrade
+  }
+  const draftRounds = useMemo(() => {
+    if (pickSchedule.length === 0) return []
+    const numTeams = draftOrder.length || 10
+    const rounds: { round: number; label: string; slots: DraftSlot[] }[] = []
+    let currentRoundSlots: DraftSlot[] = []
+    let currentRoundNum = 0
+    for (let i = 0; i < pickSchedule.length; i++) {
+      const roundNum = Math.floor(i / numTeams)
+      if (roundNum !== currentRoundNum || i === 0) {
+        if (currentRoundSlots.length > 0) {
+          rounds.push({
+            round: currentRoundNum,
+            label: currentRoundNum >= 25 ? `Supplemental ${currentRoundNum - 24}` : `Round ${currentRoundNum + 1}`,
+            slots: currentRoundSlots,
+          })
+        }
+        currentRoundNum = roundNum
+        currentRoundSlots = []
+      }
+      const keeper = keeperByIndex.get(i)
+      const logEntry = pickLogByIndex.get(i)
+      const trade = tradeByIndex.get(i)
+      let status: DraftSlot['status'] = 'upcoming'
+      let player: RankedPlayer | undefined
+      if (keeper) {
+        status = 'keeper'
+        player = allPlayers.find(p => p.mlb_id === keeper.mlb_id)
+      } else if (logEntry) {
+        status = 'drafted'
+        player = allPlayers.find(p => p.mlb_id === logEntry.mlbId)
+      } else if (i === currentPickIndex) {
+        status = 'current'
+      }
+      currentRoundSlots.push({
+        pickIndex: i,
+        round: roundNum + 1,
+        pickInRound: (i % numTeams) + 1,
+        teamId: pickSchedule[i],
+        status,
+        keeper,
+        player,
+        trade: trade || undefined,
+      })
+    }
+    if (currentRoundSlots.length > 0) {
+      rounds.push({
+        round: currentRoundNum,
+        label: currentRoundNum >= 25 ? `Supplemental ${currentRoundNum - 24}` : `Round ${currentRoundNum + 1}`,
+        slots: currentRoundSlots,
+      })
+    }
+    return rounds
+  }, [pickSchedule, draftOrder, keeperByIndex, pickLogByIndex, tradeByIndex, allPlayers, currentPickIndex])
+
+  const draftLogCurrentPickRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (draftLogCurrentPickRef.current) {
+      draftLogCurrentPickRef.current.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }
+  }, [currentPickIndex])
+
   const currentRound = draftOrder.length > 0 ? Math.floor(currentPickIndex / draftOrder.length) + 1 : 1
   const currentPickInRound = draftOrder.length > 0 ? (currentPickIndex % draftOrder.length) + 1 : currentPickIndex + 1
 
@@ -2267,39 +2366,102 @@ export default function DraftBoardPage() {
               )}
 
               {/* Draft Log */}
-              {pickLog.length > 0 && (
+              {draftRounds.length > 0 && (
                 <div className="bg-gray-900 rounded-xl border border-gray-800">
                   <div className="px-4 py-3 border-b border-gray-800">
                     <h2 className="font-bold text-white text-sm">Draft Log</h2>
-                    <div className="text-[11px] text-gray-500 mt-0.5">{pickLog.length} picks</div>
+                    <div className="text-[11px] text-gray-500 mt-0.5">
+                      Pick {currentPickIndex + 1} of {pickSchedule.length}
+                    </div>
                   </div>
-                  <div className="px-2 py-2 max-h-[200px] overflow-y-auto space-y-0.5" ref={(el) => { if (el) el.scrollTop = el.scrollHeight }}>
-                    {pickLog.map((entry, i) => {
-                      const player = allPlayers.find(pl => pl.mlb_id === entry.mlbId)
-                      if (!player) return null
-                      const numTeams = draftOrder.length || 10
-                      const round = Math.floor(entry.pickIndex / numTeams) + 1
-                      const pickInRound = (entry.pickIndex % numTeams) + 1
-                      const isMyTeamPick = entry.teamId === myTeamId
-                      const value = getPlayerValue(player)
-                      const pos = getPositions(player)[0]
-                      return (
-                        <div
-                          key={`${entry.pickIndex}-${entry.mlbId}`}
-                          className={`flex items-center gap-1.5 py-1 px-2 rounded text-[11px] ${
-                            i === pickLog.length - 1 ? 'bg-gray-800/80 ring-1 ring-gray-700' : ''
-                          } ${isMyTeamPick ? 'text-blue-300' : 'text-gray-400'}`}
-                        >
-                          <span className="font-mono text-[10px] text-gray-500 w-8 shrink-0 tabular-nums">{round}.{String(pickInRound).padStart(2, '0')}</span>
-                          <span className={`font-bold text-[10px] w-9 shrink-0 ${isMyTeamPick ? 'text-blue-400' : 'text-gray-500'}`}>{getTeamAbbrev(entry.teamId)}</span>
-                          <span className="truncate flex-1">{player.full_name}</span>
-                          <span className={`text-[9px] font-bold ${posColor[pos] ? 'text-gray-500' : ''}`}>({pos})</span>
-                          <span className={`text-[10px] font-bold tabular-nums shrink-0 ${value > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                            {value > 0 ? '+' : ''}{value.toFixed(1)}
-                          </span>
+                  <div className="px-2 py-2 max-h-[400px] overflow-y-auto">
+                    {draftRounds.map((round) => (
+                      <div key={round.round}>
+                        <div className="sticky top-0 bg-gray-900 z-10 text-xs font-bold text-gray-400 px-2 py-1 border-b border-gray-800">
+                          {round.label}
                         </div>
-                      )
-                    })}
+                        <div className="space-y-0.5 py-0.5">
+                          {round.slots.map((slot) => {
+                            const isMyTeam = slot.teamId === myTeamId
+                            const tradeAnnotation = slot.trade ? ` (via ${getTeamAbbrev(slot.trade.fromTeamId)})` : ''
+
+                            if (slot.status === 'keeper') {
+                              const pos = slot.keeper?.primaryPosition ?? (slot.player ? getPositions(slot.player)[0] : '?')
+                              return (
+                                <div
+                                  key={slot.pickIndex}
+                                  className={`flex items-center gap-1.5 py-1 px-2 rounded text-[11px] ${
+                                    isMyTeam ? 'bg-blue-950/30 text-blue-300' : 'bg-amber-950/20 text-amber-400'
+                                  }`}
+                                >
+                                  <span className="font-mono text-[10px] text-gray-500 w-8 shrink-0 tabular-nums">{slot.round}.{String(slot.pickInRound).padStart(2, '0')}</span>
+                                  <span className={`font-bold text-[10px] w-9 shrink-0 ${isMyTeam ? 'text-blue-400' : 'text-amber-500'}`}>{getTeamAbbrev(slot.teamId)}</span>
+                                  <span className="truncate flex-1">{slot.keeper?.playerName ?? slot.player?.full_name ?? '?'}</span>
+                                  <span className="text-[9px] font-bold text-amber-600">KEEPER</span>
+                                  <span className="text-[9px] font-bold text-gray-500">({pos})</span>
+                                </div>
+                              )
+                            }
+
+                            if (slot.status === 'drafted' && slot.player) {
+                              const value = getPlayerValue(slot.player)
+                              const pos = getPositions(slot.player)[0]
+                              return (
+                                <div
+                                  key={slot.pickIndex}
+                                  className={`flex items-center gap-1.5 py-1 px-2 rounded text-[11px] ${
+                                    isMyTeam ? 'text-blue-300' : 'text-gray-400'
+                                  }`}
+                                >
+                                  <span className="font-mono text-[10px] text-gray-500 w-8 shrink-0 tabular-nums">{slot.round}.{String(slot.pickInRound).padStart(2, '0')}</span>
+                                  <span className={`font-bold text-[10px] w-9 shrink-0 ${isMyTeam ? 'text-blue-400' : 'text-gray-500'}`}>{getTeamAbbrev(slot.teamId)}</span>
+                                  <span className="truncate flex-1">{slot.player.full_name}</span>
+                                  <span className="text-[9px] font-bold text-gray-500">({pos})</span>
+                                  <span className={`text-[10px] font-bold tabular-nums shrink-0 ${value > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {value > 0 ? '+' : ''}{value.toFixed(1)}
+                                  </span>
+                                </div>
+                              )
+                            }
+
+                            if (slot.status === 'current') {
+                              return (
+                                <div
+                                  key={slot.pickIndex}
+                                  ref={draftLogCurrentPickRef}
+                                  className={`flex items-center gap-1.5 py-1 px-2 rounded text-[11px] bg-gray-800 ring-1 ring-blue-500 ${
+                                    isMyTeam ? 'text-blue-300' : 'text-gray-300'
+                                  }`}
+                                >
+                                  <span className="font-mono text-[10px] text-gray-500 w-8 shrink-0 tabular-nums">{slot.round}.{String(slot.pickInRound).padStart(2, '0')}</span>
+                                  <span className={`font-bold text-[10px] w-9 shrink-0 ${isMyTeam ? 'text-blue-400' : 'text-gray-400'}`}>
+                                    {getTeamAbbrev(slot.teamId)}
+                                    {tradeAnnotation && <span className="text-gray-600 font-normal">{tradeAnnotation}</span>}
+                                  </span>
+                                  <span className="flex-1 italic text-gray-400">On the clock...</span>
+                                </div>
+                              )
+                            }
+
+                            // upcoming
+                            return (
+                              <div
+                                key={slot.pickIndex}
+                                className={`flex items-center gap-1.5 py-1 px-2 rounded text-[11px] ${
+                                  isMyTeam ? 'text-blue-800' : 'text-gray-600'
+                                }`}
+                              >
+                                <span className="font-mono text-[10px] w-8 shrink-0 tabular-nums">{slot.round}.{String(slot.pickInRound).padStart(2, '0')}</span>
+                                <span className={`font-bold text-[10px] w-9 shrink-0 ${isMyTeam ? 'text-blue-700' : ''}`}>
+                                  {getTeamAbbrev(slot.teamId)}
+                                </span>
+                                {tradeAnnotation && <span className="text-[9px] text-gray-700">{tradeAnnotation}</span>}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
