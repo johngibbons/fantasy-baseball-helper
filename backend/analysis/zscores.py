@@ -245,12 +245,15 @@ def _blend_projection_rows(
     Returns:
         (blended_rows, player_count, avg_sources_per_player)
     """
-    _EXPERT_SOURCES = {"steamer", "thebatx", "zips"}
+    _EXPERT_SOURCES = {"atc", "steamer", "thebatx", "zips"}
     _INTERNAL_SOURCES = {"trend", "statcast_adjusted"}
 
-    # Source-specific weights (keys must match the 'source' column values)
+    # Source-specific weights (keys must match the 'source' column values).
+    # ATC is a pre-blended consensus system, so it gets full weight on its own.
+    # Individual systems are used as fallback when ATC is unavailable.
     _SOURCE_WEIGHTS = {
         "hitter": {
+            "atc": 1.0,
             "thebatx": 0.40,
             "steamer": 0.30,
             "zips": 0.30,
@@ -258,6 +261,7 @@ def _blend_projection_rows(
             "trend": 0.20,
         },
         "pitcher": {
+            "atc": 1.0,
             "steamer": 0.40,
             "thebatx": 0.30,
             "zips": 0.30,

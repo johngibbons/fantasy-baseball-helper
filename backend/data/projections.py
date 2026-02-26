@@ -219,8 +219,14 @@ def import_fangraphs_pitching(filepath: str, source: str, season: int = 2025):
 
 _FG_API_BASE = "https://www.fangraphs.com/api/projections"
 
-# FanGraphs projection type parameter → our source name
-_FG_SOURCES = {
+# FanGraphs projection type parameter → our source name.
+# ATC is a professionally-optimized blend of multiple systems (Steamer, ZiPS,
+# THE BAT X, PECOTA, etc.) that consistently ranks #1-2 in accuracy tests.
+# We fetch it as the primary source; individual systems are kept as fallback.
+_FG_SOURCES_PRIMARY = {
+    "atc": "atc",
+}
+_FG_SOURCES_FALLBACK = {
     "steamer": "steamer",
     "zips": "zips",
     "thebatx": "thebatx",
@@ -470,10 +476,11 @@ def import_adp_from_api(adp_map: dict[int, float], season: int) -> int:
 
 
 def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
-    """Fetch all projection sources from FanGraphs API.
+    """Fetch projections from FanGraphs API.
 
-    Fetches Steamer, ZiPS, and THE BAT X batting + pitching projections,
-    plus ADP data from whichever source provides it.
+    Fetches ATC (pre-blended consensus) as the primary source.  Falls back
+    to individual systems (Steamer, ZiPS, THE BAT X) if ATC fails.
+    Also collects ADP data from whichever source provides it.
 
     Args:
         season: Projection season year
@@ -484,7 +491,9 @@ def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
     results = {}
     adp_map: dict[int, float] = {}
 
-    for fg_type, source in _FG_SOURCES.items():
+    # Try ATC first (professionally-blended consensus)
+    primary_ok = False
+    for fg_type, source in _FG_SOURCES_PRIMARY.items():
         try:
             bat = fetch_fangraphs_batting(fg_type, source, season, adp_map)
             time.sleep(_FG_REQUEST_DELAY)
@@ -492,15 +501,33 @@ def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
             time.sleep(_FG_REQUEST_DELAY)
             results[source] = bat + pit
             logger.info(f"  {source}: {bat} batters + {pit} pitchers")
+            if bat + pit > 0:
+                primary_ok = True
         except Exception as e:
             logger.warning(f"Failed to fetch {source} projections from FanGraphs: {e}")
             results[source] = 0
 
+    # Fall back to individual systems if ATC failed
+    if not primary_ok:
+        logger.info("ATC unavailable, falling back to individual projection systems")
+        for fg_type, source in _FG_SOURCES_FALLBACK.items():
+            try:
+                bat = fetch_fangraphs_batting(fg_type, source, season, adp_map)
+                time.sleep(_FG_REQUEST_DELAY)
+                pit = fetch_fangraphs_pitching(fg_type, source, season, adp_map)
+                time.sleep(_FG_REQUEST_DELAY)
+                results[source] = bat + pit
+                logger.info(f"  {source}: {bat} batters + {pit} pitchers")
+            except Exception as e:
+                logger.warning(f"Failed to fetch {source} projections from FanGraphs: {e}")
+                results[source] = 0
+
     # Store collected ADP data for later (after rankings are computed)
     results["_adp_map"] = adp_map  # type: ignore[assignment]
 
+    sources_used = [k for k, v in results.items() if k != "_adp_map" and v > 0]
     total = sum(v for k, v in results.items() if k != "_adp_map")
-    logger.info(f"FanGraphs API projection fetch complete: {total} total across {len(_FG_SOURCES)} sources, {len(adp_map)} players with ADP")
+    logger.info(f"FanGraphs API projection fetch complete: {total} total from {sources_used}, {len(adp_map)} players with ADP")
     return results
 
 
