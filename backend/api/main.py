@@ -11,6 +11,7 @@ from backend.data.projections import generate_projections_from_stats, import_adp
 from backend.data.statcast_adjustments import apply_statcast_adjustments
 from backend.analysis.zscores import calculate_all_zscores
 from backend.data.sync import import_csv_projections
+from backend.data.seed_draft_order import seed_draft_state
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +101,12 @@ def startup():
             logger.warning(f"CSV ADP import failed (non-fatal): {e}")
 
     logger.info("Startup recalculation complete")
+
+    # Seed draft order and keepers (skips if draft already in progress)
+    try:
+        seed_draft_state()
+    except Exception as e:
+        logger.warning(f"Draft state seeding failed (non-fatal): {e}")
 
 
 @app.get("/health")

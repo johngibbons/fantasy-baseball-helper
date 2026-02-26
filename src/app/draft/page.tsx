@@ -93,6 +93,7 @@ interface DraftState {
   pickSchedule?: number[]
   pickTrades?: PickTrade[]
   pickLog?: { pickIndex: number; mlbId: number; teamId: number }[]
+  leagueKeepers?: LeagueKeeperEntry[]
 }
 
 export default function DraftBoardPage() {
@@ -204,6 +205,9 @@ export default function DraftBoardPage() {
         }
         if (state.pickLog && state.pickLog.length > 0) {
           setPickLog(state.pickLog)
+        }
+        if (state.leagueKeepers && state.leagueKeepers.length > 0) {
+          setLeagueKeepersData(state.leagueKeepers)
         }
       }
     }
