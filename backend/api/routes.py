@@ -367,11 +367,13 @@ def refresh_projections(season: int = Query(2026)):
         except Exception as e:
             logger.warning(f"ADP import failed (non-fatal): {e}")
 
+    sources_used = sorted(k for k, v in results.items() if v > 0)
     return {
         "ok": True,
         "projections_imported": results,
         "total_players": total,
         "adp_updated": adp_updated,
+        "sources": sources_used,
         "message": f"Fetched {total} projections + {adp_updated} ADP values from FanGraphs",
     }
 

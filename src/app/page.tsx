@@ -37,7 +37,8 @@ export default function Dashboard() {
         const detail = data?.detail || `HTTP ${res.status}`
         throw new Error(detail)
       }
-      setRefreshMsg(`Updated: ${data?.total_players ?? 0} players from FanGraphs`)
+      const sources = data?.sources?.join(', ') || 'FanGraphs'
+      setRefreshMsg(`Updated: ${data?.total_players ?? 0} players (${sources})`)
       loadSummary()
     } catch (e) {
       setRefreshMsg(`Failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
