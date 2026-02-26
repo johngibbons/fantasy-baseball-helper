@@ -17,6 +17,14 @@ export const STARTER_SLOT_COUNT = Object.entries(ROSTER_SLOTS)
   .filter(([k]) => k !== 'BE')
   .reduce((sum, [, v]) => sum + v, 0)
 
+const _PITCHER_SLOTS = new Set(['SP', 'RP', 'P'])
+/** Pitcher starter slots (SP + RP + P) */
+export const PITCHER_STARTER_SLOT_COUNT = Object.entries(ROSTER_SLOTS)
+  .filter(([k]) => _PITCHER_SLOTS.has(k))
+  .reduce((sum, [, v]) => sum + v, 0)
+/** Hitter starter slots (everything else minus bench) */
+export const HITTER_STARTER_SLOT_COUNT = STARTER_SLOT_COUNT - PITCHER_STARTER_SLOT_COUNT
+
 /**
  * Fraction of projected stats a bench player contributes over a season.
  * Split by player type: pitchers contribute more in daily leagues (streaming SPs,

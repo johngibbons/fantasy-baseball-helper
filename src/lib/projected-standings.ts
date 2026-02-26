@@ -1,14 +1,20 @@
 /**
  * Project final standings from current draft state + remaining value pool.
  *
- * Uses a simple proportional model: each team gets a share of the remaining
- * player pool proportional to their remaining picks.
+ * Splits undrafted players into hitter and pitcher pools, selects the top
+ * players from each proportional to roster slot counts, then distributes
+ * them to teams based on each team's remaining hitter/pitcher slots.
  *
  * Projects actual stats (R, TB, OBP, ERA, etc.) rather than z-scores.
  */
 
 import type { CatDef } from './draft-categories'
+import { HITTING_CATS, PITCHING_CATS } from './draft-categories'
 export type { CatDef }
+
+/** Number of starter roster slots by type */
+const HITTER_STARTER_SLOTS = 10 // C, 1B, 2B, 3B, SS, OF×3, UTIL×2
+const PITCHER_STARTER_SLOTS = 7 // SP×3, RP×2, P×2
 
 export interface TeamRow {
   teamId: number
@@ -35,26 +41,76 @@ export interface ProjectedStanding {
   overallRank: number
 }
 
+interface PoolPlayer {
+  mlb_id: number
+  player_type: 'hitter' | 'pitcher'
+  zscores: Record<string, number>
+  stats: Record<string, number>
+}
+
+interface PoolTotals {
+  statTotals: Record<string, number>
+  zscores: Record<string, number>
+  pa: number
+  ip: number
+  weightedOBP: number
+  weightedERA: number
+  weightedWHIP: number
+}
+
+function aggregatePool(players: PoolPlayer[], cats: CatDef[]): PoolTotals {
+  const statTotals: Record<string, number> = {}
+  const zscores: Record<string, number> = {}
+  for (const cat of cats) {
+    if (!cat.rate) statTotals[cat.projKey] = 0
+    zscores[cat.key] = 0
+  }
+
+  let pa = 0, ip = 0, weightedOBP = 0, weightedERA = 0, weightedWHIP = 0
+
+  for (const p of players) {
+    for (const cat of cats) {
+      if (!cat.rate) statTotals[cat.projKey] += (p.stats[cat.projKey] ?? 0)
+      zscores[cat.key] += (p.zscores[cat.key] ?? 0)
+    }
+    const pPA = p.stats['proj_pa'] ?? 0
+    const pIP = p.stats['proj_ip'] ?? 0
+    pa += pPA
+    ip += pIP
+    weightedOBP += (p.stats['proj_obp'] ?? 0) * pPA
+    weightedERA += (p.stats['proj_era'] ?? 0) * pIP
+    weightedWHIP += (p.stats['proj_whip'] ?? 0) * pIP
+  }
+
+  return { statTotals, zscores, pa, ip, weightedOBP, weightedERA, weightedWHIP }
+}
+
 /**
  * Project final standings for all teams using projected stats.
  *
  * @param teamRows - Current team data (from teamCategories.rows) with stat totals
- * @param availablePlayers - Undrafted players with projection data
+ * @param availablePlayers - Undrafted players with projection data and player_type
  * @param cats - Category definitions with projKey, inverted, rate, weight
  * @param remainingStarterSlots - Map of teamId → number of unfilled starter slots
+ * @param remainingHitterSlots - Map of teamId → number of unfilled hitter starter slots
+ * @param remainingPitcherSlots - Map of teamId → number of unfilled pitcher starter slots
  */
 export function projectStandings(
   teamRows: TeamRow[],
-  availablePlayers: { mlb_id: number; zscores: Record<string, number>; stats: Record<string, number> }[],
+  availablePlayers: PoolPlayer[],
   cats: CatDef[],
-  remainingStarterSlots: Map<number, number>
+  remainingStarterSlots: Map<number, number>,
+  remainingHitterSlots: Map<number, number>,
+  remainingPitcherSlots: Map<number, number>,
 ): ProjectedStanding[] {
   if (teamRows.length === 0) return []
 
-  // Total remaining starter slots across all teams
+  // Total remaining slots by type across all teams
   const totalRemainingPicks = [...remainingStarterSlots.values()].reduce((a, b) => a + b, 0)
+  const totalRemainingHitter = [...remainingHitterSlots.values()].reduce((a, b) => a + b, 0)
+  const totalRemainingPitcher = [...remainingPitcherSlots.values()].reduce((a, b) => a + b, 0)
+
   if (totalRemainingPicks === 0) {
-    // No more picks — projected = current, but still compute ranks and wins
     const standings: ProjectedStanding[] = teamRows.map(row => ({
       teamId: row.teamId,
       teamName: row.teamName,
@@ -68,89 +124,74 @@ export function projectStandings(
     return computeRanksAndWins(standings, cats)
   }
 
-  // Limit pool to the top N players that will actually be drafted,
-  // where N = totalRemainingPicks. Including all undrafted players
-  // (many of whom will go undrafted) inflates projections.
-  const poolPlayers = [...availablePlayers]
-    .sort((a, b) => {
-      let aTotal = 0, bTotal = 0
-      for (const cat of cats) {
-        aTotal += (a.zscores[cat.key] ?? 0)
-        bTotal += (b.zscores[cat.key] ?? 0)
-      }
-      return bTotal - aTotal
-    })
-    .slice(0, totalRemainingPicks)
+  // Split available players into hitter and pitcher pools, sorted by type-
+  // relevant z-score sum, then take the top N of each.
+  const hitters = availablePlayers.filter(p => p.player_type === 'hitter')
+  const pitchers = availablePlayers.filter(p => p.player_type === 'pitcher')
 
-  // Compute pool totals for counting stats and rate stat components
-  let poolPA = 0
-  let poolIP = 0
-  let poolWeightedOBP = 0
-  let poolWeightedERA = 0
-  let poolWeightedWHIP = 0
-  const poolStatTotals: Record<string, number> = {}
-  for (const cat of cats) {
-    if (!cat.rate) poolStatTotals[cat.projKey] = 0
-  }
+  const sortByZscoreSum = (players: PoolPlayer[], relevantCats: CatDef[]) =>
+    [...players]
+      .sort((a, b) => {
+        let aTotal = 0, bTotal = 0
+        for (const cat of relevantCats) {
+          aTotal += (a.zscores[cat.key] ?? 0)
+          bTotal += (b.zscores[cat.key] ?? 0)
+        }
+        return bTotal - aTotal
+      })
 
-  for (const p of poolPlayers) {
-    // Counting stats
-    for (const cat of cats) {
-      if (!cat.rate) {
-        poolStatTotals[cat.projKey] += (p.stats[cat.projKey] ?? 0)
-      }
-    }
-    // Rate stat components
-    const pa = p.stats['proj_pa'] ?? 0
-    const ip = p.stats['proj_ip'] ?? 0
-    poolPA += pa
-    poolIP += ip
-    poolWeightedOBP += (p.stats['proj_obp'] ?? 0) * pa
-    poolWeightedERA += (p.stats['proj_era'] ?? 0) * ip
-    poolWeightedWHIP += (p.stats['proj_whip'] ?? 0) * ip
-  }
+  const hitterPool = sortByZscoreSum(hitters, HITTING_CATS).slice(0, totalRemainingHitter)
+  const pitcherPool = sortByZscoreSum(pitchers, PITCHING_CATS).slice(0, totalRemainingPitcher)
 
-  // Also sum z-score pool for projectedTotals (used by MCW model downstream)
-  const poolZscores: Record<string, number> = {}
-  for (const cat of cats) poolZscores[cat.key] = 0
-  for (const p of poolPlayers) {
-    for (const cat of cats) {
-      poolZscores[cat.key] += (p.zscores[cat.key] ?? 0)
-    }
-  }
+  // Aggregate pool stats separately
+  const hitterPoolTotals = aggregatePool(hitterPool, cats)
+  const pitcherPoolTotals = aggregatePool(pitcherPool, cats)
 
   // Project each team's totals
   const projected: ProjectedStanding[] = teamRows.map(row => {
-    const teamRemaining = remainingStarterSlots.get(row.teamId) ?? 0
-    const share = teamRemaining / totalRemainingPicks
+    const hitterShare = totalRemainingHitter > 0
+      ? (remainingHitterSlots.get(row.teamId) ?? 0) / totalRemainingHitter
+      : 0
+    const pitcherShare = totalRemainingPitcher > 0
+      ? (remainingPitcherSlots.get(row.teamId) ?? 0) / totalRemainingPitcher
+      : 0
 
     // Z-score projected totals (for MCW model compatibility)
     const projectedTotals: Record<string, number> = {}
     for (const cat of cats) {
-      projectedTotals[cat.key] = (row.totals[cat.key] ?? 0) + share * poolZscores[cat.key]
+      projectedTotals[cat.key] = (row.totals[cat.key] ?? 0)
+        + hitterShare * hitterPoolTotals.zscores[cat.key]
+        + pitcherShare * pitcherPoolTotals.zscores[cat.key]
     }
 
     // Stat projected totals (for display)
     const projectedStatTotals: Record<string, number> = {}
 
-    // Counting stats: current + share of pool
+    // Counting stats: current + shares of both pools
     for (const cat of cats) {
       if (!cat.rate) {
-        projectedStatTotals[cat.projKey] = (row.statTotals[cat.projKey] ?? 0) + share * poolStatTotals[cat.projKey]
+        projectedStatTotals[cat.projKey] = (row.statTotals[cat.projKey] ?? 0)
+          + hitterShare * (hitterPoolTotals.statTotals[cat.projKey] ?? 0)
+          + pitcherShare * (pitcherPoolTotals.statTotals[cat.projKey] ?? 0)
       }
     }
 
     // Rate stats: recompute from combined weighted components
-    const projPA = row.totalPA + share * poolPA
-    const projIP = row.totalIP + share * poolIP
+    const projPA = row.totalPA
+      + hitterShare * hitterPoolTotals.pa
+      + pitcherShare * pitcherPoolTotals.pa
+    const projIP = row.totalIP
+      + hitterShare * hitterPoolTotals.ip
+      + pitcherShare * pitcherPoolTotals.ip
+
     projectedStatTotals['proj_obp'] = projPA > 0
-      ? (row.weightedOBP + share * poolWeightedOBP) / projPA
+      ? (row.weightedOBP + hitterShare * hitterPoolTotals.weightedOBP + pitcherShare * pitcherPoolTotals.weightedOBP) / projPA
       : 0
     projectedStatTotals['proj_era'] = projIP > 0
-      ? (row.weightedERA + share * poolWeightedERA) / projIP
+      ? (row.weightedERA + hitterShare * hitterPoolTotals.weightedERA + pitcherShare * pitcherPoolTotals.weightedERA) / projIP
       : 0
     projectedStatTotals['proj_whip'] = projIP > 0
-      ? (row.weightedWHIP + share * poolWeightedWHIP) / projIP
+      ? (row.weightedWHIP + hitterShare * hitterPoolTotals.weightedWHIP + pitcherShare * pitcherPoolTotals.weightedWHIP) / projIP
       : 0
 
     return {

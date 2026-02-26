@@ -33,6 +33,7 @@ import { computeAvailability } from '@/lib/pick-predictor'
 import { projectStandings, type ProjectedStanding } from '@/lib/projected-standings'
 import {
   ROSTER_SLOTS, POSITION_TO_SLOTS, SLOT_ORDER, STARTER_SLOT_COUNT,
+  HITTER_STARTER_SLOT_COUNT, PITCHER_STARTER_SLOT_COUNT,
   PITCHER_BENCH_CONTRIBUTION, HITTER_BENCH_CONTRIBUTION,
   pitcherRole, getPositions, getEligibleSlots, optimizeRoster, type RosterResult,
 } from '@/lib/roster-optimizer'
@@ -1058,21 +1059,29 @@ export default function DraftBoardPage() {
         }
         stats['proj_pa'] = pd.proj_pa ?? 0
         stats['proj_ip'] = pd.proj_ip ?? 0
-        return { mlb_id: p.mlb_id, zscores, stats }
+        return { mlb_id: p.mlb_id, player_type: p.player_type as 'hitter' | 'pitcher', zscores, stats }
       })
 
     const remainingStarters = new Map<number, number>()
+    const remainingHitters = new Map<number, number>()
+    const remainingPitchers = new Map<number, number>()
     for (const team of leagueTeams) {
       const roster = teamRosters.get(team.id)
-      const filled = roster ? roster.starters.length : 0
-      remainingStarters.set(team.id, Math.max(0, STARTER_SLOT_COUNT - filled))
+      const filledTotal = roster ? roster.starters.length : 0
+      const filledHitters = roster ? roster.starters.filter(p => p.player_type === 'hitter').length : 0
+      const filledPitchers = roster ? roster.starters.filter(p => p.player_type === 'pitcher').length : 0
+      remainingStarters.set(team.id, Math.max(0, STARTER_SLOT_COUNT - filledTotal))
+      remainingHitters.set(team.id, Math.max(0, HITTER_STARTER_SLOT_COUNT - filledHitters))
+      remainingPitchers.set(team.id, Math.max(0, PITCHER_STARTER_SLOT_COUNT - filledPitchers))
     }
 
     return projectStandings(
       teamCategories.rows,
       availablePlayers,
       ALL_CATS,
-      remainingStarters
+      remainingStarters,
+      remainingHitters,
+      remainingPitchers
     )
   }, [teamCategories, allPlayers, draftedIds, leagueTeams, teamRosters])
 
