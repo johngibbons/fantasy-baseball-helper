@@ -360,10 +360,10 @@ def fetch_fangraphs_batting(
         )
         imported += 1
 
-        # Collect ADP if present
+        # Collect ADP if present (reject >= 500: FanGraphs uses 999 for undrafted)
         if adp_map is not None:
             adp_val = _safe_float(row.get("ADP"))
-            if adp_val > 0:
+            if 0 < adp_val < 500:
                 if mlb_id not in adp_map or adp_val < adp_map[mlb_id]:
                     adp_map[mlb_id] = adp_val
 
@@ -435,10 +435,10 @@ def fetch_fangraphs_pitching(
         )
         imported += 1
 
-        # Collect ADP if present
+        # Collect ADP if present (reject >= 500: FanGraphs uses 999 for undrafted)
         if adp_map is not None:
             adp_val = _safe_float(row.get("ADP"))
-            if adp_val > 0:
+            if 0 < adp_val < 500:
                 if mlb_id not in adp_map or adp_val < adp_map[mlb_id]:
                     adp_map[mlb_id] = adp_val
 
@@ -916,7 +916,7 @@ def import_adp_from_csv(source: str = "steamer", season: int = 2026):
             reader = csv.DictReader(f)
             for row in reader:
                 adp_val = _safe_float(row.get("ADP"))
-                if adp_val <= 0:
+                if adp_val <= 0 or adp_val >= 500:
                     continue
 
                 mlb_id = _resolve_mlb_id(conn, row)
