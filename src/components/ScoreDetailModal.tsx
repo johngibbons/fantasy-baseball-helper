@@ -22,7 +22,8 @@ export interface ScoreDetailData {
   vona: number
   urgency: number
   badge: 'NOW' | 'WAIT' | null
-  normalizedValue: number
+  rawValue: number          // total_zscore — shown in the Value column
+  normalizedValue: number   // re-standardized by pool — used by Score formula
   surplusValue: number
   rosterFit: number
   filledSlots: string[]
@@ -444,7 +445,13 @@ export function ScoreDetailModal({ data, onClose }: {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-gray-800/40 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Normalized Value</span>
+                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider" title="Sum of raw SGP z-scores. Shown in the Value column.">Raw Value (SGP)</span>
+                  <span className={`text-sm font-bold tabular-nums ${d.rawValue >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                    {d.rawValue > 0 ? '+' : ''}{fmt(d.rawValue)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider" title="Z-scores re-standardized by remaining pool. Used by the Score formula.">Normalized Value</span>
                   <span className={`text-sm font-bold tabular-nums ${d.normalizedValue >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {d.normalizedValue > 0 ? '+' : ''}{fmt(d.normalizedValue)}
                   </span>
@@ -467,6 +474,13 @@ export function ScoreDetailModal({ data, onClose }: {
                     </div>
                   ))}
                 </div>
+                {Math.abs(d.rawValue - d.normalizedValue) > 0.5 && (
+                  <div className="border-t border-gray-700 pt-1.5 mt-1.5 text-[9px] text-gray-500 leading-snug">
+                    Value column shows raw SGP ({fmt(d.rawValue)}). Score uses
+                    normalized value ({fmt(d.normalizedValue)}) which re-standardizes
+                    per category by the remaining pool, weighting scarce categories higher.
+                  </div>
+                )}
               </div>
 
               {/* Standardized Z-score bars */}

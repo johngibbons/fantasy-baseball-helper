@@ -1163,6 +1163,7 @@ export default function DraftBoardPage() {
       vona,
       urgency,
       badge,
+      rawValue: getPlayerValue(p),
       normalizedValue,
       surplusValue,
       rosterFit,
@@ -1866,7 +1867,7 @@ export default function DraftBoardPage() {
                       <DraftTh label="Player" field="name" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" />
                       <DraftTh label="Pos" field="pos" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" className="w-24" />
                       <DraftTh label="Team" field="team" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" className="hidden lg:table-cell" />
-                      <DraftTh label="Value" field="value" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-20">
+                      <DraftTh label="Value" field="value" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-20" title="Raw SGP: sum of z-scores across categories. A general talent measure.">
                         {recalcData && (
                           <span className="text-[8px] px-1 py-0.5 rounded bg-indigo-900 text-indigo-300 font-bold normal-case tracking-normal">Dyn</span>
                         )}
@@ -1879,6 +1880,7 @@ export default function DraftBoardPage() {
                         onSort={handleSort}
                         align="right"
                         className="w-20 lg:w-28"
+                        title="Draft recommendation using normalized values, positional scarcity (VONA), category wins (MCW), and urgency. Click a score to see the full breakdown."
                       />
                     </tr>
                   </thead>
@@ -2773,9 +2775,9 @@ export default function DraftBoardPage() {
 // ── Sortable table header for draft board ──
 type DraftSortKey = 'rank' | 'adp' | 'avail' | 'name' | 'pos' | 'team' | 'value' | 'score'
 
-function DraftTh({ label, field, sortKey, sortAsc, onSort, align = 'left', className = '', children }: {
+function DraftTh({ label, field, sortKey, sortAsc, onSort, align = 'left', className = '', title, children }: {
   label: string; field: DraftSortKey; sortKey: DraftSortKey; sortAsc: boolean;
-  onSort: (k: DraftSortKey) => void; align?: 'left' | 'right'; className?: string; children?: React.ReactNode
+  onSort: (k: DraftSortKey) => void; align?: 'left' | 'right'; className?: string; title?: string; children?: React.ReactNode
 }) {
   const active = sortKey === field
   return (
@@ -2784,6 +2786,7 @@ function DraftTh({ label, field, sortKey, sortAsc, onSort, align = 'left', class
         active ? 'text-blue-400' : 'text-gray-400 hover:text-gray-200'
       } ${className}`}
       onClick={() => onSort(field)}
+      title={title}
     >
       <div className={`flex items-center gap-1 ${align === 'right' ? 'justify-end' : ''}`}>
         {label}
