@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.routes import router
 from backend.database import init_db, get_connection
-from backend.data.projections import generate_projections_from_stats, import_adp_from_csv, import_adp_from_api, fetch_all_fangraphs_projections
+from backend.data.projections import generate_projections_from_stats, import_adp_from_csv, import_adp_from_api, fetch_all_fangraphs_projections, import_espn_adp
 from backend.data.statcast_adjustments import apply_statcast_adjustments
 from backend.analysis.zscores import calculate_all_zscores
 from backend.data.sync import import_csv_projections
@@ -99,6 +99,13 @@ def startup():
             import_adp_from_csv(season=_SEASON)
         except Exception as e:
             logger.warning(f"CSV ADP import failed (non-fatal): {e}")
+
+    # ESPN ADP overwrites FanGraphs ADP (ESPN is authoritative for our league)
+    try:
+        espn_adp_count = import_espn_adp(_SEASON)
+        logger.info(f"Imported ESPN ADP for {espn_adp_count} players")
+    except Exception as e:
+        logger.warning(f"ESPN ADP import failed (non-fatal): {e}")
 
     logger.info("Startup recalculation complete")
 

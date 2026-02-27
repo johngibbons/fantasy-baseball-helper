@@ -336,7 +336,7 @@ def refresh_projections(season: int = Query(2026)):
     """
     import logging
     import traceback
-    from backend.data.projections import fetch_all_fangraphs_projections, import_adp_from_api
+    from backend.data.projections import fetch_all_fangraphs_projections, import_adp_from_api, import_espn_adp
 
     logger = logging.getLogger(__name__)
 
@@ -367,14 +367,23 @@ def refresh_projections(season: int = Query(2026)):
         except Exception as e:
             logger.warning(f"ADP import failed (non-fatal): {e}")
 
+    # ESPN ADP overwrites FanGraphs ADP (ESPN is authoritative for our league)
+    espn_adp_updated = 0
+    try:
+        espn_adp_updated = import_espn_adp(season)
+        logger.info(f"Imported ESPN ADP for {espn_adp_updated} players")
+    except Exception as e:
+        logger.warning(f"ESPN ADP import failed (non-fatal): {e}")
+
+    total_adp = espn_adp_updated or adp_updated
     sources_used = sorted(k for k, v in results.items() if v > 0)
     return {
         "ok": True,
         "projections_imported": results,
         "total_players": total,
-        "adp_updated": adp_updated,
+        "adp_updated": total_adp,
         "sources": sources_used,
-        "message": f"Fetched {total} projections + {adp_updated} ADP values from FanGraphs",
+        "message": f"Fetched {total} projections + {total_adp} ADP values (ESPN)",
     }
 
 

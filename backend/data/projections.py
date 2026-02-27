@@ -3,9 +3,11 @@
 projections from historical stats."""
 
 import csv
+import json
 import logging
 import time
 import unicodedata
+import urllib.request
 from datetime import date
 from pathlib import Path
 from typing import Optional
@@ -942,4 +944,147 @@ def import_adp_from_csv(source: str = "steamer", season: int = 2026):
     conn.commit()
     conn.close()
     logger.info(f"Imported ADP for {updated} players from {source} ({len(adp_map)} found in CSVs)")
+    return updated
+
+
+# ── ESPN ADP ──
+
+_ESPN_API_URL = (
+    "https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/{season}"
+    "/players?scoringPeriodId=0&view=kona_player_info"
+)
+
+
+def _strip_accents(s: str) -> str:
+    return "".join(
+        c for c in unicodedata.normalize("NFD", s)
+        if unicodedata.category(c) != "Mn"
+    ).lower()
+
+
+def fetch_espn_adp(season: int) -> dict[int, float]:
+    """Fetch ADP from ESPN's public fantasy API.
+
+    Paginates through all owned players via the ``kona_player_info`` view
+    and extracts ``ownership.averageDraftPosition``.  Players are matched
+    to our DB by name (exact then accent-stripped).
+
+    Args:
+        season: Fantasy season year.
+
+    Returns:
+        ``{mlb_id: ADP}`` for every matched player with ADP > 0.
+    """
+    conn = get_connection()
+
+    # Build name lookup from our players table
+    db_rows = conn.execute(
+        "SELECT mlb_id, full_name FROM players WHERE is_active = 1"
+    ).fetchall()
+    name_to_id: dict[str, int] = {}
+    stripped_to_id: dict[str, int] = {}
+    for r in db_rows:
+        name_to_id[r["full_name"].lower()] = r["mlb_id"]
+        stripped_to_id[_strip_accents(r["full_name"])] = r["mlb_id"]
+    conn.close()
+
+    url = _ESPN_API_URL.format(season=season)
+    adp_map: dict[int, float] = {}
+    batch_size = 250
+    offset = 0
+
+    while True:
+        filter_header = json.dumps({
+            "filterActive": {"value": True},
+            "sortPercOwned": {"sortPriority": 1, "sortAsc": False},
+            "limit": batch_size,
+            "offset": offset,
+        })
+
+        req = urllib.request.Request(url)
+        req.add_header("x-fantasy-filter", filter_header)
+        req.add_header("Accept", "application/json")
+
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read())
+
+        if not data:
+            break
+
+        for player in data:
+            ownership = player.get("ownership", {})
+            adp_val = ownership.get("averageDraftPosition", 0)
+            if not adp_val or adp_val <= 0:
+                continue
+
+            espn_name = player.get("fullName", "")
+            if not espn_name:
+                continue
+
+            # Match by name: exact then accent-stripped
+            mlb_id = name_to_id.get(espn_name.lower())
+            if not mlb_id:
+                mlb_id = stripped_to_id.get(_strip_accents(espn_name))
+            if not mlb_id:
+                continue
+
+            # Keep the lower (earlier) ADP if somehow duplicated
+            if mlb_id not in adp_map or adp_val < adp_map[mlb_id]:
+                adp_map[mlb_id] = round(adp_val, 1)
+
+        # Stop when ownership drops to 0 or batch is short
+        last_ownership = data[-1].get("ownership", {}).get("percentOwned", 0)
+        if last_ownership == 0 or len(data) < batch_size:
+            break
+
+        offset += batch_size
+        logger.info(f"  ESPN ADP: fetched {offset} players (last ownership: {last_ownership:.1f}%)...")
+
+    logger.info(f"Fetched ESPN ADP for {len(adp_map)} matched players")
+    return adp_map
+
+
+def import_espn_adp(season: int) -> int:
+    """Fetch ESPN ADP and write it into the rankings table.
+
+    Overwrites any existing ``espn_adp`` values (ESPN is authoritative for
+    our ESPN-hosted league).  Clears stale ADP for players no longer in the
+    ESPN response.
+
+    Args:
+        season: Fantasy season year.
+
+    Returns:
+        Number of players updated with ADP.
+    """
+    adp_map = fetch_espn_adp(season)
+    if not adp_map:
+        logger.warning("ESPN ADP fetch returned no data")
+        return 0
+
+    conn = get_connection()
+    updated = 0
+    for mlb_id, adp in adp_map.items():
+        result = conn.execute(
+            """UPDATE rankings
+               SET espn_adp = ?, adp_diff = overall_rank - ?
+               WHERE mlb_id = ? AND season = ?""",
+            (adp, adp, mlb_id, season),
+        )
+        if result.rowcount > 0:
+            updated += 1
+
+    # Clear stale ADP for players not in the ESPN response
+    if adp_map:
+        placeholders = ",".join("?" for _ in adp_map)
+        conn.execute(
+            f"""UPDATE rankings SET espn_adp = NULL, adp_diff = NULL
+                WHERE season = ? AND espn_adp IS NOT NULL
+                AND mlb_id NOT IN ({placeholders})""",
+            (season, *adp_map.keys()),
+        )
+
+    conn.commit()
+    conn.close()
+    logger.info(f"Imported ESPN ADP for {updated} players ({len(adp_map)} fetched)")
     return updated

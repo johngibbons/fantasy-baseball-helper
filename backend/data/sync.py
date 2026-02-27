@@ -20,6 +20,7 @@ from backend.data.projections import (
     generate_projections_from_stats,
     import_adp_from_csv,
     import_adp_from_api,
+    import_espn_adp,
     import_fangraphs_batting,
     import_fangraphs_pitching,
     fetch_all_fangraphs_projections,
@@ -357,6 +358,13 @@ async def run_full_sync(season: int = 2025, stats_seasons: list[int] = None):
         except Exception as e:
             logger.warning(f"CSV ADP import failed (non-fatal): {e}")
 
+    # 9. ESPN ADP overwrites FanGraphs ADP (ESPN is authoritative for our league)
+    try:
+        espn_adp_count = import_espn_adp(season)
+        logger.info(f"Imported ESPN ADP for {espn_adp_count} players")
+    except Exception as e:
+        logger.warning(f"ESPN ADP import failed (non-fatal): {e}")
+
     logger.info("Full sync complete!")
 
 
@@ -376,6 +384,7 @@ def main():
     parser.add_argument("--projections-only", action="store_true", help="Only generate projections")
     parser.add_argument("--rankings-only", action="store_true", help="Only calculate rankings")
     parser.add_argument("--adp-only", action="store_true", help="Only import ADP data from projection CSVs")
+    parser.add_argument("--espn-adp-only", action="store_true", help="Only fetch and import ESPN ADP data")
     parser.add_argument("--fetch-projections", action="store_true",
                         help="Fetch projections from FanGraphs API (replaces manual CSV download)")
 
@@ -416,6 +425,9 @@ def main():
     elif args.adp_only:
         init_db()
         import_adp_from_csv(season=args.season)
+    elif args.espn_adp_only:
+        init_db()
+        import_espn_adp(args.season)
     else:
         asyncio.run(run_full_sync(args.season, args.stats_seasons))
 
