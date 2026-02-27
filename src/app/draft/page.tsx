@@ -52,7 +52,7 @@ const POSITIONS = ['All', 'C', '1B', '2B', '3B', 'SS', 'OF', 'SP', 'RP']
 const DEFAULT_NUM_TEAMS = 10
 
 // ── Default draft order (reverse of 2025 final standings) ──
-const DEFAULT_DRAFT_ORDER = [5, 9, 2, 8, 3, 10, 4, 6, 1, 7]
+const DEFAULT_DRAFT_ORDER = [2, 5, 9, 8, 3, 10, 4, 6, 1, 7]
 
 // ── Snake order helper ──
 function getActiveTeamId(pickIndex: number, order: number[]): number {

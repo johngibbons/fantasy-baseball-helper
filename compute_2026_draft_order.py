@@ -18,9 +18,9 @@ ROSTER_SIZE = 25
 NUM_ROUNDS = 25
 
 MANAGERS = {
-    1: "Jason McComb",
-    2: "Eric Mercado",
-    3: "Chris Herbst",
+    1: "Chris Herbst",
+    2: "Jason McComb",
+    3: "Eric Mercado",
     4: "John Gibbons",
     5: "Tim Riker",
     6: "Bryan Lewis",

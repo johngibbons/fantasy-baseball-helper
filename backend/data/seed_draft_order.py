@@ -44,7 +44,7 @@ MANAGER_TO_TEAM_ID = {v: k for k, v in TEAM_ID_TO_MANAGER.items()}
 
 # ── Draft order: reverse of 2025 final standings ──
 # 10th place picks 1st, 1st place picks 10th
-DRAFT_ORDER = [5, 9, 2, 8, 3, 10, 4, 6, 1, 7]
+DRAFT_ORDER = [2, 5, 9, 8, 3, 10, 4, 6, 1, 7]
 
 NUM_ROUNDS = 25
 ROSTER_SIZE = 25
@@ -101,9 +101,9 @@ def _get_round_order(round_num):
 def _managers():
     """Draft-position → manager mapping (matches compute script)."""
     return {
-        1: "Jason McComb",
-        2: "Eric Mercado",
-        3: "Chris Herbst",
+        1: "Chris Herbst",
+        2: "Jason McComb",
+        3: "Eric Mercado",
         4: "John Gibbons",
         5: "Tim Riker",
         6: "Bryan Lewis",
