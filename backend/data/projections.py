@@ -988,9 +988,7 @@ def fetch_espn_adp(season: int) -> dict[int, float]:
         stripped_to_id[_strip_accents(r["full_name"])] = r["mlb_id"]
     conn.close()
 
-    # ESPN's current draft ADP lives under the prior season until the new
-    # season fully rolls over.  Use season-1 so we always get fresh data.
-    url = _ESPN_API_URL.format(season=season - 1)
+    url = _ESPN_API_URL.format(season=season)
     adp_map: dict[int, float] = {}
     batch_size = 250
     offset = 0
