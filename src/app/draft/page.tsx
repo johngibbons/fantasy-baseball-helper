@@ -617,7 +617,9 @@ export default function DraftBoardPage() {
 
   // ── Filtered available players (multi-eligibility aware) ──
   const available = useMemo(() => {
-    let list = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
+    let list = showDrafted
+      ? [...allPlayers]
+      : allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
     if (posFilter !== 'All') {
       list = list.filter((p) => {
         const positions = getPositions(p)
@@ -633,7 +635,7 @@ export default function DraftBoardPage() {
       list = list.filter((p) => p.full_name.toLowerCase().includes(q))
     }
     return list
-  }, [allPlayers, draftedIds, posFilter, searchText])
+  }, [allPlayers, draftedIds, posFilter, searchText, showDrafted])
 
   const drafted = useMemo(() => {
     return allPlayers.filter((p) => draftedIds.has(p.mlb_id)).sort((a, b) => a.overall_rank - b.overall_rank)
@@ -1376,9 +1378,7 @@ export default function DraftBoardPage() {
     )
   }
 
-  const displayList = showDrafted
-    ? [...sortedAvailable, ...drafted]
-    : sortedAvailable
+  const displayList = sortedAvailable
 
   // Build a set of assigned player IDs by slot for the roster grid
   const slotAssignments: Record<string, RankedPlayer[]> = {}
