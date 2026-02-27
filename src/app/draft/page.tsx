@@ -43,6 +43,7 @@ import {
   posColor, getHeatColor, formatStat, computeTeamCategories,
 } from '@/lib/draft-categories'
 import { CategoryBar } from '@/components/CategoryBar'
+import { ScoreDetailModal, type ScoreDetailData } from '@/components/ScoreDetailModal'
 
 // ── Position filter buttons ──
 const POSITIONS = ['All', 'C', '1B', '2B', '3B', 'SS', 'OF', 'SP', 'RP']
@@ -122,6 +123,7 @@ export default function DraftBoardPage() {
   const [showPickTrader, setShowPickTrader] = useState(false)
   const [pickLog, setPickLog] = useState<{ pickIndex: number; mlbId: number; teamId: number }[]>([])
   const [showProjected, setShowProjected] = useState(false)
+  const [scoreDetailPlayer, setScoreDetailPlayer] = useState<number | null>(null)
 
   // ── Keeper state ──
   const [leagueKeepersData, setLeagueKeepersData] = useState<LeagueKeeperEntry[]>([])
@@ -1074,6 +1076,121 @@ export default function DraftBoardPage() {
     }
   }, [draftScoreMap, allPlayers, myTeamId, strategyMap, rosterState.remainingCapacity])
 
+  // ── Score detail modal data (computed only for clicked player) ──
+  const scoreDetailData = useMemo((): ScoreDetailData | null => {
+    if (scoreDetailPlayer == null) return null
+    const p = allPlayers.find(x => x.mlb_id === scoreDetailPlayer)
+    if (!p) return null
+
+    const ds = draftScoreMap.get(scoreDetailPlayer)
+    const vona = ds?.vona ?? vonaMap.get(scoreDetailPlayer) ?? 0
+    const mcw = ds?.mcw ?? 0
+    const urgency = ds?.urgency ?? 0
+    const badge = ds?.badge ?? null
+    const categoryGains = ds?.categoryGains ?? []
+
+    const totalSlots = Object.values(ROSTER_SLOTS).reduce((a, b) => a + b, 0)
+    const totalPicksMade = draftPicks.size
+    const confidence = standingsConfidence(totalPicksMade)
+    const draftProgress = Math.min(1, myTeam.length / totalSlots)
+    const hasMCW = categoryStandings.length > 0 && Object.keys(otherTeamTotals).length > 0
+
+    const normalizedValue = getNormalizedValue(p)
+    const surplusValue = getSurplusValue(p, normalizedValue)
+    const positions = getPositions(p)
+    const needSlots = getEligibleSlots(p).filter(s => s !== 'BE' && (rosterState.remainingCapacity[s] || 0) > 0)
+    const rosterFit = needSlots.length > 0 ? 1 : 0
+
+    // Decomposed formula terms
+    const mcwComponent = mcw * 21.0 * confidence
+    const vonaComponentHigh = vona * 0.16
+    const urgencyComponentHigh = urgency * 0.02
+    const rosterFitComponent = rosterFit * draftProgress
+    const highConfidenceTotal = mcwComponent + vonaComponentHigh + urgencyComponentHigh + rosterFitComponent
+    const lowConfidenceTotal = surplusValue + vona * 0.42 + urgency * 0.55
+    const blendedScore = hasMCW && confidence > 0
+      ? highConfidenceTotal * confidence + lowConfidenceTotal * (1 - confidence)
+      : lowConfidenceTotal
+
+    // Bench penalty
+    let benchPenalty = 1.0
+    let benchPenaltyReason: string | null = null
+    if (rosterFit === 0 && draftProgress > 0.15) {
+      if (p.player_type === 'pitcher') {
+        const benchPitcherCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher').length
+        const saturation = Math.min(1, benchPitcherCount / 3)
+        const floor = 0.65 - saturation * 0.30
+        const scale = 0.35 + saturation * 0.28
+        benchPenalty = Math.max(floor, 1 - draftProgress * scale)
+        benchPenaltyReason = `Pitcher bench (${benchPitcherCount} on bench, ${(saturation * 100).toFixed(0)}% saturated)`
+      } else {
+        benchPenalty = Math.max(0.35, 1 - draftProgress * 0.63)
+        benchPenaltyReason = `Hitter bench penalty`
+      }
+    }
+
+    const finalScore = blendedScore * benchPenalty
+
+    // Per-category z-scores
+    const rawZScores: Record<string, number> = {}
+    const standardizedZScores: Record<string, number> = {}
+    for (const cat of ALL_CATS) {
+      const recalc = recalcData?.get(p.mlb_id)
+      const raw = recalc
+        ? (recalc[cat.key as keyof RankedPlayer] as number) ?? 0
+        : (p[cat.key as keyof RankedPlayer] as number) ?? 0
+      rawZScores[cat.key] = raw
+      if (catStats[cat.key]) {
+        const { mean, stdev } = catStats[cat.key]
+        standardizedZScores[cat.key] = (raw - mean) / stdev
+      } else {
+        standardizedZScores[cat.key] = 0
+      }
+    }
+
+    return {
+      mlbId: p.mlb_id,
+      fullName: p.full_name,
+      positions,
+      team: p.team ?? '',
+      playerType: p.player_type as 'hitter' | 'pitcher',
+      overallRank: p.overall_rank,
+      espnAdp: p.espn_adp ?? null,
+      finalScore,
+      mcw,
+      vona,
+      urgency,
+      badge,
+      normalizedValue,
+      surplusValue,
+      rosterFit,
+      filledSlots: needSlots,
+      confidence,
+      draftProgress,
+      hasMCW,
+      benchPenalty,
+      benchPenaltyReason,
+      mcwComponent,
+      vonaComponentHigh,
+      urgencyComponentHigh,
+      rosterFitComponent,
+      highConfidenceTotal,
+      lowConfidenceTotal,
+      blendedScore,
+      categoryGains,
+      categoryStandings,
+      rawZScores,
+      standardizedZScores,
+      catStats,
+      availability: availabilityMap.get(scoreDetailPlayer) ?? null,
+      picksUntilMine,
+      replacementLevels,
+    }
+  }, [scoreDetailPlayer, allPlayers, draftScoreMap, vonaMap, draftPicks.size,
+      categoryStandings, otherTeamTotals, myTeam.length, rosterState,
+      getNormalizedValue, getSurplusValue, catStats, recalcData, availabilityMap,
+      picksUntilMine, replacementLevels])
+
   // ── Tier-based drafting ──
   const playerTiers = useMemo(
     () => computeTiers(available.map(p => ({ mlb_id: p.mlb_id, value: getPlayerValue(p) }))),
@@ -1961,9 +2078,12 @@ export default function DraftBoardPage() {
                                         #{rankInfo.rank}
                                       </span>
                                     )}
-                                    <span className={`font-bold tabular-nums text-xs ${inZone ? 'text-purple-400' : 'text-gray-600'}`}>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); setScoreDetailPlayer(p.mlb_id) }}
+                                      className={`font-bold tabular-nums text-xs cursor-pointer hover:underline ${inZone ? 'text-purple-400' : 'text-gray-600'}`}
+                                    >
                                       {ds.score.toFixed(1)}
-                                    </span>
+                                    </button>
                                   </div>
                                 )
                               }
@@ -2025,7 +2145,10 @@ export default function DraftBoardPage() {
                               {primary.badge === 'WAIT' && (
                                 <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">WAIT</span>
                               )}
-                              <span className="text-xs font-bold tabular-nums text-purple-400">{primary.score.toFixed(1)}</span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setScoreDetailPlayer(primary.mlbId) }}
+                                className="text-xs font-bold tabular-nums text-purple-400 cursor-pointer hover:underline"
+                              >{primary.score.toFixed(1)}</button>
                             </div>
                           </div>
                           {/* Category win probability shifts */}
@@ -2076,7 +2199,10 @@ export default function DraftBoardPage() {
                               {ru.badge === 'NOW' && (
                                 <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
                               )}
-                              <span className="text-[10px] font-bold tabular-nums text-purple-400">{ru.score.toFixed(1)}</span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setScoreDetailPlayer(ru.mlbId) }}
+                                className="text-[10px] font-bold tabular-nums text-purple-400 cursor-pointer hover:underline"
+                              >{ru.score.toFixed(1)}</button>
                             </div>
                           </div>
                         ))}
@@ -2116,7 +2242,10 @@ export default function DraftBoardPage() {
                               {badge === 'WAIT' && (
                                 <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">WAIT</span>
                               )}
-                              <span className="text-[10px] font-bold tabular-nums text-purple-400">{score.toFixed(1)}</span>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setScoreDetailPlayer(player.mlb_id) }}
+                                className="text-[10px] font-bold tabular-nums text-purple-400 cursor-pointer hover:underline"
+                              >{score.toFixed(1)}</button>
                             </div>
                           </div>
                         ))}
@@ -2636,6 +2765,7 @@ export default function DraftBoardPage() {
           </div>
         </div>
       </div>
+      <ScoreDetailModal data={scoreDetailData} onClose={() => setScoreDetailPlayer(null)} />
     </main>
   )
 }
