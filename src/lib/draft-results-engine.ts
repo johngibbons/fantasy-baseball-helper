@@ -52,6 +52,7 @@ export interface PickAnalysis {
   adp: number | null
   valueDiff: number     // positive = value, negative = reach
   zScore: number
+  isKeeper: boolean
 }
 
 export function analyzeMyPicks(
@@ -59,6 +60,7 @@ export function analyzeMyPicks(
   myTeamId: number,
   allPlayers: RankedPlayer[],
   numTeams: number,
+  keeperMlbIds?: Set<number>,
 ): PickAnalysis[] {
   const playerMap = new Map(allPlayers.map(p => [p.mlb_id, p]))
   const myPicks = pickLog.filter(e => e.teamId === myTeamId)
@@ -80,6 +82,7 @@ export function analyzeMyPicks(
       adp: p.espn_adp ?? null,
       valueDiff: overallPick - p.overall_rank,
       zScore: p.total_zscore,
+      isKeeper: keeperMlbIds?.has(pick.mlbId) ?? false,
     }
   }).filter((x): x is PickAnalysis => x !== null)
 }

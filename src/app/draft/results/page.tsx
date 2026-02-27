@@ -3,7 +3,11 @@
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { getDraftBoard, type RankedPlayer } from '@/lib/valuations-api'
-import { fetchLeagueTeams, teamDisplayName } from '@/lib/league-teams'
+import {
+  fetchLeagueTeams, teamDisplayName,
+  keeperPickIndex, keeperPickIndexFromSchedule,
+  type LeagueKeeperEntry,
+} from '@/lib/league-teams'
 import {
   analyzeCategoryStandings,
   detectStrategy,
@@ -37,6 +41,7 @@ interface DraftState {
   keeperMlbIds?: number[]
   pickSchedule?: number[]
   pickLog?: { pickIndex: number; mlbId: number; teamId: number }[]
+  leagueKeepers?: LeagueKeeperEntry[]
 }
 
 const DEFAULT_NUM_TEAMS = 10
@@ -93,6 +98,24 @@ export default function DraftResultsPage() {
   const pickSchedule = draftState?.pickSchedule ?? []
   const pickLog = draftState?.pickLog ?? []
   const numTeams = draftOrder.length || DEFAULT_NUM_TEAMS
+
+  const keeperMlbIds = useMemo(() => new Set(draftState?.keeperMlbIds ?? []), [draftState])
+  const leagueKeepers = draftState?.leagueKeepers ?? []
+
+  // Build complete pickLog including keepers
+  const fullPickLog = useMemo(() => {
+    if (leagueKeepers.length === 0) return pickLog
+    const keeperEntries: typeof pickLog = []
+    for (const k of leagueKeepers) {
+      const idx = pickSchedule.length > 0
+        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams)
+        : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
+      if (idx >= 0) {
+        keeperEntries.push({ pickIndex: idx, mlbId: k.mlb_id, teamId: k.teamId })
+      }
+    }
+    return [...keeperEntries, ...pickLog].sort((a, b) => a.pickIndex - b.pickIndex)
+  }, [leagueKeepers, pickLog, pickSchedule, draftOrder, numTeams])
 
   const isDraftComplete = pickSchedule.length > 0 && (draftState?.currentPickIndex ?? 0) >= pickSchedule.length
 
@@ -194,8 +217,8 @@ export default function DraftResultsPage() {
 
   // ── Pick analysis ──
   const pickAnalysis = useMemo(
-    () => myTeamId ? analyzeMyPicks(pickLog, myTeamId, allPlayers, numTeams) : [],
-    [pickLog, myTeamId, allPlayers, numTeams],
+    () => myTeamId ? analyzeMyPicks(fullPickLog, myTeamId, allPlayers, numTeams, keeperMlbIds) : [],
+    [fullPickLog, myTeamId, allPlayers, numTeams, keeperMlbIds],
   )
 
   // ── Undrafted players ──
@@ -480,7 +503,13 @@ export default function DraftResultsPage() {
           <div className="bg-gray-900 rounded-xl border border-gray-800 mb-4">
             <div className="px-4 py-3 border-b border-gray-800">
               <h2 className="font-bold text-white text-sm">Pick Analysis</h2>
-              <div className="text-[11px] text-gray-500 mt-0.5">Value vs. reach on {pickAnalysis.length} picks</div>
+              <div className="text-[11px] text-gray-500 mt-0.5">
+                {(() => {
+                  const keeperCount = pickAnalysis.filter(pa => pa.isKeeper).length
+                  if (keeperCount > 0) return `${keeperCount} keepers + ${pickAnalysis.length - keeperCount} picks`
+                  return `Value vs. reach on ${pickAnalysis.length} picks`
+                })()}
+              </div>
             </div>
 
             {/* Highlight cards */}
@@ -494,6 +523,9 @@ export default function DraftResultsPage() {
                       {getPositions(pa.player)[0]}
                     </span>
                     <span className="text-gray-200 truncate">{pa.player.full_name}</span>
+                    {pa.isKeeper && (
+                      <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-amber-900/60 text-amber-400 border border-amber-700/50 leading-none">K</span>
+                    )}
                     <span className="text-gray-500 ml-auto text-[10px]">Rd {pa.round}</span>
                   </div>
                 ))}
@@ -507,6 +539,9 @@ export default function DraftResultsPage() {
                       {getPositions(pa.player)[0]}
                     </span>
                     <span className="text-gray-200 truncate">{pa.player.full_name}</span>
+                    {pa.isKeeper && (
+                      <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-amber-900/60 text-amber-400 border border-amber-700/50 leading-none">K</span>
+                    )}
                     <span className="text-gray-500 ml-auto text-[10px]">Rd {pa.round}</span>
                   </div>
                 ))}
@@ -535,7 +570,14 @@ export default function DraftResultsPage() {
                         <td className="px-2 py-1 text-gray-400 font-mono tabular-nums">
                           {pa.round}.{String(pa.pickInRound).padStart(2, '0')}
                         </td>
-                        <td className="px-2 py-1 text-white font-medium truncate max-w-[160px]">{pa.player.full_name}</td>
+                        <td className="px-2 py-1 text-white font-medium truncate max-w-[160px]">
+                          <span className="flex items-center gap-1">
+                            {pa.player.full_name}
+                            {pa.isKeeper && (
+                              <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-amber-900/60 text-amber-400 border border-amber-700/50 leading-none">K</span>
+                            )}
+                          </span>
+                        </td>
                         <td className="px-2 py-1 text-center">
                           <span className={`px-1 py-0.5 rounded text-[8px] font-bold text-white ${posColor[pos] ?? 'bg-gray-600'}`}>
                             {pos}
@@ -727,11 +769,11 @@ export default function DraftResultsPage() {
         </div>
 
         {/* Section 7: Round-by-Round Draft Recap */}
-        {pickLog.length > 0 && (
+        {fullPickLog.length > 0 && (
           <div className="bg-gray-900 rounded-xl border border-gray-800 mb-4">
             <div className="px-4 py-3 border-b border-gray-800">
               <h2 className="font-bold text-white text-sm">Draft Recap</h2>
-              <div className="text-[11px] text-gray-500 mt-0.5">{pickLog.length} picks &middot; {numTeams} teams &middot; {Math.ceil(pickLog.length / numTeams)} rounds</div>
+              <div className="text-[11px] text-gray-500 mt-0.5">{fullPickLog.length} picks &middot; {numTeams} teams &middot; {Math.ceil(fullPickLog.length / numTeams)} rounds</div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-[9px]">
@@ -747,15 +789,15 @@ export default function DraftResultsPage() {
                 </thead>
                 <tbody>
                   {(() => {
-                    const totalRounds = Math.ceil(pickLog.length / numTeams)
+                    const totalRounds = Math.ceil(fullPickLog.length / numTeams)
                     const playerMap = new Map(allPlayers.map(p => [p.mlb_id, p]))
-                    // Build pick grid from pickLog
-                    const pickGrid: (typeof pickLog[0] | null)[][] = []
+                    // Build pick grid from fullPickLog
+                    const pickGrid: (typeof fullPickLog[0] | null)[][] = []
                     for (let r = 0; r < totalRounds; r++) {
-                      const row: (typeof pickLog[0] | null)[] = []
+                      const row: (typeof fullPickLog[0] | null)[] = []
                       for (let c = 0; c < numTeams; c++) {
                         const pickIdx = r * numTeams + c
-                        row.push(pickLog.find(e => e.pickIndex === pickIdx) ?? null)
+                        row.push(fullPickLog.find(e => e.pickIndex === pickIdx) ?? null)
                       }
                       pickGrid.push(row)
                     }
@@ -768,6 +810,7 @@ export default function DraftResultsPage() {
                           if (!player) return <td key={c} className="px-1 py-1 text-gray-700 text-center">?</td>
                           const pos = getPositions(player)[0]
                           const isMyPick = pick.teamId === myTeamId
+                          const isKeeper = keeperMlbIds.has(pick.mlbId)
                           return (
                             <td
                               key={c}
@@ -785,6 +828,7 @@ export default function DraftResultsPage() {
                                     return parts.length > 1 ? parts[parts.length - 1] : parts[0]
                                   })()}
                                 </span>
+                                {isKeeper && <span className="text-[7px] text-amber-400 font-bold">K</span>}
                               </div>
                             </td>
                           )

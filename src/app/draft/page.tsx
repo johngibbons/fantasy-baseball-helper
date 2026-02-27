@@ -467,6 +467,7 @@ export default function DraftBoardPage() {
         pickSchedule,
         pickTrades,
         pickLog,
+        leagueKeepers: leagueKeepersData,
       }
       localStorage.setItem('draftState', JSON.stringify(state))
 
@@ -490,7 +491,7 @@ export default function DraftBoardPage() {
           })
       }, 2000)
     }
-  }, [draftPicks, myTeamId, draftOrder, currentPickIndex, allPlayers.length, keeperMlbIds, pickSchedule, pickTrades, pickLog])
+  }, [draftPicks, myTeamId, draftOrder, currentPickIndex, allPlayers.length, keeperMlbIds, pickSchedule, pickTrades, pickLog, leagueKeepersData])
 
   // ── Draft actions ──
   const draftPlayer = useCallback((mlbId: number) => {
