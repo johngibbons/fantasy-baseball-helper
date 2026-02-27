@@ -63,10 +63,17 @@ KEEPERS = [
     ("Harris Cook",     12, "Bryan Woo",             "2nd yr"),
     ("Harris Cook",     13, "Pete Crow-Armstrong",   "1st yr"),
     ("Harris Cook",     25, "Chase Burns",           "1st yr"),
-    ("David Rotatori",  12, "Hunter Brown",          "2nd yr"),
-    ("David Rotatori",  20, "Mason Miller",          "2nd yr"),
-    ("David Rotatori",  24, "Trevor Rogers",         "1st yr"),
-    ("David Rotatori",  25, "Kyle Bradish",          "1st yr"),
+    ("Eric Mercado",     1, "Aaron Judge",            "2nd yr"),
+    ("Eric Mercado",    19, "Mackenzie Gore",         "1st yr"),
+    ("Eric Mercado",    20, "Kyle Stowers",           "1st yr"),
+    ("John Gibbons",     1, "Juan Soto",              "1st yr"),
+    ("John Gibbons",     7, "Jackson Chourio",        "2nd yr"),
+    ("John Gibbons",    20, "Lawrence Butler",         "2nd yr"),
+    ("John Gibbons",    25, "Nick Kurtz",              "1st yr"),
+    ("David Rotatori",  12, "Hunter Brown",            "2nd yr"),
+    ("David Rotatori",  20, "Mason Miller",            "2nd yr"),
+    ("David Rotatori",  24, "Trevor Rogers",           "1st yr"),
+    ("David Rotatori",  25, "Kyle Bradish",            "1st yr"),
 ]
 
 
