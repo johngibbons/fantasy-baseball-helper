@@ -52,16 +52,18 @@ NUM_TEAMS = 10
 
 # ── Pick trades: (from_manager, to_manager, round) ──
 PICK_TRADES = [
-    ("Eric Mercado",   "Chris Herbst", 4),
-    ("David Rotatori", "Chris Herbst", 6),
-    ("Harris Cook",    "Chris Herbst", 5),
-    ("Matt Wayne",     "Chris Herbst", 8),
-    ("Bryan Lewis",    "Chris Herbst", 11),
-    ("Matt Wayne",     "Chris Herbst", 16),
-    ("Harris Cook",    "Chris Herbst", 10),
-    ("Jason McComb",   "Chris Herbst", 14),
-    ("Chris Herbst",   "Jason McComb", 15),
-    ("Chris Herbst",   "Jason McComb", 16),
+    ("Eric Mercado",   "Chris Herbst",  4),
+    ("David Rotatori", "Chris Herbst",  6),
+    ("Harris Cook",    "Chris Herbst",  5),
+    ("Matt Wayne",     "Chris Herbst",  8),
+    ("Bryan Lewis",    "Chris Herbst",  11),
+    ("Matt Wayne",     "Chris Herbst",  16),
+    ("Harris Cook",    "Chris Herbst",  10),
+    ("Jason McComb",   "Chris Herbst",  14),
+    ("Chris Herbst",   "Jason McComb",  15),
+    ("Chris Herbst",   "Jason McComb",  16),
+    ("David Rotatori", "Eric Mercado",  9),
+    ("David Rotatori", "Eric Mercado",  16),
 ]
 
 # ── Keepers: (manager, declared_round, player_name, year_label) ──
