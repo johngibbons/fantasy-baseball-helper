@@ -87,6 +87,7 @@ KEEPERS = [
     ("Eric Mercado",    1, "Aaron Judge",            "2nd yr"),
     ("Eric Mercado",   19, "Mackenzie Gore",         "1st yr"),
     ("Eric Mercado",   20, "Kyle Stowers",           "1st yr"),
+    ("Eric Mercado",   24, "Spencer Jones",          "1st yr"),
     ("Tim Riker",       1, "Jose Ramirez",            "1st yr"),
     ("Tim Riker",       4, "Yoshinobu Yamamoto",      "1st yr"),
     ("Tim Riker",      10, "Cal Raleigh",             "1st yr"),
