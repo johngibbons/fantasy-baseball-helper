@@ -337,6 +337,7 @@ def refresh_projections(season: int = Query(2026)):
     import logging
     import traceback
     from backend.data.projections import fetch_all_fangraphs_projections, import_adp_from_api, import_espn_adp
+    from backend.data.sync import import_csv_projections
 
     logger = logging.getLogger(__name__)
 
@@ -351,6 +352,13 @@ def refresh_projections(season: int = Query(2026)):
     total = sum(results.values())
     if total == 0:
         raise HTTPException(status_code=502, detail="FanGraphs API returned no projection data")
+
+    # Supplement with CSV projections (Steamer, ZiPS, THE BAT X) which
+    # include prospects that ATC may not cover
+    try:
+        import_csv_projections(season)
+    except Exception as e:
+        logger.warning(f"CSV projection supplement failed (non-fatal): {e}")
 
     try:
         calculate_all_zscores(season)

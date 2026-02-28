@@ -67,11 +67,12 @@ def startup():
     except Exception as e:
         logger.warning(f"FanGraphs API fetch failed (non-fatal): {e}")
 
-    if fg_total == 0:
-        try:
-            import_csv_projections(_SEASON)
-        except Exception as e:
-            logger.warning(f"CSV projection import failed (non-fatal): {e}")
+    # Always import CSVs as supplementary data — they include prospects
+    # (e.g. Steamer, ZiPS, THE BAT X) that ATC may not cover.
+    try:
+        import_csv_projections(_SEASON)
+    except Exception as e:
+        logger.warning(f"CSV projection import failed (non-fatal): {e}")
 
     try:
         generate_projections_from_stats(_SEASON)
