@@ -37,11 +37,13 @@ def _safe_float(val):
         return 0.0
 
 
-def _resolve_mlb_id(conn, row) -> Optional[int]:
+def _resolve_mlb_id(conn, row, player_type: Optional[str] = None) -> Optional[int]:
     """Resolve a player's mlb_id from a CSV row.
 
     Uses MLBAMID column if available (direct match), otherwise falls back
-    to name-based lookup.
+    to name-based lookup.  If a valid MLBAMID is present but the player
+    doesn't exist in the DB (e.g. prospect not yet on a 40-man roster),
+    auto-creates a player record so projections aren't silently dropped.
     """
     # Prefer MLBAMID (exact match, no ambiguity)
     mlbamid = row.get("MLBAMID", "").strip()
@@ -53,6 +55,22 @@ def _resolve_mlb_id(conn, row) -> Optional[int]:
             ).fetchone()
             if player:
                 return player["mlb_id"]
+
+            # Player has a valid MLBAMID but isn't in the DB — auto-create
+            name = row.get("Name", "").strip().strip('"')
+            team = row.get("Team", "").strip().strip('"')
+            ptype = player_type or "hitter"
+            primary_pos = "P" if ptype == "pitcher" else "DH"
+            if name:
+                conn.execute(
+                    """INSERT INTO players
+                       (mlb_id, full_name, primary_position, player_type, team, is_active)
+                       VALUES (?, ?, ?, ?, ?, 1)
+                       ON CONFLICT (mlb_id) DO NOTHING""",
+                    (mid, name, primary_pos, ptype, team),
+                )
+                logger.info(f"Auto-created player from projections: {name} (MLBAMID={mid}, team={team})")
+                return mid
         except (ValueError, TypeError):
             pass
 
@@ -93,7 +111,7 @@ def import_fangraphs_batting(filepath: str, source: str, season: int = 2025):
     with open(filepath, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            mlb_id = _resolve_mlb_id(conn, row)
+            mlb_id = _resolve_mlb_id(conn, row, player_type="hitter")
             if mlb_id is None:
                 skipped += 1
                 continue
@@ -171,7 +189,7 @@ def import_fangraphs_pitching(filepath: str, source: str, season: int = 2025):
     with open(filepath, "r") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            mlb_id = _resolve_mlb_id(conn, row)
+            mlb_id = _resolve_mlb_id(conn, row, player_type="pitcher")
             if mlb_id is None:
                 skipped += 1
                 continue
@@ -264,8 +282,12 @@ def _fetch_fg_json(fg_type: str, stats: str) -> list[dict]:
     return data
 
 
-def _fg_resolve_mlb_id(conn, row: dict) -> Optional[int]:
-    """Resolve a FanGraphs API player to our mlb_id via xMLBAMID or name."""
+def _fg_resolve_mlb_id(conn, row: dict, player_type: Optional[str] = None) -> Optional[int]:
+    """Resolve a FanGraphs API player to our mlb_id via xMLBAMID or name.
+
+    Auto-creates a player record if MLBAMID is valid but missing from DB
+    (e.g. prospects not yet on a 40-man roster).
+    """
     mlbam_id = row.get("xMLBAMID") or row.get("mlbamid")
     if mlbam_id:
         try:
@@ -275,6 +297,22 @@ def _fg_resolve_mlb_id(conn, row: dict) -> Optional[int]:
             ).fetchone()
             if player:
                 return player["mlb_id"]
+
+            # Auto-create from API data
+            name = row.get("PlayerName", "").strip()
+            team = row.get("Team", row.get("TeamName", "")).strip() if isinstance(row.get("Team", ""), str) else ""
+            ptype = player_type or "hitter"
+            primary_pos = "P" if ptype == "pitcher" else "DH"
+            if name:
+                conn.execute(
+                    """INSERT INTO players
+                       (mlb_id, full_name, primary_position, player_type, team, is_active)
+                       VALUES (?, ?, ?, ?, ?, 1)
+                       ON CONFLICT (mlb_id) DO NOTHING""",
+                    (mid, name, primary_pos, ptype, team),
+                )
+                logger.info(f"Auto-created player from projections: {name} (MLBAMID={mid}, team={team})")
+                return mid
         except (ValueError, TypeError):
             pass
 
@@ -312,7 +350,7 @@ def fetch_fangraphs_batting(
     skipped = 0
 
     for row in data:
-        mlb_id = _fg_resolve_mlb_id(conn, row)
+        mlb_id = _fg_resolve_mlb_id(conn, row, player_type="hitter")
         if mlb_id is None:
             skipped += 1
             continue
@@ -397,7 +435,7 @@ def fetch_fangraphs_pitching(
     skipped = 0
 
     for row in data:
-        mlb_id = _fg_resolve_mlb_id(conn, row)
+        mlb_id = _fg_resolve_mlb_id(conn, row, player_type="pitcher")
         if mlb_id is None:
             skipped += 1
             continue
