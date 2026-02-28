@@ -170,55 +170,47 @@ def _assign_keepers_with_cap(manager_slots):
     for mgr in managers.values():
         slots = manager_slots[mgr]
         keepers = mgr_keepers.get(mgr, [])
-        surviving = slots[:ROSTER_SIZE]
+        total = len(slots)
 
-        surviving_rounds = {rnd for rnd, _, _ in surviving}
-        valid_keepers = []
-        invalid_keepers = []
+        # Step 1: Reserve one slot per keeper at its declared round
+        reserved = {}  # slot_index -> (player, yr, orig_rnd)
+        unplaced = []
 
-        for rnd, player, yr in keepers:
-            if rnd in surviving_rounds:
-                valid_keepers.append((rnd, player, yr, rnd))
-            else:
-                invalid_keepers.append((rnd, player, yr))
-
-        used_keeper_rounds = {k[0] for k in valid_keepers}
-        available = [
-            (rnd, pos, note)
-            for rnd, pos, note in reversed(surviving)
-            if rnd not in used_keeper_rounds
-        ]
-
-        invalid_keepers.sort(key=lambda x: x[0], reverse=True)
-        reassigned = []
-        used_slots = set()
-        for orig_rnd, player, yr in invalid_keepers:
-            for arnd, apos, anote in available:
-                slot_key = (arnd, apos)
-                if slot_key not in used_slots:
-                    used_slots.add(slot_key)
-                    reassigned.append((arnd, player, yr, orig_rnd))
-                    used_keeper_rounds.add(arnd)
-                    keeper_adjustments.append((mgr, player, orig_rnd, arnd))
+        for kp_rnd, player, yr in keepers:
+            found = False
+            for i, (rnd, pos, note) in enumerate(slots):
+                if rnd == kp_rnd and i not in reserved:
+                    reserved[i] = (player, yr, kp_rnd)
+                    found = True
                     break
+            if not found:
+                unplaced.append((kp_rnd, player, yr))
 
-        all_keepers = valid_keepers + reassigned
-        keeper_by_slot = {}
-        for rnd, player, yr, orig in all_keepers:
-            keeper_by_slot.setdefault(rnd, []).append((player, yr, orig))
+        # Step 2: Non-reserved slots, keep earliest as draft picks
+        non_reserved = [i for i in range(total) if i not in reserved]
+        needed_draft = max(0, ROSTER_SIZE - len(reserved) - len(unplaced))
+        surviving_draft = non_reserved[:needed_draft]
 
+        # Step 3: Unplaced keepers take latest surviving draft slots
+        unplaced.sort(key=lambda x: x[0], reverse=True)
+        for kp_rnd, player, yr in unplaced:
+            if surviving_draft:
+                idx = surviving_draft.pop()
+                reserved[idx] = (player, yr, kp_rnd)
+                actual_rnd = slots[idx][0]
+                keeper_adjustments.append((mgr, player, kp_rnd, actual_rnd))
+
+        # Build result
+        surviving_set = set(reserved.keys()) | set(surviving_draft)
         result = []
-        for rnd, pos, note in surviving:
-            pending = keeper_by_slot.get(rnd)
-            if pending:
-                player, yr, orig_rnd = pending.pop(0)
-                if not pending:
-                    del keeper_by_slot[rnd]
+        for i, (rnd, pos, note) in enumerate(slots):
+            if i in reserved:
+                player, yr, orig_rnd = reserved[i]
                 adj_note = f"KEEPER: {player} ({yr})"
                 if orig_rnd != rnd:
                     adj_note += f" [moved from Rd {orig_rnd}]"
                 result.append((rnd, pos, "keeper", adj_note))
-            else:
+            elif i in surviving_set:
                 result.append((rnd, pos, "draft", note))
 
         final_slots[mgr] = result

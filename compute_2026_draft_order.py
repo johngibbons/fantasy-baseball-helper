@@ -127,120 +127,84 @@ def assign_keepers_with_cap(manager_slots):
     Apply the 25-player cap and assign keepers to valid rounds.
 
     For each manager:
-    1. List all pick slots chronologically
-    2. If total > 25, only the first 25 survive
-    3. Keepers must be assigned to surviving slots
-    4. If a keeper's declared round is beyond the cap, it slides to the
-       latest available surviving slot
+    1. Reserve one slot per keeper at its declared round
+    2. Fill remaining draft slots from earliest available
+    3. Forfeit excess non-keeper slots (latest first)
+    4. If a keeper's declared round has no slot, slide to latest surviving
+       draft slot
 
     Returns:
         final_slots: dict manager -> [(round, snake_pos, slot_type, notes)]
-            where slot_type is 'draft', 'keeper', or 'forfeited'
         supplemental_needs: dict manager -> int (extra picks needed)
         keeper_adjustments: list of (manager, player, original_round, actual_round)
+        forfeited_slots: dict manager -> [(round, snake_pos, notes)]
     """
-    # Group keepers by manager
     mgr_keepers = defaultdict(list)
     for mgr, rnd, player, yr in KEEPERS:
         mgr_keepers[mgr].append((rnd, player, yr))
-
-    # Sort each manager's keepers by declared round (ascending)
     for mgr in mgr_keepers:
         mgr_keepers[mgr].sort(key=lambda x: x[0])
 
     final_slots = {}
     supplemental_needs = {}
     keeper_adjustments = []
+    forfeited_slots = {}
 
     for mgr in MANAGERS.values():
         slots = manager_slots[mgr]  # already in chronological order
         keepers = mgr_keepers.get(mgr, [])
-        num_keepers = len(keepers)
         total = len(slots)
 
-        # Determine which slots survive the 25-cap
-        surviving = slots[:ROSTER_SIZE]
-        forfeited = slots[ROSTER_SIZE:]
+        # Step 1: Reserve one slot per keeper at its declared round
+        reserved = {}  # slot_index -> (player, yr, orig_rnd)
+        unplaced = []  # keepers whose declared round has no slot
 
-        # Build set of rounds that survive
-        surviving_rounds = set()
-        for rnd, pos, note in surviving:
-            surviving_rounds.add(rnd)
-
-        # Check each keeper: is its declared round in the surviving set?
-        # If not, we need to reassign it.
-        valid_keepers = []   # (round, player, yr, original_round) — keepers at valid rounds
-        invalid_keepers = []  # (round, player, yr) — keepers that need reassignment
-
-        for rnd, player, yr in keepers:
-            if rnd in surviving_rounds:
-                valid_keepers.append((rnd, player, yr, rnd))
-            else:
-                invalid_keepers.append((rnd, player, yr))
-
-        # For invalid keepers, assign to latest surviving slots not already
-        # used by valid keepers, working backward from the last surviving slot.
-        used_keeper_rounds = set(k[0] for k in valid_keepers)
-
-        # Available rounds for reassignment: surviving rounds not used by valid keepers
-        # We need to find specific slots (not just rounds) since a manager may have
-        # multiple slots in the same round. Work backward through surviving slots.
-        available_for_reassign = []
-        for rnd, pos, note in reversed(surviving):
-            if rnd not in used_keeper_rounds:
-                available_for_reassign.append((rnd, pos, note))
-
-        # Assign invalid keepers to the latest available slots
-        # Sort invalid keepers by declared round descending (latest keeper gets latest slot)
-        invalid_keepers.sort(key=lambda x: x[0], reverse=True)
-
-        reassigned = []
-        used_slots = set()
-        for orig_rnd, player, yr in invalid_keepers:
-            for i, (arnd, apos, anote) in enumerate(available_for_reassign):
-                slot_key = (arnd, apos)
-                if slot_key not in used_slots:
-                    used_slots.add(slot_key)
-                    reassigned.append((arnd, player, yr, orig_rnd))
-                    used_keeper_rounds.add(arnd)
-                    keeper_adjustments.append((mgr, player, orig_rnd, arnd))
+        for kp_rnd, player, yr in keepers:
+            found = False
+            for i, (rnd, pos, note) in enumerate(slots):
+                if rnd == kp_rnd and i not in reserved:
+                    reserved[i] = (player, yr, kp_rnd)
+                    found = True
                     break
+            if not found:
+                unplaced.append((kp_rnd, player, yr))
 
-        all_keepers = valid_keepers + reassigned
+        # Step 2: Among non-reserved slots, keep the earliest ones as draft picks
+        non_reserved = [i for i in range(total) if i not in reserved]
+        needed_draft = max(0, ROSTER_SIZE - len(reserved) - len(unplaced))
+        surviving_draft = non_reserved[:needed_draft]
 
-        # Build a lookup: (round, position) -> keeper info
-        # Use a list of slot keys to preserve assignment order for slots
-        # that share the same round (e.g. two traded picks in Rd 18).
-        keeper_by_slot = {}
-        for rnd, player, yr, orig_rnd in all_keepers:
-            keeper_by_slot.setdefault(rnd, []).append((player, yr, orig_rnd))
+        # Step 3: Unplaced keepers take the latest surviving draft slots
+        unplaced.sort(key=lambda x: x[0], reverse=True)
+        for kp_rnd, player, yr in unplaced:
+            if surviving_draft:
+                idx = surviving_draft.pop()  # latest surviving draft slot
+                reserved[idx] = (player, yr, kp_rnd)
+                actual_rnd = slots[idx][0]
+                keeper_adjustments.append((mgr, player, kp_rnd, actual_rnd))
 
-        # Now build final slot list for this manager
+        # Build result
+        surviving_set = set(reserved.keys()) | set(surviving_draft)
         result = []
+        forfeited = []
 
-        for rnd, pos, note in slots[:ROSTER_SIZE]:
-            pending = keeper_by_slot.get(rnd)
-            if pending:
-                player, yr, orig_rnd = pending.pop(0)
-                if not pending:
-                    del keeper_by_slot[rnd]
+        for i, (rnd, pos, note) in enumerate(slots):
+            if i in reserved:
+                player, yr, orig_rnd = reserved[i]
                 adj_note = f"KEEPER: {player} ({yr})"
                 if orig_rnd != rnd:
                     adj_note += f" [moved from Rd {orig_rnd}]"
                 result.append((rnd, pos, "keeper", adj_note))
-            else:
+            elif i in surviving_set:
                 result.append((rnd, pos, "draft", note))
+            else:
+                forfeited.append((rnd, pos, note))
 
         final_slots[mgr] = result
+        forfeited_slots[mgr] = forfeited
+        supplemental_needs[mgr] = max(0, ROSTER_SIZE - len(result))
 
-        # Supplemental needs
-        current_total = len(result)
-        if current_total < ROSTER_SIZE:
-            supplemental_needs[mgr] = ROSTER_SIZE - current_total
-        else:
-            supplemental_needs[mgr] = 0
-
-    return final_slots, supplemental_needs, keeper_adjustments
+    return final_slots, supplemental_needs, keeper_adjustments, forfeited_slots
 
 
 def build_draft_order(final_slots, supplemental_needs):
@@ -322,7 +286,7 @@ def print_draft_board(results):
     print("\n" + "=" * 95)
     print("2026 FANTASY BASEBALL DRAFT ORDER")
     print("10-Team Snake Draft, 25 Rounds + Supplemental")
-    print("25-player cap enforced: excess picks forfeited, keepers slide to latest available round")
+    print("25-player cap enforced: keeper slots preserved, excess draft picks forfeited")
     print("=" * 95)
 
     for r in results:
@@ -377,15 +341,12 @@ def print_keeper_adjustments(adjustments):
         print(f"  {mgr}: {player} — declared Rd {orig_rnd} → moved to Rd {actual_rnd}")
 
 
-def print_forfeited_picks(manager_slots, final_slots):
+def print_forfeited_picks(forfeited_slots):
     print("\n===== FORFEITED PICKS (excess beyond 25-cap) =====")
     for pos in range(1, 11):
         mgr = MANAGERS[pos]
-        orig_count = len(manager_slots[mgr])
-        final_count = len(final_slots[mgr])
-
-        if orig_count > ROSTER_SIZE:
-            forfeited = manager_slots[mgr][ROSTER_SIZE:]
+        forfeited = forfeited_slots.get(mgr, [])
+        if forfeited:
             picks_str = ", ".join(
                 f"Rd {r}" + (f" {n}" if n else "")
                 for r, p, n in forfeited
@@ -543,13 +504,13 @@ def write_sheet_format_csv(results, keeper_adjustments, filename):
 
 def main():
     manager_slots = compute_all_pick_slots()
-    final_slots, supplemental_needs, keeper_adjustments = assign_keepers_with_cap(manager_slots)
+    final_slots, supplemental_needs, keeper_adjustments, forfeited_slots = assign_keepers_with_cap(manager_slots)
     results = build_draft_order(final_slots, supplemental_needs)
 
     print_draft_board(results)
     print_summary(results)
     print_keeper_adjustments(keeper_adjustments)
-    print_forfeited_picks(manager_slots, final_slots)
+    print_forfeited_picks(forfeited_slots)
     print_manager_detail("Chris Herbst", final_slots)
 
     csv_path = "/Users/jgibbons/code/fantasy-baseball-helper/2026_draft_order.csv"
