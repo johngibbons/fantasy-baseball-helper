@@ -44,6 +44,7 @@ export interface RankedPlayer {
   // ADP
   espn_adp?: number
   adp_diff?: number
+  fangraphs_adp?: number
 }
 
 export interface PlayerDetail {

@@ -558,6 +558,7 @@ export default function DraftResultsPage() {
                     <th className="px-2 py-1.5 text-center text-gray-500 font-semibold">Pos</th>
                     <th className="px-2 py-1.5 text-right text-gray-500 font-semibold">Rank</th>
                     <th className="px-2 py-1.5 text-right text-gray-500 font-semibold">ADP</th>
+                    <th className="px-2 py-1.5 text-right text-gray-500 font-semibold">NFBC</th>
                     <th className="px-2 py-1.5 text-right text-gray-500 font-semibold">Value</th>
                     <th className="px-2 py-1.5 text-right text-gray-500 font-semibold">Z-Score</th>
                   </tr>
@@ -586,6 +587,9 @@ export default function DraftResultsPage() {
                         <td className="px-2 py-1 text-right text-gray-400 tabular-nums">#{pa.playerRank}</td>
                         <td className="px-2 py-1 text-right text-gray-500 tabular-nums">
                           {pa.adp ? `#${Math.round(pa.adp)}` : '—'}
+                        </td>
+                        <td className="px-2 py-1 text-right text-gray-500 tabular-nums">
+                          {pa.player.fangraphs_adp != null ? `#${Math.round(pa.player.fangraphs_adp)}` : '—'}
                         </td>
                         <td className={`px-2 py-1 text-right font-bold tabular-nums ${pa.valueDiff > 0 ? 'text-emerald-400' : pa.valueDiff < -5 ? 'text-red-400' : 'text-yellow-400'}`}>
                           {pa.valueDiff > 0 ? '+' : ''}{pa.valueDiff}

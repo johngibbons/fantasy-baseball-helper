@@ -154,6 +154,7 @@ export default function RankingsPage() {
                   <tr className="bg-[#111827]/80 glass sticky top-0 z-10">
                     <Th label="#" field="overall_rank" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} left className="w-12 pl-4" />
                     <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase tracking-wider w-14">ADP</th>
+                    <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase tracking-wider w-14">NFBC</th>
                     <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Player</th>
                     <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase tracking-wider w-12">Pos</th>
                     <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider min-w-[140px]">Team</th>
@@ -174,6 +175,7 @@ export default function RankingsPage() {
                     )}
                   </tr>
                   <tr className="bg-[#111827]/50">
+                    <th className="h-0" />
                     <th className="h-0" />
                     <th className="h-0" />
                     <th className="h-0" />
@@ -226,6 +228,15 @@ export default function RankingsPage() {
                                 </span>
                               )}
                             </div>
+                          ) : (
+                            <span className="text-[11px] text-gray-800">—</span>
+                          )}
+                        </td>
+
+                        {/* NFBC ADP */}
+                        <td className="px-2 py-[7px] text-center">
+                          {p.fangraphs_adp != null ? (
+                            <span className="text-[11px] text-gray-500 tabular-nums">{Math.round(p.fangraphs_adp)}</span>
                           ) : (
                             <span className="text-[11px] text-gray-800">—</span>
                           )}

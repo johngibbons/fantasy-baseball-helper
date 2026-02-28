@@ -103,6 +103,7 @@ _RANKINGS_PROJ_COLUMNS = [
     ("proj_era", "REAL", 0),
     ("proj_whip", "REAL", 0),
     ("proj_svhd", "INTEGER", 0),
+    ("fangraphs_adp", "REAL", "NULL"),
 ]
 
 
@@ -264,6 +265,7 @@ def _init_pg():
             proj_svhd INTEGER DEFAULT 0,
             espn_adp REAL,
             adp_diff REAL,
+            fangraphs_adp REAL,
             player_type TEXT CHECK(player_type IN ('hitter', 'pitcher')),
             updated_at TIMESTAMP DEFAULT NOW(),
             FOREIGN KEY (mlb_id) REFERENCES players(mlb_id),
@@ -497,6 +499,7 @@ def _init_sqlite():
             proj_svhd INTEGER DEFAULT 0,
             espn_adp REAL,
             adp_diff REAL,
+            fangraphs_adp REAL,
             player_type TEXT CHECK(player_type IN ('hitter', 'pitcher')),
             updated_at TEXT DEFAULT (datetime('now')),
             FOREIGN KEY (mlb_id) REFERENCES players(mlb_id),

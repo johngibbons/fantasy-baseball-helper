@@ -453,6 +453,8 @@ def fetch_fangraphs_pitching(
 def import_adp_from_api(adp_map: dict[int, float], season: int) -> int:
     """Write ADP data collected from FanGraphs API into the rankings table.
 
+    This is the FanGraphs/NFBC ADP data — stored separately from ESPN ADP.
+
     Args:
         adp_map: {mlb_id: ADP} — lowest ADP across all sources/player types
         season: Season year
@@ -465,9 +467,9 @@ def import_adp_from_api(adp_map: dict[int, float], season: int) -> int:
     for mlb_id, adp in adp_map.items():
         result = conn.execute(
             """UPDATE rankings
-               SET espn_adp = ?, adp_diff = overall_rank - ?
+               SET fangraphs_adp = ?
                WHERE mlb_id = ? AND season = ?""",
-            (adp, adp, mlb_id, season),
+            (adp, mlb_id, season),
         )
         if result.rowcount > 0:
             updated += 1

@@ -123,7 +123,7 @@ def draft_board(season: int = Query(2026)):
                   r.zscore_k, r.zscore_qs, r.zscore_era, r.zscore_whip, r.zscore_svhd,
                   r.proj_pa, r.proj_r, r.proj_tb, r.proj_rbi, r.proj_sb, r.proj_obp,
                   r.proj_ip, r.proj_k, r.proj_qs, r.proj_era, r.proj_whip, r.proj_svhd,
-                  r.player_type, r.espn_adp, r.adp_diff,
+                  r.player_type, r.espn_adp, r.adp_diff, r.fangraphs_adp,
                   p.full_name, p.primary_position, p.team, p.eligible_positions
            FROM rankings r
            JOIN players p ON r.mlb_id = p.mlb_id
