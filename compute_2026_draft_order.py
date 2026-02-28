@@ -45,6 +45,10 @@ PICK_TRADES = [
     ("Chris Herbst",   "Jason McComb",  16),
     ("David Rotatori", "Eric Mercado",  9),
     ("David Rotatori", "Eric Mercado",  16),
+    ("Tim Riker",      "Chris Herbst",  18),
+    ("Tim Riker",      "Chris Herbst",  19),
+    ("Chris Herbst",   "Tim Riker",     23),
+    ("Chris Herbst",   "Tim Riker",     24),
 ]
 
 # Keepers: (manager, declared_round, player, year_label)
@@ -203,24 +207,23 @@ def assign_keepers_with_cap(manager_slots):
                     break
 
         all_keepers = valid_keepers + reassigned
-        keeper_round_set = set()
-        keeper_slot_keys = set()
-        for k in all_keepers:
-            keeper_round_set.add(k[0])
 
-        # Build a lookup: round -> keeper info
-        keeper_by_round = {}
+        # Build a lookup: (round, position) -> keeper info
+        # Use a list of slot keys to preserve assignment order for slots
+        # that share the same round (e.g. two traded picks in Rd 18).
+        keeper_by_slot = {}
         for rnd, player, yr, orig_rnd in all_keepers:
-            keeper_by_round[rnd] = (player, yr, orig_rnd)
+            keeper_by_slot.setdefault(rnd, []).append((player, yr, orig_rnd))
 
         # Now build final slot list for this manager
         result = []
-        keeper_assigned = set()
 
         for rnd, pos, note in slots[:ROSTER_SIZE]:
-            if rnd in keeper_by_round and rnd not in keeper_assigned:
-                player, yr, orig_rnd = keeper_by_round[rnd]
-                keeper_assigned.add(rnd)
+            pending = keeper_by_slot.get(rnd)
+            if pending:
+                player, yr, orig_rnd = pending.pop(0)
+                if not pending:
+                    del keeper_by_slot[rnd]
                 adj_note = f"KEEPER: {player} ({yr})"
                 if orig_rnd != rnd:
                     adj_note += f" [moved from Rd {orig_rnd}]"
