@@ -172,45 +172,56 @@ def _assign_keepers_with_cap(manager_slots):
         keepers = mgr_keepers.get(mgr, [])
         total = len(slots)
 
-        # Step 1: Reserve one slot per keeper at its declared round
-        reserved = {}  # slot_index -> (player, yr, orig_rnd)
+        # Step 1: first ROSTER_SIZE slots survive
+        surviving = set(range(min(total, ROSTER_SIZE)))
+
+        # Step 2: assign keepers
+        keeper_map = {}
         unplaced = []
 
         for kp_rnd, player, yr in keepers:
-            found = False
+            found_idx = None
             for i, (rnd, pos, note) in enumerate(slots):
-                if rnd == kp_rnd and i not in reserved:
-                    reserved[i] = (player, yr, kp_rnd)
-                    found = True
+                if rnd == kp_rnd and i in surviving and i not in keeper_map:
+                    found_idx = i
                     break
-            if not found:
+            if found_idx is None:
+                for i, (rnd, pos, note) in enumerate(slots):
+                    if (rnd == kp_rnd and i not in surviving
+                            and i not in keeper_map and note):
+                        found_idx = i
+                        break
+
+            if found_idx is not None:
+                if found_idx not in surviving:
+                    surviving.add(found_idx)
+                    for j in range(total - 1, -1, -1):
+                        if j in surviving and j not in keeper_map and j != found_idx:
+                            surviving.discard(j)
+                            break
+                keeper_map[found_idx] = (player, yr, kp_rnd)
+            else:
                 unplaced.append((kp_rnd, player, yr))
 
-        # Step 2: Non-reserved slots, keep earliest as draft picks
-        non_reserved = [i for i in range(total) if i not in reserved]
-        needed_draft = max(0, ROSTER_SIZE - len(reserved) - len(unplaced))
-        surviving_draft = non_reserved[:needed_draft]
-
-        # Step 3: Unplaced keepers take latest surviving draft slots
+        # Step 3: unplaced keepers slide to latest surviving draft slot
         unplaced.sort(key=lambda x: x[0], reverse=True)
         for kp_rnd, player, yr in unplaced:
-            if surviving_draft:
-                idx = surviving_draft.pop()
-                reserved[idx] = (player, yr, kp_rnd)
-                actual_rnd = slots[idx][0]
-                keeper_adjustments.append((mgr, player, kp_rnd, actual_rnd))
+            for j in range(total - 1, -1, -1):
+                if j in surviving and j not in keeper_map:
+                    keeper_map[j] = (player, yr, kp_rnd)
+                    actual_rnd = slots[j][0]
+                    keeper_adjustments.append((mgr, player, kp_rnd, actual_rnd))
+                    break
 
-        # Build result
-        surviving_set = set(reserved.keys()) | set(surviving_draft)
         result = []
         for i, (rnd, pos, note) in enumerate(slots):
-            if i in reserved:
-                player, yr, orig_rnd = reserved[i]
+            if i in keeper_map:
+                player, yr, orig_rnd = keeper_map[i]
                 adj_note = f"KEEPER: {player} ({yr})"
                 if orig_rnd != rnd:
                     adj_note += f" [moved from Rd {orig_rnd}]"
                 result.append((rnd, pos, "keeper", adj_note))
-            elif i in surviving_set:
+            elif i in surviving:
                 result.append((rnd, pos, "draft", note))
 
         final_slots[mgr] = result
