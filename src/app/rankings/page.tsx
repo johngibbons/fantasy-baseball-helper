@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import { getRankings, RankedPlayer } from '@/lib/valuations-api'
+import { getPositions } from '@/lib/roster-optimizer'
 
 const POSITIONS = ['All', 'C', '1B', '2B', '3B', 'SS', 'OF', 'DH', 'SP', 'RP']
 const TYPES = ['All', 'hitter', 'pitcher']
@@ -251,9 +252,14 @@ export default function RankingsPage() {
 
                         {/* Position */}
                         <td className="px-2 py-[7px] text-center">
-                          <span className={`text-[11px] font-bold ${posColors[p.eligible_positions?.split('/')[0] ?? p.primary_position] || 'text-gray-500'}`}>
-                            {p.eligible_positions?.split('/').join(', ') ?? p.primary_position}
-                          </span>
+                          {(() => {
+                            const positions = getPositions(p)
+                            return (
+                              <span className={`text-[11px] font-bold ${posColors[positions[0]] || 'text-gray-500'}`}>
+                                {positions.join(', ')}
+                              </span>
+                            )
+                          })()}
                         </td>
 
                         {/* Team */}
