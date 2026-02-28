@@ -64,10 +64,10 @@ PICK_TRADES = [
     ("Chris Herbst",   "Jason McComb",  16),
     ("David Rotatori", "Eric Mercado",  9),
     ("David Rotatori", "Eric Mercado",  16),
-    ("Tim Riker",      "Chris Herbst",  18),
-    ("Tim Riker",      "Chris Herbst",  19),
-    ("Chris Herbst",   "Tim Riker",     23),
-    ("Chris Herbst",   "Tim Riker",     24),
+    ("Chris Herbst",   "Tim Riker",     18),
+    ("Chris Herbst",   "Tim Riker",     19),
+    ("Tim Riker",      "Chris Herbst",  23),
+    ("Tim Riker",      "Chris Herbst",  24),
 ]
 
 # ── Keepers: (manager, declared_round, player_name, year_label) ──
