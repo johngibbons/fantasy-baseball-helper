@@ -37,6 +37,48 @@ def _safe_float(val):
         return 0.0
 
 
+MLB_API_BASE = "https://statsapi.mlb.com/api/v1"
+_PITCHER_POSITIONS = {"P", "SP", "RP", "CP"}
+
+
+def _auto_create_player(conn, mlb_id: int, fallback_name: str, fallback_team: str,
+                         fallback_player_type: str) -> int:
+    """Create a player record by fetching data from the MLB Stats API.
+
+    Falls back to CSV/projection data if the API call fails.  Returns the mlb_id.
+    """
+    name = fallback_name
+    team = fallback_team
+    primary_pos = "P" if fallback_player_type == "pitcher" else "DH"
+    ptype = fallback_player_type
+
+    try:
+        resp = httpx.get(f"{MLB_API_BASE}/people/{mlb_id}", timeout=10)
+        resp.raise_for_status()
+        people = resp.json().get("people", [])
+        if people:
+            p = people[0]
+            name = p.get("fullName", fallback_name) or fallback_name
+            pos_info = p.get("primaryPosition", {})
+            primary_pos = pos_info.get("abbreviation", primary_pos) or primary_pos
+            ptype = "pitcher" if primary_pos in _PITCHER_POSITIONS else "hitter"
+            api_team = p.get("currentTeam", {}).get("name", "")
+            if api_team:
+                team = api_team
+    except Exception as e:
+        logger.debug(f"MLB API lookup failed for {mlb_id}, using fallback data: {e}")
+
+    conn.execute(
+        """INSERT INTO players
+           (mlb_id, full_name, primary_position, player_type, team, is_active)
+           VALUES (?, ?, ?, ?, ?, 1)
+           ON CONFLICT (mlb_id) DO NOTHING""",
+        (mlb_id, name, primary_pos, ptype, team),
+    )
+    logger.info(f"Auto-created player: {name} (MLBAMID={mlb_id}, pos={primary_pos}, team={team})")
+    return mlb_id
+
+
 def _resolve_mlb_id(conn, row, player_type: Optional[str] = None) -> Optional[int]:
     """Resolve a player's mlb_id from a CSV row.
 
@@ -59,18 +101,8 @@ def _resolve_mlb_id(conn, row, player_type: Optional[str] = None) -> Optional[in
             # Player has a valid MLBAMID but isn't in the DB — auto-create
             name = row.get("Name", "").strip().strip('"')
             team = row.get("Team", "").strip().strip('"')
-            ptype = player_type or "hitter"
-            primary_pos = "P" if ptype == "pitcher" else "DH"
             if name:
-                conn.execute(
-                    """INSERT INTO players
-                       (mlb_id, full_name, primary_position, player_type, team, is_active)
-                       VALUES (?, ?, ?, ?, ?, 1)
-                       ON CONFLICT (mlb_id) DO NOTHING""",
-                    (mid, name, primary_pos, ptype, team),
-                )
-                logger.info(f"Auto-created player from projections: {name} (MLBAMID={mid}, team={team})")
-                return mid
+                return _auto_create_player(conn, mid, name, team, player_type or "hitter")
         except (ValueError, TypeError):
             pass
 
@@ -298,21 +330,11 @@ def _fg_resolve_mlb_id(conn, row: dict, player_type: Optional[str] = None) -> Op
             if player:
                 return player["mlb_id"]
 
-            # Auto-create from API data
+            # Auto-create from MLB API + fallback data
             name = row.get("PlayerName", "").strip()
             team = row.get("Team", row.get("TeamName", "")).strip() if isinstance(row.get("Team", ""), str) else ""
-            ptype = player_type or "hitter"
-            primary_pos = "P" if ptype == "pitcher" else "DH"
             if name:
-                conn.execute(
-                    """INSERT INTO players
-                       (mlb_id, full_name, primary_position, player_type, team, is_active)
-                       VALUES (?, ?, ?, ?, ?, 1)
-                       ON CONFLICT (mlb_id) DO NOTHING""",
-                    (mid, name, primary_pos, ptype, team),
-                )
-                logger.info(f"Auto-created player from projections: {name} (MLBAMID={mid}, team={team})")
-                return mid
+                return _auto_create_player(conn, mid, name, team, player_type or "hitter")
         except (ValueError, TypeError):
             pass
 
