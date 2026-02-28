@@ -340,12 +340,16 @@ def _init_pg():
         );
     """)
 
-    # Migration: add projection columns to rankings if missing
+    # Migration: add projection columns to rankings if missing.
+    # Use SAVEPOINTs so a failed ALTER (column already exists) doesn't abort
+    # the entire transaction — PostgreSQL requires this.
     for col, col_type, default in _RANKINGS_PROJ_COLUMNS:
         try:
+            cursor.execute("SAVEPOINT col_migration")
             cursor.execute(f"ALTER TABLE analytics.rankings ADD COLUMN {col} {col_type} DEFAULT {default}")
+            cursor.execute("RELEASE SAVEPOINT col_migration")
         except Exception:
-            pass  # column already exists
+            cursor.execute("ROLLBACK TO SAVEPOINT col_migration")
 
     conn.commit()
     conn.close()
