@@ -95,7 +95,7 @@ export default function RankingsPage() {
             {TYPES.map((t) => (
               <button
                 key={t}
-                onClick={() => setTypeFilter(t)}
+                onClick={() => { setTypeFilter(t); setPosFilter('All') }}
                 className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
                   typeFilter === t
                     ? 'bg-blue-600 text-white shadow-sm'
