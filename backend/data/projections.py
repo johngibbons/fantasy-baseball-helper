@@ -110,13 +110,19 @@ def _resolve_mlb_id(conn, row, player_type: Optional[str] = None) -> Optional[in
         # different "Juan Soto" players with different MLBAMID values).
         return None
 
-    # Fall back to name lookup only when no MLBAMID is available
+    # Fall back to name lookup only when no MLBAMID is available.
+    # Prefer matching player_type to avoid cross-type collisions on duplicate
+    # names (e.g. hitter "Edwin Díaz" vs pitcher "Edwin Díaz").
     name = row.get("Name", "").strip().strip('"')
     if not name:
         return None
+    type_order = "CASE WHEN p.player_type = ? THEN 0 ELSE 1 END"
     player = conn.execute(
-        "SELECT mlb_id FROM players WHERE full_name = ? OR full_name LIKE ?",
-        (name, f"%{name}%"),
+        f"""SELECT p.mlb_id FROM players p
+            WHERE p.full_name = ? OR p.full_name LIKE ?
+            ORDER BY {type_order}
+            LIMIT 1""",
+        (player_type or "hitter", name, f"%{name}%"),
     ).fetchone()
     if player:
         return player["mlb_id"]
@@ -345,14 +351,18 @@ def _fg_resolve_mlb_id(conn, row: dict, player_type: Optional[str] = None) -> Op
     name = row.get("PlayerName", "").strip()
     if not name:
         return None
-    # Prefer the better-ranked player when there are duplicate names
+    # Prefer a player whose type matches the projection being imported, then
+    # fall back to the better-ranked player.  This prevents a hitter "Edwin
+    # Díaz" projection from landing on the pitcher "Edwin Díaz" (or vice versa)
+    # when the name-based fallback is used for duplicate names.
+    type_order = "CASE WHEN p.player_type = ? THEN 0 ELSE 1 END"
     player = conn.execute(
-        """SELECT p.mlb_id FROM players p
+        f"""SELECT p.mlb_id FROM players p
            LEFT JOIN rankings r ON p.mlb_id = r.mlb_id
            WHERE p.full_name = ? OR p.full_name LIKE ?
-           ORDER BY COALESCE(r.overall_rank, 999999) ASC
+           ORDER BY {type_order}, COALESCE(r.overall_rank, 999999) ASC
            LIMIT 1""",
-        (name, f"%{name}%"),
+        (player_type or "hitter", name, f"%{name}%"),
     ).fetchone()
     if player:
         return player["mlb_id"]
