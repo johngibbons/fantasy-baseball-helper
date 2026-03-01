@@ -508,48 +508,10 @@ def _seed_keepers_state(conn, results, keeper_db):
 
 # ── Main seed function ──
 
-def seed_draft_state(force=False):
-    """
-    Compute and store the 2026 draft state.
-
-    Returns the state dict, or None if seeding was skipped
-    (draft already in progress).
-    """
-    conn = get_connection()
-
-    # Check for existing state — skip if draft is underway
-    if not force:
-        row = conn.execute(
-            "SELECT state_json FROM draft_state WHERE season = ?", (SEASON,)
-        ).fetchone()
-        if row:
-            existing = json.loads(row["state_json"])
-            picks = existing.get("picks", [])
-            keeper_ids = set(existing.get("keeperMlbIds", []))
-            non_keeper_picks = [p for p in picks if p[0] not in keeper_ids]
-            if non_keeper_picks:
-                logger.info(
-                    "Draft already in progress (%d non-keeper picks) — "
-                    "skipping seed", len(non_keeper_picks)
-                )
-                conn.close()
-                return None
-
-    # Compute full draft order
-    manager_slots = _compute_all_pick_slots()
-    final_slots, supp_needs, keeper_adj = _assign_keepers_with_cap(manager_slots)
-    results = _build_draft_order(final_slots, supp_needs)
-
-    # Build pick schedule (team ID per pick index)
-    schedule = [MANAGER_TO_TEAM_ID[r["manager"]] for r in results]
-
-    # Build pick trades
-    pick_trades = _compute_pick_trades()
-
-    # Resolve keeper MLB IDs from the database
+def _build_fresh_keeper_data(conn, results):
+    """Resolve keeper IDs and build keeper picks, keeperMlbIds, leagueKeepers."""
     keeper_db = _resolve_keeper_ids(conn)
 
-    # Build keeper picks, keeperMlbIds, and leagueKeepers
     picks = []
     keeper_mlb_ids = []
     league_keepers = []
@@ -584,22 +546,94 @@ def seed_draft_state(force=False):
             "primaryPosition": position or "",
         })
 
-    # First non-keeper pick index
-    current_pick_index = 0
-    while current_pick_index in keeper_pick_indices:
-        current_pick_index += 1
+    return keeper_db, picks, keeper_mlb_ids, league_keepers, keeper_pick_indices
 
-    draft_state = {
-        "picks": picks,
-        "myTeamId": 8,  # John Gibbons
-        "draftOrder": DRAFT_ORDER,
-        "currentPickIndex": current_pick_index,
-        "keeperMlbIds": keeper_mlb_ids,
-        "pickSchedule": schedule,
-        "pickTrades": pick_trades,
-        "pickLog": [],
-        "leagueKeepers": league_keepers,
-    }
+
+def seed_draft_state(force=False):
+    """
+    Compute and store the 2026 draft state.
+
+    Keeper data (keeperMlbIds, leagueKeepers, keeper picks) is always
+    refreshed from the authoritative KEEPERS config — even when the draft
+    is in progress — so that code-level fixes to keeper resolution take
+    effect on every deploy.
+
+    Non-keeper draft progress (pickLog, currentPickIndex, non-keeper picks)
+    is preserved when the draft is underway and force=False.
+
+    Returns the state dict, or None if seeding was skipped.
+    """
+    conn = get_connection()
+
+    # Compute full draft order (always needed for keeper data)
+    manager_slots = _compute_all_pick_slots()
+    final_slots, supp_needs, keeper_adj = _assign_keepers_with_cap(manager_slots)
+    results = _build_draft_order(final_slots, supp_needs)
+
+    # Build pick schedule (team ID per pick index)
+    schedule = [MANAGER_TO_TEAM_ID[r["manager"]] for r in results]
+
+    # Build pick trades
+    pick_trades = _compute_pick_trades()
+
+    # Resolve keeper data from the database
+    keeper_db, keeper_picks, keeper_mlb_ids, league_keepers, keeper_pick_indices = \
+        _build_fresh_keeper_data(conn, results)
+
+    # Check for existing state — merge draft progress if underway
+    existing_progress = None
+    if not force:
+        row = conn.execute(
+            "SELECT state_json FROM draft_state WHERE season = ?", (SEASON,)
+        ).fetchone()
+        if row:
+            existing = json.loads(row["state_json"])
+            old_keeper_ids = set(existing.get("keeperMlbIds", []))
+            old_picks = existing.get("picks", [])
+            non_keeper_picks = [p for p in old_picks if p[0] not in old_keeper_ids]
+            if non_keeper_picks:
+                existing_progress = existing
+                logger.info(
+                    "Draft in progress (%d non-keeper picks) — "
+                    "refreshing keeper data while preserving progress",
+                    len(non_keeper_picks),
+                )
+
+    if existing_progress:
+        # Merge: replace keeper data but keep draft progress
+        old_keeper_ids = set(existing_progress.get("keeperMlbIds", []))
+        preserved_picks = [p for p in existing_progress["picks"]
+                           if p[0] not in old_keeper_ids]
+        all_picks = keeper_picks + preserved_picks
+
+        draft_state = {
+            "picks": all_picks,
+            "myTeamId": existing_progress.get("myTeamId", 8),
+            "draftOrder": DRAFT_ORDER,
+            "currentPickIndex": existing_progress.get("currentPickIndex", 0),
+            "keeperMlbIds": keeper_mlb_ids,
+            "pickSchedule": schedule,
+            "pickTrades": pick_trades,
+            "pickLog": existing_progress.get("pickLog", []),
+            "leagueKeepers": league_keepers,
+        }
+    else:
+        # Fresh seed
+        current_pick_index = 0
+        while current_pick_index in keeper_pick_indices:
+            current_pick_index += 1
+
+        draft_state = {
+            "picks": keeper_picks,
+            "myTeamId": 8,  # John Gibbons
+            "draftOrder": DRAFT_ORDER,
+            "currentPickIndex": current_pick_index,
+            "keeperMlbIds": keeper_mlb_ids,
+            "pickSchedule": schedule,
+            "pickTrades": pick_trades,
+            "pickLog": [],
+            "leagueKeepers": league_keepers,
+        }
 
     state_json = json.dumps(draft_state)
     conn.execute(
@@ -612,7 +646,7 @@ def seed_draft_state(force=False):
 
     logger.info(
         "Seeded 2026 draft state: %d-pick schedule, %d keepers, %d trades",
-        len(schedule), len(picks), len(pick_trades),
+        len(schedule), len(keeper_picks), len(pick_trades),
     )
 
     # Seed keepers-page state (always overwrite)

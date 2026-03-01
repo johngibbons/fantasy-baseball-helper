@@ -110,7 +110,8 @@ def startup():
 
     logger.info("Startup recalculation complete")
 
-    # Seed draft order and keepers (skips if draft already in progress)
+    # Seed draft order and keepers (always refreshes keeper data from config;
+    # preserves non-keeper draft picks if the draft has started)
     try:
         seed_draft_state()
     except Exception as e:

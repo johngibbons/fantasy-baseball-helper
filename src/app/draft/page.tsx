@@ -289,7 +289,7 @@ export default function DraftBoardPage() {
       .finally(() => setLoading(false))
 
     // Restore saved state — try server first, fall back to localStorage
-    const restoreFromState = (state: DraftState) => {
+    const restoreFromState = (state: DraftState, loadLocalKeepers: boolean) => {
       if (state.picks) {
         setDraftPicks(new Map(state.picks))
         setMyTeamId(state.myTeamId ?? null)
@@ -309,6 +309,12 @@ export default function DraftBoardPage() {
         }
         if (state.leagueKeepers && state.leagueKeepers.length > 0) {
           setLeagueKeepersData(state.leagueKeepers)
+        } else if (loadLocalKeepers) {
+          // Only fall back to localStorage keepers if the state doesn't include them
+          const keepers = loadKeepersFromStorage()
+          if (keepers.length > 0) {
+            setLeagueKeepersData(keepers)
+          }
         }
       }
     }
@@ -319,7 +325,7 @@ export default function DraftBoardPage() {
         if (saved) {
           const state: DraftState = JSON.parse(saved)
           if (state.picks) {
-            restoreFromState(state)
+            restoreFromState(state, true)
           }
           // Old format migration
           else if ((saved as unknown as { drafted?: number[]; myPicks?: number[] }).drafted) {
@@ -346,7 +352,7 @@ export default function DraftBoardPage() {
       })
       .then((data) => {
         if (data.state) {
-          restoreFromState(data.state as DraftState)
+          restoreFromState(data.state as DraftState, false)
         } else {
           restoreFromLocalStorage()
         }
@@ -354,12 +360,6 @@ export default function DraftBoardPage() {
       .catch(() => {
         restoreFromLocalStorage()
       })
-
-    // Load keepers from localStorage
-    const keepers = loadKeepersFromStorage()
-    if (keepers.length > 0) {
-      setLeagueKeepersData(keepers)
-    }
   }, [])
 
   // ── Auto-generate schedule from draftOrder (only if no trades) ──

@@ -286,6 +286,20 @@ def put_keepers_state(body: KeepersStateBody):
     return {"ok": True}
 
 
+@router.post("/draft/reseed")
+def force_reseed_draft(season: int = Query(2026)):
+    """Force reseed the draft state from server-side KEEPERS config."""
+    from backend.data.seed_draft_order import seed_draft_state
+    state = seed_draft_state(force=True)
+    if state:
+        return {
+            "ok": True,
+            "keepers": len(state.get("keeperMlbIds", [])),
+            "schedule": len(state.get("pickSchedule", [])),
+        }
+    return {"ok": False, "error": "seed_draft_state returned None"}
+
+
 @router.get("/stats/summary")
 def stats_summary(season: int = Query(2026)):
     """Summary statistics for the dashboard."""
