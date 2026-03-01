@@ -1050,6 +1050,8 @@ def fetch_espn_adp(season: int) -> dict[int, float]:
 
     # Build name lookup from our players table, preferring the better-ranked
     # player when there are duplicate names (e.g. two "Juan Soto"s).
+    # Always use accent-stripped keys so "José Ramírez" and "Jose Ramirez"
+    # collapse to the same key and the better-ranked player wins.
     db_rows = conn.execute(
         """SELECT p.mlb_id, p.full_name,
                   COALESCE(r.overall_rank, 999999) as overall_rank
@@ -1060,15 +1062,11 @@ def fetch_espn_adp(season: int) -> dict[int, float]:
         (season,),
     ).fetchall()
     name_to_id: dict[str, int] = {}
-    stripped_to_id: dict[str, int] = {}
     for r in db_rows:
-        key_lower = r["full_name"].lower()
-        key_stripped = _strip_accents(r["full_name"])
+        key = _strip_accents(r["full_name"])
         # First (best-ranked) player for a name wins; skip duplicates
-        if key_lower not in name_to_id:
-            name_to_id[key_lower] = r["mlb_id"]
-        if key_stripped not in stripped_to_id:
-            stripped_to_id[key_stripped] = r["mlb_id"]
+        if key not in name_to_id:
+            name_to_id[key] = r["mlb_id"]
     conn.close()
 
     url = _ESPN_API_URL.format(season=season)
@@ -1104,10 +1102,8 @@ def fetch_espn_adp(season: int) -> dict[int, float]:
             if not espn_name:
                 continue
 
-            # Match by name: exact then accent-stripped
-            mlb_id = name_to_id.get(espn_name.lower())
-            if not mlb_id:
-                mlb_id = stripped_to_id.get(_strip_accents(espn_name))
+            # Match by accent-stripped name (handles José Ramírez = Jose Ramirez)
+            mlb_id = name_to_id.get(_strip_accents(espn_name))
             if not mlb_id:
                 continue
 
