@@ -21,11 +21,6 @@ from backend.database import get_connection
 
 logger = logging.getLogger(__name__)
 
-# Minimum thresholds to be included in the player pool
-MIN_PA = 200   # plate appearances for hitters
-MIN_IP_SP = 30  # innings pitched for starters
-MIN_IP_RP = 15  # innings pitched for relievers
-
 # Playing time confidence thresholds — players below these get a linear discount
 # to account for the risk that projected playing time doesn't materialize
 FULL_CREDIT_PA = 500   # hitters at or above this PA get no discount
@@ -303,11 +298,6 @@ def _blend_projection_rows(
             result[field] = sum(
                 (r[field] or 0) * w for r, w in zip(player_rows, row_weights)
             ) / total_w
-        # Track max PA/IP from any single source so the MIN_PA/MIN_IP
-        # filter can include players where at least one system projects
-        # full playing time (e.g. prospects with split projections).
-        pa_field = "proj_pa" if player_type == "hitter" else "proj_ip"
-        result["_max_pa"] = max((r[pa_field] or 0) for r in player_rows)
         blended.append(result)
 
     avg_sources = total_source_count / len(blended) if blended else 0
@@ -451,9 +441,8 @@ def calculate_hitter_zscores(season: int = 2026, source: str = None,
             FROM projections pr
             JOIN players p ON pr.mlb_id = p.mlb_id
             WHERE pr.season = ? AND pr.player_type = 'hitter' AND pr.source = ?
-              AND pr.proj_pa >= ?
         """
-        rows = conn.execute(query, (season, source, MIN_PA)).fetchall()
+        rows = conn.execute(query, (season, source)).fetchall()
     else:
         query = """
             SELECT p.mlb_id, p.full_name, p.primary_position, p.team,
@@ -483,12 +472,6 @@ def calculate_hitter_zscores(season: int = 2026, source: str = None,
             f"Blended projections from multiple sources for {n_players} hitters "
             f"(avg {avg_src:.1f} sources/player)"
         )
-        # Apply MIN_PA filter after blending — use the max PA from any
-        # single source so prospects with one bullish projection qualify.
-        pre_filter = len(rows)
-        rows = [r for r in rows if (r.get("_max_pa") or r["proj_pa"] or 0) >= MIN_PA]
-        logger.info(f"MIN_PA filter: {pre_filter} → {len(rows)} hitters (removed {pre_filter - len(rows)})")
-
     # Exclude drafted players (after blending, before z-score computation)
     if excluded_ids:
         rows = [r for r in rows if r["mlb_id"] not in excluded_ids]
@@ -603,7 +586,7 @@ def calculate_hitter_zscores(season: int = 2026, source: str = None,
 
 
 def _compute_pitcher_pool_zscores(
-    rows: list, pool_label: str, categories: set[str], min_ip: float,
+    rows: list, pool_label: str, categories: set[str],
     combined_avg_team_ip: float | None = None,
 ) -> list[dict]:
     """Compute z-scores for a single pitcher pool (SP or RP).
@@ -612,7 +595,6 @@ def _compute_pitcher_pool_zscores(
         rows: list of DB rows (dicts) for this pool
         pool_label: "SP" or "RP" for logging
         categories: set of active categories, e.g. {"k", "qs", "era", "whip"}
-        min_ip: minimum innings pitched to include
         combined_avg_team_ip: Total pitcher IP (SP+RP) per team, used as the
             denominator for rate stat marginal calculations.  When None, falls
             back to pool-only IP (legacy behaviour, less accurate).
@@ -620,13 +602,8 @@ def _compute_pitcher_pool_zscores(
     Returns:
         List of player dicts with z-scores (excluded categories set to 0.0)
     """
-    # Filter by minimum IP — use the max IP from any single source (stored
-    # in _max_pa by _blend_projection_rows) so prospects with one bullish
-    # projection qualify, same logic as the hitter MIN_PA filter.
-    rows = [r for r in rows if (r.get("_max_pa") or r["proj_ip"] or 0) >= min_ip]
-
     if not rows:
-        logger.warning(f"No {pool_label} pitchers met min IP threshold ({min_ip})")
+        logger.warning(f"No {pool_label} pitchers in pool")
         return []
 
     n = len(rows)
@@ -852,8 +829,8 @@ def calculate_pitcher_zscores(season: int = 2026, source: str = None,
     # Compute combined avg team IP (SP+RP) for rate stat marginal calculations.
     # The SGP denominators for ERA/WHIP come from team-level standings that include
     # all pitchers, so the marginal impact denominator must also use total team IP.
-    sp_ip_pool = sum(r["proj_ip"] or 0 for r in sp_rows if (r.get("_max_pa") or r["proj_ip"] or 0) >= MIN_IP_SP)
-    rp_ip_pool = sum(r["proj_ip"] or 0 for r in rp_rows if (r.get("_max_pa") or r["proj_ip"] or 0) >= MIN_IP_RP)
+    sp_ip_pool = sum(r["proj_ip"] or 0 for r in sp_rows)
+    rp_ip_pool = sum(r["proj_ip"] or 0 for r in rp_rows)
     combined_avg_team_ip = (sp_ip_pool + rp_ip_pool) / NUM_TEAMS if NUM_TEAMS > 0 else 0
     logger.info(
         f"Combined avg team IP: {combined_avg_team_ip:.1f} "
@@ -862,11 +839,11 @@ def calculate_pitcher_zscores(season: int = 2026, source: str = None,
 
     # Compute z-scores within each pool using only relevant categories
     sp_results = _compute_pitcher_pool_zscores(
-        sp_rows, "SP", {"k", "qs", "era", "whip"}, MIN_IP_SP,
+        sp_rows, "SP", {"k", "qs", "era", "whip"},
         combined_avg_team_ip=combined_avg_team_ip,
     )
     rp_results = _compute_pitcher_pool_zscores(
-        rp_rows, "RP", {"k", "svhd", "era", "whip"}, MIN_IP_RP,
+        rp_rows, "RP", {"k", "svhd", "era", "whip"},
         combined_avg_team_ip=combined_avg_team_ip,
     )
 
