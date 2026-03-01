@@ -345,8 +345,13 @@ def _fg_resolve_mlb_id(conn, row: dict, player_type: Optional[str] = None) -> Op
     name = row.get("PlayerName", "").strip()
     if not name:
         return None
+    # Prefer the better-ranked player when there are duplicate names
     player = conn.execute(
-        "SELECT mlb_id FROM players WHERE full_name = ? OR full_name LIKE ?",
+        """SELECT p.mlb_id FROM players p
+           LEFT JOIN rankings r ON p.mlb_id = r.mlb_id
+           WHERE p.full_name = ? OR p.full_name LIKE ?
+           ORDER BY COALESCE(r.overall_rank, 999999) ASC
+           LIMIT 1""",
         (name, f"%{name}%"),
     ).fetchone()
     if player:
@@ -1043,15 +1048,27 @@ def fetch_espn_adp(season: int) -> dict[int, float]:
     """
     conn = get_connection()
 
-    # Build name lookup from our players table
+    # Build name lookup from our players table, preferring the better-ranked
+    # player when there are duplicate names (e.g. two "Juan Soto"s).
     db_rows = conn.execute(
-        "SELECT mlb_id, full_name FROM players WHERE is_active = 1"
+        """SELECT p.mlb_id, p.full_name,
+                  COALESCE(r.overall_rank, 999999) as overall_rank
+           FROM players p
+           LEFT JOIN rankings r ON p.mlb_id = r.mlb_id AND r.season = ?
+           WHERE p.is_active = 1
+           ORDER BY overall_rank ASC""",
+        (season,),
     ).fetchall()
     name_to_id: dict[str, int] = {}
     stripped_to_id: dict[str, int] = {}
     for r in db_rows:
-        name_to_id[r["full_name"].lower()] = r["mlb_id"]
-        stripped_to_id[_strip_accents(r["full_name"])] = r["mlb_id"]
+        key_lower = r["full_name"].lower()
+        key_stripped = _strip_accents(r["full_name"])
+        # First (best-ranked) player for a name wins; skip duplicates
+        if key_lower not in name_to_id:
+            name_to_id[key_lower] = r["mlb_id"]
+        if key_stripped not in stripped_to_id:
+            stripped_to_id[key_stripped] = r["mlb_id"]
     conn.close()
 
     url = _ESPN_API_URL.format(season=season)
