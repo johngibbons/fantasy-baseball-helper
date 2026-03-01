@@ -140,7 +140,7 @@ def import_fangraphs_batting(filepath: str, source: str, season: int = 2025):
     imported = 0
     skipped = 0
 
-    with open(filepath, "r") as f:
+    with open(filepath, "r", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         for row in reader:
             mlb_id = _resolve_mlb_id(conn, row, player_type="hitter")
@@ -218,7 +218,7 @@ def import_fangraphs_pitching(filepath: str, source: str, season: int = 2025):
     imported = 0
     skipped = 0
 
-    with open(filepath, "r") as f:
+    with open(filepath, "r", encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         for row in reader:
             mlb_id = _resolve_mlb_id(conn, row, player_type="pitcher")
