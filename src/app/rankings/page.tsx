@@ -49,7 +49,7 @@ export default function RankingsPage() {
     getRankings({
       playerType: typeFilter === 'All' ? undefined : typeFilter,
       position: posFilter === 'All' ? undefined : posFilter,
-      limit: 1000,
+      limit: 10000,
     })
       .then((data) => setPlayers(data.rankings))
       .catch((e) => setError(e.message))

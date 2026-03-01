@@ -28,7 +28,7 @@ def list_players(
     player_type: Optional[str] = Query(None, description="'hitter' or 'pitcher'"),
     position: Optional[str] = Query(None, description="Position filter (e.g., SS, SP)"),
     search: Optional[str] = Query(None, description="Search player name"),
-    limit: int = Query(300, ge=1, le=1000),
+    limit: int = Query(300, ge=1, le=10000),
     offset: int = Query(0, ge=0),
 ):
     """List all players with projections and z-score values."""
@@ -76,7 +76,7 @@ def rankings(
     player_type: Optional[str] = Query(None),
     position: Optional[str] = Query(None),
     sort_by: Optional[str] = Query(None, description="Sort by z-score category (e.g., zscore_sb)"),
-    limit: int = Query(300, ge=1, le=1000),
+    limit: int = Query(300, ge=1, le=10000),
     offset: int = Query(0, ge=0),
 ):
     """Ranked player list with filters."""
