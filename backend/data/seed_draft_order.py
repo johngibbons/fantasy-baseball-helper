@@ -323,10 +323,13 @@ def _resolve_keeper_ids(conn):
         if key in resolved:
             continue
 
-        # Exact match
+        # Exact match — JOIN rankings to prefer the best-ranked player
+        # when multiple share the same name (e.g. Juan Soto OF vs Juan Soto P)
         row = conn.execute(
-            "SELECT mlb_id, primary_position FROM players "
-            "WHERE full_name = ? AND is_active = 1",
+            "SELECT p.mlb_id, p.primary_position FROM players p "
+            "LEFT JOIN rankings r ON p.mlb_id = r.mlb_id "
+            "WHERE p.full_name = ? AND p.is_active = 1 "
+            "ORDER BY COALESCE(r.overall_rank, 999999) ASC LIMIT 1",
             (player,),
         ).fetchone()
 

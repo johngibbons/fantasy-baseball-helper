@@ -470,13 +470,21 @@ def resolve_keepers(body: KeeperResolveRequest):
 
     # Build lookup structures
     db_players = [dict(r) for r in all_rows]
-    # exact normalized name -> player row
+    # exact normalized name -> player row (best-ranked wins ties)
     exact_lookup: dict[str, dict] = {}
     all_names: list[str] = []
     name_to_player: dict[str, dict] = {}
     for p in db_players:
         norm = _normalize_name(p["full_name"])
-        exact_lookup[norm] = p
+        if norm in exact_lookup:
+            # Name collision — keep the player with the better ranking
+            existing = exact_lookup[norm]
+            existing_rank = existing.get("overall_rank") or 999999
+            new_rank = p.get("overall_rank") or 999999
+            if new_rank < existing_rank:
+                exact_lookup[norm] = p
+        else:
+            exact_lookup[norm] = p
         all_names.append(p["full_name"])
         name_to_player[p["full_name"]] = p
 
