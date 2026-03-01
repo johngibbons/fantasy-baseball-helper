@@ -178,10 +178,24 @@ export function computeTeamCategories(
         if (a.totalIP === 0) aVal = Infinity
         if (b.totalIP === 0) bVal = Infinity
       }
+      if (aVal === bVal) return 0
       return cat.inverted ? aVal - bVal : bVal - aVal
     })
+    // Assign fractional ranks so tied teams share the average of their positions
+    // (e.g. 3 teams tied for 4th get rank 5, not arbitrary 4/5/6).
     const rankMap = new Map<number, number>()
-    sorted.forEach((r, i) => rankMap.set(r.teamId, i + 1))
+    const vals = sorted.map(r => {
+      let v = r.statTotals[cat.projKey] ?? 0
+      if (cat.inverted && cat.weight === 'proj_ip' && r.totalIP === 0) v = Infinity
+      return v
+    })
+    for (let i = 0; i < sorted.length; ) {
+      let j = i
+      while (j < sorted.length && vals[j] === vals[i]) j++
+      const fracRank = i + 1 + (j - i - 1) / 2
+      for (let k = i; k < j; k++) rankMap.set(sorted[k].teamId, fracRank)
+      i = j
+    }
     catRanks.set(cat.key, rankMap)
   }
 
