@@ -170,8 +170,14 @@ export function computeTeamCategories(
   const catRanks = new Map<string, Map<number, number>>()
   for (const cat of ALL_CATS) {
     const sorted = [...rows].sort((a, b) => {
-      const aVal = a.statTotals[cat.projKey] ?? 0
-      const bVal = b.statTotals[cat.projKey] ?? 0
+      let aVal = a.statTotals[cat.projKey] ?? 0
+      let bVal = b.statTotals[cat.projKey] ?? 0
+      // For inverted rate stats (ERA, WHIP), teams with 0 IP have no data
+      // and should rank last, not first (0.00 is not a real ERA).
+      if (cat.inverted && cat.weight === 'proj_ip') {
+        if (a.totalIP === 0) aVal = Infinity
+        if (b.totalIP === 0) bVal = Infinity
+      }
       return cat.inverted ? aVal - bVal : bVal - aVal
     })
     const rankMap = new Map<number, number>()
