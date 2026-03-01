@@ -106,8 +106,10 @@ export default function DraftBoardPage() {
   const [showDrafted, setShowDrafted] = useState(false)
   const [recalcData, setRecalcData] = useState<Map<number, RankedPlayer> | null>(null)
   const [recalculating, setRecalculating] = useState(false)
+  const PAGE_SIZE = 100
   const [sortKey, setSortKey] = useState<'rank' | 'adp' | 'nfbc' | 'avail' | 'name' | 'pos' | 'team' | 'value' | 'score'>('rank')
   const [sortAsc, setSortAsc] = useState(true)
+  const [page, setPage] = useState(0)
   const [mobileTab, setMobileTab] = useState<'board' | 'info'>('board')
 
   // ── Team-aware draft state ──
@@ -606,6 +608,9 @@ export default function DraftBoardPage() {
     }, 300)
     return () => { clearTimeout(timeout); setRecalculating(false) }
   }, [draftedIds.size]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Reset pagination when filters or sort change
+  useEffect(() => { setPage(0) }, [posFilter, searchText, showDrafted, sortKey, sortAsc])
 
   /** Get the effective value for a player — uses recalculated data if available */
   const getPlayerValue = (p: RankedPlayer): number => {
@@ -1385,6 +1390,8 @@ export default function DraftBoardPage() {
   }
 
   const displayList = sortedAvailable
+  const totalPages = Math.ceil(displayList.length / PAGE_SIZE)
+  const paginatedList = displayList.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   // Build a set of assigned player IDs by slot for the roster grid
   const slotAssignments: Record<string, RankedPlayer[]> = {}
@@ -1893,7 +1900,7 @@ export default function DraftBoardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {displayList.flatMap((p, idx) => {
+                    {paginatedList.flatMap((p, idx) => {
                       const isDrafted = draftedIds.has(p.mlb_id)
                       const isMyPick = myPickIds.has(p.mlb_id)
                       const draftedByTeam = draftPicks.get(p.mlb_id)
@@ -1913,7 +1920,7 @@ export default function DraftBoardPage() {
                       // Tier separator: only when sorted by value (the ordering where tiers are contiguous)
                       const rows: React.ReactNode[] = []
                       if (!isDrafted && idx > 0 && !showDrafted && sortKey === 'value') {
-                        const prevPlayer = displayList[idx - 1]
+                        const prevPlayer = paginatedList[idx - 1]
                         const prevTier = playerTiers.get(prevPlayer?.mlb_id)
                         const curTier = playerTiers.get(p.mlb_id)
                         if (prevTier != null && curTier != null && curTier !== prevTier) {
@@ -1937,7 +1944,7 @@ export default function DraftBoardPage() {
 
                       // Recommendation zone divider: when sorted by score, separate in-zone from out-of-zone
                       if (!isDrafted && idx > 0 && !showDrafted && sortKey === 'score') {
-                        const prevPlayer = displayList[idx - 1]
+                        const prevPlayer = paginatedList[idx - 1]
                         const prevInZone = !draftedIds.has(prevPlayer?.mlb_id) && (scoreRankMap.map.get(prevPlayer?.mlb_id)?.inZone ?? false)
                         const curInZone = scoreRankMap.map.get(p.mlb_id)?.inZone ?? false
                         if (prevInZone && !curInZone) {
@@ -2127,6 +2134,30 @@ export default function DraftBoardPage() {
                   </tbody>
                 </table>
               </div>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-3 py-2 border-t border-gray-800 text-sm">
+                  <button
+                    onClick={() => setPage(p => Math.max(0, p - 1))}
+                    disabled={page === 0}
+                    className="px-3 py-1 rounded text-xs font-semibold border border-gray-700 text-gray-400 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    &larr; Prev
+                  </button>
+                  <span className="text-gray-400 text-xs tabular-nums">
+                    Page {page + 1} of {totalPages}
+                    <span className="text-gray-600 mx-1.5">&middot;</span>
+                    {displayList.length} players
+                  </span>
+                  <button
+                    onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                    disabled={page >= totalPages - 1}
+                    className="px-3 py-1 rounded text-xs font-semibold border border-gray-700 text-gray-400 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next &rarr;
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
