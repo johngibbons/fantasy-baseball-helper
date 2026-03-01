@@ -63,6 +63,13 @@ export default function PlayerDetailPage() {
   const r = player.ranking
   const isHitter = player.player_type === 'hitter'
 
+  // Classify pitchers as SP/RP using z-score data (matches roster-optimizer logic)
+  const displayPosition = player.primary_position === 'P' && r
+    ? (r.zscore_qs && r.zscore_qs !== 0 ? 'SP'
+       : r.zscore_svhd && r.zscore_svhd !== 0 ? 'RP'
+       : 'SP')
+    : player.primary_position
+
   // Detect two-way player: has non-zero z-scores in both hitting AND pitching categories
   const hasHittingZ = r && [r.zscore_r, r.zscore_tb, r.zscore_rbi, r.zscore_sb, r.zscore_obp].some(v => v != null && v !== 0)
   const hasPitchingZ = r && [r.zscore_k, r.zscore_qs, r.zscore_era, r.zscore_whip, r.zscore_svhd].some(v => v != null && v !== 0)
@@ -100,8 +107,8 @@ export default function PlayerDetailPage() {
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <h1 className="text-3xl font-bold text-white">{player.full_name}</h1>
-                <span className={`inline-flex items-center justify-center px-2.5 h-6 rounded-md text-xs font-bold text-white ${posColor[player.primary_position] || 'bg-gray-600'}`}>
-                  {player.primary_position}
+                <span className={`inline-flex items-center justify-center px-2.5 h-6 rounded-md text-xs font-bold text-white ${posColor[displayPosition] || 'bg-gray-600'}`}>
+                  {displayPosition}
                 </span>
               </div>
               <p className="text-gray-400">
@@ -161,7 +168,7 @@ export default function PlayerDetailPage() {
               </div>
               <div className="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center">
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Position Rank</span>
-                <span className="text-sm font-bold text-white">#{r.position_rank} <span className="text-gray-400">{player.primary_position}</span></span>
+                <span className="text-sm font-bold text-white">#{r.position_rank} <span className="text-gray-400">{displayPosition}</span></span>
               </div>
             </div>
           )}
