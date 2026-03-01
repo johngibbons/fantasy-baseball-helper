@@ -303,6 +303,11 @@ def _blend_projection_rows(
             result[field] = sum(
                 (r[field] or 0) * w for r, w in zip(player_rows, row_weights)
             ) / total_w
+        # Track max PA/IP from any single source so the MIN_PA/MIN_IP
+        # filter can include players where at least one system projects
+        # full playing time (e.g. prospects with split projections).
+        pa_field = "proj_pa" if player_type == "hitter" else "proj_ip"
+        result["_max_pa"] = max((r[pa_field] or 0) for r in player_rows)
         blended.append(result)
 
     avg_sources = total_source_count / len(blended) if blended else 0
@@ -478,8 +483,9 @@ def calculate_hitter_zscores(season: int = 2026, source: str = None,
             f"Blended projections from multiple sources for {n_players} hitters "
             f"(avg {avg_src:.1f} sources/player)"
         )
-        # Apply MIN_PA filter after blending
-        rows = [r for r in rows if (r["proj_pa"] or 0) >= MIN_PA]
+        # Apply MIN_PA filter after blending — use the max PA from any
+        # single source so prospects with one bullish projection qualify.
+        rows = [r for r in rows if (r.get("_max_pa") or r["proj_pa"] or 0) >= MIN_PA]
 
     # Exclude drafted players (after blending, before z-score computation)
     if excluded_ids:
@@ -612,8 +618,10 @@ def _compute_pitcher_pool_zscores(
     Returns:
         List of player dicts with z-scores (excluded categories set to 0.0)
     """
-    # Filter by minimum IP
-    rows = [r for r in rows if (r["proj_ip"] or 0) >= min_ip]
+    # Filter by minimum IP — use the max IP from any single source (stored
+    # in _max_pa by _blend_projection_rows) so prospects with one bullish
+    # projection qualify, same logic as the hitter MIN_PA filter.
+    rows = [r for r in rows if (r.get("_max_pa") or r["proj_ip"] or 0) >= min_ip]
 
     if not rows:
         logger.warning(f"No {pool_label} pitchers met min IP threshold ({min_ip})")
@@ -842,8 +850,8 @@ def calculate_pitcher_zscores(season: int = 2026, source: str = None,
     # Compute combined avg team IP (SP+RP) for rate stat marginal calculations.
     # The SGP denominators for ERA/WHIP come from team-level standings that include
     # all pitchers, so the marginal impact denominator must also use total team IP.
-    sp_ip_pool = sum(r["proj_ip"] or 0 for r in sp_rows if (r["proj_ip"] or 0) >= MIN_IP_SP)
-    rp_ip_pool = sum(r["proj_ip"] or 0 for r in rp_rows if (r["proj_ip"] or 0) >= MIN_IP_RP)
+    sp_ip_pool = sum(r["proj_ip"] or 0 for r in sp_rows if (r.get("_max_pa") or r["proj_ip"] or 0) >= MIN_IP_SP)
+    rp_ip_pool = sum(r["proj_ip"] or 0 for r in rp_rows if (r.get("_max_pa") or r["proj_ip"] or 0) >= MIN_IP_RP)
     combined_avg_team_ip = (sp_ip_pool + rp_ip_pool) / NUM_TEAMS if NUM_TEAMS > 0 else 0
     logger.info(
         f"Combined avg team IP: {combined_avg_team_ip:.1f} "
