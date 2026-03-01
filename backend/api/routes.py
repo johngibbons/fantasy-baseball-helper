@@ -325,6 +325,33 @@ def stats_summary(season: int = Query(2026)):
     }
 
 
+# ── Diagnostics ──
+
+
+@router.get("/debug/player/{mlb_id}")
+def debug_player(mlb_id: int, season: int = Query(2026)):
+    """Diagnose why a player might be missing from rankings."""
+    conn = get_connection()
+    player = conn.execute(
+        "SELECT * FROM players WHERE mlb_id = ?", (mlb_id,)
+    ).fetchone()
+    projections = conn.execute(
+        "SELECT source, player_type, proj_pa, proj_ip FROM projections "
+        "WHERE mlb_id = ? AND season = ?", (mlb_id, season)
+    ).fetchall()
+    ranking = conn.execute(
+        "SELECT overall_rank, total_zscore, player_type FROM rankings "
+        "WHERE mlb_id = ? AND season = ?", (mlb_id, season)
+    ).fetchone()
+    conn.close()
+    return {
+        "mlb_id": mlb_id,
+        "player": dict(player) if player else None,
+        "projections": [dict(p) for p in projections],
+        "ranking": dict(ranking) if ranking else None,
+    }
+
+
 # ── Projection refresh ──
 
 
