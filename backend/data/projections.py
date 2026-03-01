@@ -147,6 +147,11 @@ def import_fangraphs_batting(filepath: str, source: str, season: int = 2025):
         raise ValueError(f"Invalid source '{source}', must be one of {sorted(valid_sources)}")
 
     conn = get_connection()
+    conn.execute(
+        "DELETE FROM projections WHERE source = ? AND season = ? AND player_type = 'hitter'",
+        (source, season),
+    )
+    conn.commit()
     imported = 0
     skipped = 0
 
@@ -225,6 +230,11 @@ def import_fangraphs_pitching(filepath: str, source: str, season: int = 2025):
         raise ValueError(f"Invalid source '{source}', must be one of {sorted(valid_sources)}")
 
     conn = get_connection()
+    conn.execute(
+        "DELETE FROM projections WHERE source = ? AND season = ? AND player_type = 'pitcher'",
+        (source, season),
+    )
+    conn.commit()
     imported = 0
     skipped = 0
 
@@ -387,6 +397,13 @@ def fetch_fangraphs_batting(
     """
     data = _fetch_fg_json(fg_type, "bat")
     conn = get_connection()
+    # Clear stale records so projections previously assigned to the wrong
+    # mlb_id (e.g. name-collision on "Edwin Díaz") don't linger.
+    conn.execute(
+        "DELETE FROM projections WHERE source = ? AND season = ? AND player_type = 'hitter'",
+        (source, season),
+    )
+    conn.commit()
     imported = 0
     skipped = 0
 
@@ -472,6 +489,11 @@ def fetch_fangraphs_pitching(
     """
     data = _fetch_fg_json(fg_type, "pit")
     conn = get_connection()
+    conn.execute(
+        "DELETE FROM projections WHERE source = ? AND season = ? AND player_type = 'pitcher'",
+        (source, season),
+    )
+    conn.commit()
     imported = 0
     skipped = 0
 
