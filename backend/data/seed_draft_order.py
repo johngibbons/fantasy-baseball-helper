@@ -72,41 +72,42 @@ PICK_TRADES = [
 
 # ── Keepers: (manager, declared_round, player_name, year_label) ──
 KEEPERS = [
-    ("Chris Herbst",   20, "Jackson Merrill", "2nd yr"),
-    ("Chris Herbst",   23, "Eury Perez",      "1st yr"),
-    ("Chris Herbst",   24, "Drake Baldwin",    "1st yr"),
-    ("Chris Herbst",   25, "Roman Anthony",    "1st yr"),
-    ("Jason McComb",    9, "Brice Turang",     "1st yr"),
-    ("Jason McComb",   23, "Alex Vesia",       "1st yr"),
-    ("Jason McComb",   24, "Tony Santillan",   "1st yr"),
-    ("Jason McComb",   25, "Abner Uribe",      "1st yr"),
-    ("Jess Barron",     1, "Shohei Ohtani",   "2nd yr"),
-    ("Jess Barron",     9, "Ketel Marte",     "3rd yr"),
-    ("Jess Barron",    24, "Cade Smith",       "1st yr"),
-    ("Jess Barron",    25, "Geraldo Perdomo",  "1st yr"),
-    ("Harris Cook",    14, "Tarik Skubal",         "3rd yr"),
-    ("Harris Cook",    12, "Bryan Woo",             "2nd yr"),
-    ("Harris Cook",    13, "Pete Crow-Armstrong",   "1st yr"),
-    ("Harris Cook",    25, "Chase Burns",           "1st yr"),
-    ("Eric Mercado",    1, "Aaron Judge",            "2nd yr"),
-    ("Eric Mercado",   19, "Mackenzie Gore",         "1st yr"),
-    ("Eric Mercado",   20, "Kyle Stowers",           "1st yr"),
-    ("Eric Mercado",   24, "Spencer Jones",          "1st yr"),
-    ("Tim Riker",       1, "Jose Ramirez",            "1st yr"),
-    ("Tim Riker",       4, "Yoshinobu Yamamoto",      "1st yr"),
-    ("Tim Riker",      10, "Cal Raleigh",             "1st yr"),
-    ("Tim Riker",      25, "Jacob Misiorowski",       "1st yr"),
-    ("Matt Wayne",     17, "Cristopher Sanchez",      "2nd yr"),
-    ("Matt Wayne",     18, "Garrett Crochet",         "2nd yr"),
-    ("Matt Wayne",     20, "James Wood",              "2nd yr"),
-    ("John Gibbons",    1, "Juan Soto",              "1st yr"),
-    ("John Gibbons",    7, "Jackson Chourio",        "2nd yr"),
-    ("John Gibbons",   20, "Lawrence Butler",         "2nd yr"),
-    ("John Gibbons",   25, "Nick Kurtz",              "1st yr"),
-    ("David Rotatori", 12, "Hunter Brown",            "2nd yr"),
-    ("David Rotatori", 20, "Mason Miller",            "2nd yr"),
-    ("David Rotatori", 24, "Trevor Rogers",           "1st yr"),
-    ("David Rotatori", 25, "Kyle Bradish",            "1st yr"),
+    # (manager, round, player_name, keeper_year, mlb_id)
+    ("Chris Herbst",   20, "Jackson Merrill",      "2nd yr", 701538),
+    ("Chris Herbst",   23, "Eury Perez",           "1st yr", 691587),
+    ("Chris Herbst",   24, "Drake Baldwin",         "1st yr", 686948),
+    ("Chris Herbst",   25, "Roman Anthony",         "1st yr", 701350),
+    ("Jason McComb",    9, "Brice Turang",          "1st yr", 668930),
+    ("Jason McComb",   23, "Alex Vesia",            "1st yr", 681911),
+    ("Jason McComb",   24, "Tony Santillan",        "1st yr", 663574),
+    ("Jason McComb",   25, "Abner Uribe",           "1st yr", 682842),
+    ("Jess Barron",     1, "Shohei Ohtani",        "2nd yr", 660271),
+    ("Jess Barron",     9, "Ketel Marte",          "3rd yr", 606466),
+    ("Jess Barron",    24, "Cade Smith",            "1st yr", 671922),
+    ("Jess Barron",    25, "Geraldo Perdomo",       "1st yr", 672695),
+    ("Harris Cook",    14, "Tarik Skubal",          "3rd yr", 669373),
+    ("Harris Cook",    12, "Bryan Woo",             "2nd yr", 693433),
+    ("Harris Cook",    13, "Pete Crow-Armstrong",   "1st yr", 691718),
+    ("Harris Cook",    25, "Chase Burns",           "1st yr", 695505),
+    ("Eric Mercado",    1, "Aaron Judge",           "2nd yr", 592450),
+    ("Eric Mercado",   19, "Mackenzie Gore",        "1st yr", 669022),
+    ("Eric Mercado",   20, "Kyle Stowers",          "1st yr", 669065),
+    ("Eric Mercado",   24, "Spencer Jones",         "1st yr", 682987),
+    ("Tim Riker",       1, "Jose Ramirez",          "1st yr", 608070),
+    ("Tim Riker",       4, "Yoshinobu Yamamoto",    "1st yr", 808967),
+    ("Tim Riker",      10, "Cal Raleigh",           "1st yr", 663728),
+    ("Tim Riker",      25, "Jacob Misiorowski",     "1st yr", 694819),
+    ("Matt Wayne",     17, "Cristopher Sanchez",    "2nd yr", 650911),
+    ("Matt Wayne",     18, "Garrett Crochet",       "2nd yr", 676979),
+    ("Matt Wayne",     20, "James Wood",            "2nd yr", 695578),
+    ("John Gibbons",    1, "Juan Soto",             "1st yr", 665742),
+    ("John Gibbons",    7, "Jackson Chourio",       "2nd yr", 694192),
+    ("John Gibbons",   20, "Lawrence Butler",       "2nd yr", 671732),
+    ("John Gibbons",   25, "Nick Kurtz",            "1st yr", 701762),
+    ("David Rotatori", 12, "Hunter Brown",          "2nd yr", 686613),
+    ("David Rotatori", 20, "Mason Miller",          "2nd yr", 695243),
+    ("David Rotatori", 24, "Trevor Rogers",         "1st yr", 669432),
+    ("David Rotatori", 25, "Kyle Bradish",          "1st yr", 680694),
 ]
 
 
@@ -158,7 +159,7 @@ def _compute_all_pick_slots():
 def _assign_keepers_with_cap(manager_slots):
     managers = _managers()
     mgr_keepers = defaultdict(list)
-    for mgr, rnd, player, yr in KEEPERS:
+    for mgr, rnd, player, yr, *_ in KEEPERS:
         mgr_keepers[mgr].append((rnd, player, yr))
     for mgr in mgr_keepers:
         mgr_keepers[mgr].sort(key=lambda x: x[0])
@@ -316,26 +317,47 @@ def _strip_accents(s):
 
 
 def _resolve_keeper_ids(conn):
-    """Look up MLB IDs for all keeper players."""
+    """Look up MLB IDs for all keeper players.
+
+    Uses the mlb_id from KEEPERS directly when available, falling back to
+    name-based lookup for backwards compatibility.
+    """
     resolved = {}
-    for mgr, _, player, _ in KEEPERS:
+    for entry in KEEPERS:
+        mgr, _, player, _ = entry[0], entry[1], entry[2], entry[3]
+        mlb_id = entry[4] if len(entry) > 4 else None
         key = (mgr, player)
         if key in resolved:
             continue
 
-        # Exact match — JOIN rankings to prefer the best-ranked player
-        # when multiple share the same name (e.g. Juan Soto OF vs Juan Soto P)
-        row = conn.execute(
-            "SELECT p.mlb_id, p.primary_position FROM players p "
-            "LEFT JOIN rankings r ON p.mlb_id = r.mlb_id "
-            "WHERE p.full_name = ? AND p.is_active = 1 "
-            "ORDER BY COALESCE(r.overall_rank, 999999) ASC LIMIT 1",
-            (player,),
-        ).fetchone()
+        row = None
+
+        # Prefer explicit mlb_id (no ambiguity)
+        if mlb_id:
+            row = conn.execute(
+                "SELECT mlb_id, primary_position FROM players WHERE mlb_id = ?",
+                (mlb_id,),
+            ).fetchone()
+            if not row:
+                # Auto-create the player record so keepers always resolve
+                from backend.data.projections import _auto_create_player
+                _auto_create_player(conn, mlb_id, player, "", "hitter")
+                conn.commit()
+                row = conn.execute(
+                    "SELECT mlb_id, primary_position FROM players WHERE mlb_id = ?",
+                    (mlb_id,),
+                ).fetchone()
+
+        # Fall back to name match
+        if not row:
+            row = conn.execute(
+                "SELECT mlb_id, primary_position FROM players "
+                "WHERE full_name = ? AND is_active = 1",
+                (player,),
+            ).fetchone()
 
         if not row:
-            # Try accent-insensitive: load all active players, compare
-            # stripped names (handles Pérez vs Perez, etc.)
+            # Try accent-insensitive match
             target = _strip_accents(player).lower()
             candidates = conn.execute(
                 "SELECT mlb_id, full_name, primary_position FROM players "
@@ -368,7 +390,7 @@ def _build_keepers_state(conn, results, keeper_db):
 
     # Build keeper_season lookup from KEEPERS config
     keeper_year = {}
-    for mgr, _, player, yr_label in KEEPERS:
+    for mgr, _, player, yr_label, *_ in KEEPERS:
         keeper_year[(mgr, player)] = _keeper_year_from_label(yr_label)
 
     # Load ranking data for ResolvedKeeper objects

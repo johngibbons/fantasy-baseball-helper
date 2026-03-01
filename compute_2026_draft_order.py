@@ -137,7 +137,7 @@ def assign_keepers_with_cap(manager_slots):
         final_slots, supplemental_needs, keeper_adjustments, forfeited_slots
     """
     mgr_keepers = defaultdict(list)
-    for mgr, rnd, player, yr in KEEPERS:
+    for mgr, rnd, player, yr, *_ in KEEPERS:
         mgr_keepers[mgr].append((rnd, player, yr))
     for mgr in mgr_keepers:
         mgr_keepers[mgr].sort(key=lambda x: x[0])
