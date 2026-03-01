@@ -485,7 +485,9 @@ def calculate_hitter_zscores(season: int = 2026, source: str = None,
         )
         # Apply MIN_PA filter after blending — use the max PA from any
         # single source so prospects with one bullish projection qualify.
+        pre_filter = len(rows)
         rows = [r for r in rows if (r.get("_max_pa") or r["proj_pa"] or 0) >= MIN_PA]
+        logger.info(f"MIN_PA filter: {pre_filter} → {len(rows)} hitters (removed {pre_filter - len(rows)})")
 
     # Exclude drafted players (after blending, before z-score computation)
     if excluded_ids:
