@@ -105,8 +105,12 @@ def _resolve_mlb_id(conn, row, player_type: Optional[str] = None) -> Optional[in
                 return _auto_create_player(conn, mid, name, team, player_type or "hitter")
         except (ValueError, TypeError):
             pass
+        # MLBAMID was provided — do NOT fall back to name matching, which
+        # could match a different player with the same name (e.g. two
+        # different "Juan Soto" players with different MLBAMID values).
+        return None
 
-    # Fall back to name lookup
+    # Fall back to name lookup only when no MLBAMID is available
     name = row.get("Name", "").strip().strip('"')
     if not name:
         return None
@@ -117,7 +121,7 @@ def _resolve_mlb_id(conn, row, player_type: Optional[str] = None) -> Optional[in
     if player:
         return player["mlb_id"]
 
-    logger.debug(f"Player not found in DB: {name} (MLBAMID={mlbamid})")
+    logger.debug(f"Player not found in DB: {name}")
     return None
 
 

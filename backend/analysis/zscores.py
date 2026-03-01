@@ -880,14 +880,44 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
     pitchers = calculate_pitcher_zscores(season, source, excluded_ids)
 
     # ── Merge two-way players ──
-    # A two-way player (e.g. Ohtani) appears in BOTH the hitters and pitchers
-    # lists.  Merge their z-scores into a single hitter entry that spans all
-    # 10 categories, then remove the pitcher duplicate.
+    # A true two-way player (e.g. Ohtani) appears in BOTH the hitters and
+    # pitchers lists with meaningful stats on both sides.  Merge their
+    # z-scores into a single hitter entry that spans all 10 categories.
+    # Require substantial playing time on both sides to avoid false merges
+    # from name collisions (e.g. two different "Juan Soto" players whose
+    # projections ended up under the same mlb_id).
+    _TWOWAY_MIN_PA = 100
+    _TWOWAY_MIN_IP = 20
     hitter_by_id = {p["mlb_id"]: p for p in hitters}
     pitcher_by_id = {p["mlb_id"]: p for p in pitchers}
-    twoway_ids = set(hitter_by_id.keys()) & set(pitcher_by_id.keys())
+    overlap_ids = set(hitter_by_id.keys()) & set(pitcher_by_id.keys())
+
+    twoway_ids = set()
+    for mid in overlap_ids:
+        h = hitter_by_id[mid]
+        pit = pitcher_by_id[mid]
+        if h["proj_pa"] >= _TWOWAY_MIN_PA and pit["proj_ip"] >= _TWOWAY_MIN_IP:
+            twoway_ids.add(mid)
+        else:
+            # Not a true two-way player — drop the weaker side
+            if h["proj_pa"] >= pit["proj_ip"] * 5:
+                # Primarily a hitter — remove from pitchers
+                pitchers = [p for p in pitchers if p["mlb_id"] != mid]
+                logger.info(
+                    f"Dropped spurious pitcher projection for {h['full_name']} "
+                    f"(PA={h['proj_pa']}, IP={pit['proj_ip']:.1f})"
+                )
+            else:
+                # Primarily a pitcher — remove from hitters
+                hitters = [p for p in hitters if p["mlb_id"] != mid]
+                logger.info(
+                    f"Dropped spurious hitter projection for {pit['full_name']} "
+                    f"(PA={h['proj_pa']}, IP={pit['proj_ip']:.1f})"
+                )
 
     if twoway_ids:
+        # Rebuild lookup after any removals
+        hitter_by_id = {p["mlb_id"]: p for p in hitters}
         for mid in twoway_ids:
             h = hitter_by_id[mid]
             pit = pitcher_by_id[mid]
