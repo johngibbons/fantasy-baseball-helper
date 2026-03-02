@@ -65,10 +65,10 @@ function getActiveTeamId(pickIndex: number, order: number[]): number {
 }
 
 // ── Picks until a team's next turn (schedule-based) ──
-function getPicksUntilNextTurn(currentPickIndex: number, schedule: number[], teamId: number): number {
+function getPicksUntilNextTurn(currentPickIndex: number, schedule: number[], teamId: number, skipIndices?: Set<number>): number {
   if (schedule.length === 0) return 999
   for (let i = currentPickIndex + 1; i < schedule.length; i++) {
-    if (schedule[i] === teamId) return i - currentPickIndex
+    if (schedule[i] === teamId && !(skipIndices?.has(i))) return i - currentPickIndex
   }
   return 999
 }
@@ -859,8 +859,8 @@ export default function DraftBoardPage() {
 
   // ── Picks until my next turn (needed by window VONA and availability) ──
   const picksUntilMine = useMemo(
-    () => myTeamId != null ? getPicksUntilNextTurn(currentPickIndex, pickSchedule.length > 0 ? pickSchedule : draftOrder, myTeamId) : 999,
-    [currentPickIndex, draftOrder, myTeamId, pickSchedule]
+    () => myTeamId != null ? getPicksUntilNextTurn(currentPickIndex, pickSchedule.length > 0 ? pickSchedule : draftOrder, myTeamId, keeperPickIndices) : 999,
+    [currentPickIndex, draftOrder, myTeamId, pickSchedule, keeperPickIndices]
   )
 
   // ── VONA (Value Over Next Available) — window-based ──
@@ -1279,7 +1279,7 @@ export default function DraftBoardPage() {
           .slice(0, 3)
 
         // Picks until their next turn
-        const nextPickIn = getPicksUntilNextTurn(currentPickIndex, pickSchedule.length > 0 ? pickSchedule : draftOrder, team.id)
+        const nextPickIn = getPicksUntilNextTurn(currentPickIndex, pickSchedule.length > 0 ? pickSchedule : draftOrder, team.id, keeperPickIndices)
 
         return {
           teamId: team.id,
@@ -1291,7 +1291,7 @@ export default function DraftBoardPage() {
         }
       })
       .sort((a, b) => a.nextPickIn - b.nextPickIn)
-  }, [myTeamId, leagueTeams, teamRosters, currentPickIndex, pickSchedule, draftOrder])
+  }, [myTeamId, leagueTeams, teamRosters, currentPickIndex, pickSchedule, draftOrder, keeperPickIndices])
 
   // ── Projected standings ──
   const projectedStandingsData = useMemo((): ProjectedStanding[] => {
