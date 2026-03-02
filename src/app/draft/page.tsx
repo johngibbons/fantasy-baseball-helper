@@ -1053,6 +1053,25 @@ export default function DraftBoardPage() {
     return { map, threshold }
   }, [draftScoreMap])
 
+  // ── "On the board" — contested players at your next pick ──
+  const onTheBoard = useMemo(() => {
+    if (myTeamId == null || !hasAdpData) return []
+    return available
+      .filter((p) => {
+        if (p.espn_adp == null) return false
+        const avail = availabilityMap.get(p.mlb_id)
+        return avail != null && avail >= 0.15 && avail <= 0.85
+      })
+      .map((p) => ({
+        player: p,
+        score: draftScoreMap.get(p.mlb_id)?.score ?? 0,
+        badge: draftScoreMap.get(p.mlb_id)?.badge ?? null,
+        availability: availabilityMap.get(p.mlb_id)!,
+      }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8)
+  }, [available, availabilityMap, draftScoreMap, myTeamId, hasAdpData])
+
   // ── Top recommendation with explanation ──
   const topRecommendation = useMemo((): DraftRecommendation | null => {
     if (!myTeamId) return null
@@ -2302,6 +2321,45 @@ export default function DraftBoardPage() {
                       </div>
                     )
                   })()}
+
+                  {/* On the board — contested players */}
+                  {onTheBoard.length > 0 && (
+                    <div>
+                      <div className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider mb-0.5">On the board</div>
+                      <div className="text-[9px] text-gray-500 mb-1">Contested at your next pick</div>
+                      {onTheBoard.map(({ player, score, badge, availability }) => {
+                        const pos = getPositions(player)[0]
+                        const pct = Math.round(availability * 100)
+                        const availColor = pct >= 80 ? 'text-emerald-400' : pct >= 50 ? 'text-yellow-400' : pct >= 20 ? 'text-orange-400' : 'text-red-400'
+                        return (
+                          <div
+                            key={player.mlb_id}
+                            className="flex items-center gap-2 py-1.5 px-2 rounded-lg bg-gray-800/30 mb-0.5"
+                          >
+                            <span className={`inline-flex items-center justify-center w-8 h-5 rounded text-[9px] font-bold text-white shrink-0 ${posColor[pos] || 'bg-gray-600'}`}>
+                              {pos}
+                            </span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs text-white truncate">{player.full_name}</div>
+                            </div>
+                            <span className={`text-[10px] font-bold tabular-nums shrink-0 ${availColor}`}>{pct}%</span>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {badge === 'NOW' && (
+                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
+                              )}
+                              {badge === 'WAIT' && (
+                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">WAIT</span>
+                              )}
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setScoreDetailPlayer(player.mlb_id) }}
+                                className="text-[10px] font-bold tabular-nums text-purple-400 cursor-pointer hover:underline"
+                              >{score.toFixed(1)}</button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
 
                   {/* Best by need */}
                   {bestByNeed.length > 0 && (
