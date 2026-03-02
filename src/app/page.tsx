@@ -31,7 +31,7 @@ export default function Dashboard() {
     setRefreshing(true)
     setRefreshMsg(null)
     try {
-      const res = await fetch('/api/v2/projections/refresh?season=2026', { method: 'POST' })
+      const res = await fetch('/api/refresh-projections?season=2026', { method: 'POST' })
       const data = await res.json().catch(() => null)
       if (!res.ok) {
         const detail = data?.detail || `HTTP ${res.status}`
