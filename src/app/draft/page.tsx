@@ -1053,14 +1053,14 @@ export default function DraftBoardPage() {
     return { map, threshold }
   }, [draftScoreMap])
 
-  // ── "On the board" — contested players at your next pick ──
+  // ── "On the board" — best players projected to be available at your next pick ──
   const onTheBoard = useMemo(() => {
     if (myTeamId == null || !hasAdpData) return []
     return available
       .filter((p) => {
         if (p.espn_adp == null) return false
         const avail = availabilityMap.get(p.mlb_id)
-        return avail != null && avail >= 0.15 && avail <= 0.85
+        return avail != null && avail >= 0.30
       })
       .map((p) => ({
         player: p,
@@ -2322,11 +2322,11 @@ export default function DraftBoardPage() {
                     )
                   })()}
 
-                  {/* On the board — contested players */}
+                  {/* On the board — best available at next pick */}
                   {onTheBoard.length > 0 && (
                     <div>
                       <div className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider mb-0.5">On the board</div>
-                      <div className="text-[9px] text-gray-500 mb-1">Contested at your next pick</div>
+                      <div className="text-[9px] text-gray-500 mb-1">Top picks projected at your next turn</div>
                       {onTheBoard.map(({ player, score, badge, availability }) => {
                         const pos = getPositions(player)[0]
                         const pct = Math.round(availability * 100)
