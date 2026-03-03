@@ -1053,15 +1053,16 @@ export default function DraftBoardPage() {
     return { map, threshold }
   }, [draftScoreMap])
 
-  // ── "On the board" — best players projected to be available at your next pick ──
+  // ── "On the board" — drop top X by ADP (likely gone), show best remaining ──
   const onTheBoard = useMemo(() => {
-    if (myTeamId == null || !hasAdpData) return []
-    return available
-      .filter((p) => {
-        if (p.espn_adp == null) return false
-        const avail = availabilityMap.get(p.mlb_id)
-        return avail != null && avail >= 0.30
-      })
+    if (myTeamId == null || !hasAdpData || picksUntilMine >= 999) return []
+    const withAdp = available.filter((p) => p.espn_adp != null)
+    // Sort by ADP to find who'll get picked before our turn
+    const byAdp = [...withAdp].sort((a, b) => a.espn_adp! - b.espn_adp!)
+    // Drop the top picksUntilMine players — they'll likely be taken
+    const remaining = new Set(byAdp.slice(picksUntilMine).map((p) => p.mlb_id))
+    return withAdp
+      .filter((p) => remaining.has(p.mlb_id))
       .map((p) => ({
         player: p,
         score: draftScoreMap.get(p.mlb_id)?.score ?? 0,
@@ -1070,7 +1071,7 @@ export default function DraftBoardPage() {
       }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 8)
-  }, [available, availabilityMap, draftScoreMap, myTeamId, hasAdpData])
+  }, [available, draftScoreMap, availabilityMap, myTeamId, hasAdpData, picksUntilMine])
 
   // ── Top recommendation with explanation ──
   const topRecommendation = useMemo((): DraftRecommendation | null => {
