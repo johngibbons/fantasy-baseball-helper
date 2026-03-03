@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { getRankings, RankedPlayer } from '@/lib/valuations-api'
 import { getPositions } from '@/lib/roster-optimizer'
 
+const PAGE_SIZE = 100
 const POSITIONS = ['All', 'C', '1B', '2B', '3B', 'SS', 'OF', 'DH', 'SP', 'RP']
 const TYPES = ['All', 'hitter', 'pitcher']
 
@@ -43,6 +44,9 @@ export default function RankingsPage() {
   const [sortKey, setSortKey] = useState<SortKey>('overall_rank')
   const [sortAsc, setSortAsc] = useState(true)
   const [searchText, setSearchText] = useState('')
+  const [page, setPage] = useState(0)
+
+  useEffect(() => { setPage(0) }, [typeFilter, posFilter, searchText, sortKey, sortAsc])
 
   useEffect(() => {
     setLoading(true)
@@ -74,6 +78,9 @@ export default function RankingsPage() {
     })
     return list
   }, [players, searchText, sortKey, sortAsc])
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
+  const paginatedList = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
 
   const showHitterCats = typeFilter !== 'pitcher'
   const showPitcherCats = typeFilter !== 'hitter'
@@ -204,7 +211,7 @@ export default function RankingsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((p, idx) => {
+                  {paginatedList.map((p, idx) => {
                     const isHitter = p.player_type === 'hitter'
                     return (
                       <tr
@@ -309,6 +316,29 @@ export default function RankingsPage() {
             </div>
             {filtered.length === 0 && (
               <div className="text-center py-16 text-gray-600 text-sm">No players found</div>
+            )}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-3 py-2 border-t border-gray-800 text-sm">
+                <button
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  className="px-3 py-1 rounded text-xs font-semibold border border-gray-700 text-gray-400 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  &larr; Prev
+                </button>
+                <span className="text-gray-400 text-xs tabular-nums">
+                  Page {page + 1} of {totalPages}
+                  <span className="text-gray-600 mx-1.5">&middot;</span>
+                  {filtered.length} players
+                </span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                  disabled={page >= totalPages - 1}
+                  className="px-3 py-1 rounded text-xs font-semibold border border-gray-700 text-gray-400 hover:bg-gray-800 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next &rarr;
+                </button>
+              </div>
             )}
           </div>
         )}
