@@ -1355,15 +1355,30 @@ export default function DraftBoardPage() {
         case 'rank':
           cmp = a.overall_rank - b.overall_rank
           break
-        case 'adp':
-          cmp = (a.espn_adp ?? 9999) - (b.espn_adp ?? 9999)
+        case 'adp': {
+          const aVal = a.espn_adp, bVal = b.espn_adp
+          if (aVal == null && bVal == null) { cmp = 0; break }
+          if (aVal == null) return 1
+          if (bVal == null) return -1
+          cmp = aVal - bVal
           break
-        case 'nfbc':
-          cmp = (a.fangraphs_adp ?? 9999) - (b.fangraphs_adp ?? 9999)
+        }
+        case 'nfbc': {
+          const aVal = a.fangraphs_adp, bVal = b.fangraphs_adp
+          if (aVal == null && bVal == null) { cmp = 0; break }
+          if (aVal == null) return 1
+          if (bVal == null) return -1
+          cmp = aVal - bVal
           break
-        case 'avail':
-          cmp = (availabilityMap.get(a.mlb_id) ?? -1) - (availabilityMap.get(b.mlb_id) ?? -1)
+        }
+        case 'avail': {
+          const aVal = availabilityMap.get(a.mlb_id), bVal = availabilityMap.get(b.mlb_id)
+          if (aVal == null && bVal == null) { cmp = 0; break }
+          if (aVal == null) return 1
+          if (bVal == null) return -1
+          cmp = aVal - bVal
           break
+        }
         case 'name':
           cmp = a.full_name.localeCompare(b.full_name)
           break
