@@ -32,19 +32,27 @@ function normalCDF(x: number): number {
  * picks are more predictable (tighter ADP clustering), later picks have
  * more variance.
  *
+ * In keeper leagues, ESPN ADP is from redraft leagues and doesn't account
+ * for keepers. We adjust by counting how many competitive (non-keeper) picks
+ * will happen before our turn, and shifting ADP down by the number of kept
+ * players with ADP below this player's ADP.
+ *
  * @param espnAdp - The player's ESPN average draft position
- * @param currentPick - The current overall pick number (0-based index)
- * @param picksUntilMyTurn - Number of picks until it's your turn again
+ * @param competitivePicksSoFar - Number of non-keeper picks already made
+ * @param competitivePicksUntilMyTurn - Number of non-keeper picks until my turn
+ * @param keptBelowAdp - Number of kept players with ADP <= this player's ADP
  * @returns Probability between 0 and 1 that the player will still be available
  */
 export function computeAvailability(
   espnAdp: number,
-  currentPick: number,
-  picksUntilMyTurn: number,
+  competitivePicksSoFar: number,
+  competitivePicksUntilMyTurn: number,
+  keptBelowAdp: number = 0,
 ): number {
-  const targetPick = currentPick + picksUntilMyTurn
-  // Sigma scales with ADP: top picks are predictable (~6), later picks more noisy (~12)
-  const sigma = 6 + (espnAdp / 250) * 6
-  const z = (targetPick - espnAdp) / sigma
+  const effectiveTargetPick = competitivePicksSoFar + competitivePicksUntilMyTurn
+  const effectiveAdp = espnAdp - keptBelowAdp
+  // Sigma scales with effective ADP: top picks are predictable (~6), later picks more noisy (~12)
+  const sigma = 6 + (Math.max(1, effectiveAdp) / 250) * 6
+  const z = (effectiveTargetPick - effectiveAdp) / sigma
   return Math.max(0, Math.min(1, 1 - normalCDF(z)))
 }

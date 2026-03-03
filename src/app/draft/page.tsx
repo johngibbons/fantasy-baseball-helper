@@ -863,6 +863,48 @@ export default function DraftBoardPage() {
     [currentPickIndex, draftOrder, myTeamId, pickSchedule, keeperPickIndices]
   )
 
+  // ── Keeper-adjusted availability helpers ──
+  // Count non-keeper picks made so far (competitive picks before currentPickIndex)
+  const competitivePicksSoFar = useMemo(() => {
+    let count = 0
+    for (let i = 0; i < currentPickIndex; i++) {
+      if (!keeperPickIndices.has(i)) count++
+    }
+    return count
+  }, [currentPickIndex, keeperPickIndices])
+
+  // Count non-keeper picks between current and my next turn
+  const competitivePicksUntilMine = useMemo(() => {
+    if (picksUntilMine >= 999) return 999
+    const myNextPick = currentPickIndex + picksUntilMine
+    let count = 0
+    for (let i = currentPickIndex + 1; i < myNextPick; i++) {
+      if (!keeperPickIndices.has(i)) count++
+    }
+    return count
+  }, [currentPickIndex, picksUntilMine, keeperPickIndices])
+
+  // Sorted ADPs of kept players (for binary-search counting how many are below a given ADP)
+  const keptAdpsSorted = useMemo(() => {
+    const adps: number[] = []
+    for (const k of leagueKeepersData) {
+      const player = allPlayers.find(p => p.mlb_id === k.mlb_id)
+      if (player?.espn_adp != null) adps.push(player.espn_adp)
+    }
+    return adps.sort((a, b) => a - b)
+  }, [leagueKeepersData, allPlayers])
+
+  const countKeptBelowAdp = useCallback((adp: number): number => {
+    // Binary search for count of kept ADPs <= adp
+    let lo = 0, hi = keptAdpsSorted.length
+    while (lo < hi) {
+      const mid = (lo + hi) >>> 1
+      if (keptAdpsSorted[mid] <= adp) lo = mid + 1
+      else hi = mid
+    }
+    return lo
+  }, [keptAdpsSorted])
+
   // ── VONA (Value Over Next Available) — window-based ──
   // Uses availability-weighted expected replacement value instead of literal next-best.
   // For each position, computes what you'd realistically get if you wait until your
@@ -894,7 +936,7 @@ export default function DraftBoardPage() {
       let expectedReplacement = 0
       let pAllGoneSoFar = 1.0
       for (const alt of alternatives) {
-        const pAvail = computeAvailability(alt.adp, currentPickIndex, picksUntilMine)
+        const pAvail = computeAvailability(alt.adp, competitivePicksSoFar, competitivePicksUntilMine, countKeptBelowAdp(alt.adp))
         const pIsBest = pAllGoneSoFar * pAvail
         expectedReplacement += alt.nv * pIsBest
         pAllGoneSoFar *= (1 - pAvail)
@@ -913,7 +955,7 @@ export default function DraftBoardPage() {
       vona.set(p.mlb_id, bestVona === -Infinity ? 0 : bestVona)
     }
     return vona
-  }, [allPlayers, draftedIds, recalcData, catStats, currentPickIndex, picksUntilMine])
+  }, [allPlayers, draftedIds, recalcData, catStats, competitivePicksSoFar, competitivePicksUntilMine, countKeptBelowAdp])
 
   const hasAdpData = allPlayers.some((p) => p.espn_adp != null)
   const hasNfbcData = allPlayers.some((p) => p.fangraphs_adp != null)
@@ -925,11 +967,13 @@ export default function DraftBoardPage() {
     const map = new Map<number, number>()
     for (const p of available) {
       if (p.espn_adp != null) {
-        map.set(p.mlb_id, computeAvailability(p.espn_adp, currentPickIndex, picksUntilMine))
+        map.set(p.mlb_id, computeAvailability(
+          p.espn_adp, competitivePicksSoFar, competitivePicksUntilMine, countKeptBelowAdp(p.espn_adp)
+        ))
       }
     }
     return map
-  }, [myTeamId, hasAdpData, available, currentPickIndex, picksUntilMine])
+  }, [myTeamId, hasAdpData, available, competitivePicksSoFar, competitivePicksUntilMine, countKeptBelowAdp])
 
   const draftScoreMap = useMemo(() => {
     const map = new Map<number, PlayerDraftScore>()
@@ -949,12 +993,14 @@ export default function DraftBoardPage() {
       let badge: 'NOW' | 'WAIT' | null = null
 
       if (myTeamId != null && p.espn_adp != null) {
-        const adpGap = p.espn_adp - currentPickIndex
-        urgency = Math.max(0, Math.min(15, picksUntilMine - adpGap))
+        const effectiveAdp = p.espn_adp - countKeptBelowAdp(p.espn_adp)
+        const effectiveTarget = competitivePicksSoFar + competitivePicksUntilMine
+        const adpGap = effectiveAdp - competitivePicksSoFar
+        urgency = Math.max(0, Math.min(15, competitivePicksUntilMine - adpGap))
 
-        if (p.espn_adp <= currentPickIndex + picksUntilMine) {
+        if (effectiveAdp <= effectiveTarget) {
           badge = 'NOW'
-        } else if (p.espn_adp > currentPickIndex + picksUntilMine * 2) {
+        } else if (effectiveAdp > effectiveTarget + competitivePicksUntilMine) {
           badge = 'WAIT'
         }
       }
@@ -1016,7 +1062,7 @@ export default function DraftBoardPage() {
       map.set(p.mlb_id, { mlbId: p.mlb_id, score, mcw, vona, urgency, badge, categoryGains })
     }
     return map
-  }, [allPlayers, draftedIds, vonaMap, myTeamId, currentPickIndex, picksUntilMine, recalcData,
+  }, [allPlayers, draftedIds, vonaMap, myTeamId, competitivePicksSoFar, competitivePicksUntilMine, countKeptBelowAdp, recalcData,
       categoryStandings, otherTeamTotals, strategyMap, teamCategories, leagueTeams.length,
       myTeam.length, draftPicks.size, rosterState.remainingCapacity, catStats,
       replacementLevels, getSurplusValue])
@@ -1055,12 +1101,12 @@ export default function DraftBoardPage() {
 
   // ── "On the board" — drop top X by ADP (likely gone), show best remaining ──
   const onTheBoard = useMemo(() => {
-    if (myTeamId == null || !hasAdpData || picksUntilMine >= 999) return []
+    if (myTeamId == null || !hasAdpData || competitivePicksUntilMine >= 999) return []
     const withAdp = available.filter((p) => p.espn_adp != null)
     // Sort by ADP to find who'll get picked before our turn
     const byAdp = [...withAdp].sort((a, b) => a.espn_adp! - b.espn_adp!)
-    // Drop the top picksUntilMine players — they'll likely be taken
-    const remaining = new Set(byAdp.slice(picksUntilMine).map((p) => p.mlb_id))
+    // Drop the top competitivePicksUntilMine players — they'll likely be taken
+    const remaining = new Set(byAdp.slice(competitivePicksUntilMine).map((p) => p.mlb_id))
     return withAdp
       .filter((p) => remaining.has(p.mlb_id))
       .map((p) => ({
@@ -1071,7 +1117,7 @@ export default function DraftBoardPage() {
       }))
       .sort((a, b) => b.score - a.score)
       .slice(0, 8)
-  }, [available, draftScoreMap, availabilityMap, myTeamId, hasAdpData, picksUntilMine])
+  }, [available, draftScoreMap, availabilityMap, myTeamId, hasAdpData, competitivePicksUntilMine])
 
   // ── Top recommendation with explanation ──
   const topRecommendation = useMemo((): DraftRecommendation | null => {
