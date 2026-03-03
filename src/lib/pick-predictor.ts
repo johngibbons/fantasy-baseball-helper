@@ -28,24 +28,23 @@ function normalCDF(x: number): number {
 /**
  * Compute the probability a player is still available at your next pick.
  *
+ * Uses a normal CDF model where sigma scales with draft depth — early
+ * picks are more predictable (tighter ADP clustering), later picks have
+ * more variance.
+ *
  * @param espnAdp - The player's ESPN average draft position
  * @param currentPick - The current overall pick number (0-based index)
  * @param picksUntilMyTurn - Number of picks until it's your turn again
- * @param sigma - Standard deviation of ADP noise (default 18 = ~68% of players go within 18 picks of ADP)
  * @returns Probability between 0 and 1 that the player will still be available
  */
 export function computeAvailability(
   espnAdp: number,
   currentPick: number,
   picksUntilMyTurn: number,
-  sigma = 18
 ): number {
-  // The pick at which we'd be selecting
   const targetPick = currentPick + picksUntilMyTurn
-  // Model: player's actual draft position X ~ N(ADP, sigma²)
-  // P(available at targetPick) = P(X > targetPick) = 1 - CDF((targetPick - ADP) / sigma)
-  // Low ADP (elite) + high target → z large → CDF ~1 → availability LOW (gone early)
-  // High ADP (late) + low target → z negative → CDF ~0 → availability HIGH (still there)
+  // Sigma scales with ADP: top picks are predictable (~6), later picks more noisy (~12)
+  const sigma = 6 + (espnAdp / 250) * 6
   const z = (targetPick - espnAdp) / sigma
   return Math.max(0, Math.min(1, 1 - normalCDF(z)))
 }
