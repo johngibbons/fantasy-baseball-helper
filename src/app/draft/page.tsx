@@ -159,7 +159,7 @@ export default function DraftBoardPage() {
     const indices = new Set<number>()
     for (const k of leagueKeepersData) {
       const idx = pickSchedule.length > 0
-        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams)
+        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams, indices)
         : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
       if (idx >= 0) indices.add(idx)
     }
@@ -171,11 +171,15 @@ export default function DraftBoardPage() {
     const m = new Map<number, LeagueKeeperEntry>()
     if (leagueKeepersData.length === 0 || draftOrder.length === 0) return m
     const numTeams = draftOrder.length
+    const usedIndices = new Set<number>()
     for (const k of leagueKeepersData) {
       const idx = pickSchedule.length > 0
-        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams)
+        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams, usedIndices)
         : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
-      if (idx >= 0) m.set(idx, k)
+      if (idx >= 0) {
+        m.set(idx, k)
+        usedIndices.add(idx)
+      }
     }
     return m
   }, [leagueKeepersData, draftOrder, pickSchedule])
@@ -571,7 +575,7 @@ export default function DraftBoardPage() {
         newPicks.set(k.mlb_id, k.teamId)
         newKeeperIds.add(k.mlb_id)
         const idx = pickSchedule.length > 0
-          ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams)
+          ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams, keeperIndicesSet)
           : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
         if (idx >= 0) keeperIndicesSet.add(idx)
       }
@@ -1812,9 +1816,13 @@ export default function DraftBoardPage() {
                     const tradedIndices = new Set(pickTrades.map(t => t.pickIndex))
                     // Build keeper pick index → keeper info map
                     const keeperAtIndex = new Map<number, LeagueKeeperEntry>()
+                    const usedKeeperIndices = new Set<number>()
                     for (const k of leagueKeepersData) {
-                      const idx = keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams)
-                      if (idx >= 0) keeperAtIndex.set(idx, k)
+                      const idx = keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams, usedKeeperIndices)
+                      if (idx >= 0) {
+                        keeperAtIndex.set(idx, k)
+                        usedKeeperIndices.add(idx)
+                      }
                     }
 
                     return Array.from({ length: numRounds }, (_, round) => {

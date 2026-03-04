@@ -106,12 +106,14 @@ export default function DraftResultsPage() {
   const fullPickLog = useMemo(() => {
     if (leagueKeepers.length === 0) return pickLog
     const keeperEntries: typeof pickLog = []
+    const usedIndices = new Set<number>()
     for (const k of leagueKeepers) {
       const idx = pickSchedule.length > 0
-        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams)
+        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams, usedIndices)
         : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
       if (idx >= 0) {
         keeperEntries.push({ pickIndex: idx, mlbId: k.mlb_id, teamId: k.teamId })
+        usedIndices.add(idx)
       }
     }
     return [...keeperEntries, ...pickLog].sort((a, b) => a.pickIndex - b.pickIndex)

@@ -18,7 +18,7 @@ ROSTER_SIZE = 25
 NUM_ROUNDS = 25
 
 MANAGERS = {
-    1: "Chris Herbst",
+    1: "Russell Berry",
     2: "Jason McComb",
     3: "Eric Mercado",
     4: "John Gibbons",
@@ -33,30 +33,23 @@ MANAGERS = {
 NAME_TO_POS = {v: k for k, v in MANAGERS.items()}
 
 PICK_TRADES = [
-    ("Eric Mercado",   "Chris Herbst",  4),
-    ("David Rotatori", "Chris Herbst",  6),
-    ("Harris Cook",    "Chris Herbst",  5),
-    ("Matt Wayne",     "Chris Herbst",  8),
-    ("Bryan Lewis",    "Chris Herbst",  11),
-    ("Matt Wayne",     "Chris Herbst",  16),
-    ("Harris Cook",    "Chris Herbst",  10),
-    ("Jason McComb",   "Chris Herbst",  14),
-    ("Chris Herbst",   "Jason McComb",  15),
-    ("Chris Herbst",   "Jason McComb",  16),
+    ("Eric Mercado",   "Russell Berry",  4),
+    ("David Rotatori", "Russell Berry",  6),
+    ("Harris Cook",    "Russell Berry",  5),
+    ("Matt Wayne",     "Russell Berry",  8),
+    ("Bryan Lewis",    "Russell Berry",  11),
+    ("Matt Wayne",     "Russell Berry",  16),
+    ("Harris Cook",    "Russell Berry",  10),
     ("David Rotatori", "Eric Mercado",  9),
     ("David Rotatori", "Eric Mercado",  16),
-    ("Chris Herbst",   "Tim Riker",     18),
-    ("Chris Herbst",   "Tim Riker",     19),
-    ("Tim Riker",      "Chris Herbst",  23),
-    ("Tim Riker",      "Chris Herbst",  24),
 ]
 
 # Keepers: (manager, declared_round, player, year_label)
 KEEPERS = [
-    ("Chris Herbst",    20, "Jackson Merrill", "2nd yr"),
-    ("Chris Herbst",    23, "Eury Perez",      "1st yr"),
-    ("Chris Herbst",    24, "Drake Baldwin",    "1st yr"),
-    ("Chris Herbst",    25, "Roman Anthony",    "1st yr"),
+    ("Russell Berry",    20, "Jackson Merrill", "2nd yr"),
+    ("Russell Berry",    23, "Eury Perez",      "1st yr"),
+    ("Russell Berry",    24, "Drake Baldwin",    "1st yr"),
+    ("Russell Berry",    25, "Roman Anthony",    "1st yr"),
     ("Jason McComb",     9, "Brice Turang",     "1st yr"),
     ("Jason McComb",    23, "Alex Vesia",       "1st yr"),
     ("Jason McComb",    24, "Tony Santillan",   "1st yr"),
@@ -398,7 +391,7 @@ def write_sheet_format_csv(results, keeper_adjustments, filename):
     """Write draft order CSV matching the 2025 Draft Google Sheets tab format."""
 
     INITIALS = {
-        "Jason McComb": "JM", "Eric Mercado": "EM", "Chris Herbst": "CH",
+        "Jason McComb": "JM", "Eric Mercado": "EM", "Russell Berry": "CH",
         "John Gibbons": "JG", "Tim Riker": "TR", "Bryan Lewis": "BL",
         "Harris Cook": "HC", "Matt Wayne": "MW", "Jess Barron": "JB",
         "David Rotatori": "DR",
@@ -522,7 +515,7 @@ def main():
     print_summary(results)
     print_keeper_adjustments(keeper_adjustments)
     print_forfeited_picks(forfeited_slots)
-    print_manager_detail("Chris Herbst", final_slots)
+    print_manager_detail("Russell Berry", final_slots)
 
     csv_path = "/Users/jgibbons/code/fantasy-baseball-helper/2026_draft_order.csv"
     write_sheet_format_csv(results, keeper_adjustments, csv_path)

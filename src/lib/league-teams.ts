@@ -135,13 +135,14 @@ export function keeperPickIndexFromSchedule(
   teamId: number,
   roundCost: number,
   schedule: PickSchedule,
-  numTeams: number
+  numTeams: number,
+  excludeIndices?: Set<number>
 ): number {
   if (schedule.length === 0 || numTeams === 0) return -1
   const roundStart = (roundCost - 1) * numTeams
   const roundEnd = Math.min(roundStart + numTeams, schedule.length)
   for (let i = roundStart; i < roundEnd; i++) {
-    if (schedule[i] === teamId) return i
+    if (schedule[i] === teamId && !excludeIndices?.has(i)) return i
   }
   return -1
 }

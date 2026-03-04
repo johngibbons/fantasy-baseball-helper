@@ -30,7 +30,7 @@ SEASON = 2026
 # ── ESPN team IDs (from TEAM_MANAGER in draft-history.ts) ──
 TEAM_ID_TO_MANAGER = {
     1: "Jess Barron",
-    2: "Chris Herbst",
+    2: "Russell Berry",
     3: "Tim Riker",
     4: "Harris Cook",
     5: "Jason McComb",
@@ -52,13 +52,13 @@ NUM_TEAMS = 10
 
 # ── Pick trades: (from_manager, to_manager, round) ──
 PICK_TRADES = [
-    ("Eric Mercado",   "Chris Herbst",  4),
-    ("David Rotatori", "Chris Herbst",  6),
-    ("Harris Cook",    "Chris Herbst",  5),
-    ("Matt Wayne",     "Chris Herbst",  8),
-    ("Bryan Lewis",    "Chris Herbst",  11),
-    ("Matt Wayne",     "Chris Herbst",  16),
-    ("Harris Cook",    "Chris Herbst",  10),
+    ("Eric Mercado",   "Russell Berry",  4),
+    ("David Rotatori", "Russell Berry",  6),
+    ("Harris Cook",    "Russell Berry",  5),
+    ("Matt Wayne",     "Russell Berry",  8),
+    ("Bryan Lewis",    "Russell Berry",  11),
+    ("Matt Wayne",     "Russell Berry",  16),
+    ("Harris Cook",    "Russell Berry",  10),
     ("David Rotatori", "Eric Mercado",  9),
     ("David Rotatori", "Eric Mercado",  16),
 ]
@@ -66,10 +66,10 @@ PICK_TRADES = [
 # ── Keepers: (manager, declared_round, player_name, year_label) ──
 KEEPERS = [
     # (manager, round, player_name, keeper_year, mlb_id)
-    ("Chris Herbst",   20, "Jackson Merrill",      "2nd yr", 701538),
-    ("Chris Herbst",   23, "Eury Perez",           "1st yr", 691587),
-    ("Chris Herbst",   24, "Drake Baldwin",         "1st yr", 686948),
-    ("Chris Herbst",   25, "Roman Anthony",         "1st yr", 701350),
+    ("Russell Berry",   20, "Jackson Merrill",      "2nd yr", 701538),
+    ("Russell Berry",   23, "Eury Perez",           "1st yr", 691587),
+    ("Russell Berry",   24, "Drake Baldwin",         "1st yr", 686948),
+    ("Russell Berry",   25, "Roman Anthony",         "1st yr", 701350),
     ("Jason McComb",    9, "Brice Turang",          "1st yr", 668930),
     ("Jason McComb",   23, "Alex Vesia",            "1st yr", 681911),
     ("Jason McComb",   24, "Tony Santillan",        "1st yr", 663574),
@@ -120,7 +120,7 @@ def _get_round_order(round_num):
 def _managers():
     """Draft-position → manager mapping (matches compute script)."""
     return {
-        1: "Chris Herbst",
+        1: "Russell Berry",
         2: "Jason McComb",
         3: "Eric Mercado",
         4: "John Gibbons",
