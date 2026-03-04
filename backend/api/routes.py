@@ -88,6 +88,18 @@ def rankings(
     return {"rankings": players, "total": len(players)}
 
 
+@router.get("/rankings/comparison")
+def rankings_comparison(season: int = Query(2026)):
+    """Compute THE BAT X rankings ephemerally for side-by-side comparison with ATC."""
+    results = calculate_all_zscores(season=season, source="thebatx", save_to_db=False)
+    return {
+        "comparison": {
+            p["mlb_id"]: {"rank": p["overall_rank"], "value": round(p["total_zscore"], 2)}
+            for p in results
+        }
+    }
+
+
 @router.get("/rankings/positions")
 def position_rankings(season: int = Query(2026)):
     """Get top players at each position."""

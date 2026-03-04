@@ -229,6 +229,24 @@ export async function getStatsSummary(
   return fetchApi('/stats/summary', { season: String(season) })
 }
 
+// === BAT X Comparison ===
+
+export interface BatXComparisonEntry {
+  rank: number
+  value: number
+}
+
+export type BatXComparison = Record<number, BatXComparisonEntry>
+
+export async function getBatXComparison(
+  season: number = 2026
+): Promise<BatXComparison> {
+  const data = await fetchApi<{ comparison: BatXComparison }>('/rankings/comparison', {
+    season: String(season),
+  })
+  return data.comparison
+}
+
 // === Keeper Types ===
 
 export interface KeeperCandidate {

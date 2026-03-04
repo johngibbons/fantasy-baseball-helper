@@ -2,14 +2,14 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
-import { getRankings, RankedPlayer } from '@/lib/valuations-api'
+import { getRankings, RankedPlayer, getBatXComparison, BatXComparison } from '@/lib/valuations-api'
 import { getPositions } from '@/lib/roster-optimizer'
 
 const PAGE_SIZE = 100
 const POSITIONS = ['All', 'C', '1B', '2B', '3B', 'SS', 'OF', 'DH', 'SP', 'RP']
 const TYPES = ['All', 'hitter', 'pitcher']
 
-type SortKey = 'overall_rank' | 'total_zscore' | 'zscore_r' | 'zscore_tb' | 'zscore_rbi' | 'zscore_sb' | 'zscore_obp' | 'zscore_k' | 'zscore_qs' | 'zscore_era' | 'zscore_whip' | 'zscore_svhd'
+type SortKey = 'overall_rank' | 'total_zscore' | 'zscore_r' | 'zscore_tb' | 'zscore_rbi' | 'zscore_sb' | 'zscore_obp' | 'zscore_k' | 'zscore_qs' | 'zscore_era' | 'zscore_whip' | 'zscore_svhd' | 'batx_rank' | 'batx_value'
 
 const posColors: Record<string, string> = {
   C: 'text-blue-400', '1B': 'text-amber-400', '2B': 'text-orange-400', '3B': 'text-purple-400',
@@ -45,6 +45,9 @@ export default function RankingsPage() {
   const [sortAsc, setSortAsc] = useState(true)
   const [searchText, setSearchText] = useState('')
   const [page, setPage] = useState(0)
+  const [showBatX, setShowBatX] = useState(false)
+  const [batXData, setBatXData] = useState<BatXComparison | null>(null)
+  const [batXLoading, setBatXLoading] = useState(false)
 
   useEffect(() => { setPage(0) }, [typeFilter, posFilter, searchText, sortKey, sortAsc])
 
@@ -60,6 +63,18 @@ export default function RankingsPage() {
       .finally(() => setLoading(false))
   }, [typeFilter, posFilter])
 
+  const handleBatXToggle = () => {
+    const next = !showBatX
+    setShowBatX(next)
+    if (next && !batXData && !batXLoading) {
+      setBatXLoading(true)
+      getBatXComparison()
+        .then(setBatXData)
+        .catch((e) => console.error('BAT X fetch failed:', e))
+        .finally(() => setBatXLoading(false))
+    }
+  }
+
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortAsc(!sortAsc)
     else { setSortKey(key); setSortAsc(key === 'overall_rank') }
@@ -72,12 +87,19 @@ export default function RankingsPage() {
       list = list.filter((p) => p.full_name.toLowerCase().includes(q))
     }
     list.sort((a, b) => {
-      const aVal = ((a as unknown as Record<string, number>)[sortKey]) ?? 0
-      const bVal = ((b as unknown as Record<string, number>)[sortKey]) ?? 0
+      let aVal: number, bVal: number
+      if (sortKey === 'batx_rank' || sortKey === 'batx_value') {
+        const field = sortKey === 'batx_rank' ? 'rank' : 'value'
+        aVal = batXData?.[a.mlb_id]?.[field] ?? (sortAsc ? 999999 : -999999)
+        bVal = batXData?.[b.mlb_id]?.[field] ?? (sortAsc ? 999999 : -999999)
+      } else {
+        aVal = ((a as unknown as Record<string, number>)[sortKey]) ?? 0
+        bVal = ((b as unknown as Record<string, number>)[sortKey]) ?? 0
+      }
       return sortAsc ? aVal - bVal : bVal - aVal
     })
     return list
-  }, [players, searchText, sortKey, sortAsc])
+  }, [players, searchText, sortKey, sortAsc, batXData])
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
   const paginatedList = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)
@@ -146,6 +168,24 @@ export default function RankingsPage() {
               className="w-52 bg-[#111827] rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-gray-600 border border-transparent focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/30 transition-all"
             />
           </div>
+
+          <div className="h-5 w-px bg-gray-800" />
+
+          <button
+            onClick={handleBatXToggle}
+            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              showBatX
+                ? 'bg-violet-600 text-white shadow-sm'
+                : 'bg-[#111827] text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            {batXLoading ? (
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 border-2 border-gray-500 border-t-violet-400 rounded-full animate-spin" />
+                BAT X
+              </span>
+            ) : 'BAT X'}
+          </button>
         </div>
 
         {loading ? (
@@ -167,6 +207,12 @@ export default function RankingsPage() {
                     <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase tracking-wider w-12">Pos</th>
                     <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider min-w-[140px]">Team</th>
                     <Th label="Value" field="total_zscore" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} className="w-16" />
+                    {showBatX && (
+                      <>
+                        <Th label="BX#" field="batx_rank" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} className="w-14" />
+                        <Th label="BX Val" field="batx_value" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} className="w-16" />
+                      </>
+                    )}
                     {showHitterCats && (
                       <>
                         <th className="px-1 py-2 text-center text-[10px] font-semibold text-gray-600 uppercase tracking-wider" colSpan={5}>
@@ -190,6 +236,7 @@ export default function RankingsPage() {
                     <th className="h-0" />
                     <th className="h-0" />
                     <th className="h-0" />
+                    {showBatX && (<><th className="h-0" /><th className="h-0" /></>)}
                     {showHitterCats && (
                       <>
                         <Th label="R" field="zscore_r" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} sub />
@@ -280,6 +327,33 @@ export default function RankingsPage() {
                             {fmtZ(p.total_zscore)}
                           </span>
                         </td>
+
+                        {/* BAT X comparison columns */}
+                        {showBatX && (() => {
+                          const bx = batXData?.[p.mlb_id]
+                          const rankDiff = bx ? p.overall_rank - bx.rank : 0
+                          const diffClass = Math.abs(rankDiff) >= 30
+                            ? rankDiff > 0 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'
+                            : 'text-gray-500'
+                          return (
+                            <>
+                              <td className="px-2 py-[7px] text-center">
+                                {bx ? (
+                                  <span className={`inline-block min-w-[2rem] px-1 py-[1px] rounded text-[11px] font-medium tabular-nums ${diffClass}`}>
+                                    {bx.rank}
+                                  </span>
+                                ) : <span className="text-[11px] text-gray-800">—</span>}
+                              </td>
+                              <td className="px-2 py-[7px] text-right">
+                                {bx ? (
+                                  <span className={`inline-block min-w-[3rem] px-1.5 py-[1px] rounded text-[12px] font-bold tabular-nums ${zBg(bx.value)}`}>
+                                    {fmtZ(bx.value)}
+                                  </span>
+                                ) : <span className="text-[11px] text-gray-800">—</span>}
+                              </td>
+                            </>
+                          )
+                        })()}
 
                         {/* Category z-scores — two-way players show values in both sections */}
                         {showHitterCats && (

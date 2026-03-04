@@ -612,6 +612,21 @@ def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
             logger.warning(f"Failed to fetch {source} projections from FanGraphs: {e}")
             results[source] = 0
 
+    # Always fetch THE BAT X alongside ATC for side-by-side comparison.
+    # THE BAT X updates daily during pre-season, so differences from ATC
+    # signal recent news (trades, injuries, role changes) not yet in ATC.
+    if primary_ok:
+        try:
+            bat = fetch_fangraphs_batting("thebatx", "thebatx", season, adp_map)
+            time.sleep(_FG_REQUEST_DELAY)
+            pit = fetch_fangraphs_pitching("thebatx", "thebatx", season, adp_map)
+            time.sleep(_FG_REQUEST_DELAY)
+            results["thebatx"] = bat + pit
+            logger.info(f"  thebatx: {bat} batters + {pit} pitchers")
+        except Exception as e:
+            logger.warning(f"Failed to fetch thebatx projections from FanGraphs: {e}")
+            results["thebatx"] = 0
+
     # Fall back to individual systems if ATC failed
     if not primary_ok:
         logger.info("ATC unavailable, falling back to individual projection systems")
