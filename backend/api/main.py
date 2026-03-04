@@ -110,23 +110,8 @@ def startup():
 
     logger.info("Startup recalculation complete")
 
-    # One-time draft state reseed to apply bug fixes (keeper index collision,
-    # Russell Berry rename).  force=False preserves all draft progress (picks,
-    # pickLog, currentPickIndex) while refreshing keepers, pickSchedule, and
-    # pickTrades from the corrected config.
-    # TODO: Remove this block after the first successful deploy.
-    try:
-        from backend.data.seed_draft_order import seed_draft_state
-        state = seed_draft_state(force=False)
-        if state:
-            logger.info(
-                "Draft state reseeded: %d-pick schedule, %d keepers, %d trades",
-                len(state.get("pickSchedule", [])),
-                len(state.get("keeperMlbIds", [])),
-                len(state.get("pickTrades", [])),
-            )
-    except Exception as e:
-        logger.error("Draft state reseed failed (non-fatal): %s", e)
+    # Draft state seeding disabled — draft is live, state is managed by the client.
+    # To force-reseed, use POST /api/draft/reseed manually.
 
 
 @app.get("/health")
