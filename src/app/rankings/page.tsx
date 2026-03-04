@@ -201,6 +201,9 @@ export default function RankingsPage() {
                 <thead>
                   <tr className="bg-[#111827]/80 glass sticky top-0 z-10">
                     <Th label="#" field="overall_rank" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} left className="w-12 pl-4" />
+                    {showBatX && (
+                      <Th label="BX#" field="batx_rank" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} className="w-14" />
+                    )}
                     <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase tracking-wider w-14">ADP</th>
                     <th className="px-2 py-2 text-center text-[10px] font-semibold text-gray-500 uppercase tracking-wider w-14">NFBC</th>
                     <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Player</th>
@@ -208,10 +211,7 @@ export default function RankingsPage() {
                     <th className="px-3 py-2 text-left text-[10px] font-semibold text-gray-500 uppercase tracking-wider min-w-[140px]">Team</th>
                     <Th label="Value" field="total_zscore" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} className="w-16" />
                     {showBatX && (
-                      <>
-                        <Th label="BX#" field="batx_rank" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} className="w-14" />
-                        <Th label="BX Val" field="batx_value" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} className="w-16" />
-                      </>
+                      <Th label="BX Val" field="batx_value" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} className="w-16" />
                     )}
                     {showHitterCats && (
                       <>
@@ -230,13 +230,14 @@ export default function RankingsPage() {
                   </tr>
                   <tr className="bg-[#111827]/50">
                     <th className="h-0" />
+                    {showBatX && <th className="h-0" />}
                     <th className="h-0" />
                     <th className="h-0" />
                     <th className="h-0" />
                     <th className="h-0" />
                     <th className="h-0" />
                     <th className="h-0" />
-                    {showBatX && (<><th className="h-0" /><th className="h-0" /></>)}
+                    {showBatX && <th className="h-0" />}
                     {showHitterCats && (
                       <>
                         <Th label="R" field="zscore_r" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} sub />
@@ -271,6 +272,24 @@ export default function RankingsPage() {
                         <td className="pl-4 pr-1 py-[7px]">
                           <span className="text-[11px] text-gray-600 font-mono tabular-nums">{p.overall_rank}</span>
                         </td>
+
+                        {/* BAT X rank */}
+                        {showBatX && (() => {
+                          const bx = batXData?.[p.mlb_id]
+                          const rankDiff = bx ? p.overall_rank - bx.rank : 0
+                          const diffClass = Math.abs(rankDiff) >= 30
+                            ? rankDiff > 0 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'
+                            : 'text-gray-500'
+                          return (
+                            <td className="px-2 py-[7px] text-center">
+                              {bx ? (
+                                <span className={`inline-block min-w-[2rem] px-1 py-[1px] rounded text-[11px] font-medium tabular-nums ${diffClass}`}>
+                                  {bx.rank}
+                                </span>
+                              ) : <span className="text-[11px] text-gray-800">—</span>}
+                            </td>
+                          )
+                        })()}
 
                         {/* ADP */}
                         <td className="px-2 py-[7px] text-center">
@@ -328,30 +347,17 @@ export default function RankingsPage() {
                           </span>
                         </td>
 
-                        {/* BAT X comparison columns */}
+                        {/* BAT X value */}
                         {showBatX && (() => {
                           const bx = batXData?.[p.mlb_id]
-                          const rankDiff = bx ? p.overall_rank - bx.rank : 0
-                          const diffClass = Math.abs(rankDiff) >= 30
-                            ? rankDiff > 0 ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'
-                            : 'text-gray-500'
                           return (
-                            <>
-                              <td className="px-2 py-[7px] text-center">
-                                {bx ? (
-                                  <span className={`inline-block min-w-[2rem] px-1 py-[1px] rounded text-[11px] font-medium tabular-nums ${diffClass}`}>
-                                    {bx.rank}
-                                  </span>
-                                ) : <span className="text-[11px] text-gray-800">—</span>}
-                              </td>
-                              <td className="px-2 py-[7px] text-right">
-                                {bx ? (
-                                  <span className={`inline-block min-w-[3rem] px-1.5 py-[1px] rounded text-[12px] font-bold tabular-nums ${zBg(bx.value)}`}>
-                                    {fmtZ(bx.value)}
-                                  </span>
-                                ) : <span className="text-[11px] text-gray-800">—</span>}
-                              </td>
-                            </>
+                            <td className="px-2 py-[7px] text-right">
+                              {bx ? (
+                                <span className={`inline-block min-w-[3rem] px-1.5 py-[1px] rounded text-[12px] font-bold tabular-nums ${zBg(bx.value)}`}>
+                                  {fmtZ(bx.value)}
+                                </span>
+                              ) : <span className="text-[11px] text-gray-800">—</span>}
+                            </td>
                           )
                         })()}
 
