@@ -292,11 +292,13 @@ def import_fangraphs_pitching(filepath: str, source: str, season: int = 2025):
 _FG_API_BASE = "https://www.fangraphs.com/api/projections"
 
 # FanGraphs projection type parameter → our source name.
-# ATC is a professionally-optimized blend of multiple systems (Steamer, ZiPS,
-# THE BAT X, PECOTA, etc.) that consistently ranks #1-2 in accuracy tests.
-# We fetch it as the primary source; individual systems are kept as fallback.
+# ATC DC uses ATC talent projections (a professionally-optimized blend of
+# Steamer, ZiPS, THE BAT X, PECOTA, etc.) with Depth Charts playing time
+# estimates maintained by the FanGraphs staff.  Depth Charts playing time
+# updates more frequently during spring training as roster moves happen,
+# making it a better choice than plain ATC once camps open.
 _FG_SOURCES_PRIMARY = {
-    "atc": "atc",
+    "atcdc": "atc",
 }
 _FG_SOURCES_FALLBACK = {
     "steamer": "steamer",
@@ -583,9 +585,9 @@ def import_adp_from_api(adp_map: dict[int, float], season: int) -> int:
 def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
     """Fetch projections from FanGraphs API.
 
-    Fetches ATC (pre-blended consensus) as the primary source.  Falls back
-    to individual systems (Steamer, ZiPS, THE BAT X) if ATC fails.
-    Also collects ADP data from whichever source provides it.
+    Fetches ATC DC (ATC with Depth Charts playing time) as the primary
+    source.  Falls back to individual systems (Steamer, ZiPS, THE BAT X)
+    if ATC DC fails.  Also collects ADP data from whichever source provides it.
 
     Args:
         season: Projection season year
@@ -596,7 +598,7 @@ def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
     results = {}
     adp_map: dict[int, float] = {}
 
-    # Try ATC first (professionally-blended consensus)
+    # Try ATC DC first (ATC talent + Depth Charts playing time)
     primary_ok = False
     for fg_type, source in _FG_SOURCES_PRIMARY.items():
         try:
@@ -612,9 +614,9 @@ def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
             logger.warning(f"Failed to fetch {source} projections from FanGraphs: {e}")
             results[source] = 0
 
-    # Fall back to individual systems if ATC failed
+    # Fall back to individual systems if ATC DC failed
     if not primary_ok:
-        logger.info("ATC unavailable, falling back to individual projection systems")
+        logger.info("ATC DC unavailable, falling back to individual projection systems")
         for fg_type, source in _FG_SOURCES_FALLBACK.items():
             try:
                 bat = fetch_fangraphs_batting(fg_type, source, season, adp_map)
