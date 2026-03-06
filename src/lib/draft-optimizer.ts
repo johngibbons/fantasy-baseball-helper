@@ -287,7 +287,7 @@ export function computeMCW(
 export function standingsConfidence(
   totalPicksMade: number
 ): number {
-  return Math.max(0, Math.min(1, (totalPicksMade - 40) / 41))
+  return Math.max(0, Math.min(1, (totalPicksMade - 2) / 126))
 }
 
 /**
@@ -301,9 +301,9 @@ export function computeDraftScore(
   confidence: number,
   draftProgress: number
 ): number {
-  return mcw * 21.0 * confidence
-    + vona * 0.16
-    + urgency * 0.02
+  return mcw * 20.18 * confidence
+    + vona * 0.47
+    + urgency * 0.08
     + rosterFit * draftProgress
 }
 
