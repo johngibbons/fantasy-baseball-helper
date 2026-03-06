@@ -7,7 +7,10 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 
 from .config import SimConfig
-from .player_pool import Player, ALL_CAT_KEYS, HITTING_CAT_KEYS, PITCHING_CAT_KEYS, TOTAL_ROSTER_SIZE
+from .player_pool import (
+    Player, KeeperEntry, ALL_CAT_KEYS, HITTING_CAT_KEYS, PITCHING_CAT_KEYS,
+    TOTAL_ROSTER_SIZE, keeper_pick_index, build_keeper_adp_list, count_kept_below_adp,
+)
 from .roster import RosterState
 from .scoring_model import (
     analyze_category_standings,
@@ -49,11 +52,28 @@ def picks_until_next_turn(current_pick: int, my_team: int, num_teams: int) -> in
     return 999
 
 
+def _competitive_picks_until_next_turn(
+    current_pick: int,
+    my_team: int,
+    num_teams: int,
+    keeper_indices: set[int],
+) -> int:
+    """Count non-keeper picks between current_pick and my next turn."""
+    count = 0
+    for i in range(current_pick + 1, num_teams * 25 + 1):
+        if snake_order(i, num_teams) == my_team:
+            return count
+        if i not in keeper_indices:
+            count += 1
+    return 999
+
+
 def simulate_draft(
     all_players: list[Player],
     my_slot: int,
     config: SimConfig,
     rng: random.Random,
+    keepers: list[KeeperEntry] | None = None,
 ) -> DraftResult:
     """Run a single draft simulation. my_slot is 0-indexed."""
     num_teams = config.NUM_TEAMS
@@ -77,6 +97,71 @@ def simulate_draft(
     my_rp_count = 0
     my_hitter_count = 0
 
+    # ── Keeper setup ──
+    keeper_indices: set[int] = set()
+    keeper_adps_sorted: list[float] = []
+
+    if keepers:
+        # Compute which pick slots are pre-assigned to keepers.
+        # Handle collisions: in the real league, traded picks let a team have
+        # multiple picks per round, but the simulation uses pure snake. If two
+        # keepers from the same team map to the same pick index, find a nearby
+        # slot owned by that team.
+        team_used_indices: dict[int, set[int]] = {}
+        for k in keepers:
+            idx = keeper_pick_index(k.team_idx, k.round_cost, num_teams)
+            if idx >= total_picks:
+                continue
+            used = team_used_indices.setdefault(k.team_idx, set())
+            if idx in keeper_indices:
+                # Collision — find nearest open pick for this team
+                found = False
+                for offset in range(1, num_rounds):
+                    for candidate_round in [k.round_cost + offset, k.round_cost - offset]:
+                        if candidate_round < 1 or candidate_round > num_rounds:
+                            continue
+                        alt_idx = keeper_pick_index(k.team_idx, candidate_round, num_teams)
+                        if alt_idx not in keeper_indices and alt_idx not in used:
+                            keeper_indices.add(alt_idx)
+                            used.add(alt_idx)
+                            found = True
+                            break
+                    if found:
+                        break
+            else:
+                keeper_indices.add(idx)
+                used.add(idx)
+
+        # Build sorted keeper ADP list for effective ADP calculation
+        keeper_adps_sorted = build_keeper_adp_list(keepers, player_by_id)
+
+        # Pre-assign keeper players to their teams
+        for k in keepers:
+            p = player_by_id.get(k.mlb_id)
+            if p is None or p.mlb_id not in available_set:
+                continue
+            team_idx = k.team_idx
+            available_set.discard(p.mlb_id)
+            assigned_slot = rosters[team_idx].add_player(p)
+            weight = 1.0
+            if assigned_slot == "BE":
+                weight = config.PITCHER_BENCH_CONTRIBUTION if p.player_type == "pitcher" else config.HITTER_BENCH_CONTRIBUTION
+                if team_idx == my_slot and p.player_type == "pitcher":
+                    my_bench_pitcher_count += 1
+            for cat_key in ALL_CAT_KEYS:
+                team_totals[team_idx][cat_key] += p.zscores.get(cat_key, 0.0) * weight
+            team_players[team_idx].append(p)
+
+            if team_idx == my_slot:
+                my_pick_count += 1
+                if p.player_type == "pitcher":
+                    if p.pitcher_role() == "SP":
+                        my_sp_count += 1
+                    else:
+                        my_rp_count += 1
+                else:
+                    my_hitter_count += 1
+
     # Precompute ADP-sorted order for opponent picks (rebuilt when pool changes significantly)
     # We'll sort once and maintain it lazily
     cat_stats: dict[str, CatStats] = {}
@@ -85,7 +170,23 @@ def simulate_draft(
 
     result = DraftResult(my_slot=my_slot)
 
+    # Add my keepers to result
+    if keepers:
+        for k in keepers:
+            if k.team_idx == my_slot:
+                p = player_by_id.get(k.mlb_id)
+                if p:
+                    result.my_players.append(p)
+                    result.pick_order.append(p.mlb_id)
+
+    # Track competitive (non-keeper) picks made so far
+    competitive_picks_so_far = 0
+
     for pick_idx in range(total_picks):
+        # Skip keeper pick slots
+        if pick_idx in keeper_indices:
+            continue
+
         team_idx = snake_order(pick_idx, num_teams)
         current_round = pick_idx // num_teams
 
@@ -129,7 +230,11 @@ def simulate_draft(
             standings = detect_strategy(standings, my_pick_count, num_teams, config.PLAYOFF_SPOTS)
             strategies = {s.cat_key: s.strategy for s in standings}
 
-            pum = picks_until_next_turn(pick_idx, my_slot, num_teams)
+            # Compute keeper-adjusted pick counts for urgency
+            if keeper_indices:
+                pum = _competitive_picks_until_next_turn(pick_idx, my_slot, num_teams, keeper_indices)
+            else:
+                pum = picks_until_next_turn(pick_idx, my_slot, num_teams)
 
             best_score = float("-inf")
             best_player: Player | None = None
@@ -154,6 +259,9 @@ def simulate_draft(
                 else:
                     roster_need = 1.0 if has_need else 0.0
 
+                # Keeper-adjusted current_pick for urgency/availability
+                effective_current_pick = competitive_picks_so_far if keeper_indices else pick_idx
+
                 score = full_player_score(
                     player=p,
                     my_totals=team_totals[my_slot],
@@ -162,13 +270,14 @@ def simulate_draft(
                     cat_stats=cat_stats,
                     available_by_position=available_by_position,
                     has_starting_need=roster_need,
-                    current_pick=pick_idx,
+                    current_pick=effective_current_pick,
                     picks_until_mine=pum,
                     total_picks_made=pick_idx,
                     my_pick_count=my_pick_count,
                     config=config,
                     bench_pitcher_count=my_bench_pitcher_count,
                     replacement_levels=replacement_levels,
+                    keeper_adps_sorted=keeper_adps_sorted,
                 )
                 if score > best_score:
                     best_score = score
@@ -225,6 +334,8 @@ def simulate_draft(
                     my_rp_count += 1
             else:
                 my_hitter_count += 1
+
+        competitive_picks_so_far += 1
 
     result.all_team_totals = team_totals
     result.bench_pitcher_count = my_bench_pitcher_count

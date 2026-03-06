@@ -19,7 +19,7 @@ import time
 sys.path.insert(0, "backend")
 
 from simulation.config import SimConfig
-from simulation.player_pool import load_players, rescale_h2h_weights
+from simulation.player_pool import load_players, load_keepers, rescale_h2h_weights
 from simulation.draft_engine import simulate_draft
 from simulation.evaluate import evaluate_draft
 from simulation.report import print_report, print_comparison
@@ -33,6 +33,7 @@ def run_benchmark(
     seed: int | None,
     slots: list[int] | None = None,
     config_label: str = "",
+    keepers=None,
 ) -> list[dict]:
     """Run batch simulations and return list of evaluation results."""
     rng = random.Random(seed)
@@ -51,7 +52,7 @@ def run_benchmark(
             sim_seed = rng.randint(0, 2**31)
             sim_rng = random.Random(sim_seed)
 
-            draft_result = simulate_draft(players, slot, config, sim_rng)
+            draft_result = simulate_draft(players, slot, config, sim_rng, keepers=keepers)
             evaluation = evaluate_draft(draft_result, num_teams)
             evaluation["my_slot"] = slot
             results.append(evaluation)
@@ -108,6 +109,8 @@ def main() -> None:
                         help="Disable surplus value (VORP) in BPA formula (on by default)")
     parser.add_argument("--no-restrict-norm-pool", action="store_true",
                         help="Disable normalization pool restriction (use full player pool)")
+    parser.add_argument("--keepers", action="store_true",
+                        help="Load keepers from DB and use keeper-adjusted urgency")
 
     args = parser.parse_args()
 
@@ -118,6 +121,12 @@ def main() -> None:
         rescale_h2h_weights(players, args.h2h_weight_scale)
     print(f"  Loaded {len(players)} players ({sum(1 for p in players if p.player_type == 'hitter')} hitters, "
           f"{sum(1 for p in players if p.player_type == 'pitcher')} pitchers)")
+
+    # Load keepers if requested
+    keeper_entries = None
+    if args.keepers:
+        keeper_entries = load_keepers(db_path=args.db, season=args.season)
+        print(f"  Loaded {len(keeper_entries)} keepers")
 
     # Build config with overrides
     overrides: dict = {}
@@ -180,6 +189,7 @@ def main() -> None:
         results_default = run_benchmark(
             players, default_config, total_sims, sims_per_slot,
             seed=args.seed, slots=slots, config_label="defaults",
+            keepers=keeper_entries,
         )
         t1 = time.time()
         print_report(results_default, total_sims, sims_per_slot, num_teams, args.seed, "defaults")
@@ -190,6 +200,7 @@ def main() -> None:
         results_custom = run_benchmark(
             players, custom_config, total_sims, sims_per_slot,
             seed=args.seed, slots=slots, config_label=override_desc,
+            keepers=keeper_entries,
         )
         t1 = time.time()
         print_report(results_custom, total_sims, sims_per_slot, num_teams, args.seed, override_desc)
@@ -206,6 +217,7 @@ def main() -> None:
         results = run_benchmark(
             players, config, total_sims, sims_per_slot,
             seed=args.seed, slots=slots, config_label=label,
+            keepers=keeper_entries,
         )
         t1 = time.time()
         print_report(results, total_sims, sims_per_slot, num_teams, args.seed, label)

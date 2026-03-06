@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import bisect
+import json
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -112,6 +114,84 @@ def rescale_h2h_weights(players: list[Player], scale: float) -> None:
             p.zscores[cat] = p.zscores[cat] * new_weight / old_weight
             total += p.zscores[cat]
         p.total_zscore = total
+
+
+@dataclass
+class KeeperEntry:
+    mlb_id: int
+    team_idx: int      # 0-based draft position (not ESPN team ID)
+    round_cost: int    # 1-based round
+
+
+def load_keepers(db_path: Optional[str] = None, season: int = 2026) -> list[KeeperEntry]:
+    """Load keepers from draft_state.state_json -> leagueKeepers.
+
+    Converts ESPN team IDs to 0-based draft positions using the stored draftOrder.
+    """
+    if db_path is None:
+        db_path = str(Path(__file__).parent.parent / "fantasy_baseball.db")
+
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    row = conn.execute(
+        "SELECT state_json FROM draft_state WHERE season = ?", (season,)
+    ).fetchone()
+    conn.close()
+
+    if not row:
+        return []
+
+    state = json.loads(row["state_json"])
+    league_keepers = state.get("leagueKeepers", [])
+    draft_order = state.get("draftOrder", [])
+
+    if not league_keepers or not draft_order:
+        return []
+
+    # Map ESPN team ID -> 0-based draft position
+    team_id_to_idx = {tid: idx for idx, tid in enumerate(draft_order)}
+
+    entries: list[KeeperEntry] = []
+    for k in league_keepers:
+        team_id = k["teamId"]
+        idx = team_id_to_idx.get(team_id)
+        if idx is None:
+            continue
+        entries.append(KeeperEntry(
+            mlb_id=k["mlb_id"],
+            team_idx=idx,
+            round_cost=k["roundCost"],
+        ))
+    return entries
+
+
+def keeper_pick_index(team_idx: int, round_cost: int, num_teams: int) -> int:
+    """Compute the pick index for a keeper in a snake draft.
+
+    team_idx: 0-based draft position
+    round_cost: 1-based round number
+    """
+    round_0 = round_cost - 1
+    if round_0 % 2 == 0:
+        return round_0 * num_teams + team_idx
+    else:
+        return round_0 * num_teams + (num_teams - 1 - team_idx)
+
+
+def build_keeper_adp_list(keepers: list[KeeperEntry], player_by_id: dict[int, Player]) -> list[float]:
+    """Build sorted list of keeper ADPs for count_kept_below_adp lookups."""
+    adps: list[float] = []
+    for k in keepers:
+        p = player_by_id.get(k.mlb_id)
+        if p and p.espn_adp is not None:
+            adps.append(p.espn_adp)
+    adps.sort()
+    return adps
+
+
+def count_kept_below_adp(adp: float, keeper_adps_sorted: list[float]) -> int:
+    """Count how many kept players have ADP <= adp (binary search)."""
+    return bisect.bisect_right(keeper_adps_sorted, adp)
 
 
 def load_players(db_path: Optional[str] = None, season: int = 2026) -> list[Player]:

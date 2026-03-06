@@ -26,7 +26,7 @@ import optuna
 from optuna.samplers import TPESampler
 
 from simulation.config import SimConfig
-from simulation.player_pool import load_players, Player
+from simulation.player_pool import load_players, load_keepers, Player, KeeperEntry
 from simulation.draft_engine import simulate_draft
 from simulation.evaluate import evaluate_draft
 from simulation.report import print_report, print_comparison
@@ -39,6 +39,7 @@ def run_sims(
     config: SimConfig,
     n_sims_per_slot: int,
     seed: int,
+    keepers: list[KeeperEntry] | None = None,
 ) -> list[dict]:
     """Run simulations across all 10 slots, return evaluation results."""
     rng = random.Random(seed)
@@ -49,7 +50,7 @@ def run_sims(
         for _ in range(n_sims_per_slot):
             sim_seed = rng.randint(0, 2**31)
             sim_rng = random.Random(sim_seed)
-            draft_result = simulate_draft(players, slot, config, sim_rng)
+            draft_result = simulate_draft(players, slot, config, sim_rng, keepers=keepers)
             evaluation = evaluate_draft(draft_result, num_teams)
             evaluation["my_slot"] = slot
             results.append(evaluation)
@@ -62,6 +63,7 @@ def objective(
     players: list[Player],
     n_sims_per_slot: int,
     seed: int,
+    keepers: list[KeeperEntry] | None = None,
 ) -> float:
     """Optuna objective: suggest params, run sims, return expected weekly wins."""
 
@@ -77,7 +79,7 @@ def objective(
         CONFIDENCE_END=trial.suggest_int("CONFIDENCE_END", 40, 160),
     )
 
-    results = run_sims(players, config, n_sims_per_slot, seed)
+    results = run_sims(players, config, n_sims_per_slot, seed, keepers=keepers)
     wins = [r["expected_wins"] for r in results]
     mean_wins = sum(wins) / len(wins)
 
@@ -114,12 +116,20 @@ def main() -> None:
                         help="Optuna study name (for resuming)")
     parser.add_argument("--storage", type=str, default=None,
                         help="Optuna storage URL (e.g. sqlite:///optuna.db) for persistence")
+    parser.add_argument("--keepers", action="store_true",
+                        help="Load keepers from DB and use keeper-adjusted urgency")
     args = parser.parse_args()
 
     # Load player data
     print("Loading player data...")
     players = load_players(db_path=args.db, season=args.season)
     print(f"  {len(players)} players loaded")
+
+    # Load keepers if requested
+    keeper_entries = None
+    if args.keepers:
+        keeper_entries = load_keepers(db_path=args.db, season=args.season)
+        print(f"  Loaded {len(keeper_entries)} keepers")
 
     total_per_trial = 10 * args.sims_per_trial
     print(f"\nOptimization: {args.trials} trials, {total_per_trial} sims/trial "
@@ -130,7 +140,7 @@ def main() -> None:
     print("\n--- Baseline (current defaults) ---")
     baseline_config = SimConfig()
     t0 = time.time()
-    baseline_results = run_sims(players, baseline_config, args.sims_per_trial, args.seed)
+    baseline_results = run_sims(players, baseline_config, args.sims_per_trial, args.seed, keepers=keeper_entries)
     baseline_wins = [r["expected_wins"] for r in baseline_results]
     baseline_mean = sum(baseline_wins) / len(baseline_wins)
     t1 = time.time()
@@ -171,7 +181,7 @@ def main() -> None:
               end="", flush=True)
 
     study.optimize(
-        lambda trial: objective(trial, players, args.sims_per_trial, args.seed),
+        lambda trial: objective(trial, players, args.sims_per_trial, args.seed, keepers=keeper_entries),
         n_trials=args.trials,
         callbacks=[callback],
     )
@@ -272,10 +282,10 @@ def main() -> None:
         sims_per_slot = max(1, args.validate // 10)
 
         print(f"Running defaults ({sims_per_slot * 10} sims)...")
-        val_baseline = run_sims(players, defaults, sims_per_slot, args.seed + 1000)
+        val_baseline = run_sims(players, defaults, sims_per_slot, args.seed + 1000, keepers=keeper_entries)
 
         print(f"Running optimized ({sims_per_slot * 10} sims)...")
-        val_optimized = run_sims(players, opt_config, sims_per_slot, args.seed + 1000)
+        val_optimized = run_sims(players, opt_config, sims_per_slot, args.seed + 1000, keepers=keeper_entries)
 
         print_report(val_baseline, sims_per_slot * 10, sims_per_slot, 10, args.seed + 1000, "defaults")
         print_report(val_optimized, sims_per_slot * 10, sims_per_slot, 10, args.seed + 1000, "optimized")

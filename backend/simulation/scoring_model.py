@@ -13,6 +13,7 @@ from .player_pool import (
     HITTING_CAT_KEYS,
     PITCHING_CAT_KEYS,
     CAT_LABELS,
+    count_kept_below_adp,
 )
 
 
@@ -497,6 +498,7 @@ def full_player_score(
     config: SimConfig,
     bench_pitcher_count: int = 0,
     replacement_levels: dict[str, float] | None = None,
+    keeper_adps_sorted: list[float] | None = None,
 ) -> float:
     normalized_value = get_normalized_value(player, cat_stats)
 
@@ -514,10 +516,14 @@ def full_player_score(
     else:
         vona = compute_vona(player, available_by_position)
 
-    # Urgency
+    # Urgency — use effective ADP adjusted for keepers
     urgency = 0.0
     if player.espn_adp is not None:
-        adp_gap = player.espn_adp - current_pick
+        if keeper_adps_sorted:
+            effective_adp = player.espn_adp - count_kept_below_adp(player.espn_adp, keeper_adps_sorted)
+        else:
+            effective_adp = player.espn_adp
+        adp_gap = effective_adp - current_pick
         urgency = max(0.0, min(15.0, picks_until_mine - adp_gap))
 
     roster_fit = has_starting_need  # float: 0.0 (bench), 1.0 (binary), or scarcity gradient
@@ -540,8 +546,12 @@ def full_player_score(
 
     # Availability discount — skip when window VONA is active (scarcity already baked in)
     if not config.USE_WINDOW_VONA and player.espn_adp is not None:
-        avail_sigma = variable_adp_sigma(player.espn_adp) if config.USE_VARIABLE_SIGMA else config.ADP_SIGMA
-        avail = compute_availability(player.espn_adp, current_pick, picks_until_mine, avail_sigma)
+        if keeper_adps_sorted:
+            avail_adp = player.espn_adp - count_kept_below_adp(player.espn_adp, keeper_adps_sorted)
+        else:
+            avail_adp = player.espn_adp
+        avail_sigma = variable_adp_sigma(avail_adp) if config.USE_VARIABLE_SIGMA else config.ADP_SIGMA
+        avail = compute_availability(avail_adp, current_pick, picks_until_mine, avail_sigma)
         score *= 1 - avail * config.AVAILABILITY_DISCOUNT
 
     # Bench penalty — pitcher-aware: softer penalty for first few bench pitchers
