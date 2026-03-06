@@ -37,6 +37,9 @@ export interface ScoreDetailData {
   benchPenalty: number
   benchPenaltyReason: string | null
 
+  // Availability discount
+  availDiscount: number
+
   // Decomposed formula terms
   mcwComponent: number       // mcw * 21.0 * confidence
   vonaComponentHigh: number  // vona * 0.16
@@ -372,6 +375,15 @@ export function ScoreDetailModal({ data, onClose }: {
                   <span className="text-gray-500 text-[10px]">({d.benchPenaltyReason})</span>
                 )}
                 <span className="ml-auto text-white font-bold tabular-nums">{fmt(d.blendedScore)} x {fmt(d.benchPenalty)} = {fmt(d.finalScore, 1)}</span>
+              </div>
+            )}
+
+            {/* Availability discount */}
+            {d.availDiscount < 1.0 && (
+              <div className="mt-2 flex items-center gap-2 text-[11px] bg-yellow-950/20 border border-yellow-900/30 rounded-lg px-3 py-1.5">
+                <span className="text-yellow-400 font-bold">Avail Discount</span>
+                <span className="text-gray-400">x {fmt(d.availDiscount)}</span>
+                <span className="text-gray-500 text-[10px]">(AVL% {d.availability != null ? pct(d.availability) : '?'} — can wait)</span>
               </div>
             )}
           </section>

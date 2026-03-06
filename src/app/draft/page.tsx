@@ -1049,6 +1049,18 @@ export default function DraftBoardPage() {
 
       // ── Multiplicative adjustments so #1 score = "pick this player now" ──
 
+      // Availability discount: penalize players who will clearly be there later.
+      // A player at 100% availability can be picked next round, so discount their score.
+      // Discount strengthens as draft progresses (later rounds = fewer chances left).
+      const avail = availabilityMap.get(p.mlb_id)
+      if (avail != null && avail > 0.5) {
+        // At 100% avail: multiply by ~0.45 (mid-draft) to ~0.65 (early draft)
+        // At 50% avail: no discount. Smooth ramp between.
+        const availExcess = (avail - 0.5) * 2  // 0 at 50%, 1 at 100%
+        const maxDiscount = 0.35 + (1 - draftProgress) * 0.20  // 0.35–0.55 discount
+        score *= 1 - availExcess * maxDiscount
+      }
+
       // Bench penalty — pitcher-aware: softer penalty for first few bench pitchers
       // (daily league streaming/swap value), then saturates to full penalty
       if (rosterFit === 0 && draftProgress > 0.15) {
@@ -1069,7 +1081,7 @@ export default function DraftBoardPage() {
   }, [allPlayers, draftedIds, vonaMap, myTeamId, competitivePicksSoFar, competitivePicksUntilMine, countKeptBelowAdp, recalcData,
       categoryStandings, otherTeamTotals, strategyMap, teamCategories, leagueTeams.length,
       myTeam.length, draftPicks.size, rosterState.remainingCapacity, catStats,
-      replacementLevels, getSurplusValue])
+      replacementLevels, getSurplusValue, availabilityMap])
 
   // ── Score rank + recommendation zone ──
   // Zone uses stddev of top scores to adapt to score distribution.
@@ -1208,7 +1220,16 @@ export default function DraftBoardPage() {
       }
     }
 
-    const finalScore = blendedScore * benchPenalty
+    // Availability discount
+    let availDiscount = 1.0
+    const avail = availabilityMap.get(scoreDetailPlayer!)
+    if (avail != null && avail > 0.5) {
+      const availExcess = (avail - 0.5) * 2
+      const maxDiscount = 0.35 + (1 - draftProgress) * 0.20
+      availDiscount = 1 - availExcess * maxDiscount
+    }
+
+    const finalScore = blendedScore * benchPenalty * availDiscount
 
     // Per-category z-scores
     const rawZScores: Record<string, number> = {}
@@ -1250,6 +1271,7 @@ export default function DraftBoardPage() {
       hasMCW,
       benchPenalty,
       benchPenaltyReason,
+      availDiscount,
       mcwComponent,
       vonaComponentHigh,
       urgencyComponentHigh,
