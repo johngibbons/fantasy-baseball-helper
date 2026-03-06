@@ -46,7 +46,7 @@ export interface PoolPlayer {
   player_type: 'hitter' | 'pitcher'
   zscores: Record<string, number>
   stats: Record<string, number>
-  espn_adp: number
+  blended_adp: number
   eligible_slots: string[] // roster slots this player can fill (from POSITION_TO_SLOTS)
 }
 
@@ -172,7 +172,7 @@ export function projectStandings(
   }
 
   // Sort available players by ADP for efficient iteration
-  const pool = [...availablePlayers].sort((a, b) => a.espn_adp - b.espn_adp)
+  const pool = [...availablePlayers].sort((a, b) => a.blended_adp - b.blended_adp)
   const drafted = new Set<number>()
 
   // Run the greedy simulation pick-by-pick
@@ -194,7 +194,7 @@ export function projectStandings(
     for (const p of pool) {
       if (drafted.has(p.mlb_id)) continue
 
-      let effectiveAdp = p.espn_adp
+      let effectiveAdp = p.blended_adp
 
       if (!hasStartingNeed(p.eligible_slots, ts.capacity)) {
         effectiveAdp += BENCH_ADP_PENALTY

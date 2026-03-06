@@ -43,6 +43,7 @@ export interface RankedPlayer {
   eligible_positions?: string
   // ADP
   espn_adp?: number
+  blended_adp?: number
   adp_diff?: number
   fangraphs_adp?: number
 }

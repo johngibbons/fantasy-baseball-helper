@@ -469,7 +469,7 @@ def build_available_by_position(
     by_pos: dict[str, list[tuple[int, float, float]]] = {}
     for p in available:
         nv = get_normalized_value(p, cat_stats)
-        adp = p.espn_adp if p.espn_adp is not None else 999.0
+        adp = p.blended_adp if p.blended_adp is not None else 999.0
         for pos in p.get_positions():
             if pos not in by_pos:
                 by_pos[pos] = []
@@ -518,11 +518,11 @@ def full_player_score(
 
     # Urgency — use effective ADP adjusted for keepers
     urgency = 0.0
-    if player.espn_adp is not None:
+    if player.blended_adp is not None:
         if keeper_adps_sorted:
-            effective_adp = player.espn_adp - count_kept_below_adp(player.espn_adp, keeper_adps_sorted)
+            effective_adp = player.blended_adp - count_kept_below_adp(player.blended_adp, keeper_adps_sorted)
         else:
-            effective_adp = player.espn_adp
+            effective_adp = player.blended_adp
         adp_gap = effective_adp - current_pick
         urgency = max(0.0, min(15.0, picks_until_mine - adp_gap))
 
@@ -545,11 +545,11 @@ def full_player_score(
         score = bpa_value + vona * config.VONA_WEIGHT_BPA + urgency * bpa_urgency_weight
 
     # Availability discount — skip when window VONA is active (scarcity already baked in)
-    if not config.USE_WINDOW_VONA and player.espn_adp is not None:
+    if not config.USE_WINDOW_VONA and player.blended_adp is not None:
         if keeper_adps_sorted:
-            avail_adp = player.espn_adp - count_kept_below_adp(player.espn_adp, keeper_adps_sorted)
+            avail_adp = player.blended_adp - count_kept_below_adp(player.blended_adp, keeper_adps_sorted)
         else:
-            avail_adp = player.espn_adp
+            avail_adp = player.blended_adp
         avail_sigma = variable_adp_sigma(avail_adp) if config.USE_VARIABLE_SIGMA else config.ADP_SIGMA
         avail = compute_availability(avail_adp, current_pick, picks_until_mine, avail_sigma)
         score *= 1 - avail * config.AVAILABILITY_DISCOUNT

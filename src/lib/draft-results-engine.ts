@@ -79,7 +79,7 @@ export function analyzeMyPicks(
       overallPick,
       player: p,
       playerRank: p.overall_rank,
-      adp: p.espn_adp ?? null,
+      adp: p.blended_adp ?? null,
       valueDiff: overallPick - p.overall_rank,
       zScore: p.total_zscore,
       isKeeper: keeperMlbIds?.has(pick.mlbId) ?? false,

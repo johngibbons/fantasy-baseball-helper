@@ -381,7 +381,7 @@ def _opponent_pick(
     for p in available_list:
         if p.mlb_id not in available_set:
             continue
-        adp = p.espn_adp if p.espn_adp is not None else 999.0
+        adp = p.blended_adp if p.blended_adp is not None else 999.0
         effective_sigma = (10.0 + 0.1 * adp) if adp_sigma < 0 else adp_sigma
         noisy_adp = adp + rng.gauss(0, effective_sigma)
 

@@ -66,10 +66,10 @@ PICK_TRADES = [
 # ── Keepers: (manager, declared_round, player_name, year_label) ──
 KEEPERS = [
     # (manager, round, player_name, keeper_year, mlb_id)
-    ("Russell Berry",   20, "Jackson Merrill",      "2nd yr", 701538),
-    ("Russell Berry",   23, "Eury Perez",           "1st yr", 691587),
-    ("Russell Berry",   24, "Drake Baldwin",         "1st yr", 686948),
-    ("Russell Berry",   25, "Roman Anthony",         "1st yr", 701350),
+    ("Russell Berry",   16, "Jackson Merrill",      "2nd yr", 701538),
+    ("Russell Berry",   16, "Eury Perez",           "1st yr", 691587),
+    ("Russell Berry",   17, "Drake Baldwin",         "1st yr", 686948),
+    ("Russell Berry",   18, "Roman Anthony",         "1st yr", 701350),
     ("Jason McComb",    9, "Brice Turang",          "1st yr", 668930),
     ("Jason McComb",   23, "Alex Vesia",            "1st yr", 681911),
     ("Jason McComb",   24, "Tony Santillan",        "1st yr", 663574),
@@ -90,6 +90,7 @@ KEEPERS = [
     ("Tim Riker",       4, "Yoshinobu Yamamoto",    "1st yr", 808967),
     ("Tim Riker",      10, "Cal Raleigh",           "1st yr", 663728),
     ("Tim Riker",      25, "Jacob Misiorowski",     "1st yr", 694819),
+    ("Matt Wayne",      7, "Junior Caminero",       "1st yr", 691406),
     ("Matt Wayne",     17, "Cristopher Sanchez",    "2nd yr", 650911),
     ("Matt Wayne",     18, "Garrett Crochet",       "2nd yr", 676979),
     ("Matt Wayne",     20, "James Wood",            "2nd yr", 695578),

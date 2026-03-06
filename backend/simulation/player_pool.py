@@ -49,6 +49,17 @@ POSITION_TO_SLOTS: dict[str, list[str]] = {
 }
 
 
+ESPN_ADP_WEIGHT = 0.65
+NFBC_ADP_WEIGHT = 0.35
+
+
+def blend_adp(espn_adp: Optional[float], nfbc_adp: Optional[float]) -> Optional[float]:
+    """Blend ESPN and NFBC ADP (65/35 split). Falls back to whichever is available."""
+    if espn_adp is not None and nfbc_adp is not None:
+        return ESPN_ADP_WEIGHT * espn_adp + NFBC_ADP_WEIGHT * nfbc_adp
+    return espn_adp if espn_adp is not None else nfbc_adp
+
+
 @dataclass
 class Player:
     mlb_id: int
@@ -60,6 +71,8 @@ class Player:
     espn_adp: Optional[float]
     eligible_positions: Optional[str]
     zscores: dict[str, float]  # cat_key -> z-score value
+    nfbc_adp: Optional[float] = None
+    blended_adp: Optional[float] = None
 
     def pitcher_role(self) -> str:
         if self.zscores.get("zscore_qs", 0) != 0:
@@ -183,8 +196,8 @@ def build_keeper_adp_list(keepers: list[KeeperEntry], player_by_id: dict[int, Pl
     adps: list[float] = []
     for k in keepers:
         p = player_by_id.get(k.mlb_id)
-        if p and p.espn_adp is not None:
-            adps.append(p.espn_adp)
+        if p and p.blended_adp is not None:
+            adps.append(p.blended_adp)
     adps.sort()
     return adps
 
@@ -207,7 +220,7 @@ def load_players(db_path: Optional[str] = None, season: int = 2026) -> list[Play
         SELECT r.mlb_id, r.overall_rank, r.total_zscore,
                r.zscore_r, r.zscore_tb, r.zscore_rbi, r.zscore_sb, r.zscore_obp,
                r.zscore_k, r.zscore_qs, r.zscore_era, r.zscore_whip, r.zscore_svhd,
-               r.player_type, r.espn_adp,
+               r.player_type, r.espn_adp, r.fangraphs_adp,
                p.full_name, p.primary_position, p.eligible_positions
         FROM rankings r
         JOIN players p ON r.mlb_id = p.mlb_id
@@ -220,6 +233,8 @@ def load_players(db_path: Optional[str] = None, season: int = 2026) -> list[Play
     players: list[Player] = []
     for row in cursor.fetchall():
         zscores = {key: row[key] or 0.0 for key in ALL_CAT_KEYS}
+        espn = row["espn_adp"]
+        nfbc = row["fangraphs_adp"]
         players.append(
             Player(
                 mlb_id=row["mlb_id"],
@@ -228,9 +243,11 @@ def load_players(db_path: Optional[str] = None, season: int = 2026) -> list[Play
                 player_type=row["player_type"],
                 overall_rank=row["overall_rank"] or 9999,
                 total_zscore=row["total_zscore"] or 0.0,
-                espn_adp=row["espn_adp"],
+                espn_adp=espn,
                 eligible_positions=row["eligible_positions"],
                 zscores=zscores,
+                nfbc_adp=nfbc,
+                blended_adp=blend_adp(espn, nfbc),
             )
         )
 

@@ -893,7 +893,7 @@ export default function DraftBoardPage() {
     const adps: number[] = []
     for (const k of leagueKeepersData) {
       const player = allPlayers.find(p => p.mlb_id === k.mlb_id)
-      if (player?.espn_adp != null) adps.push(player.espn_adp)
+      if (player?.blended_adp != null) adps.push(player.blended_adp)
     }
     return adps.sort((a, b) => a - b)
   }, [leagueKeepersData, allPlayers])
@@ -918,7 +918,7 @@ export default function DraftBoardPage() {
     const byPosition: Record<string, { player: RankedPlayer; nv: number; adp: number }[]> = {}
     for (const p of availablePlayers) {
       const nv = getNormalizedValue(p)
-      const adp = p.espn_adp ?? 999
+      const adp = p.blended_adp ?? 999
       for (const pos of getPositions(p)) {
         if (!byPosition[pos]) byPosition[pos] = []
         byPosition[pos].push({ player: p, nv, adp })
@@ -961,7 +961,7 @@ export default function DraftBoardPage() {
     return vona
   }, [allPlayers, draftedIds, recalcData, catStats, competitivePicksSoFar, competitivePicksUntilMine, countKeptBelowAdp])
 
-  const hasAdpData = allPlayers.some((p) => p.espn_adp != null)
+  const hasAdpData = allPlayers.some((p) => p.blended_adp != null)
   const hasNfbcData = allPlayers.some((p) => p.fangraphs_adp != null)
   const isMyTeamOnClock = myTeamId != null && activeTeamId === myTeamId
 
@@ -970,9 +970,9 @@ export default function DraftBoardPage() {
     if (myTeamId == null || !hasAdpData) return new Map<number, number>()
     const map = new Map<number, number>()
     for (const p of available) {
-      if (p.espn_adp != null) {
+      if (p.blended_adp != null) {
         map.set(p.mlb_id, computeAvailability(
-          p.espn_adp, competitivePicksSoFar, competitivePicksUntilMine, countKeptBelowAdp(p.espn_adp)
+          p.blended_adp, competitivePicksSoFar, competitivePicksUntilMine, countKeptBelowAdp(p.blended_adp)
         ))
       }
     }
@@ -996,8 +996,8 @@ export default function DraftBoardPage() {
       let urgency = 0
       let badge: 'NOW' | 'WAIT' | null = null
 
-      if (myTeamId != null && p.espn_adp != null) {
-        const effectiveAdp = p.espn_adp - countKeptBelowAdp(p.espn_adp)
+      if (myTeamId != null && p.blended_adp != null) {
+        const effectiveAdp = p.blended_adp - countKeptBelowAdp(p.blended_adp)
         const effectiveTarget = competitivePicksSoFar + competitivePicksUntilMine
         const adpGap = effectiveAdp - competitivePicksSoFar
         urgency = Math.max(0, Math.min(15, competitivePicksUntilMine - adpGap))
@@ -1118,9 +1118,9 @@ export default function DraftBoardPage() {
   // ── "On the board" — drop top X by ADP (likely gone), show best remaining ──
   const onTheBoard = useMemo(() => {
     if (myTeamId == null || !hasAdpData || competitivePicksUntilMine >= 999) return []
-    const withAdp = available.filter((p) => p.espn_adp != null)
+    const withAdp = available.filter((p) => p.blended_adp != null)
     // Sort by ADP to find who'll get picked before our turn
-    const byAdp = [...withAdp].sort((a, b) => a.espn_adp! - b.espn_adp!)
+    const byAdp = [...withAdp].sort((a, b) => a.blended_adp! - b.blended_adp!)
     // Drop the top competitivePicksUntilMine players — they'll likely be taken
     const remaining = new Set(byAdp.slice(competitivePicksUntilMine).map((p) => p.mlb_id))
     return withAdp
@@ -1255,7 +1255,7 @@ export default function DraftBoardPage() {
       team: p.team ?? '',
       playerType: p.player_type as 'hitter' | 'pitcher',
       overallRank: p.overall_rank,
-      espnAdp: p.espn_adp ?? null,
+      espnAdp: p.blended_adp ?? null,
       finalScore,
       mcw,
       vona,
@@ -1388,7 +1388,7 @@ export default function DraftBoardPage() {
           player_type: p.player_type as 'hitter' | 'pitcher',
           zscores,
           stats,
-          espn_adp: p.espn_adp ?? 999,
+          blended_adp: p.blended_adp ?? 999,
           eligible_slots: getEligibleSlots(p),
         }
       })
@@ -1441,7 +1441,7 @@ export default function DraftBoardPage() {
           cmp = a.overall_rank - b.overall_rank
           break
         case 'adp': {
-          const aVal = a.espn_adp, bVal = b.espn_adp
+          const aVal = a.blended_adp, bVal = b.blended_adp
           if (aVal == null && bVal == null) { cmp = 0; break }
           if (aVal == null) return 1
           if (bVal == null) return -1
@@ -1995,7 +1995,7 @@ export default function DraftBoardPage() {
                       <th className="px-2 lg:px-3 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider w-20 lg:w-28">Draft</th>
                       <DraftTh label="#" field="rank" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="left" className="w-14" />
                       {hasAdpData && (
-                        <DraftTh label="ADP" field="adp" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-16" />
+                        <DraftTh label="bADP" field="adp" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-16" />
                       )}
                       {hasNfbcData && (
                         <DraftTh label="NFBC" field="nfbc" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-16" />
@@ -2125,9 +2125,9 @@ export default function DraftBoardPage() {
                           <td className="px-2 lg:px-3 py-1.5 text-gray-500 font-mono text-xs tabular-nums">{p.overall_rank}</td>
                           {hasAdpData && (
                             <td className="px-2 lg:px-3 py-1.5 text-right">
-                              {p.espn_adp != null ? (
+                              {p.blended_adp != null ? (
                                 <div className="flex items-center justify-end gap-1">
-                                  <span className="text-xs text-gray-500 tabular-nums">{Math.round(p.espn_adp)}</span>
+                                  <span className="text-xs text-gray-500 tabular-nums">{Math.round(p.blended_adp)}</span>
                                   {p.adp_diff != null && Math.abs(p.adp_diff) > 5 && (
                                     <span className={`text-[10px] font-bold tabular-nums ${p.adp_diff < 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                       {p.adp_diff > 0 ? '+' : ''}{Math.round(p.adp_diff)}

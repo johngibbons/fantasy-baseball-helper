@@ -145,7 +145,18 @@ def draft_board(season: int = Query(2026)):
     ).fetchall()
     conn.close()
 
-    return {"players": [dict(r) for r in rows], "total": len(rows)}
+    players = []
+    for r in rows:
+        p = dict(r)
+        espn = p.get("espn_adp")
+        nfbc = p.get("fangraphs_adp")
+        if espn is not None and nfbc is not None:
+            p["blended_adp"] = 0.65 * espn + 0.35 * nfbc
+        else:
+            p["blended_adp"] = espn if espn is not None else nfbc
+        players.append(p)
+
+    return {"players": players, "total": len(players)}
 
 
 @router.get("/players/{mlb_id}/statcast")
