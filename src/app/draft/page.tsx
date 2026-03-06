@@ -2139,11 +2139,14 @@ export default function DraftBoardPage() {
                               {p.blended_adp != null ? (
                                 <div className="flex items-center justify-end gap-1">
                                   <span className="text-xs text-gray-500 tabular-nums">{Math.round(p.blended_adp)}</span>
-                                  {p.adp_diff != null && Math.abs(p.adp_diff) > 5 && (
-                                    <span className={`text-[10px] font-bold tabular-nums ${p.adp_diff < 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                      {p.adp_diff > 0 ? '+' : ''}{Math.round(p.adp_diff)}
-                                    </span>
-                                  )}
+                                  {(() => {
+                                    const diff = p.overall_rank - p.blended_adp!
+                                    return Math.abs(diff) > 5 ? (
+                                      <span className={`text-[10px] font-bold tabular-nums ${diff < 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                        {diff > 0 ? '+' : ''}{Math.round(diff)}
+                                      </span>
+                                    ) : null
+                                  })()}
                                 </div>
                               ) : (
                                 <span className="text-xs text-gray-700">--</span>
