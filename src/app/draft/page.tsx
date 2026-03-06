@@ -107,7 +107,7 @@ export default function DraftBoardPage() {
   const [recalcData, setRecalcData] = useState<Map<number, RankedPlayer> | null>(null)
   const [recalculating, setRecalculating] = useState(false)
   const PAGE_SIZE = 100
-  const [sortKey, setSortKey] = useState<'rank' | 'adp' | 'nfbc' | 'avail' | 'name' | 'pos' | 'team' | 'value' | 'score'>('rank')
+  const [sortKey, setSortKey] = useState<'rank' | 'espn' | 'adp' | 'nfbc' | 'avail' | 'name' | 'pos' | 'team' | 'value' | 'score'>('rank')
   const [sortAsc, setSortAsc] = useState(true)
   const [page, setPage] = useState(0)
   const [mobileTab, setMobileTab] = useState<'board' | 'info'>('board')
@@ -1448,6 +1448,14 @@ export default function DraftBoardPage() {
           cmp = aVal - bVal
           break
         }
+        case 'espn': {
+          const aVal = a.espn_adp, bVal = b.espn_adp
+          if (aVal == null && bVal == null) { cmp = 0; break }
+          if (aVal == null) return 1
+          if (bVal == null) return -1
+          cmp = aVal - bVal
+          break
+        }
         case 'nfbc': {
           const aVal = a.fangraphs_adp, bVal = b.fangraphs_adp
           if (aVal == null && bVal == null) { cmp = 0; break }
@@ -1997,6 +2005,9 @@ export default function DraftBoardPage() {
                       {hasAdpData && (
                         <DraftTh label="bADP" field="adp" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-16" />
                       )}
+                      {hasAdpData && (
+                        <DraftTh label="ESPN" field="espn" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-16" />
+                      )}
                       {hasNfbcData && (
                         <DraftTh label="NFBC" field="nfbc" sortKey={sortKey} sortAsc={sortAsc} onSort={handleSort} align="right" className="w-16" />
                       )}
@@ -2134,6 +2145,15 @@ export default function DraftBoardPage() {
                                     </span>
                                   )}
                                 </div>
+                              ) : (
+                                <span className="text-xs text-gray-700">--</span>
+                              )}
+                            </td>
+                          )}
+                          {hasAdpData && (
+                            <td className="px-2 lg:px-3 py-1.5 text-right">
+                              {p.espn_adp != null ? (
+                                <span className="text-xs text-gray-500 tabular-nums">{Math.round(p.espn_adp)}</span>
                               ) : (
                                 <span className="text-xs text-gray-700">--</span>
                               )}
@@ -2984,7 +3004,7 @@ export default function DraftBoardPage() {
 }
 
 // ── Sortable table header for draft board ──
-type DraftSortKey = 'rank' | 'adp' | 'nfbc' | 'avail' | 'name' | 'pos' | 'team' | 'value' | 'score'
+type DraftSortKey = 'rank' | 'espn' | 'adp' | 'nfbc' | 'avail' | 'name' | 'pos' | 'team' | 'value' | 'score'
 
 function DraftTh({ label, field, sortKey, sortAsc, onSort, align = 'left', className = '', title, children }: {
   label: string; field: DraftSortKey; sortKey: DraftSortKey; sortAsc: boolean;
