@@ -30,7 +30,7 @@ import {
 } from '@/lib/draft-optimizer'
 import { computeTiers } from '@/lib/tier-engine'
 import { computeAvailability } from '@/lib/pick-predictor'
-import { projectStandings, type ProjectedStanding } from '@/lib/projected-standings'
+import { projectStandings, type ProjectedStanding, type PoolPlayer } from '@/lib/projected-standings'
 import {
   ROSTER_SLOTS, POSITION_TO_SLOTS, SLOT_ORDER, STARTER_SLOT_COUNT,
   HITTER_STARTER_SLOT_COUNT, PITCHER_STARTER_SLOT_COUNT,
@@ -1369,7 +1369,9 @@ export default function DraftBoardPage() {
   // ── Projected standings ──
   const projectedStandingsData = useMemo((): ProjectedStanding[] => {
     if (teamCategories.rows.length < 2 || pickSchedule.length === 0) return []
-    const availablePlayers = allPlayers
+
+    // Build pool players with ADP and eligible slots
+    const poolPlayers: PoolPlayer[] = allPlayers
       .filter(p => !draftedIds.has(p.mlb_id))
       .map(p => {
         const pd = p as unknown as Record<string, number>
@@ -1381,31 +1383,42 @@ export default function DraftBoardPage() {
         }
         stats['proj_pa'] = pd.proj_pa ?? 0
         stats['proj_ip'] = pd.proj_ip ?? 0
-        return { mlb_id: p.mlb_id, player_type: p.player_type as 'hitter' | 'pitcher', zscores, stats }
+        return {
+          mlb_id: p.mlb_id,
+          player_type: p.player_type as 'hitter' | 'pitcher',
+          zscores,
+          stats,
+          espn_adp: p.espn_adp ?? 999,
+          eligible_slots: getEligibleSlots(p),
+        }
       })
 
-    const remainingStarters = new Map<number, number>()
-    const remainingHitters = new Map<number, number>()
-    const remainingPitchers = new Map<number, number>()
+    // Build remaining pick schedule (skip already-made picks and keeper slots)
+    const remainingPicks: number[] = []
+    for (let i = currentPickIndex; i < pickSchedule.length; i++) {
+      if (!keeperPickIndices.has(i)) {
+        remainingPicks.push(pickSchedule[i])
+      }
+    }
+
+    // Build per-team remaining slot capacity from roster optimizer results
+    const teamCapacities = new Map<number, Record<string, number>>()
     for (const team of leagueTeams) {
       const roster = teamRosters.get(team.id)
-      const filledTotal = roster ? roster.starters.length : 0
-      const filledHitters = roster ? roster.starters.filter(p => p.player_type === 'hitter').length : 0
-      const filledPitchers = roster ? roster.starters.filter(p => p.player_type === 'pitcher').length : 0
-      remainingStarters.set(team.id, Math.max(0, STARTER_SLOT_COUNT - filledTotal))
-      remainingHitters.set(team.id, Math.max(0, HITTER_STARTER_SLOT_COUNT - filledHitters))
-      remainingPitchers.set(team.id, Math.max(0, PITCHER_STARTER_SLOT_COUNT - filledPitchers))
+      teamCapacities.set(team.id, roster
+        ? { ...roster.remainingCapacity }
+        : { ...ROSTER_SLOTS }
+      )
     }
 
     return projectStandings(
       teamCategories.rows,
-      availablePlayers,
+      poolPlayers,
       ALL_CATS,
-      remainingStarters,
-      remainingHitters,
-      remainingPitchers
+      remainingPicks,
+      teamCapacities
     )
-  }, [teamCategories, allPlayers, draftedIds, leagueTeams, teamRosters])
+  }, [teamCategories, allPlayers, draftedIds, leagueTeams, teamRosters, pickSchedule, currentPickIndex, keeperPickIndices])
 
   const handleSort = useCallback((key: typeof sortKey) => {
     if (sortKey === key) {

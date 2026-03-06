@@ -1,20 +1,20 @@
 /**
- * Project final standings from current draft state + remaining value pool.
+ * Project final standings via deterministic greedy draft simulation.
  *
- * Splits undrafted players into hitter and pitcher pools, selects the top
- * players from each proportional to roster slot counts, then distributes
- * them to teams based on each team's remaining hitter/pitcher slots.
- *
- * Projects actual stats (R, TB, OBP, ERA, etc.) rather than z-scores.
+ * Simulates remaining draft picks pick-by-pick, assigning players to teams
+ * based on ADP + positional scarcity + category need bonuses. This replaces
+ * the old proportional-share model that didn't account for team needs.
  */
 
 import type { CatDef } from './draft-categories'
 import { HITTING_CATS, PITCHING_CATS } from './draft-categories'
+import { ROSTER_SLOTS, POSITION_TO_SLOTS } from './roster-optimizer'
 export type { CatDef }
 
-/** Number of starter roster slots by type */
-const HITTER_STARTER_SLOTS = 10 // C, 1B, 2B, 3B, SS, OF×3, UTIL×2
-const PITCHER_STARTER_SLOTS = 7 // SP×3, RP×2, P×2
+// ── Simulation config (matches Python opponent model) ──
+const BENCH_ADP_PENALTY = 15
+const SCARCITY_BONUS = 15
+const CAT_NEED_BONUS = 4
 
 export interface TeamRow {
   teamId: number
@@ -41,77 +41,125 @@ export interface ProjectedStanding {
   overallRank: number
 }
 
-interface PoolPlayer {
+export interface PoolPlayer {
   mlb_id: number
   player_type: 'hitter' | 'pitcher'
   zscores: Record<string, number>
   stats: Record<string, number>
+  espn_adp: number
+  eligible_slots: string[] // roster slots this player can fill (from POSITION_TO_SLOTS)
 }
 
-interface PoolTotals {
+/** Per-team draft state during simulation */
+interface TeamDraftState {
+  teamId: number
+  capacity: Record<string, number> // remaining slot capacity
+  zscoreTotals: Record<string, number>
   statTotals: Record<string, number>
-  zscores: Record<string, number>
-  pa: number
-  ip: number
+  totalPA: number
+  totalIP: number
   weightedOBP: number
   weightedERA: number
   weightedWHIP: number
 }
 
-function aggregatePool(players: PoolPlayer[], cats: CatDef[]): PoolTotals {
-  const statTotals: Record<string, number> = {}
-  const zscores: Record<string, number> = {}
-  for (const cat of cats) {
-    if (!cat.rate) statTotals[cat.projKey] = 0
-    zscores[cat.key] = 0
+// ── Roster helpers (mirror Python RosterState) ──
+
+function hasStartingNeed(slots: string[], capacity: Record<string, number>): boolean {
+  for (const slot of slots) {
+    if (slot !== 'BE' && (capacity[slot] ?? 0) > 0) return true
   }
+  return false
+}
 
-  let pa = 0, ip = 0, weightedOBP = 0, weightedERA = 0, weightedWHIP = 0
-
-  for (const p of players) {
-    for (const cat of cats) {
-      if (!cat.rate) statTotals[cat.projKey] += (p.stats[cat.projKey] ?? 0)
-      zscores[cat.key] += (p.zscores[cat.key] ?? 0)
+function slotScarcity(slots: string[], capacity: Record<string, number>): number {
+  let minCap = 0
+  for (const slot of slots) {
+    if (slot === 'BE') continue
+    const cap = capacity[slot] ?? 0
+    if (cap > 0 && (minCap === 0 || cap < minCap)) {
+      minCap = cap
     }
-    const pPA = p.stats['proj_pa'] ?? 0
-    const pIP = p.stats['proj_ip'] ?? 0
-    pa += pPA
-    ip += pIP
-    weightedOBP += (p.stats['proj_obp'] ?? 0) * pPA
-    weightedERA += (p.stats['proj_era'] ?? 0) * pIP
-    weightedWHIP += (p.stats['proj_whip'] ?? 0) * pIP
   }
+  return minCap > 0 ? 1.0 / minCap : 0.0
+}
 
-  return { statTotals, zscores, pa, ip, weightedOBP, weightedERA, weightedWHIP }
+function assignToSlot(slots: string[], capacity: Record<string, number>): string | null {
+  for (const slot of slots) {
+    if ((capacity[slot] ?? 0) > 0) {
+      capacity[slot]--
+      return slot
+    }
+  }
+  return null
+}
+
+function categoryNeedBonus(
+  player: PoolPlayer,
+  zscoreTotals: Record<string, number>,
+): number {
+  const cats = player.player_type === 'pitcher' ? PITCHING_CATS : HITTING_CATS
+  const catVals = cats.map(c => ({ key: c.key, value: zscoreTotals[c.key] ?? 0 }))
+  catVals.sort((a, b) => a.value - b.value)
+  const weakCats = new Set(catVals.slice(0, 2).map(c => c.key))
+
+  let bonus = 0
+  for (const catKey of weakCats) {
+    if ((player.zscores[catKey] ?? 0) > 0.5) {
+      bonus += CAT_NEED_BONUS
+    }
+  }
+  return bonus
+}
+
+/** Check if any starter slots remain across all teams */
+function totalStarterSlotsRemaining(teamStates: TeamDraftState[]): number {
+  let total = 0
+  for (const ts of teamStates) {
+    for (const [slot, cap] of Object.entries(ts.capacity)) {
+      if (slot !== 'BE') total += cap
+    }
+  }
+  return total
 }
 
 /**
- * Project final standings for all teams using projected stats.
+ * Project final standings using a deterministic greedy draft simulation.
  *
- * @param teamRows - Current team data (from teamCategories.rows) with stat totals
- * @param availablePlayers - Undrafted players with projection data and player_type
- * @param cats - Category definitions with projKey, inverted, rate, weight
- * @param remainingStarterSlots - Map of teamId → number of unfilled starter slots
- * @param remainingHitterSlots - Map of teamId → number of unfilled hitter starter slots
- * @param remainingPitcherSlots - Map of teamId → number of unfilled pitcher starter slots
+ * For each remaining pick in the schedule, scores available players for the
+ * picking team using ADP + positional scarcity + category need bonuses,
+ * then assigns the best player.
  */
 export function projectStandings(
   teamRows: TeamRow[],
   availablePlayers: PoolPlayer[],
   cats: CatDef[],
-  remainingStarterSlots: Map<number, number>,
-  remainingHitterSlots: Map<number, number>,
-  remainingPitcherSlots: Map<number, number>,
+  remainingPickSchedule: number[], // teamId for each remaining pick
+  teamCapacities: Map<number, Record<string, number>>, // per-team remaining slot capacity
 ): ProjectedStanding[] {
   if (teamRows.length === 0) return []
 
-  // Total remaining slots by type across all teams
-  const totalRemainingPicks = [...remainingStarterSlots.values()].reduce((a, b) => a + b, 0)
-  const totalRemainingHitter = [...remainingHitterSlots.values()].reduce((a, b) => a + b, 0)
-  const totalRemainingPitcher = [...remainingPitcherSlots.values()].reduce((a, b) => a + b, 0)
+  // Initialize per-team draft state
+  const teamStateMap = new Map<number, TeamDraftState>()
+  for (const row of teamRows) {
+    const capacity = teamCapacities.get(row.teamId)
+    teamStateMap.set(row.teamId, {
+      teamId: row.teamId,
+      capacity: capacity ? { ...capacity } : { ...ROSTER_SLOTS },
+      zscoreTotals: { ...row.totals },
+      statTotals: { ...row.statTotals },
+      totalPA: row.totalPA,
+      totalIP: row.totalIP,
+      weightedOBP: row.weightedOBP,
+      weightedERA: row.weightedERA,
+      weightedWHIP: row.weightedWHIP,
+    })
+  }
 
-  if (totalRemainingPicks === 0) {
-    const standings: ProjectedStanding[] = teamRows.map(row => ({
+  const teamStates = [...teamStateMap.values()]
+
+  if (remainingPickSchedule.length === 0 || totalStarterSlotsRemaining(teamStates) === 0) {
+    return computeRanksAndWins(teamRows.map(row => ({
       teamId: row.teamId,
       teamName: row.teamName,
       currentTotals: { ...row.totals },
@@ -120,85 +168,93 @@ export function projectStandings(
       projectedRanks: {},
       projectedWins: 0,
       overallRank: 0,
-    }))
-    return computeRanksAndWins(standings, cats)
+    })), cats)
   }
 
-  // Split available players into hitter and pitcher pools, sorted by type-
-  // relevant z-score sum, then take the top N of each.
-  const hitters = availablePlayers.filter(p => p.player_type === 'hitter')
-  const pitchers = availablePlayers.filter(p => p.player_type === 'pitcher')
+  // Sort available players by ADP for efficient iteration
+  const pool = [...availablePlayers].sort((a, b) => a.espn_adp - b.espn_adp)
+  const drafted = new Set<number>()
 
-  const sortByZscoreSum = (players: PoolPlayer[], relevantCats: CatDef[]) =>
-    [...players]
-      .sort((a, b) => {
-        let aTotal = 0, bTotal = 0
-        for (const cat of relevantCats) {
-          aTotal += (a.zscores[cat.key] ?? 0)
-          bTotal += (b.zscores[cat.key] ?? 0)
-        }
-        return bTotal - aTotal
-      })
+  // Run the greedy simulation pick-by-pick
+  for (const pickTeamId of remainingPickSchedule) {
+    const ts = teamStateMap.get(pickTeamId)
+    if (!ts) continue
 
-  const hitterPool = sortByZscoreSum(hitters, HITTING_CATS).slice(0, totalRemainingHitter)
-  const pitcherPool = sortByZscoreSum(pitchers, PITCHING_CATS).slice(0, totalRemainingPitcher)
-
-  // Aggregate pool stats separately
-  const hitterPoolTotals = aggregatePool(hitterPool, cats)
-  const pitcherPoolTotals = aggregatePool(pitcherPool, cats)
-
-  // Project each team's totals
-  const projected: ProjectedStanding[] = teamRows.map(row => {
-    const hitterShare = totalRemainingHitter > 0
-      ? (remainingHitterSlots.get(row.teamId) ?? 0) / totalRemainingHitter
-      : 0
-    const pitcherShare = totalRemainingPitcher > 0
-      ? (remainingPitcherSlots.get(row.teamId) ?? 0) / totalRemainingPitcher
-      : 0
-
-    // Z-score projected totals (for MCW model compatibility)
-    const projectedTotals: Record<string, number> = {}
-    for (const cat of cats) {
-      projectedTotals[cat.key] = (row.totals[cat.key] ?? 0)
-        + hitterShare * hitterPoolTotals.zscores[cat.key]
-        + pitcherShare * pitcherPoolTotals.zscores[cat.key]
+    // Skip if this team has no starter slots left
+    let hasStarter = false
+    for (const [slot, cap] of Object.entries(ts.capacity)) {
+      if (slot !== 'BE' && cap > 0) { hasStarter = true; break }
     }
+    if (!hasStarter) continue
 
-    // Stat projected totals (for display)
-    const projectedStatTotals: Record<string, number> = {}
+    // Score each available player for this team
+    let bestScore = Infinity
+    let bestPlayer: PoolPlayer | null = null
 
-    // Counting stats: current + shares of both pools
-    for (const cat of cats) {
-      if (!cat.rate) {
-        projectedStatTotals[cat.projKey] = (row.statTotals[cat.projKey] ?? 0)
-          + hitterShare * (hitterPoolTotals.statTotals[cat.projKey] ?? 0)
-          + pitcherShare * (pitcherPoolTotals.statTotals[cat.projKey] ?? 0)
+    for (const p of pool) {
+      if (drafted.has(p.mlb_id)) continue
+
+      let effectiveAdp = p.espn_adp
+
+      if (!hasStartingNeed(p.eligible_slots, ts.capacity)) {
+        effectiveAdp += BENCH_ADP_PENALTY
+      } else {
+        const scarcity = slotScarcity(p.eligible_slots, ts.capacity)
+        effectiveAdp -= scarcity * SCARCITY_BONUS
+        effectiveAdp -= categoryNeedBonus(p, ts.zscoreTotals)
+      }
+
+      if (effectiveAdp < bestScore) {
+        bestScore = effectiveAdp
+        bestPlayer = p
       }
     }
 
-    // Rate stats: recompute from combined weighted components
-    const projPA = row.totalPA
-      + hitterShare * hitterPoolTotals.pa
-      + pitcherShare * pitcherPoolTotals.pa
-    const projIP = row.totalIP
-      + hitterShare * hitterPoolTotals.ip
-      + pitcherShare * pitcherPoolTotals.ip
+    if (!bestPlayer) continue
 
-    projectedStatTotals['proj_obp'] = projPA > 0
-      ? (row.weightedOBP + hitterShare * hitterPoolTotals.weightedOBP + pitcherShare * pitcherPoolTotals.weightedOBP) / projPA
-      : 0
-    projectedStatTotals['proj_era'] = projIP > 0
-      ? (row.weightedERA + hitterShare * hitterPoolTotals.weightedERA + pitcherShare * pitcherPoolTotals.weightedERA) / projIP
-      : 0
-    projectedStatTotals['proj_whip'] = projIP > 0
-      ? (row.weightedWHIP + hitterShare * hitterPoolTotals.weightedWHIP + pitcherShare * pitcherPoolTotals.weightedWHIP) / projIP
-      : 0
+    // Assign player to team
+    drafted.add(bestPlayer.mlb_id)
+    const assignedSlot = assignToSlot(bestPlayer.eligible_slots, ts.capacity)
+    const weight = assignedSlot === 'BE' ? 0 : 1 // skip bench weight for starters-only sim
+
+    if (weight > 0) {
+      for (const cat of cats) {
+        ts.zscoreTotals[cat.key] = (ts.zscoreTotals[cat.key] ?? 0) + (bestPlayer.zscores[cat.key] ?? 0)
+        if (!cat.rate) {
+          ts.statTotals[cat.projKey] = (ts.statTotals[cat.projKey] ?? 0) + (bestPlayer.stats[cat.projKey] ?? 0)
+        }
+      }
+      const pa = bestPlayer.stats['proj_pa'] ?? 0
+      const ip = bestPlayer.stats['proj_ip'] ?? 0
+      ts.totalPA += pa
+      ts.totalIP += ip
+      ts.weightedOBP += (bestPlayer.stats['proj_obp'] ?? 0) * pa
+      ts.weightedERA += (bestPlayer.stats['proj_era'] ?? 0) * ip
+      ts.weightedWHIP += (bestPlayer.stats['proj_whip'] ?? 0) * ip
+    }
+  }
+
+  // Build projected standings from simulation results
+  const projected: ProjectedStanding[] = teamRows.map(row => {
+    const ts = teamStateMap.get(row.teamId)!
+    const projectedStatTotals: Record<string, number> = {}
+
+    for (const cat of cats) {
+      if (!cat.rate) {
+        projectedStatTotals[cat.projKey] = ts.statTotals[cat.projKey] ?? 0
+      }
+    }
+
+    // Rate stats from weighted components
+    projectedStatTotals['proj_obp'] = ts.totalPA > 0 ? ts.weightedOBP / ts.totalPA : 0
+    projectedStatTotals['proj_era'] = ts.totalIP > 0 ? ts.weightedERA / ts.totalIP : 0
+    projectedStatTotals['proj_whip'] = ts.totalIP > 0 ? ts.weightedWHIP / ts.totalIP : 0
 
     return {
       teamId: row.teamId,
       teamName: row.teamName,
       currentTotals: { ...row.totals },
-      projectedTotals,
+      projectedTotals: { ...ts.zscoreTotals },
       projectedStatTotals,
       projectedRanks: {},
       projectedWins: 0,
