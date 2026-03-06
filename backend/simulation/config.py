@@ -28,6 +28,8 @@ class SimConfig:
     # Opponent model
     ADP_SIGMA: float = 18.0
     OPP_BENCH_ADP_PENALTY: float = 15.0  # ADP penalty for bench-only picks
+    OPP_SCARCITY_BONUS: float = 15.0     # Max ADP bonus for scarce position need
+    OPP_CAT_NEED_BONUS: float = 4.0      # ADP bonus per weak category helped
 
     # Scale BPA urgency by draft progress (reduces urgency in early rounds)
     SCALE_BPA_URGENCY: bool = False

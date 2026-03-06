@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Set, Tuple
 
 from .config import SimConfig
-from .player_pool import Player, ALL_CAT_KEYS, TOTAL_ROSTER_SIZE
+from .player_pool import Player, ALL_CAT_KEYS, HITTING_CAT_KEYS, PITCHING_CAT_KEYS, TOTAL_ROSTER_SIZE
 from .roster import RosterState
 from .scoring_model import (
     analyze_category_standings,
@@ -196,6 +196,9 @@ def simulate_draft(
                 available_list, available_set, player_by_id,
                 rosters[team_idx], rng, opp_sigma,
                 config.OPP_BENCH_ADP_PENALTY,
+                team_totals=team_totals[team_idx],
+                scarcity_bonus=config.OPP_SCARCITY_BONUS,
+                cat_need_bonus=config.OPP_CAT_NEED_BONUS,
             )
             if chosen is None:
                 continue
@@ -230,6 +233,21 @@ def simulate_draft(
     return result
 
 
+def _category_need_bonus(player: Player, team_totals: dict[str, float], bonus_per_cat: float) -> float:
+    """Small ADP bonus for players helping a team's weakest categories."""
+    cats = PITCHING_CAT_KEYS if player.player_type == "pitcher" else HITTING_CAT_KEYS
+    # Find weakest 2 categories for this player type
+    cat_vals = [(k, team_totals.get(k, 0.0)) for k in cats]
+    cat_vals.sort(key=lambda x: x[1])
+    weak_cats = {k for k, _ in cat_vals[:2]}
+
+    bonus = 0.0
+    for cat_key in weak_cats:
+        if player.zscores.get(cat_key, 0.0) > 0.5:
+            bonus += bonus_per_cat
+    return bonus
+
+
 def _opponent_pick(
     available_list: list[Player],
     available_set: set[int],
@@ -238,11 +256,15 @@ def _opponent_pick(
     rng: random.Random,
     adp_sigma: float,
     bench_adp_penalty: float,
+    team_totals: dict[str, float] | None = None,
+    scarcity_bonus: float = 15.0,
+    cat_need_bonus: float = 4.0,
 ) -> Player | None:
-    """Opponent picks by ADP + noise, penalizing bench-only players.
+    """Opponent picks by ADP + noise, with positional scarcity and category need bonuses.
 
-    Players that only fill a bench slot get a penalty added to their
-    effective ADP, making opponents prefer filling starting roster needs.
+    - Bench-only players get a penalty added to their effective ADP.
+    - Players filling scarce starting slots get a bonus (lower effective ADP).
+    - Players helping a team's weakest categories get a small bonus.
     """
     candidates: list[tuple[float, int]] = []
     for p in available_list:
@@ -251,8 +273,18 @@ def _opponent_pick(
         adp = p.espn_adp if p.espn_adp is not None else 999.0
         effective_sigma = (10.0 + 0.1 * adp) if adp_sigma < 0 else adp_sigma
         noisy_adp = adp + rng.gauss(0, effective_sigma)
+
+        # Bench penalty or positional scarcity bonus
         if not roster.has_starting_need(p):
             noisy_adp += bench_adp_penalty
+        else:
+            scarcity = roster.slot_scarcity(p)
+            noisy_adp -= scarcity * scarcity_bonus
+
+        # Category need bonus
+        if team_totals and cat_need_bonus > 0:
+            noisy_adp -= _category_need_bonus(p, team_totals, cat_need_bonus)
+
         candidates.append((noisy_adp, p.mlb_id))
 
     candidates.sort(key=lambda x: x[0])
