@@ -180,6 +180,20 @@ def main() -> None:
               f"[{elapsed:.0f}s elapsed, ~{remaining:.0f}s remaining]   ",
               end="", flush=True)
 
+        # Print coefficients when a new best is found
+        if trial.value == best:
+            p = trial.params
+            print(f"\n    NEW BEST coefficients: "
+                  f"MCW={p['MCW_WEIGHT']:.1f} "
+                  f"VONA_MCW={p['VONA_WEIGHT_MCW']:.2f} "
+                  f"VONA_BPA={p['VONA_WEIGHT_BPA']:.2f} "
+                  f"URG_MCW={p['URGENCY_WEIGHT_MCW']:.2f} "
+                  f"URG_BPA={p['URGENCY_WEIGHT_BPA']:.2f} "
+                  f"AVAIL={p['AVAILABILITY_DISCOUNT']:.2f} "
+                  f"BENCH={p['BENCH_PENALTY_RATE']:.2f} "
+                  f"CONF={p['CONFIDENCE_START']}-{p['CONFIDENCE_END']}",
+                  flush=True)
+
     study.optimize(
         lambda trial: objective(trial, players, args.sims_per_trial, args.seed, keepers=keeper_entries),
         n_trials=args.trials,

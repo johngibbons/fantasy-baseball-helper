@@ -1040,11 +1040,11 @@ export default function DraftBoardPage() {
       if (hasMCW && confidence > 0) {
         score = computeDraftScore(mcw, vona, urgency, rosterFit, confidence, draftProgress)
         // Blend with BPA (using surplus value) when confidence is low
-        const rawScore = surplusValue + vona * 0.80 + urgency * 0.95
+        const rawScore = surplusValue + vona * 0.97 + urgency * 0.68
         score = score * confidence + rawScore * (1 - confidence)
       } else {
         // Fallback: BPA formula using surplus value
-        score = surplusValue + vona * 0.80 + urgency * 0.95
+        score = surplusValue + vona * 0.97 + urgency * 0.68
       }
 
       // ── Multiplicative adjustments so #1 score = "pick this player now" ──
@@ -1052,7 +1052,7 @@ export default function DraftBoardPage() {
       // Availability discount: penalize players likely to still be available later
       const avail = availabilityMap.get(p.mlb_id)
       if (avail != null) {
-        score *= 1 - avail * 0.09
+        score *= 1 - avail * 0.03
       }
 
       // Bench penalty — pitcher-aware: softer penalty for first few bench pitchers
@@ -1065,7 +1065,7 @@ export default function DraftBoardPage() {
           const scale = 0.35 + saturation * 0.28
           score *= Math.max(floor, 1 - draftProgress * scale)
         } else {
-          score *= Math.max(0.35, 1 - draftProgress * 0.89)
+          score *= Math.max(0.35, 1 - draftProgress * 0.58)
         }
       }
 
@@ -1187,12 +1187,12 @@ export default function DraftBoardPage() {
     const rosterFit = needSlots.length > 0 ? 1 : 0
 
     // Decomposed formula terms
-    const mcwComponent = mcw * 20.18 * confidence
-    const vonaComponentHigh = vona * 0.47
-    const urgencyComponentHigh = urgency * 0.08
+    const mcwComponent = mcw * 22.09 * confidence
+    const vonaComponentHigh = vona * 0.01
+    const urgencyComponentHigh = urgency * 0.33
     const rosterFitComponent = rosterFit * draftProgress
     const highConfidenceTotal = mcwComponent + vonaComponentHigh + urgencyComponentHigh + rosterFitComponent
-    const lowConfidenceTotal = surplusValue + vona * 0.80 + urgency * 0.95
+    const lowConfidenceTotal = surplusValue + vona * 0.97 + urgency * 0.68
     const blendedScore = hasMCW && confidence > 0
       ? highConfidenceTotal * confidence + lowConfidenceTotal * (1 - confidence)
       : lowConfidenceTotal
@@ -1209,7 +1209,7 @@ export default function DraftBoardPage() {
         benchPenalty = Math.max(floor, 1 - draftProgress * scale)
         benchPenaltyReason = `Pitcher bench (${benchPitcherCount} on bench, ${(saturation * 100).toFixed(0)}% saturated)`
       } else {
-        benchPenalty = Math.max(0.35, 1 - draftProgress * 0.89)
+        benchPenalty = Math.max(0.35, 1 - draftProgress * 0.58)
         benchPenaltyReason = `Hitter bench penalty`
       }
     }
@@ -1218,7 +1218,7 @@ export default function DraftBoardPage() {
     let availDiscount = 1.0
     const avail = availabilityMap.get(scoreDetailPlayer!)
     if (avail != null) {
-      availDiscount = 1 - avail * 0.09
+      availDiscount = 1 - avail * 0.03
     }
 
     const finalScore = blendedScore * benchPenalty * availDiscount
