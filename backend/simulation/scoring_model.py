@@ -148,14 +148,15 @@ def detect_strategy(
     punt_gap = 3.0 + (playoff_ratio - 0.4) * 7.5
     punt_rank_floor = num_teams if playoff_ratio >= 0.55 else num_teams - 1
     target_low = 3 if playoff_ratio >= 0.55 else 4
-    target_high = 8 if playoff_ratio >= 0.55 else 7
 
     for s in standings:
         if s.my_rank <= 2 and s.gap_below >= 1.0:
             s.strategy = "lock"
         elif s.my_rank >= punt_rank_floor and s.gap_above >= punt_gap:
             s.strategy = "punt"
-        elif target_low <= s.my_rank <= target_high:
+        elif s.my_rank >= target_low:
+            # Covers ranks target_low through num_teams (including ranks that
+            # didn't qualify for punt due to insufficient gap)
             s.strategy = "target"
         else:
             s.strategy = "neutral"
@@ -228,6 +229,41 @@ def compute_mcw(
         mcw += marginal_win
 
     return mcw
+
+
+# ── Category desperation bonus ──
+
+def compute_desperation_bonus(
+    player_zscores: dict[str, float],
+    standings: list[CategoryStanding],
+    config: SimConfig,
+) -> float:
+    """Bonus for players contributing to critically weak categories.
+
+    When a category's win probability is below the desperation threshold,
+    the model gives extra credit proportional to how desperate the category
+    is and how much the player contributes. This addresses MCW's myopic
+    undervaluation: when you're far behind (e.g., 0% in QS), any single
+    player's marginal win probability gain is tiny, but you need to start
+    building toward competitiveness.
+    """
+    if config.DESPERATION_WEIGHT <= 0:
+        return 0.0
+
+    threshold = config.DESPERATION_THRESHOLD
+    bonus = 0.0
+    for s in standings:
+        if s.strategy == "punt":
+            continue
+        if s.win_prob < threshold:
+            player_val = player_zscores.get(s.cat_key, 0.0)
+            if player_val > 0:
+                # How desperate: 1.0 at 0% win prob, 0.0 at threshold
+                desperation = (threshold - s.win_prob) / threshold
+                # Cap player contribution to avoid outlier z-scores dominating
+                capped_val = min(player_val, 2.0)
+                bonus += desperation * capped_val * config.DESPERATION_WEIGHT
+    return bonus
 
 
 # ── Draft score blending (from computeDraftScore + page.tsx:784-868) ──
@@ -499,6 +535,7 @@ def full_player_score(
     bench_pitcher_count: int = 0,
     replacement_levels: dict[str, float] | None = None,
     keeper_adps_sorted: list[float] | None = None,
+    standings: list[CategoryStanding] | None = None,
 ) -> float:
     normalized_value = get_normalized_value(player, cat_stats)
 
@@ -538,6 +575,9 @@ def full_player_score(
     if has_mcw and confidence > 0:
         mcw = compute_mcw(player.zscores, my_totals, other_team_totals, strategies, config.NUM_TEAMS, config)
         score = compute_draft_score(mcw, vona, urgency, roster_fit, confidence, draft_progress, config)
+        # Category desperation bonus (only when standings are available)
+        if standings is not None and config.DESPERATION_WEIGHT > 0:
+            score += compute_desperation_bonus(player.zscores, standings, config) * confidence
         # Blend with BPA when confidence is low
         raw_score = bpa_value + vona * config.VONA_WEIGHT_BPA + urgency * bpa_urgency_weight
         score = score * confidence + raw_score * (1 - confidence)

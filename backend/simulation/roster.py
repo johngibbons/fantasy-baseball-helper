@@ -9,6 +9,12 @@ class RosterState:
     def __init__(self) -> None:
         self.capacity: dict[str, int] = dict(ROSTER_SLOTS)
 
+    def copy(self) -> "RosterState":
+        """Create a shallow copy with independent capacity dict."""
+        rs = RosterState.__new__(RosterState)
+        rs.capacity = dict(self.capacity)
+        return rs
+
     def can_add(self, player: Player) -> bool:
         for slot in self._eligible_slots_ordered(player):
             if self.capacity.get(slot, 0) > 0:

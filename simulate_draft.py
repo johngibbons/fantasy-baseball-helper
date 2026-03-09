@@ -109,6 +109,16 @@ def main() -> None:
                         help="Disable surplus value (VORP) in BPA formula (on by default)")
     parser.add_argument("--no-restrict-norm-pool", action="store_true",
                         help="Disable normalization pool restriction (use full player pool)")
+    parser.add_argument("--desperation-weight", type=float, default=None,
+                        help="Weight for category desperation bonus (0=disabled, try 1.0-3.0)")
+    parser.add_argument("--desperation-threshold", type=float, default=None,
+                        help="Win prob threshold below which desperation bonus activates (default 0.15)")
+    parser.add_argument("--rollout", action="store_true",
+                        help="Use rollout-based scoring (simulate rest of draft per candidate)")
+    parser.add_argument("--rollout-top-n", type=int, default=None,
+                        help="Number of top candidates to evaluate via rollout (default 20)")
+    parser.add_argument("--rollout-min-pick", type=int, default=None,
+                        help="Start using rollouts after this many total picks (default 20)")
     parser.add_argument("--keepers", action="store_true",
                         help="Load keepers from DB and use keeper-adjusted urgency")
 
@@ -143,6 +153,10 @@ def main() -> None:
         "confidence_end": "CONFIDENCE_END",
         "lock_mcw_weight": "LOCK_MCW_WEIGHT",
         "target_mcw_weight": "TARGET_MCW_WEIGHT",
+        "desperation_weight": "DESPERATION_WEIGHT",
+        "desperation_threshold": "DESPERATION_THRESHOLD",
+        "rollout_top_n": "ROLLOUT_TOP_N",
+        "rollout_min_pick": "ROLLOUT_MIN_PICK",
     }
     for arg_name, config_name in flag_map.items():
         val = getattr(args, arg_name)
@@ -160,6 +174,8 @@ def main() -> None:
         overrides["USE_SURPLUS_VALUE"] = False
     if args.no_restrict_norm_pool:
         overrides["RESTRICT_NORM_POOL"] = False
+    if args.rollout:
+        overrides["USE_ROLLOUT"] = True
     if args.h2h_weight_scale is not None:
         overrides["H2H_WEIGHT_SCALE"] = args.h2h_weight_scale
 

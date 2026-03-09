@@ -53,6 +53,17 @@ class SimConfig:
     CONFIDENCE_START: int = 1
     CONFIDENCE_END: int = 112
 
+    # Category desperation bonus: extra credit for players contributing to
+    # categories where win probability is critically low (addresses MCW's
+    # myopic undervaluation when you're far behind but need to start building)
+    DESPERATION_THRESHOLD: float = 0.25  # win prob below which bonus activates
+    DESPERATION_WEIGHT: float = 2.0      # bonus per desperate category
+
+    # Rollout-based scoring: simulate rest of draft to evaluate each candidate
+    USE_ROLLOUT: bool = False
+    ROLLOUT_TOP_N: int = 20          # pre-filter to top N candidates before running rollouts
+    ROLLOUT_MIN_PICK: int = 20       # only use rollouts after this many total picks (let BPA handle early)
+
     # Composition steering (None = unconstrained)
     TARGET_SP: int | None = None   # target total SP count
     TARGET_RP: int | None = None   # target total RP count

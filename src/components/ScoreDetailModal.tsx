@@ -45,6 +45,7 @@ export interface ScoreDetailData {
   vonaComponentHigh: number  // vona * 0.16
   urgencyComponentHigh: number // urgency * 0.02
   rosterFitComponent: number // rosterFit * draftProgress
+  desperationComponent: number // desperation bonus * confidence
   highConfidenceTotal: number
   lowConfidenceTotal: number // surplusValue + vona * 0.42 + urgency * 0.55
   blendedScore: number       // before bench penalty
@@ -282,6 +283,14 @@ export function ScoreDetailModal({ data, onClose }: {
                     formula={`${d.rosterFit} x ${fmt(d.draftProgress)}`}
                     value={d.rosterFitComponent}
                   />
+                  {d.desperationComponent > 0 && (
+                    <FormulaRow
+                      label="Desperation"
+                      formula="weak cats bonus"
+                      value={d.desperationComponent}
+                      highlight
+                    />
+                  )}
                   <div className="border-t border-gray-700 mt-1 pt-1">
                     <FormulaRow label="Subtotal" formula="" value={d.highConfidenceTotal} />
                   </div>

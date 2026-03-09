@@ -157,7 +157,6 @@ export function detectStrategy(
   // Target zone: ranks where marginal improvement yields the most wins.
   // Wider when playoffs are forgiving (more ranks matter).
   const targetLow = playoffRatio >= 0.55 ? 3 : 4
-  const targetHigh = playoffRatio >= 0.55 ? 8 : 7
 
   const classified = standings.map(s => {
     let strategy: CategoryAnalysis['strategy'] = 'neutral'
@@ -166,7 +165,9 @@ export function detectStrategy(
       strategy = 'lock'
     } else if (s.myRank >= puntRankFloor && s.gapAbove >= puntGap) {
       strategy = 'punt'
-    } else if (s.myRank >= targetLow && s.myRank <= targetHigh) {
+    } else if (s.myRank >= targetLow) {
+      // Covers ranks targetLow through numTeams (including ranks that
+      // didn't qualify for punt due to insufficient gap)
       strategy = 'target'
     }
 
@@ -288,6 +289,36 @@ export function standingsConfidence(
   totalPicksMade: number
 ): number {
   return Math.max(0, Math.min(1, (totalPicksMade - 1) / 111))
+}
+
+/**
+ * Compute desperation bonus for players contributing to critically weak categories.
+ *
+ * When a category's win probability is below the threshold, gives extra credit
+ * proportional to how desperate the category is and the player's z-score contribution.
+ * Addresses MCW's myopic undervaluation when you're far behind but need to start building.
+ */
+export function computeDesperationBonus(
+  playerZscores: Record<string, number>,
+  standings: CategoryAnalysis[],
+  threshold: number = 0.25,
+  weight: number = 2.0
+): number {
+  if (weight <= 0) return 0
+
+  let bonus = 0
+  for (const s of standings) {
+    if (s.strategy === 'punt') continue
+    if (s.winProb < threshold) {
+      const playerVal = playerZscores[s.catKey] ?? 0
+      if (playerVal > 0) {
+        const desperation = (threshold - s.winProb) / threshold
+        const cappedVal = Math.min(playerVal, 2.0)
+        bonus += desperation * cappedVal * weight
+      }
+    }
+  }
+  return bonus
 }
 
 /**

@@ -20,7 +20,9 @@ from .scoring_model import (
     build_available_by_position,
     full_player_score,
     CatStats,
+    CategoryStanding,
 )
+from .rollout import rollout_score
 
 
 @dataclass
@@ -238,6 +240,7 @@ def simulate_draft(
 
             best_score = float("-inf")
             best_player: Player | None = None
+            scored_candidates: list[tuple[float, Player]] = []
 
             for p in avail_players:
                 if not rosters[my_slot].can_add(p):
@@ -278,10 +281,52 @@ def simulate_draft(
                     bench_pitcher_count=my_bench_pitcher_count,
                     replacement_levels=replacement_levels,
                     keeper_adps_sorted=keeper_adps_sorted,
+                    standings=standings,
                 )
+                scored_candidates.append((score, p))
                 if score > best_score:
                     best_score = score
                     best_player = p
+
+            # Rollout re-ranking: simulate rest of draft for top candidates
+            if config.USE_ROLLOUT and pick_idx >= config.ROLLOUT_MIN_PICK and best_player is not None:
+                scored_candidates.sort(key=lambda x: x[0], reverse=True)
+                top_candidates = [p for _, p in scored_candidates[:config.ROLLOUT_TOP_N]]
+
+                # Build remaining pick schedule (team indices for all future picks)
+                remaining_schedule: list[int] = []
+                for future_idx in range(pick_idx + 1, total_picks):
+                    if future_idx in keeper_indices:
+                        continue
+                    remaining_schedule.append(snake_order(future_idx, num_teams))
+
+                # ADP-sorted player list for deterministic rollout picks
+                adp_sorted = sorted(
+                    [p for p in available_list if p.mlb_id in available_set],
+                    key=lambda p: p.blended_adp if p.blended_adp is not None else 999.0,
+                )
+
+                # Run rollout for each top candidate
+                best_rollout = float("-inf")
+                best_rollout_player: Player | None = None
+                for p in top_candidates:
+                    projected_wins = rollout_score(
+                        candidate=p,
+                        my_slot=my_slot,
+                        available_set=available_set,
+                        adp_sorted=adp_sorted,
+                        player_by_id=player_by_id,
+                        rosters=rosters,
+                        team_totals=team_totals,
+                        pick_schedule=remaining_schedule,
+                        config=config,
+                    )
+                    if projected_wins > best_rollout:
+                        best_rollout = projected_wins
+                        best_rollout_player = p
+
+                if best_rollout_player is not None:
+                    best_player = best_rollout_player
 
             if best_player is None:
                 # Fallback: just pick best available that fits

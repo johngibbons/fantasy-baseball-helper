@@ -20,6 +20,7 @@ import {
   detectStrategy,
   computeMCW,
   computeDraftScore,
+  computeDesperationBonus,
   standingsConfidence,
   generateExplanation,
   expectedWeeklyWins,
@@ -1042,6 +1043,14 @@ export default function DraftBoardPage() {
       const surplusValue = getSurplusValue(p, normalizedValue)
       if (hasMCW && confidence > 0) {
         score = computeDraftScore(mcw, vona, urgency, rosterFit, confidence, draftProgress)
+        // Category desperation bonus
+        if (categoryStandings.length > 0) {
+          const playerZscores: Record<string, number> = {}
+          for (const cat of ALL_CATS) {
+            playerZscores[cat.key] = (p as unknown as Record<string, number>)[cat.key] ?? 0
+          }
+          score += computeDesperationBonus(playerZscores, categoryStandings) * confidence
+        }
         // Blend with BPA (using surplus value) when confidence is low
         const rawScore = surplusValue + vona * 0.97 + urgency * 0.68
         score = score * confidence + rawScore * (1 - confidence)
@@ -1189,12 +1198,23 @@ export default function DraftBoardPage() {
     const needSlots = getEligibleSlots(p).filter(s => s !== 'BE' && (rosterState.remainingCapacity[s] || 0) > 0)
     const rosterFit = needSlots.length > 0 ? 1 : 0
 
+    // Compute desperation bonus for detail modal
+    let desperationBonus = 0
+    if (hasMCW && confidence > 0 && categoryStandings.length > 0) {
+      const playerZscores: Record<string, number> = {}
+      for (const cat of ALL_CATS) {
+        playerZscores[cat.key] = (p as unknown as Record<string, number>)[cat.key] ?? 0
+      }
+      desperationBonus = computeDesperationBonus(playerZscores, categoryStandings)
+    }
+
     // Decomposed formula terms
     const mcwComponent = mcw * 22.09 * confidence
     const vonaComponentHigh = vona * 0.01
     const urgencyComponentHigh = urgency * 0.33
     const rosterFitComponent = rosterFit * draftProgress
-    const highConfidenceTotal = mcwComponent + vonaComponentHigh + urgencyComponentHigh + rosterFitComponent
+    const desperationComponent = desperationBonus * confidence
+    const highConfidenceTotal = mcwComponent + vonaComponentHigh + urgencyComponentHigh + rosterFitComponent + desperationComponent
     const lowConfidenceTotal = surplusValue + vona * 0.97 + urgency * 0.68
     const blendedScore = hasMCW && confidence > 0
       ? highConfidenceTotal * confidence + lowConfidenceTotal * (1 - confidence)
@@ -1271,6 +1291,7 @@ export default function DraftBoardPage() {
       vonaComponentHigh,
       urgencyComponentHigh,
       rosterFitComponent,
+      desperationComponent,
       highConfidenceTotal,
       lowConfidenceTotal,
       blendedScore,
