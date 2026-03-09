@@ -135,6 +135,7 @@ export default function DraftBoardPage() {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const stateRestoredRef = useRef(false)
 
   // ── Derived state (backward-compatible) ──
   const draftedIds = useMemo(() => new Set(draftPicks.keys()), [draftPicks])
@@ -362,9 +363,11 @@ export default function DraftBoardPage() {
         } else {
           restoreFromLocalStorage()
         }
+        stateRestoredRef.current = true
       })
       .catch(() => {
         restoreFromLocalStorage()
+        stateRestoredRef.current = true
       })
   }, [])
 
@@ -463,7 +466,7 @@ export default function DraftBoardPage() {
 
   // ── Save state to localStorage + server (debounced) ──
   useEffect(() => {
-    if (allPlayers.length > 0) {
+    if (allPlayers.length > 0 && stateRestoredRef.current) {
       const state: DraftState = {
         picks: [...draftPicks.entries()],
         myTeamId,
