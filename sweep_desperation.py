@@ -39,52 +39,86 @@ PITCH_CATS = {"zscore_k", "zscore_qs", "zscore_era", "zscore_whip", "zscore_svhd
 # ── Sweep configurations ──
 
 SWEEP_CONFIGS: list[tuple[str, dict]] = [
-    # Baseline
-    ("baseline", {}),
-
-    # --- Desperation weight sweep ---
-    ("desp_wt=4", dict(DESPERATION_WEIGHT=4.0)),
-    ("desp_wt=6", dict(DESPERATION_WEIGHT=6.0)),
-    ("desp_wt=8", dict(DESPERATION_WEIGHT=8.0)),
-
-    # --- Threshold sweep (with stronger weight) ---
-    ("desp_wt=6,thr=0.35", dict(DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35)),
-    ("desp_wt=6,thr=0.45", dict(DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.45)),
-
-    # --- Uncapped desperation ---
-    ("desp_wt=6,uncap", dict(DESPERATION_WEIGHT=6.0, DESPERATION_CAP=0.0)),
-    ("desp_wt=6,thr=0.35,uncap", dict(DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35, DESPERATION_CAP=0.0)),
-
-    # --- Multi-category multiplier ---
-    ("desp_wt=6,multi=0.3", dict(DESPERATION_WEIGHT=6.0, DESPERATION_MULTI_CAT=0.3)),
-    ("desp_wt=6,multi=0.5", dict(DESPERATION_WEIGHT=6.0, DESPERATION_MULTI_CAT=0.5)),
-    ("desp_wt=6,thr=0.35,multi=0.5", dict(DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35, DESPERATION_MULTI_CAT=0.5)),
-
-    # --- Category floor penalty ---
-    ("floor=1.0", dict(CAT_FLOOR_PENALTY=1.0)),
-    ("floor=2.0", dict(CAT_FLOOR_PENALTY=2.0)),
-    ("desp_wt=6,floor=1.0", dict(DESPERATION_WEIGHT=6.0, CAT_FLOOR_PENALTY=1.0)),
-
-    # --- Composition steering ---
-    ("5SP/3RP/14H", dict(TARGET_SP=5, TARGET_RP=3, MAX_HITTERS=14)),
-    ("6SP/3RP/13H", dict(TARGET_SP=6, TARGET_RP=3, MAX_HITTERS=13)),
-
-    # --- Best combos ---
-    ("desp_wt=6,multi=0.5,floor=1.0", dict(
-        DESPERATION_WEIGHT=6.0, DESPERATION_MULTI_CAT=0.5, CAT_FLOOR_PENALTY=1.0,
-    )),
-    ("desp_wt=6,thr=0.35,multi=0.5,uncap", dict(
-        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
-        DESPERATION_MULTI_CAT=0.5, DESPERATION_CAP=0.0,
-    )),
-    ("desp_wt=6,multi=0.5,floor=1.0,5SP", dict(
-        DESPERATION_WEIGHT=6.0, DESPERATION_MULTI_CAT=0.5,
-        CAT_FLOOR_PENALTY=1.0, TARGET_SP=5, TARGET_RP=3, MAX_HITTERS=14,
-    )),
-    ("kitchen_sink", dict(
+    # Current best (unlimited desperation — the baseline to beat)
+    ("current_best", dict(
         DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
         DESPERATION_CAP=0.0, DESPERATION_MULTI_CAT=0.5,
-        CAT_FLOOR_PENALTY=1.5, TARGET_SP=5, TARGET_RP=3, MAX_HITTERS=14,
+    )),
+
+    # --- Hard cap on total desperation bonus ---
+    ("max=10", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=0.0, DESPERATION_MULTI_CAT=0.5, DESPERATION_MAX=10.0,
+    )),
+    ("max=15", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=0.0, DESPERATION_MULTI_CAT=0.5, DESPERATION_MAX=15.0,
+    )),
+    ("max=20", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=0.0, DESPERATION_MULTI_CAT=0.5, DESPERATION_MAX=20.0,
+    )),
+    ("max=30", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=0.0, DESPERATION_MULTI_CAT=0.5, DESPERATION_MAX=30.0,
+    )),
+    ("max=50", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=0.0, DESPERATION_MULTI_CAT=0.5, DESPERATION_MAX=50.0,
+    )),
+
+    # --- Z-score cap per category (instead of total cap) ---
+    ("zcap=1.0", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=1.0, DESPERATION_MULTI_CAT=0.5,
+    )),
+    ("zcap=1.5", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=1.5, DESPERATION_MULTI_CAT=0.5,
+    )),
+    ("zcap=2.0", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=2.0, DESPERATION_MULTI_CAT=0.5,
+    )),
+
+    # --- Lower multi-cat (reduce the 3x multiplier) ---
+    ("multi=0.25", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=0.0, DESPERATION_MULTI_CAT=0.25,
+    )),
+    ("multi=0", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=0.0, DESPERATION_MULTI_CAT=0.0,
+    )),
+
+    # --- Lower weight (keep multi-cat) ---
+    ("wt=3", dict(
+        DESPERATION_WEIGHT=3.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=0.0, DESPERATION_MULTI_CAT=0.5,
+    )),
+    ("wt=2", dict(
+        DESPERATION_WEIGHT=2.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=0.0, DESPERATION_MULTI_CAT=0.5,
+    )),
+
+    # --- Best combos: hard cap + z-cap ---
+    ("max=15,zcap=1.5", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=1.5, DESPERATION_MULTI_CAT=0.5, DESPERATION_MAX=15.0,
+    )),
+    ("max=20,zcap=2.0", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=2.0, DESPERATION_MULTI_CAT=0.5, DESPERATION_MAX=20.0,
+    )),
+
+    # --- Hard cap + lower multi ---
+    ("max=15,multi=0.25", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=0.0, DESPERATION_MULTI_CAT=0.25, DESPERATION_MAX=15.0,
+    )),
+    ("max=20,multi=0.25", dict(
+        DESPERATION_WEIGHT=6.0, DESPERATION_THRESHOLD=0.35,
+        DESPERATION_CAP=0.0, DESPERATION_MULTI_CAT=0.25, DESPERATION_MAX=20.0,
     )),
 ]
 
@@ -188,7 +222,7 @@ def run_sweep(num_sims: int, seed: int | None, use_keepers: bool) -> None:
 
     # Sort by mean wins descending
     all_results.sort(key=lambda x: x[2]["mean_wins"], reverse=True)
-    baseline_stats = next(s for l, _, s in all_results if l == "baseline")
+    baseline_stats = next(s for l, _, s in all_results if l in ("baseline", "current_best"))
 
     for label, results, stats in all_results:
         delta = stats["mean_wins"] - baseline_stats["mean_wins"]

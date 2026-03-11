@@ -276,6 +276,10 @@ def compute_desperation_bonus(
     if cats_helped > 1 and config.DESPERATION_MULTI_CAT > 0:
         bonus *= 1.0 + (cats_helped - 1) * config.DESPERATION_MULTI_CAT
 
+    # Hard cap on total bonus
+    if config.DESPERATION_MAX > 0:
+        bonus = min(bonus, config.DESPERATION_MAX)
+
     return bonus
 
 

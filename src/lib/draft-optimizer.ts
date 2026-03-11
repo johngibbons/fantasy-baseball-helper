@@ -308,7 +308,8 @@ export function computeDesperationBonus(
   threshold: number = 0.35,
   weight: number = 6.0,
   cap: number = 0,
-  multiCat: number = 0.5
+  multiCat: number = 0.25,
+  maxBonus: number = 0
 ): number {
   if (weight <= 0) return 0
 
@@ -330,6 +331,11 @@ export function computeDesperationBonus(
   // Multi-category multiplier: reward players helping multiple desperate cats
   if (catsHelped > 1 && multiCat > 0) {
     bonus *= 1.0 + (catsHelped - 1) * multiCat
+  }
+
+  // Hard cap on total bonus
+  if (maxBonus > 0) {
+    bonus = Math.min(bonus, maxBonus)
   }
 
   return bonus

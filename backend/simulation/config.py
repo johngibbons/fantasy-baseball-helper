@@ -59,7 +59,8 @@ class SimConfig:
     DESPERATION_THRESHOLD: float = 0.35  # win prob below which bonus activates
     DESPERATION_WEIGHT: float = 6.0      # bonus per desperate category
     DESPERATION_CAP: float = 0.0         # max z-score credit per category (0 = uncapped)
-    DESPERATION_MULTI_CAT: float = 0.5   # extra multiplier per additional desperate cat helped (0 = additive only)
+    DESPERATION_MULTI_CAT: float = 0.25  # extra multiplier per additional desperate cat helped (0 = additive only)
+    DESPERATION_MAX: float = 0.0          # max total desperation bonus (0 = unlimited)
 
     # Category floor penalty: when you have N categories with 0% win prob,
     # penalize players that don't help any of them (pushes away from overkilling
