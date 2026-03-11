@@ -246,12 +246,19 @@ def compute_desperation_bonus(
     undervaluation: when you're far behind (e.g., 0% in QS), any single
     player's marginal win probability gain is tiny, but you need to start
     building toward competitiveness.
+
+    Multi-category multiplier: when a player helps N desperate categories,
+    the total bonus is scaled by (1 + (N-1) * DESPERATION_MULTI_CAT).
+    This captures the compounding value of a pitcher who helps K AND QS AND
+    WHIP simultaneously vs a reliever who only helps SVHD.
     """
     if config.DESPERATION_WEIGHT <= 0:
         return 0.0
 
     threshold = config.DESPERATION_THRESHOLD
+    cap = config.DESPERATION_CAP
     bonus = 0.0
+    cats_helped = 0
     for s in standings:
         if s.strategy == "punt":
             continue
@@ -260,10 +267,47 @@ def compute_desperation_bonus(
             if player_val > 0:
                 # How desperate: 1.0 at 0% win prob, 0.0 at threshold
                 desperation = (threshold - s.win_prob) / threshold
-                # Cap player contribution to avoid outlier z-scores dominating
-                capped_val = min(player_val, 2.0)
+                # Cap player contribution (0 = uncapped)
+                capped_val = min(player_val, cap) if cap > 0 else player_val
                 bonus += desperation * capped_val * config.DESPERATION_WEIGHT
+                cats_helped += 1
+
+    # Multi-category multiplier: reward players helping multiple desperate cats
+    if cats_helped > 1 and config.DESPERATION_MULTI_CAT > 0:
+        bonus *= 1.0 + (cats_helped - 1) * config.DESPERATION_MULTI_CAT
+
     return bonus
+
+
+def compute_cat_floor_penalty(
+    player_zscores: dict[str, float],
+    standings: list[CategoryStanding],
+    config: SimConfig,
+) -> float:
+    """Penalty for players that don't help any dead (0% win prob) categories.
+
+    When the roster has categories at rock bottom, every pick spent NOT
+    addressing them is an opportunity cost. This penalty pushes the model
+    away from overkilling strong categories and toward filling holes.
+
+    Returns a negative value (penalty) or 0.
+    """
+    if config.CAT_FLOOR_PENALTY <= 0:
+        return 0.0
+
+    dead_cats = 0
+    helps_any = False
+    for s in standings:
+        if s.strategy == "punt":
+            continue
+        if s.win_prob <= 0.001:  # effectively 0%
+            dead_cats += 1
+            if player_zscores.get(s.cat_key, 0.0) > 0:
+                helps_any = True
+
+    if dead_cats > 0 and not helps_any:
+        return -dead_cats * config.CAT_FLOOR_PENALTY
+    return 0.0
 
 
 # ── Draft score blending (from computeDraftScore + page.tsx:784-868) ──
@@ -578,6 +622,9 @@ def full_player_score(
         # Category desperation bonus (only when standings are available)
         if standings is not None and config.DESPERATION_WEIGHT > 0:
             score += compute_desperation_bonus(player.zscores, standings, config) * confidence
+        # Category floor penalty (penalize ignoring dead categories)
+        if standings is not None and config.CAT_FLOOR_PENALTY > 0:
+            score += compute_cat_floor_penalty(player.zscores, standings, config) * confidence
         # Blend with BPA when confidence is low
         raw_score = bpa_value + vona * config.VONA_WEIGHT_BPA + urgency * bpa_urgency_weight
         score = score * confidence + raw_score * (1 - confidence)

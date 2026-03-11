@@ -110,9 +110,21 @@ def main() -> None:
     parser.add_argument("--no-restrict-norm-pool", action="store_true",
                         help="Disable normalization pool restriction (use full player pool)")
     parser.add_argument("--desperation-weight", type=float, default=None,
-                        help="Weight for category desperation bonus (0=disabled, try 1.0-3.0)")
+                        help="Weight for category desperation bonus (0=disabled, default 6.0)")
     parser.add_argument("--desperation-threshold", type=float, default=None,
-                        help="Win prob threshold below which desperation bonus activates (default 0.15)")
+                        help="Win prob threshold below which desperation bonus activates (default 0.35)")
+    parser.add_argument("--desperation-cap", type=float, default=None,
+                        help="Max z-score credit per desperate category (0=uncapped, default 0=uncapped)")
+    parser.add_argument("--desperation-multi-cat", type=float, default=None,
+                        help="Extra multiplier per additional desperate cat helped (default 0.5)")
+    parser.add_argument("--cat-floor-penalty", type=float, default=None,
+                        help="Penalty per dead category not helped (0=disabled, try 0.5-2.0)")
+    parser.add_argument("--target-sp", type=int, default=None,
+                        help="Target SP count for composition steering")
+    parser.add_argument("--target-rp", type=int, default=None,
+                        help="Target RP count for composition steering")
+    parser.add_argument("--max-hitters", type=int, default=None,
+                        help="Max hitters before treating as bench")
     parser.add_argument("--rollout", action="store_true",
                         help="Use rollout-based scoring (simulate rest of draft per candidate)")
     parser.add_argument("--rollout-top-n", type=int, default=None,
@@ -155,6 +167,12 @@ def main() -> None:
         "target_mcw_weight": "TARGET_MCW_WEIGHT",
         "desperation_weight": "DESPERATION_WEIGHT",
         "desperation_threshold": "DESPERATION_THRESHOLD",
+        "desperation_cap": "DESPERATION_CAP",
+        "desperation_multi_cat": "DESPERATION_MULTI_CAT",
+        "cat_floor_penalty": "CAT_FLOOR_PENALTY",
+        "target_sp": "TARGET_SP",
+        "target_rp": "TARGET_RP",
+        "max_hitters": "MAX_HITTERS",
         "rollout_top_n": "ROLLOUT_TOP_N",
         "rollout_min_pick": "ROLLOUT_MIN_PICK",
     }

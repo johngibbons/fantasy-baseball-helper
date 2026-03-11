@@ -56,8 +56,15 @@ class SimConfig:
     # Category desperation bonus: extra credit for players contributing to
     # categories where win probability is critically low (addresses MCW's
     # myopic undervaluation when you're far behind but need to start building)
-    DESPERATION_THRESHOLD: float = 0.25  # win prob below which bonus activates
-    DESPERATION_WEIGHT: float = 2.0      # bonus per desperate category
+    DESPERATION_THRESHOLD: float = 0.35  # win prob below which bonus activates
+    DESPERATION_WEIGHT: float = 6.0      # bonus per desperate category
+    DESPERATION_CAP: float = 0.0         # max z-score credit per category (0 = uncapped)
+    DESPERATION_MULTI_CAT: float = 0.5   # extra multiplier per additional desperate cat helped (0 = additive only)
+
+    # Category floor penalty: when you have N categories with 0% win prob,
+    # penalize players that don't help any of them (pushes away from overkilling
+    # strong categories and toward filling holes)
+    CAT_FLOOR_PENALTY: float = 0.0       # penalty per dead category not helped (0 = disabled)
 
     # Rollout-based scoring: simulate rest of draft to evaluate each candidate
     USE_ROLLOUT: bool = False

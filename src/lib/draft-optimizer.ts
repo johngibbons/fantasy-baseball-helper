@@ -297,27 +297,41 @@ export function standingsConfidence(
  * When a category's win probability is below the threshold, gives extra credit
  * proportional to how desperate the category is and the player's z-score contribution.
  * Addresses MCW's myopic undervaluation when you're far behind but need to start building.
+ *
+ * Multi-category multiplier: when a player helps N desperate categories,
+ * the total bonus is scaled by (1 + (N-1) * multiCat). This captures the
+ * compounding value of a pitcher who helps K AND QS AND WHIP simultaneously.
  */
 export function computeDesperationBonus(
   playerZscores: Record<string, number>,
   standings: CategoryAnalysis[],
-  threshold: number = 0.25,
-  weight: number = 2.0
+  threshold: number = 0.35,
+  weight: number = 6.0,
+  cap: number = 0,
+  multiCat: number = 0.5
 ): number {
   if (weight <= 0) return 0
 
   let bonus = 0
+  let catsHelped = 0
   for (const s of standings) {
     if (s.strategy === 'punt') continue
     if (s.winProb < threshold) {
       const playerVal = playerZscores[s.catKey] ?? 0
       if (playerVal > 0) {
         const desperation = (threshold - s.winProb) / threshold
-        const cappedVal = Math.min(playerVal, 2.0)
+        const cappedVal = cap > 0 ? Math.min(playerVal, cap) : playerVal
         bonus += desperation * cappedVal * weight
+        catsHelped++
       }
     }
   }
+
+  // Multi-category multiplier: reward players helping multiple desperate cats
+  if (catsHelped > 1 && multiCat > 0) {
+    bonus *= 1.0 + (catsHelped - 1) * multiCat
+  }
+
   return bonus
 }
 
