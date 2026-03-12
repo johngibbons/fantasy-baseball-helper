@@ -8,7 +8,7 @@
 
 import type { CatDef } from './draft-categories'
 import { HITTING_CATS, PITCHING_CATS } from './draft-categories'
-import { ROSTER_SLOTS, POSITION_TO_SLOTS } from './roster-optimizer'
+import { ROSTER_SLOTS, POSITION_TO_SLOTS, PITCHER_BENCH_CONTRIBUTION, HITTER_BENCH_CONTRIBUTION } from './roster-optimizer'
 export type { CatDef }
 
 // ── Simulation config (matches Python opponent model) ──
@@ -112,17 +112,6 @@ function categoryNeedBonus(
   return bonus
 }
 
-/** Check if any starter slots remain across all teams */
-function totalStarterSlotsRemaining(teamStates: TeamDraftState[]): number {
-  let total = 0
-  for (const ts of teamStates) {
-    for (const [slot, cap] of Object.entries(ts.capacity)) {
-      if (slot !== 'BE') total += cap
-    }
-  }
-  return total
-}
-
 /**
  * Project final standings using a deterministic greedy draft simulation.
  *
@@ -156,9 +145,7 @@ export function projectStandings(
     })
   }
 
-  const teamStates = [...teamStateMap.values()]
-
-  if (remainingPickSchedule.length === 0 || totalStarterSlotsRemaining(teamStates) === 0) {
+  if (remainingPickSchedule.length === 0) {
     return computeRanksAndWins(teamRows.map(row => ({
       teamId: row.teamId,
       teamName: row.teamName,
@@ -179,13 +166,6 @@ export function projectStandings(
   for (const pickTeamId of remainingPickSchedule) {
     const ts = teamStateMap.get(pickTeamId)
     if (!ts) continue
-
-    // Skip if this team has no starter slots left
-    let hasStarter = false
-    for (const [slot, cap] of Object.entries(ts.capacity)) {
-      if (slot !== 'BE' && cap > 0) { hasStarter = true; break }
-    }
-    if (!hasStarter) continue
 
     // Score each available player for this team
     let bestScore = Infinity
@@ -215,23 +195,23 @@ export function projectStandings(
     // Assign player to team
     drafted.add(bestPlayer.mlb_id)
     const assignedSlot = assignToSlot(bestPlayer.eligible_slots, ts.capacity)
-    const weight = assignedSlot === 'BE' ? 0 : 1 // skip bench weight for starters-only sim
+    const weight = assignedSlot === 'BE'
+      ? (bestPlayer.player_type === 'pitcher' ? PITCHER_BENCH_CONTRIBUTION : HITTER_BENCH_CONTRIBUTION)
+      : 1
 
-    if (weight > 0) {
-      for (const cat of cats) {
-        ts.zscoreTotals[cat.key] = (ts.zscoreTotals[cat.key] ?? 0) + (bestPlayer.zscores[cat.key] ?? 0)
-        if (!cat.rate) {
-          ts.statTotals[cat.projKey] = (ts.statTotals[cat.projKey] ?? 0) + (bestPlayer.stats[cat.projKey] ?? 0)
-        }
+    for (const cat of cats) {
+      ts.zscoreTotals[cat.key] = (ts.zscoreTotals[cat.key] ?? 0) + (bestPlayer.zscores[cat.key] ?? 0) * weight
+      if (!cat.rate) {
+        ts.statTotals[cat.projKey] = (ts.statTotals[cat.projKey] ?? 0) + (bestPlayer.stats[cat.projKey] ?? 0) * weight
       }
-      const pa = bestPlayer.stats['proj_pa'] ?? 0
-      const ip = bestPlayer.stats['proj_ip'] ?? 0
-      ts.totalPA += pa
-      ts.totalIP += ip
-      ts.weightedOBP += (bestPlayer.stats['proj_obp'] ?? 0) * pa
-      ts.weightedERA += (bestPlayer.stats['proj_era'] ?? 0) * ip
-      ts.weightedWHIP += (bestPlayer.stats['proj_whip'] ?? 0) * ip
     }
+    const pa = (bestPlayer.stats['proj_pa'] ?? 0) * weight
+    const ip = (bestPlayer.stats['proj_ip'] ?? 0) * weight
+    ts.totalPA += pa
+    ts.totalIP += ip
+    ts.weightedOBP += (bestPlayer.stats['proj_obp'] ?? 0) * pa
+    ts.weightedERA += (bestPlayer.stats['proj_era'] ?? 0) * ip
+    ts.weightedWHIP += (bestPlayer.stats['proj_whip'] ?? 0) * ip
   }
 
   // Build projected standings from simulation results
