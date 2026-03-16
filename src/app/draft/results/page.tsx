@@ -8,6 +8,7 @@ import {
   keeperPickIndex, keeperPickIndexFromSchedule,
   type LeagueKeeperEntry,
 } from '@/lib/league-teams'
+import { roundForIndex, posInRound, buildUniformRoundStarts } from '@/lib/schedule-utils'
 import {
   analyzeCategoryStandings,
   detectStrategy,
@@ -40,6 +41,7 @@ interface DraftState {
   currentPickIndex: number
   keeperMlbIds?: number[]
   pickSchedule?: number[]
+  roundStarts?: number[]
   pickLog?: { pickIndex: number; mlbId: number; teamId: number }[]
   leagueKeepers?: LeagueKeeperEntry[]
 }
@@ -98,6 +100,10 @@ export default function DraftResultsPage() {
   const pickSchedule = draftState?.pickSchedule ?? []
   const pickLog = draftState?.pickLog ?? []
   const numTeams = draftOrder.length || DEFAULT_NUM_TEAMS
+  const roundStarts = useMemo(() => {
+    if (draftState?.roundStarts && draftState.roundStarts.length > 0) return draftState.roundStarts
+    return buildUniformRoundStarts(pickSchedule.length || numTeams * 25, numTeams)
+  }, [draftState, pickSchedule.length, numTeams])
 
   const keeperMlbIds = useMemo(() => new Set(draftState?.keeperMlbIds ?? []), [draftState])
   const leagueKeepers = draftState?.leagueKeepers ?? []
@@ -108,8 +114,8 @@ export default function DraftResultsPage() {
     const keeperEntries: typeof pickLog = []
     const usedIndices = new Set<number>()
     for (const k of leagueKeepers) {
-      const idx = pickSchedule.length > 0
-        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams, usedIndices)
+      const idx = pickSchedule.length > 0 && roundStarts.length > 0
+        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, roundStarts, usedIndices)
         : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
       if (idx >= 0) {
         keeperEntries.push({ pickIndex: idx, mlbId: k.mlb_id, teamId: k.teamId })
@@ -117,7 +123,7 @@ export default function DraftResultsPage() {
       }
     }
     return [...keeperEntries, ...pickLog].sort((a, b) => a.pickIndex - b.pickIndex)
-  }, [leagueKeepers, pickLog, pickSchedule, draftOrder, numTeams])
+  }, [leagueKeepers, pickLog, pickSchedule, draftOrder, roundStarts])
 
   const isDraftComplete = pickSchedule.length > 0 && (draftState?.currentPickIndex ?? 0) >= pickSchedule.length
 
@@ -219,8 +225,8 @@ export default function DraftResultsPage() {
 
   // ── Pick analysis ──
   const pickAnalysis = useMemo(
-    () => myTeamId ? analyzeMyPicks(fullPickLog, myTeamId, allPlayers, numTeams, keeperMlbIds) : [],
-    [fullPickLog, myTeamId, allPlayers, numTeams, keeperMlbIds],
+    () => myTeamId ? analyzeMyPicks(fullPickLog, myTeamId, allPlayers, roundStarts, keeperMlbIds) : [],
+    [fullPickLog, myTeamId, allPlayers, roundStarts, keeperMlbIds],
   )
 
   // ── Undrafted players ──
@@ -779,31 +785,39 @@ export default function DraftResultsPage() {
           <div className="bg-gray-900 rounded-xl border border-gray-800 mb-4">
             <div className="px-4 py-3 border-b border-gray-800">
               <h2 className="font-bold text-white text-sm">Draft Recap</h2>
-              <div className="text-[11px] text-gray-500 mt-0.5">{fullPickLog.length} picks &middot; {numTeams} teams &middot; {Math.ceil(fullPickLog.length / numTeams)} rounds</div>
+              <div className="text-[11px] text-gray-500 mt-0.5">{fullPickLog.length} picks &middot; {numTeams} teams &middot; {roundStarts.length} rounds</div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-[9px]">
                 <thead>
                   <tr className="border-b border-gray-800">
                     <th className="px-1.5 py-1 text-left text-gray-500 font-semibold w-10">Rd</th>
-                    {Array.from({ length: numTeams }, (_, i) => (
-                      <th key={i} className="px-1 py-1 text-center text-gray-500 font-semibold">
-                        Pick {i + 1}
-                      </th>
-                    ))}
+                    {(() => {
+                      const maxSize = roundStarts.reduce((max, start, r) => {
+                        const end = r + 1 < roundStarts.length ? roundStarts[r + 1] : (pickSchedule.length || fullPickLog.length)
+                        return Math.max(max, end - start)
+                      }, numTeams)
+                      return Array.from({ length: maxSize }, (_, i) => (
+                        <th key={i} className="px-1 py-1 text-center text-gray-500 font-semibold">
+                          Pick {i + 1}
+                        </th>
+                      ))
+                    })()}
                   </tr>
                 </thead>
                 <tbody>
                   {(() => {
-                    const totalRounds = Math.ceil(fullPickLog.length / numTeams)
+                    const totalRounds = roundStarts.length
+                    const schedLen = pickSchedule.length || fullPickLog.length
                     const playerMap = new Map(allPlayers.map(p => [p.mlb_id, p]))
-                    // Build pick grid from fullPickLog
+                    // Build pick grid from fullPickLog using roundStarts
                     const pickGrid: (typeof fullPickLog[0] | null)[][] = []
                     for (let r = 0; r < totalRounds; r++) {
+                      const rStart = roundStarts[r]
+                      const rEnd = r + 1 < roundStarts.length ? roundStarts[r + 1] : schedLen
                       const row: (typeof fullPickLog[0] | null)[] = []
-                      for (let c = 0; c < numTeams; c++) {
-                        const pickIdx = r * numTeams + c
-                        row.push(fullPickLog.find(e => e.pickIndex === pickIdx) ?? null)
+                      for (let idx = rStart; idx < rEnd; idx++) {
+                        row.push(fullPickLog.find(e => e.pickIndex === idx) ?? null)
                       }
                       pickGrid.push(row)
                     }

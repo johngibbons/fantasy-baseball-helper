@@ -129,18 +129,21 @@ export function generateSnakeSchedule(draftOrder: number[], numRounds = 25): Pic
 
 /**
  * Find a team's pick index in a specific round by scanning the schedule.
+ * Uses roundStarts to handle variable-width rounds from pick trades.
  * Returns -1 if the team has no pick in that round (e.g. traded away).
  */
 export function keeperPickIndexFromSchedule(
   teamId: number,
   roundCost: number,
   schedule: PickSchedule,
-  numTeams: number,
+  roundStarts: number[],
   excludeIndices?: Set<number>
 ): number {
-  if (schedule.length === 0 || numTeams === 0) return -1
-  const roundStart = (roundCost - 1) * numTeams
-  const roundEnd = Math.min(roundStart + numTeams, schedule.length)
+  if (schedule.length === 0 || roundStarts.length === 0) return -1
+  const round0 = roundCost - 1
+  if (round0 >= roundStarts.length) return -1
+  const roundStart = roundStarts[round0]
+  const roundEnd = round0 + 1 < roundStarts.length ? roundStarts[round0 + 1] : schedule.length
   for (let i = roundStart; i < roundEnd; i++) {
     if (schedule[i] === teamId && !excludeIndices?.has(i)) return i
   }
@@ -176,23 +179,34 @@ export function ensureSupplementalPicks(
 
 /**
  * Reassign a pick and recalculate supplemental picks.
- * Returns { schedule, trade }.
+ * Uses roundStarts to find the boundary between base and supplemental rounds.
+ * Returns { schedule, roundStarts, trade }.
  */
 export function tradePickInSchedule(
   schedule: PickSchedule,
   pickIndex: number,
   toTeamId: number,
-  allTeamIds: number[]
-): { schedule: PickSchedule; trade: PickTrade } {
+  allTeamIds: number[],
+  roundStarts: number[],
+  numBaseRounds = 25
+): { schedule: PickSchedule; roundStarts: number[]; trade: PickTrade } {
   const fromTeamId = schedule[pickIndex]
-  const numTeams = allTeamIds.length
-  // Strip any existing supplemental picks (beyond 25 * numTeams)
-  const baseLength = 25 * numTeams
+  // Strip any existing supplemental picks (beyond base rounds)
+  const baseLength = numBaseRounds < roundStarts.length
+    ? roundStarts[numBaseRounds]
+    : schedule.length
   const base = schedule.slice(0, baseLength)
   base[pickIndex] = toTeamId
   const newSchedule = ensureSupplementalPicks(base, allTeamIds)
+  // Rebuild roundStarts: base rounds keep their starts, supplemental rounds appended
+  const newRoundStarts = roundStarts.slice(0, numBaseRounds)
+  if (newSchedule.length > baseLength) {
+    // Supplemental picks go in one extra round
+    newRoundStarts.push(baseLength)
+  }
   return {
     schedule: newSchedule,
+    roundStarts: newRoundStarts,
     trade: { pickIndex, fromTeamId, toTeamId },
   }
 }

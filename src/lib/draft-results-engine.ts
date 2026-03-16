@@ -6,6 +6,7 @@ import { ALL_CATS } from './draft-categories'
 import type { CategoryAnalysis } from './draft-optimizer'
 import type { RosterResult } from './roster-optimizer'
 import { getPositions } from './roster-optimizer'
+import { roundForIndex, posInRound } from './schedule-utils'
 
 // ── Draft Grade ──
 
@@ -59,7 +60,7 @@ export function analyzeMyPicks(
   pickLog: { pickIndex: number; mlbId: number; teamId: number }[],
   myTeamId: number,
   allPlayers: RankedPlayer[],
-  numTeams: number,
+  roundStarts: number[],
   keeperMlbIds?: Set<number>,
 ): PickAnalysis[] {
   const playerMap = new Map(allPlayers.map(p => [p.mlb_id, p]))
@@ -69,8 +70,8 @@ export function analyzeMyPicks(
     const p = playerMap.get(pick.mlbId)
     if (!p) return null
 
-    const round = Math.floor(pick.pickIndex / numTeams) + 1
-    const pickInRound = (pick.pickIndex % numTeams) + 1
+    const round = roundForIndex(pick.pickIndex, roundStarts) + 1
+    const pickInRound = posInRound(pick.pickIndex, roundStarts) + 1
     const overallPick = pick.pickIndex + 1
 
     return {

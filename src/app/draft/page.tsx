@@ -15,6 +15,7 @@ import {
   type PickSchedule,
   type PickTrade,
 } from '@/lib/league-teams'
+import { roundForIndex, posInRound, buildUniformRoundStarts } from '@/lib/schedule-utils'
 import {
   analyzeCategoryStandings,
   detectStrategy,
@@ -96,7 +97,7 @@ interface DraftState {
   pickTrades?: PickTrade[]
   pickLog?: { pickIndex: number; mlbId: number; teamId: number }[]
   leagueKeepers?: LeagueKeeperEntry[]
-  supplementalFillIndices?: number[]
+  roundStarts?: number[]
 }
 
 export default function DraftBoardPage() {
@@ -123,7 +124,7 @@ export default function DraftBoardPage() {
   const [showDraftOrder, setShowDraftOrder] = useState(false)
   const [overrideTeam, setOverrideTeam] = useState<number | null>(null)
   const [pickSchedule, setPickSchedule] = useState<PickSchedule>([])
-  const [supplementalFillIndices, setSupplementalFillIndices] = useState<Set<number>>(new Set())
+  const [roundStarts, setRoundStarts] = useState<number[]>([])
   const [pickTrades, setPickTrades] = useState<PickTrade[]>([])
   const [showPickTrader, setShowPickTrader] = useState(false)
   const [pickLog, setPickLog] = useState<{ pickIndex: number; mlbId: number; teamId: number }[]>([])
@@ -157,32 +158,26 @@ export default function DraftBoardPage() {
     [leagueTeams, activeTeamId]
   )
   // ── Keeper pick indices (snake draft positions occupied by keepers) ──
-  // Also includes supplemental fill indices (padding slots that don't correspond
-  // to real draft picks) so the draft automatically skips past them.
   const keeperPickIndices = useMemo(() => {
     if (leagueKeepersData.length === 0 || draftOrder.length === 0) return new Set<number>()
-    const numTeams = draftOrder.length
     const indices = new Set<number>()
     for (const k of leagueKeepersData) {
-      const idx = pickSchedule.length > 0
-        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams, indices)
+      const idx = pickSchedule.length > 0 && roundStarts.length > 0
+        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, roundStarts, indices)
         : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
       if (idx >= 0) indices.add(idx)
     }
-    // Supplemental fill slots are schedule padding — skip them like keepers
-    for (const idx of supplementalFillIndices) indices.add(idx)
     return indices
-  }, [leagueKeepersData, draftOrder, pickSchedule, supplementalFillIndices])
+  }, [leagueKeepersData, draftOrder, pickSchedule, roundStarts])
 
   // ── Lookup maps for draft log ──
   const keeperByIndex = useMemo(() => {
     const m = new Map<number, LeagueKeeperEntry>()
     if (leagueKeepersData.length === 0 || draftOrder.length === 0) return m
-    const numTeams = draftOrder.length
     const usedIndices = new Set<number>()
     for (const k of leagueKeepersData) {
-      const idx = pickSchedule.length > 0
-        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams, usedIndices)
+      const idx = pickSchedule.length > 0 && roundStarts.length > 0
+        ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, roundStarts, usedIndices)
         : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
       if (idx >= 0) {
         m.set(idx, k)
@@ -190,7 +185,7 @@ export default function DraftBoardPage() {
       }
     }
     return m
-  }, [leagueKeepersData, draftOrder, pickSchedule])
+  }, [leagueKeepersData, draftOrder, pickSchedule, roundStarts])
 
   const pickLogByIndex = useMemo(() => {
     const m = new Map<number, { mlbId: number; teamId: number }>()
@@ -216,15 +211,12 @@ export default function DraftBoardPage() {
     trade?: PickTrade
   }
   const draftRounds = useMemo(() => {
-    if (pickSchedule.length === 0) return []
-    const numTeams = draftOrder.length || 10
+    if (pickSchedule.length === 0 || roundStarts.length === 0) return []
     const rounds: { round: number; label: string; slots: DraftSlot[] }[] = []
     let currentRoundSlots: DraftSlot[] = []
     let currentRoundNum = 0
     for (let i = 0; i < pickSchedule.length; i++) {
-      // Skip supplemental fill slots — they're schedule padding, not real picks
-      if (supplementalFillIndices.has(i)) continue
-      const roundNum = Math.floor(i / numTeams)
+      const roundNum = roundForIndex(i, roundStarts)
       if (roundNum !== currentRoundNum || i === 0) {
         if (currentRoundSlots.length > 0) {
           rounds.push({
@@ -253,7 +245,7 @@ export default function DraftBoardPage() {
       currentRoundSlots.push({
         pickIndex: i,
         round: roundNum + 1,
-        pickInRound: (i % numTeams) + 1,
+        pickInRound: posInRound(i, roundStarts) + 1,
         teamId: pickSchedule[i],
         status,
         keeper,
@@ -269,7 +261,7 @@ export default function DraftBoardPage() {
       })
     }
     return rounds
-  }, [pickSchedule, draftOrder, keeperByIndex, pickLogByIndex, tradeByIndex, allPlayers, currentPickIndex])
+  }, [pickSchedule, roundStarts, keeperByIndex, pickLogByIndex, tradeByIndex, allPlayers, currentPickIndex])
 
   const draftLogCurrentPickRef = useRef<HTMLDivElement>(null)
 
@@ -279,8 +271,8 @@ export default function DraftBoardPage() {
     }
   }, [currentPickIndex])
 
-  const currentRound = draftOrder.length > 0 ? Math.floor(currentPickIndex / draftOrder.length) + 1 : 1
-  const currentPickInRound = draftOrder.length > 0 ? (currentPickIndex % draftOrder.length) + 1 : currentPickIndex + 1
+  const currentRound = roundStarts.length > 0 ? roundForIndex(currentPickIndex, roundStarts) + 1 : 1
+  const currentPickInRound = roundStarts.length > 0 ? posInRound(currentPickIndex, roundStarts) + 1 : currentPickIndex + 1
 
   // ── Team name lookup ──
   const teamNameMap = useMemo(() => {
@@ -323,8 +315,12 @@ export default function DraftBoardPage() {
         if (state.pickLog && state.pickLog.length > 0) {
           setPickLog(state.pickLog)
         }
-        if (state.supplementalFillIndices && state.supplementalFillIndices.length > 0) {
-          setSupplementalFillIndices(new Set(state.supplementalFillIndices))
+        if (state.roundStarts && state.roundStarts.length > 0) {
+          setRoundStarts(state.roundStarts)
+        } else if (state.pickSchedule && state.pickSchedule.length > 0) {
+          // Backwards compat: build uniform roundStarts if not in state
+          const numTeams = (state.draftOrder ?? []).length || 10
+          setRoundStarts(buildUniformRoundStarts(state.pickSchedule.length, numTeams))
         }
         if (state.leagueKeepers && state.leagueKeepers.length > 0) {
           setLeagueKeepersData(state.leagueKeepers)
@@ -489,7 +485,7 @@ export default function DraftBoardPage() {
         pickTrades,
         pickLog,
         leagueKeepers: leagueKeepersData,
-        supplementalFillIndices: [...supplementalFillIndices],
+        roundStarts,
       }
       localStorage.setItem('draftState', JSON.stringify(state))
 
@@ -513,7 +509,7 @@ export default function DraftBoardPage() {
           })
       }, 2000)
     }
-  }, [draftPicks, myTeamId, draftOrder, currentPickIndex, allPlayers.length, keeperMlbIds, pickSchedule, pickTrades, pickLog, leagueKeepersData])
+  }, [draftPicks, myTeamId, draftOrder, currentPickIndex, allPlayers.length, keeperMlbIds, pickSchedule, roundStarts, pickTrades, pickLog, leagueKeepersData])
 
   // ── Draft actions ──
   const draftPlayer = useCallback((mlbId: number) => {
@@ -585,13 +581,12 @@ export default function DraftBoardPage() {
       const newPicks = new Map<number, number>()
       const newKeeperIds = new Set<number>()
       const keeperIndicesSet = new Set<number>()
-      const numTeams = draftOrder.length
 
       for (const k of keepers) {
         newPicks.set(k.mlb_id, k.teamId)
         newKeeperIds.add(k.mlb_id)
-        const idx = pickSchedule.length > 0
-          ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams, keeperIndicesSet)
+        const idx = pickSchedule.length > 0 && roundStarts.length > 0
+          ? keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, roundStarts, keeperIndicesSet)
           : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
         if (idx >= 0) keeperIndicesSet.add(idx)
       }
@@ -794,7 +789,7 @@ export default function DraftBoardPage() {
   const catStats = useMemo(() => {
     const availablePlayers = allPlayers.filter((p) => !draftedIds.has(p.mlb_id))
     const numTeams = leagueTeams.length || DEFAULT_NUM_TEAMS
-    const draftableLimit = numTeams * 25
+    const draftableLimit = pickSchedule.length > 0 ? pickSchedule.length : numTeams * 25
     const normPool = [...availablePlayers].sort((a, b) => a.overall_rank - b.overall_rank).slice(0, draftableLimit)
     const stats: Record<string, { mean: number; stdev: number }> = {}
     for (const cat of ALL_CATS) {
@@ -808,7 +803,7 @@ export default function DraftBoardPage() {
       stats[cat.key] = { mean, stdev: Math.sqrt(variance) || 1 }
     }
     return stats
-  }, [allPlayers, draftedIds, leagueTeams.length])
+  }, [allPlayers, draftedIds, leagueTeams.length, pickSchedule.length])
 
   // Sum of standardized z-scores (centered + scaled) — used for VONA and BPA scoring
   const getNormalizedValue = useCallback((p: RankedPlayer): number => {
@@ -1880,32 +1875,39 @@ export default function DraftBoardPage() {
                 </thead>
                 <tbody>
                   {(() => {
-                    const numTeams = draftOrder.length
                     const totalPicks = pickSchedule.length
-                    const numRounds = Math.ceil(totalPicks / numTeams)
+                    const numRounds = roundStarts.length
                     // Build set of traded pick indices
                     const tradedIndices = new Set(pickTrades.map(t => t.pickIndex))
                     // Build keeper pick index → keeper info map
                     const keeperAtIndex = new Map<number, LeagueKeeperEntry>()
                     const usedKeeperIndices = new Set<number>()
                     for (const k of leagueKeepersData) {
-                      const idx = keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, numTeams, usedKeeperIndices)
+                      const idx = keeperPickIndexFromSchedule(k.teamId, k.roundCost, pickSchedule, roundStarts, usedKeeperIndices)
                       if (idx >= 0) {
                         keeperAtIndex.set(idx, k)
                         usedKeeperIndices.add(idx)
                       }
                     }
+                    // Find max picks in any round (for column count)
+                    const maxRoundSize = roundStarts.reduce((max, start, r) => {
+                      const end = r + 1 < roundStarts.length ? roundStarts[r + 1] : totalPicks
+                      return Math.max(max, end - start)
+                    }, 0)
 
                     return Array.from({ length: numRounds }, (_, round) => {
                       const isSupplemental = round >= 25
+                      const rStart = roundStarts[round]
+                      const rEnd = round + 1 < roundStarts.length ? roundStarts[round + 1] : totalPicks
+                      const rSize = rEnd - rStart
                       return (
                         <tr key={round} className="border-b border-gray-800/50">
                           <td className="px-1.5 py-1 font-semibold text-gray-400">
                             {isSupplemental ? `S${round - 24}` : round + 1}
                           </td>
-                          {Array.from({ length: numTeams }, (_, pos) => {
-                            const pickIdx = round * numTeams + pos
-                            if (pickIdx >= totalPicks) return <td key={pos} />
+                          {Array.from({ length: maxRoundSize }, (_, pos) => {
+                            if (pos >= rSize) return <td key={pos} />
+                            const pickIdx = rStart + pos
                             const teamId = pickSchedule[pickIdx]
                             const isPast = pickIdx < currentPickIndex
                             const isKeeper = keeperAtIndex.has(pickIdx)
@@ -1921,8 +1923,9 @@ export default function DraftBoardPage() {
                                       const newTeamId = parseInt(e.target.value)
                                       if (newTeamId === teamId) return
                                       const allTeamIds = leagueTeams.map(t => t.id)
-                                      const { schedule, trade } = tradePickInSchedule(pickSchedule, pickIdx, newTeamId, allTeamIds)
+                                      const { schedule, roundStarts: newRoundStarts, trade } = tradePickInSchedule(pickSchedule, pickIdx, newTeamId, allTeamIds, roundStarts)
                                       setPickSchedule(schedule)
+                                      setRoundStarts(newRoundStarts)
                                       setPickTrades(prev => [...prev, trade])
                                     }}
                                     className={`w-full text-[10px] font-bold rounded px-0.5 py-0.5 border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 ${
