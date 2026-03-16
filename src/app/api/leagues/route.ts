@@ -24,6 +24,7 @@ export async function GET() {
     return NextResponse.json(leagues)
   } catch (error) {
     console.error('Error fetching leagues:', error)
-    return NextResponse.json({ error: 'Failed to fetch leagues' }, { status: 500 })
+    // Return empty array so frontend falls back to localStorage teams
+    return NextResponse.json([])
   }
 }
