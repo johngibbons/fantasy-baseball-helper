@@ -96,6 +96,7 @@ interface DraftState {
   pickTrades?: PickTrade[]
   pickLog?: { pickIndex: number; mlbId: number; teamId: number }[]
   leagueKeepers?: LeagueKeeperEntry[]
+  supplementalFillIndices?: number[]
 }
 
 export default function DraftBoardPage() {
@@ -122,6 +123,7 @@ export default function DraftBoardPage() {
   const [showDraftOrder, setShowDraftOrder] = useState(false)
   const [overrideTeam, setOverrideTeam] = useState<number | null>(null)
   const [pickSchedule, setPickSchedule] = useState<PickSchedule>([])
+  const [supplementalFillIndices, setSupplementalFillIndices] = useState<Set<number>>(new Set())
   const [pickTrades, setPickTrades] = useState<PickTrade[]>([])
   const [showPickTrader, setShowPickTrader] = useState(false)
   const [pickLog, setPickLog] = useState<{ pickIndex: number; mlbId: number; teamId: number }[]>([])
@@ -155,6 +157,8 @@ export default function DraftBoardPage() {
     [leagueTeams, activeTeamId]
   )
   // ── Keeper pick indices (snake draft positions occupied by keepers) ──
+  // Also includes supplemental fill indices (padding slots that don't correspond
+  // to real draft picks) so the draft automatically skips past them.
   const keeperPickIndices = useMemo(() => {
     if (leagueKeepersData.length === 0 || draftOrder.length === 0) return new Set<number>()
     const numTeams = draftOrder.length
@@ -165,8 +169,10 @@ export default function DraftBoardPage() {
         : keeperPickIndex(k.teamId, k.roundCost, draftOrder)
       if (idx >= 0) indices.add(idx)
     }
+    // Supplemental fill slots are schedule padding — skip them like keepers
+    for (const idx of supplementalFillIndices) indices.add(idx)
     return indices
-  }, [leagueKeepersData, draftOrder, pickSchedule])
+  }, [leagueKeepersData, draftOrder, pickSchedule, supplementalFillIndices])
 
   // ── Lookup maps for draft log ──
   const keeperByIndex = useMemo(() => {
@@ -216,6 +222,8 @@ export default function DraftBoardPage() {
     let currentRoundSlots: DraftSlot[] = []
     let currentRoundNum = 0
     for (let i = 0; i < pickSchedule.length; i++) {
+      // Skip supplemental fill slots — they're schedule padding, not real picks
+      if (supplementalFillIndices.has(i)) continue
       const roundNum = Math.floor(i / numTeams)
       if (roundNum !== currentRoundNum || i === 0) {
         if (currentRoundSlots.length > 0) {
@@ -314,6 +322,9 @@ export default function DraftBoardPage() {
         }
         if (state.pickLog && state.pickLog.length > 0) {
           setPickLog(state.pickLog)
+        }
+        if (state.supplementalFillIndices && state.supplementalFillIndices.length > 0) {
+          setSupplementalFillIndices(new Set(state.supplementalFillIndices))
         }
         if (state.leagueKeepers && state.leagueKeepers.length > 0) {
           setLeagueKeepersData(state.leagueKeepers)
@@ -478,6 +489,7 @@ export default function DraftBoardPage() {
         pickTrades,
         pickLog,
         leagueKeepers: leagueKeepersData,
+        supplementalFillIndices: [...supplementalFillIndices],
       }
       localStorage.setItem('draftState', JSON.stringify(state))
 
