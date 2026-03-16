@@ -39,15 +39,23 @@ _SEASON = int(os.environ.get("SEASON", "2026"))
 
 @app.on_event("startup")
 def startup():
-    init_db()
+    try:
+        init_db()
+    except Exception as e:
+        logger.error("init_db() failed — starting without DB init: %s", e)
+        return
 
     # Recalculate rankings on every deploy so model changes take effect
     # immediately.  Only runs if the DB has player/stats data to work with.
-    conn = get_connection()
-    player_count = conn.execute(
-        "SELECT COUNT(*) as cnt FROM players WHERE is_active = 1"
-    ).fetchone()["cnt"]
-    conn.close()
+    try:
+        conn = get_connection()
+        player_count = conn.execute(
+            "SELECT COUNT(*) as cnt FROM players WHERE is_active = 1"
+        ).fetchone()["cnt"]
+        conn.close()
+    except Exception as e:
+        logger.error("DB connection failed at startup: %s", e)
+        return
 
     if player_count == 0:
         logger.info("No players in DB — skipping startup recalculation")

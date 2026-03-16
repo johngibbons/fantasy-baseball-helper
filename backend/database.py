@@ -6,6 +6,10 @@ from pathlib import Path
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 _USE_PG = DATABASE_URL.startswith("postgresql://") or DATABASE_URL.startswith("postgres://")
 
+# Railway internal connections may fail SSL negotiation; ensure sslmode=disable
+if _USE_PG and "sslmode" not in DATABASE_URL:
+    DATABASE_URL += ("&" if "?" in DATABASE_URL else "?") + "sslmode=disable"
+
 if _USE_PG:
     import psycopg2
     import psycopg2.extras
