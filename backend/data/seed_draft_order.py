@@ -244,9 +244,11 @@ def _build_draft_order(final_slots, supplemental_needs):
 
     results = []
     overall_pick = 0
+    supp_remaining = dict(supplemental_needs)
 
     for rnd in range(1, NUM_ROUNDS + 1):
-        for pos, mgr, stype, notes in round_events.get(rnd, []):
+        events = round_events.get(rnd, [])
+        for pos, mgr, stype, notes in events:
             if stype == "keeper":
                 results.append({
                     "overall_pick": "KEEPER", "round": rnd,
@@ -259,8 +261,29 @@ def _build_draft_order(final_slots, supplemental_needs):
                     "manager": mgr, "notes": notes,
                 })
 
-    # Supplemental rounds
-    supp_remaining = dict(supplemental_needs)
+        # Pad round to NUM_TEAMS entries by filling gaps with supplemental picks.
+        # This keeps every round exactly NUM_TEAMS wide so the frontend's
+        # index-based round math (roundStart = (round-1) * numTeams) stays valid.
+        gap = NUM_TEAMS - len(events)
+        while gap > 0:
+            filled = False
+            for pos in _get_round_order(rnd):
+                if gap <= 0:
+                    break
+                mgr = managers[pos]
+                if supp_remaining.get(mgr, 0) > 0:
+                    overall_pick += 1
+                    supp_remaining[mgr] -= 1
+                    results.append({
+                        "overall_pick": overall_pick, "round": rnd,
+                        "manager": mgr, "notes": "(supplemental)",
+                    })
+                    gap -= 1
+                    filled = True
+            if not filled:
+                break  # no more managers need supplemental picks
+
+    # Remaining supplemental rounds (if any teams still need picks)
     supp_round = NUM_ROUNDS + 1
     while sum(supp_remaining.values()) > 0:
         for pos in _get_round_order(supp_round):
