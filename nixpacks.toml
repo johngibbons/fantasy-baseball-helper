@@ -1,0 +1,9 @@
+[phases.build]
+cmds = [
+  "npx prisma generate",
+  "npm run build",
+  "cp -r .next/static .next/standalone/.next/static"
+]
+
+[start]
+cmd = "npx prisma db push --accept-data-loss || true && node .next/standalone/server.js"
