@@ -2,7 +2,7 @@
 
 import type { RankedPlayer } from './valuations-api'
 import {
-  PITCHER_BENCH_CONTRIBUTION, HITTER_BENCH_CONTRIBUTION, optimizeRoster,
+  benchContribution, optimizeRoster,
   type RosterResult,
 } from './roster-optimizer'
 
@@ -125,7 +125,7 @@ export function computeTeamCategories(
 
     const allPlayers: [RankedPlayer, number][] = [
       ...roster.starters.map(p => [p, 1] as [RankedPlayer, number]),
-      ...roster.bench.map(p => [p, p.player_type === 'pitcher' ? PITCHER_BENCH_CONTRIBUTION : HITTER_BENCH_CONTRIBUTION] as [RankedPlayer, number]),
+      ...roster.bench.map(p => [p, benchContribution(p)] as [RankedPlayer, number]),
     ]
     for (const [p, weight] of allPlayers) {
       t.count++

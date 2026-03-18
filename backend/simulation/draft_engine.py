@@ -147,7 +147,10 @@ def simulate_draft(
             assigned_slot = rosters[team_idx].add_player(p)
             weight = 1.0
             if assigned_slot == "BE":
-                weight = config.PITCHER_BENCH_CONTRIBUTION if p.player_type == "pitcher" else config.HITTER_BENCH_CONTRIBUTION
+                if p.player_type == "pitcher":
+                    weight = config.RP_BENCH_CONTRIBUTION if p.pitcher_role() == "RP" else config.PITCHER_BENCH_CONTRIBUTION
+                else:
+                    weight = config.HITTER_BENCH_CONTRIBUTION
                 if team_idx == my_slot and p.player_type == "pitcher":
                     my_bench_pitcher_count += 1
             for cat_key in ALL_CAT_KEYS:
@@ -361,7 +364,10 @@ def simulate_draft(
         available_set.discard(chosen.mlb_id)
         assigned_slot = rosters[team_idx].add_player(chosen)
         if assigned_slot == "BE":
-            weight = config.PITCHER_BENCH_CONTRIBUTION if chosen.player_type == "pitcher" else config.HITTER_BENCH_CONTRIBUTION
+            if chosen.player_type == "pitcher":
+                weight = config.RP_BENCH_CONTRIBUTION if chosen.pitcher_role() == "RP" else config.PITCHER_BENCH_CONTRIBUTION
+            else:
+                weight = config.HITTER_BENCH_CONTRIBUTION
             if team_idx == my_slot and chosen.player_type == "pitcher":
                 my_bench_pitcher_count += 1
         else:

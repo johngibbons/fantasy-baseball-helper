@@ -36,7 +36,7 @@ import { projectStandings, type ProjectedStanding, type PoolPlayer } from '@/lib
 import {
   ROSTER_SLOTS, POSITION_TO_SLOTS, SLOT_ORDER, STARTER_SLOT_COUNT,
   HITTER_STARTER_SLOT_COUNT, PITCHER_STARTER_SLOT_COUNT,
-  PITCHER_BENCH_CONTRIBUTION, HITTER_BENCH_CONTRIBUTION,
+  benchContribution,
   pitcherRole, getPositions, getEligibleSlots, optimizeRoster, type RosterResult,
 } from '@/lib/roster-optimizer'
 import { getManagerProfile, getManagerName, getLeaguePosADP, LEAGUE_POS_ADP, getDraftHistory } from '@/lib/draft-history'
@@ -701,7 +701,7 @@ export default function DraftBoardPage() {
       }
     }
     for (const p of rosterState.bench) {
-      const bc = p.player_type === 'pitcher' ? PITCHER_BENCH_CONTRIBUTION : HITTER_BENCH_CONTRIBUTION
+      const bc = benchContribution(p)
       for (const cat of ALL_CATS) {
         totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0) * bc
       }
@@ -1074,15 +1074,25 @@ export default function DraftBoardPage() {
         score *= 1 - avail * 0.03
       }
 
-      // Bench penalty — pitcher-aware: softer penalty for first few bench pitchers
-      // (daily league streaming/swap value), then saturates to full penalty
+      // Bench penalty — pitcher-aware with SP/RP split:
+      // Bench SPs have real streaming value (start on rotation days).
+      // Bench RPs have minimal value — starting RPs play almost every day.
       if (rosterFit === 0 && draftProgress > 0.15) {
         if (p.player_type === 'pitcher') {
-          const benchPitcherCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher').length
-          const saturation = Math.min(1, benchPitcherCount / 3)
-          const floor = 0.65 - saturation * 0.30
-          const scale = 0.35 + saturation * 0.28
-          score *= Math.max(floor, 1 - draftProgress * scale)
+          const isRP = pitcherRole(p) === 'RP'
+          if (isRP) {
+            const benchRPCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher' && pitcherRole(bp) === 'RP').length
+            const saturation = Math.min(1, benchRPCount / 2)
+            const floor = 0.40 - saturation * 0.15
+            const scale = 0.50 + saturation * 0.30
+            score *= Math.max(floor, 1 - draftProgress * scale)
+          } else {
+            const benchSPCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher' && pitcherRole(bp) === 'SP').length
+            const saturation = Math.min(1, benchSPCount / 3)
+            const floor = 0.65 - saturation * 0.30
+            const scale = 0.35 + saturation * 0.28
+            score *= Math.max(floor, 1 - draftProgress * scale)
+          }
         } else {
           score *= Math.max(0.35, 1 - draftProgress * 0.58)
         }
@@ -1232,12 +1242,22 @@ export default function DraftBoardPage() {
     let benchPenaltyReason: string | null = null
     if (rosterFit === 0 && draftProgress > 0.15) {
       if (p.player_type === 'pitcher') {
-        const benchPitcherCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher').length
-        const saturation = Math.min(1, benchPitcherCount / 3)
-        const floor = 0.65 - saturation * 0.30
-        const scale = 0.35 + saturation * 0.28
-        benchPenalty = Math.max(floor, 1 - draftProgress * scale)
-        benchPenaltyReason = `Pitcher bench (${benchPitcherCount} on bench, ${(saturation * 100).toFixed(0)}% saturated)`
+        const isRP = pitcherRole(p) === 'RP'
+        if (isRP) {
+          const benchRPCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher' && pitcherRole(bp) === 'RP').length
+          const saturation = Math.min(1, benchRPCount / 2)
+          const floor = 0.40 - saturation * 0.15
+          const scale = 0.50 + saturation * 0.30
+          benchPenalty = Math.max(floor, 1 - draftProgress * scale)
+          benchPenaltyReason = `RP bench (${benchRPCount} on bench, ${(saturation * 100).toFixed(0)}% saturated)`
+        } else {
+          const benchSPCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher' && pitcherRole(bp) === 'SP').length
+          const saturation = Math.min(1, benchSPCount / 3)
+          const floor = 0.65 - saturation * 0.30
+          const scale = 0.35 + saturation * 0.28
+          benchPenalty = Math.max(floor, 1 - draftProgress * scale)
+          benchPenaltyReason = `SP bench (${benchSPCount} on bench, ${(saturation * 100).toFixed(0)}% saturated)`
+        }
       } else {
         benchPenalty = Math.max(0.35, 1 - draftProgress * 0.58)
         benchPenaltyReason = `Hitter bench penalty`
@@ -1363,7 +1383,7 @@ export default function DraftBoardPage() {
             }
           }
           for (const p of roster.bench) {
-            const bc = p.player_type === 'pitcher' ? PITCHER_BENCH_CONTRIBUTION : HITTER_BENCH_CONTRIBUTION
+            const bc = benchContribution(p)
             for (const cat of ALL_CATS) {
               totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0) * bc
             }

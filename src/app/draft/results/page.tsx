@@ -17,7 +17,7 @@ import {
 } from '@/lib/draft-optimizer'
 import {
   ROSTER_SLOTS, SLOT_ORDER, STARTER_SLOT_COUNT,
-  PITCHER_BENCH_CONTRIBUTION, HITTER_BENCH_CONTRIBUTION,
+  benchContribution,
   getPositions, optimizeRoster, type RosterResult,
 } from '@/lib/roster-optimizer'
 import {
@@ -184,7 +184,7 @@ export default function DraftResultsPage() {
       }
     }
     for (const p of rosterState.bench) {
-      const bc = p.player_type === 'pitcher' ? PITCHER_BENCH_CONTRIBUTION : HITTER_BENCH_CONTRIBUTION
+      const bc = benchContribution(p)
       for (const cat of ALL_CATS) {
         totals[cat.key] += ((p as unknown as Record<string, number>)[cat.key] ?? 0) * bc
       }

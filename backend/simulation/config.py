@@ -21,8 +21,10 @@ class SimConfig:
     BENCH_PENALTY_RATE: float = 0.58
 
     # Bench contribution rates (how much bench stats count toward team totals)
-    # Pitchers contribute more in daily leagues (streaming SPs, swapping in RPs)
+    # SPs have high streaming value (start on rotation days). Bench RPs contribute
+    # much less — starting RPs already play almost every day, so the 5th+ RP rarely swaps in.
     PITCHER_BENCH_CONTRIBUTION: float = 0.45
+    RP_BENCH_CONTRIBUTION: float = 0.15
     HITTER_BENCH_CONTRIBUTION: float = 0.20
 
     # Opponent model

@@ -8,7 +8,7 @@
 
 import type { CatDef } from './draft-categories'
 import { HITTING_CATS, PITCHING_CATS } from './draft-categories'
-import { ROSTER_SLOTS, POSITION_TO_SLOTS, PITCHER_BENCH_CONTRIBUTION, HITTER_BENCH_CONTRIBUTION } from './roster-optimizer'
+import { ROSTER_SLOTS, POSITION_TO_SLOTS, benchContribution } from './roster-optimizer'
 export type { CatDef }
 
 // ── Simulation config (matches Python opponent model) ──
@@ -195,9 +195,7 @@ export function projectStandings(
     // Assign player to team
     drafted.add(bestPlayer.mlb_id)
     const assignedSlot = assignToSlot(bestPlayer.eligible_slots, ts.capacity)
-    const weight = assignedSlot === 'BE'
-      ? (bestPlayer.player_type === 'pitcher' ? PITCHER_BENCH_CONTRIBUTION : HITTER_BENCH_CONTRIBUTION)
-      : 1
+    const weight = assignedSlot === 'BE' ? benchContribution(bestPlayer) : 1
 
     for (const cat of cats) {
       ts.zscoreTotals[cat.key] = (ts.zscoreTotals[cat.key] ?? 0) + (bestPlayer.zscores[cat.key] ?? 0) * weight

@@ -27,11 +27,23 @@ export const HITTER_STARTER_SLOT_COUNT = STARTER_SLOT_COUNT - PITCHER_STARTER_SL
 
 /**
  * Fraction of projected stats a bench player contributes over a season.
- * Split by player type: pitchers contribute more in daily leagues (streaming SPs,
- * swapping in RPs on their days) while hitters only cover rest days (~1-2 games/week).
+ * SPs have high streaming value (start them on rotation days). Bench RPs contribute
+ * much less — your starting RPs already play almost every day, so the 5th+ RP
+ * rarely gets swapped in. Hitters only cover rest days (~1-2 games/week).
  */
 export const PITCHER_BENCH_CONTRIBUTION = 0.45
+export const RP_BENCH_CONTRIBUTION = 0.15
 export const HITTER_BENCH_CONTRIBUTION = 0.20
+
+/** Returns the appropriate bench contribution for a player based on type and pitcher role */
+export function benchContribution(p: { player_type: string; zscore_qs?: number | null; zscore_svhd?: number | null; zscores?: Record<string, number> }): number {
+  if (p.player_type !== 'pitcher') return HITTER_BENCH_CONTRIBUTION
+  // Support both RankedPlayer (zscore_qs/zscore_svhd) and PoolPlayer (zscores.qs/zscores.svhd)
+  const hasQS = (p.zscore_qs && p.zscore_qs !== 0) || (p.zscores?.qs && p.zscores.qs !== 0)
+  const hasSVHD = (p.zscore_svhd && p.zscore_svhd !== 0) || (p.zscores?.svhd && p.zscores.svhd !== 0)
+  const isRP = !hasQS && hasSVHD
+  return isRP ? RP_BENCH_CONTRIBUTION : PITCHER_BENCH_CONTRIBUTION
+}
 
 // Maps ESPN positions to the roster slots they can fill (most restrictive first)
 export const POSITION_TO_SLOTS: Record<string, string[]> = {
