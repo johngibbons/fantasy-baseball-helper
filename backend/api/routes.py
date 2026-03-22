@@ -2,7 +2,10 @@
 
 import difflib
 import json
+import logging
 import unicodedata
+
+logger = logging.getLogger(__name__)
 from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
 from typing import Any, Optional
@@ -668,10 +671,23 @@ def waiver_recommendations(req: WaiverRequest):
         if mid:
             fa_ids.append(mid)
 
+    logger.info(
+        f"Waiver resolution: {len(my_roster_ids)}/{len(req.my_roster)} roster, "
+        f"{len(fa_ids)}/{len(req.free_agents)} FAs, "
+        f"{len(name_to_id)} total names resolved"
+    )
     if not my_roster_ids:
-        raise HTTPException(status_code=400, detail="No roster players could be resolved")
+        sample_names = [p.name for p in req.my_roster[:5]]
+        raise HTTPException(
+            status_code=400,
+            detail=f"No roster players could be resolved. Sample names: {sample_names}",
+        )
     if not fa_ids:
-        raise HTTPException(status_code=400, detail="No free agents could be resolved")
+        sample_names = [p.name for p in req.free_agents[:5]]
+        raise HTTPException(
+            status_code=400,
+            detail=f"No free agents could be resolved. Sample names: {sample_names}",
+        )
 
     result = compute_waiver_recommendations(
         my_roster_ids=my_roster_ids,

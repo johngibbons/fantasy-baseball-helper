@@ -81,8 +81,13 @@ export async function POST(request: NextRequest) {
     if (!backendResponse.ok) {
       const errorText = await backendResponse.text()
       console.error('Backend error:', errorText)
+      let detail = `Backend error: ${backendResponse.status}`
+      try {
+        const parsed = JSON.parse(errorText)
+        if (parsed.detail) detail = parsed.detail
+      } catch {}
       return NextResponse.json(
-        { error: `Backend error: ${backendResponse.status}` },
+        { error: detail },
         { status: 502 },
       )
     }
