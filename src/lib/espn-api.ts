@@ -209,6 +209,9 @@ export class ESPNApi {
     const data = await response.json()
     const players: ESPNPlayer[] = []
 
+    console.log('ESPN Free Agents response keys:', Object.keys(data))
+    console.log('ESPN Free Agents data.players count:', data.players?.length ?? 'undefined')
+
     if (data.players) {
       for (const entry of data.players) {
         const p = entry.player
@@ -226,6 +229,7 @@ export class ESPNApi {
       }
     }
 
+    console.log('ESPN Free Agents parsed:', players.length)
     return players
   }
 
