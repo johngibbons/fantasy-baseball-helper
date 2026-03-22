@@ -645,7 +645,7 @@ def waiver_recommendations(req: WaiverRequest):
         + [{"name": p.name} for team in req.other_team_rosters for p in team.players]
         + [{"name": p.name} for p in req.free_agents]
     )
-    name_to_id = resolve_espn_names_to_mlbid(all_espn_players)
+    name_to_id = resolve_espn_names_to_mlbid(all_espn_players, season=req.season)
 
     # Build resolved ID lists
     my_roster_ids = []

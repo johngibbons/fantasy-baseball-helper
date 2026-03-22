@@ -166,25 +166,45 @@ def _strip_accents(s: str) -> str:
 
 def resolve_espn_names_to_mlbid(
     espn_players: list[dict],
+    season: int = 2026,
 ) -> dict[str, int]:
     """Map ESPN player names to mlb_id using name-based matching.
 
+    When duplicate names exist (e.g. two "Juan Soto" players), prefers
+    the one with an entry in the rankings table (i.e. the relevant player).
+
     Args:
         espn_players: List of dicts with at least 'name' key.
+        season: Season to check rankings for disambiguation.
 
     Returns:
         Dict of normalized_name -> mlb_id for successfully matched players.
     """
     conn = get_connection()
     all_db_players = conn.execute("SELECT mlb_id, full_name FROM players").fetchall()
+
+    # Get ranked player IDs for disambiguation
+    ranked_ids = set()
+    ranked_rows = conn.execute(
+        "SELECT mlb_id FROM rankings WHERE season = ?", (season,)
+    ).fetchall()
+    for row in ranked_rows:
+        ranked_ids.add(row["mlb_id"])
     conn.close()
 
-    # Build lookup tables
+    # Build lookup tables — for duplicates, prefer the ranked player
     name_to_id: dict[str, int] = {}
     stripped_to_id: dict[str, int] = {}
     for p in all_db_players:
-        name_to_id[p["full_name"].lower()] = p["mlb_id"]
-        stripped_to_id[_strip_accents(p["full_name"])] = p["mlb_id"]
+        key = p["full_name"].lower()
+        stripped_key = _strip_accents(p["full_name"])
+        mid = p["mlb_id"]
+
+        # Prefer ranked players over unranked ones for name collisions
+        if key not in name_to_id or (mid in ranked_ids and name_to_id[key] not in ranked_ids):
+            name_to_id[key] = mid
+        if stripped_key not in stripped_to_id or (mid in ranked_ids and stripped_to_id[stripped_key] not in ranked_ids):
+            stripped_to_id[stripped_key] = mid
 
     resolved: dict[str, int] = {}
     unmatched = 0
