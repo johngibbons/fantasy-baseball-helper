@@ -177,27 +177,33 @@ export class ESPNApi {
     return rosters
   }
 
-  static async getFreeAgents(
+  /**
+   * Fetch a single page of free agents with an optional slot filter.
+   * filterSlotIds: ESPN eligible slot IDs to filter by (e.g. [0,1,2,3,4,5,6,7,12] for hitters).
+   */
+  private static async fetchFreeAgentPage(
     leagueId: string,
     season: string,
     settings: ESPNLeagueSettings,
-    limit: number = 200,
+    limit: number,
+    filterSlotIds?: number[],
   ): Promise<ESPNPlayer[]> {
     const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/${season}/segments/0/leagues/${leagueId}?view=kona_player_info`
 
-    const filter = JSON.stringify({
-      players: {
-        filterStatus: { value: ['FREEAGENT', 'WAIVERS'] },
-        sortPercOwned: { sortPriority: 1, sortAsc: false },
-        limit,
-        offset: 0,
-      },
-    })
+    const filterObj: Record<string, unknown> = {
+      filterStatus: { value: ['FREEAGENT', 'WAIVERS'] },
+      sortPercOwned: { sortPriority: 1, sortAsc: false },
+      limit,
+      offset: 0,
+    }
+    if (filterSlotIds && filterSlotIds.length > 0) {
+      filterObj.filterSlotIds = { value: filterSlotIds }
+    }
 
     const response = await fetch(url, {
       headers: {
         ...this.getHeaders(settings),
-        'x-fantasy-filter': filter,
+        'x-fantasy-filter': JSON.stringify({ players: filterObj }),
       },
     })
 
@@ -207,9 +213,6 @@ export class ESPNApi {
 
     const data = await response.json()
     const players: ESPNPlayer[] = []
-
-    console.log('ESPN Free Agents response keys:', Object.keys(data))
-    console.log('ESPN Free Agents data.players count:', data.players?.length ?? 'undefined')
 
     if (data.players) {
       for (const entry of data.players) {
@@ -228,7 +231,41 @@ export class ESPNApi {
       }
     }
 
-    console.log('ESPN Free Agents parsed:', players.length)
+    return players
+  }
+
+  /**
+   * Fetch free agents — hitters and pitchers separately to ensure both are represented.
+   */
+  static async getFreeAgents(
+    leagueId: string,
+    season: string,
+    settings: ESPNLeagueSettings,
+    hitterLimit: number = 200,
+    pitcherLimit: number = 100,
+  ): Promise<ESPNPlayer[]> {
+    // ESPN eligible slot IDs:
+    // Hitters: 0=C, 1=1B, 2=2B, 3=3B, 4=SS, 5=LF, 6=CF, 7=RF, 12=DH/UTIL
+    // Pitchers: 13=P, 14=SP, 15=RP
+    const HITTER_SLOTS = [0, 1, 2, 3, 4, 5, 6, 7, 12]
+    const PITCHER_SLOTS = [13, 14, 15]
+
+    const [hitters, pitchers] = await Promise.all([
+      this.fetchFreeAgentPage(leagueId, season, settings, hitterLimit, HITTER_SLOTS),
+      this.fetchFreeAgentPage(leagueId, season, settings, pitcherLimit, PITCHER_SLOTS),
+    ])
+
+    // Deduplicate (two-way players could appear in both)
+    const seen = new Set<number>()
+    const players: ESPNPlayer[] = []
+    for (const p of [...hitters, ...pitchers]) {
+      if (!seen.has(p.id)) {
+        seen.add(p.id)
+        players.push(p)
+      }
+    }
+
+    console.log(`ESPN Free Agents: ${hitters.length} hitters + ${pitchers.length} pitchers = ${players.length} unique`)
     return players
   }
 
