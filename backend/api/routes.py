@@ -701,6 +701,12 @@ def waiver_recommendations(req: WaiverRequest):
         season=req.season,
         remaining_faab=req.remaining_faab,
     )
+    # Collect lineup slot distribution for diagnostics
+    my_slot_ids = [p.lineup_slot_id for p in req.my_roster]
+    other_slot_samples = [
+        [p.lineup_slot_id for p in team.players]
+        for team in req.other_team_rosters[:2]  # first 2 teams
+    ]
     result["diagnostics"] = {
         "roster_resolved": len(my_roster_ids),
         "roster_total": len(req.my_roster),
@@ -708,6 +714,8 @@ def waiver_recommendations(req: WaiverRequest):
         "fa_total": len(req.free_agents),
         "unresolved_roster": unresolved_roster[:10],
         "roster_names_sent": [p.name for p in req.my_roster[:5]],
+        "my_lineup_slot_ids": my_slot_ids,
+        "other_team_slot_samples": other_slot_samples,
     }
     return result
 
