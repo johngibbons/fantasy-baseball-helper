@@ -177,6 +177,87 @@ export class ESPNApi {
     return rosters
   }
 
+  static async getFreeAgents(
+    leagueId: string,
+    season: string,
+    settings: ESPNLeagueSettings,
+    limit: number = 200,
+  ): Promise<ESPNPlayer[]> {
+    const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/${season}/segments/0/leagues/${leagueId}?view=kona_player_info`
+
+    const filter = JSON.stringify({
+      players: {
+        filterStatus: { value: ['FREEAGENT'] },
+        filterSlotIds: { value: [] },
+        sortPercOwned: { sortPriority: 1, sortAsc: false },
+        limit,
+        offset: 0,
+      },
+    })
+
+    const response = await fetch(url, {
+      headers: {
+        ...this.getHeaders(settings),
+        'x-fantasy-filter': filter,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`ESPN API error: ${response.status} - ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    const players: ESPNPlayer[] = []
+
+    if (data.players) {
+      for (const entry of data.players) {
+        const p = entry.player
+        if (p) {
+          players.push({
+            id: p.id,
+            fullName: p.fullName,
+            firstName: p.firstName,
+            lastName: p.lastName,
+            eligibleSlots: p.eligibleSlots || [],
+            defaultPositionId: p.defaultPositionId,
+            stats: p.stats,
+          })
+        }
+      }
+    }
+
+    return players
+  }
+
+  static async getLeagueTeamsAndFaab(
+    leagueId: string,
+    season: string,
+    settings: ESPNLeagueSettings,
+  ): Promise<{ teams: ESPNTeam[]; faabByTeamId: Record<number, number> }> {
+    const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/${season}/segments/0/leagues/${leagueId}?view=mTeam&view=mSettings`
+
+    const response = await fetch(url, {
+      headers: this.getHeaders(settings),
+    })
+
+    if (!response.ok) {
+      throw new Error(`ESPN API error: ${response.status} - ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    const teams: ESPNTeam[] = data.teams || []
+    const faabByTeamId: Record<number, number> = {}
+
+    // FAAB budget remaining is in each team's transactionCounter
+    for (const team of data.teams || []) {
+      const budget = team.transactionCounter?.acquisitionBudgetSpent
+      const totalBudget = data.settings?.acquisitionSettings?.acquisitionBudget || 100
+      faabByTeamId[team.id] = budget != null ? totalBudget - budget : totalBudget
+    }
+
+    return { teams, faabByTeamId }
+  }
+
   static async testConnection(leagueId: string, season: string, settings: ESPNLeagueSettings): Promise<boolean> {
     try {
       await this.getLeague(leagueId, season, settings)

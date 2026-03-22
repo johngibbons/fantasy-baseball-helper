@@ -5,6 +5,7 @@ projections from historical stats."""
 import csv
 import json
 import logging
+import os
 import time
 import unicodedata
 import urllib.request
@@ -648,6 +649,47 @@ def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
     sources_used = [k for k, v in results.items() if k != "_adp_map" and v > 0]
     total = sum(v for k, v in results.items() if k != "_adp_map")
     logger.info(f"FanGraphs API projection fetch complete: {total} total from {sources_used}, {len(adp_map)} players with ADP")
+    return results
+
+
+# ── ATC DC (RoS) Projections for In-Season Waiver Analysis ──
+
+# Configurable FanGraphs type for ATC DC rest-of-season projections.
+_FG_ATCDC_TYPE = os.environ.get("FANGRAPHS_ROS_TYPE", "atcdc")
+
+
+def fetch_atcdc_projections(season: int) -> dict[str, int]:
+    """Fetch ATC DC (rest-of-season depth chart) projections from FanGraphs.
+
+    Tries the configured type string first, then falls back to alternatives.
+    Stores in the projections table with source='atcdc'.
+
+    Returns:
+        Dict with 'batting' and 'pitching' counts.
+    """
+    candidates = [_FG_ATCDC_TYPE]
+    # Add fallback type strings if the primary isn't one of these
+    for alt in ("atcdc", "rfangraphsdc", "fangraphsdc", "atc"):
+        if alt not in candidates:
+            candidates.append(alt)
+
+    results = {"batting": 0, "pitching": 0}
+
+    for fg_type in candidates:
+        try:
+            bat = fetch_fangraphs_batting(fg_type, "atcdc", season)
+            time.sleep(_FG_REQUEST_DELAY)
+            pit = fetch_fangraphs_pitching(fg_type, "atcdc", season)
+            results["batting"] = bat
+            results["pitching"] = pit
+            logger.info(f"ATC DC (RoS) fetch successful with type='{fg_type}': {bat} batters, {pit} pitchers")
+            return results
+        except Exception as e:
+            logger.warning(f"ATC DC fetch failed with type='{fg_type}': {e}")
+            time.sleep(_FG_REQUEST_DELAY)
+            continue
+
+    logger.error("All ATC DC type candidates failed. No RoS projections loaded.")
     return results
 
 

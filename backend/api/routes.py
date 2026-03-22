@@ -12,6 +12,10 @@ from backend.analysis.rankings import (
     get_adp_comparison,
     get_position_summary,
 )
+from backend.analysis.waivers import (
+    compute_waiver_recommendations,
+    resolve_espn_names_to_mlbid,
+)
 from backend.analysis.zscores import (
     calculate_hitter_zscores,
     calculate_pitcher_zscores,
@@ -606,3 +610,83 @@ def resolve_keepers(body: KeeperResolveRequest):
             })
 
     return {"resolved": resolved, "unmatched": unmatched}
+
+
+# ── Waiver Wire Recommendations ──
+
+
+class WaiverRosterPlayer(BaseModel):
+    mlb_id: Optional[int] = None
+    name: str
+    lineup_slot_id: int = 0
+
+
+class WaiverTeamRoster(BaseModel):
+    players: list[WaiverRosterPlayer]
+
+
+class WaiverRequest(BaseModel):
+    my_roster: list[WaiverRosterPlayer]
+    other_team_rosters: list[WaiverTeamRoster]
+    free_agents: list[WaiverRosterPlayer]
+    remaining_faab: float = 100.0
+    season: int = 2026
+
+
+@router.post("/waivers/recommendations")
+def waiver_recommendations(req: WaiverRequest):
+    """Compute waiver wire recommendations ranked by expected wins improvement."""
+    # Resolve ESPN names to mlb_ids
+    all_espn_players = (
+        [{"name": p.name} for p in req.my_roster]
+        + [{"name": p.name} for team in req.other_team_rosters for p in team.players]
+        + [{"name": p.name} for p in req.free_agents]
+    )
+    name_to_id = resolve_espn_names_to_mlbid(all_espn_players)
+
+    # Build resolved ID lists
+    my_roster_ids = []
+    my_roster_slots = []
+    for p in req.my_roster:
+        mid = p.mlb_id or name_to_id.get(p.name)
+        if mid:
+            my_roster_ids.append(mid)
+            my_roster_slots.append({"mlb_id": mid, "lineup_slot_id": p.lineup_slot_id})
+
+    other_team_rosters = []
+    for team in req.other_team_rosters:
+        team_ids = []
+        for p in team.players:
+            mid = p.mlb_id or name_to_id.get(p.name)
+            if mid:
+                team_ids.append(mid)
+        other_team_rosters.append(team_ids)
+
+    fa_ids = []
+    for p in req.free_agents:
+        mid = p.mlb_id or name_to_id.get(p.name)
+        if mid:
+            fa_ids.append(mid)
+
+    if not my_roster_ids:
+        raise HTTPException(status_code=400, detail="No roster players could be resolved")
+    if not fa_ids:
+        raise HTTPException(status_code=400, detail="No free agents could be resolved")
+
+    result = compute_waiver_recommendations(
+        my_roster_ids=my_roster_ids,
+        my_roster_slots=my_roster_slots,
+        all_team_roster_ids=other_team_rosters,
+        free_agent_ids=fa_ids,
+        season=req.season,
+        remaining_faab=req.remaining_faab,
+    )
+    return result
+
+
+@router.post("/waivers/refresh-projections")
+def refresh_ros_projections(season: int = Query(2026)):
+    """Fetch latest ATC DC (RoS) projections from FanGraphs."""
+    from backend.data.projections import fetch_atcdc_projections
+    results = fetch_atcdc_projections(season)
+    return {"status": "ok", "results": results}
