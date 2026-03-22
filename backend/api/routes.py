@@ -686,7 +686,9 @@ def waiver_recommendations(req: WaiverRequest):
 
 @router.post("/waivers/refresh-projections")
 def refresh_ros_projections(season: int = Query(2026)):
-    """Fetch latest ATC DC (RoS) projections from FanGraphs."""
-    from backend.data.projections import fetch_atcdc_projections
-    results = fetch_atcdc_projections(season)
-    return {"status": "ok", "results": results}
+    """Fetch latest ATC projections from FanGraphs for waiver analysis."""
+    from backend.data.projections import fetch_all_fangraphs_projections
+    results = fetch_all_fangraphs_projections(season)
+    # Summarize for the frontend
+    atc_count = results.get("atc", 0)
+    return {"status": "ok", "results": {"batting_and_pitching": atc_count}}

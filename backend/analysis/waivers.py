@@ -226,7 +226,7 @@ def resolve_espn_names_to_mlbid(
 def load_projections_for_players(
     mlb_ids: list[int],
     season: int,
-    source: str = "atcdc",
+    source: str = "atc",
 ) -> dict[int, PlayerProjection]:
     """Load projections from the DB for a set of players.
 
@@ -338,7 +338,7 @@ def compute_waiver_recommendations(
     free_agent_ids: list[int],
     season: int,
     remaining_faab: float = 100.0,
-    source: str = "atcdc",
+    source: str = "atc",
 ) -> dict:
     """Compute waiver wire recommendations.
 

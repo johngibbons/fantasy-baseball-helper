@@ -91,7 +91,8 @@ export default function WaiversPage() {
       const resp = await fetch('/api/v2/waivers/refresh-projections?season=2026', { method: 'POST' })
       if (!resp.ok) throw new Error(`Error ${resp.status}`)
       const data = await resp.json()
-      setRefreshStatus(`Updated: ${data.results?.batting ?? 0} hitters, ${data.results?.pitching ?? 0} pitchers`)
+      const count = data.results?.batting_and_pitching ?? data.results?.batting ?? 0
+      setRefreshStatus(`Updated: ${count} players`)
     } catch (err: any) {
       setRefreshStatus(`Failed: ${err.message}`)
     } finally {
