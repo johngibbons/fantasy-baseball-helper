@@ -25,6 +25,18 @@ ALL_CATS = HITTING_CATS + PITCHING_CATS
 # Categories where lower is better
 INVERTED_CATS = {"ERA", "WHIP"}
 
+# ESPN lineup slot IDs that count as active starters
+# 0=C, 1=1B, 2=2B, 3=3B, 4=SS, 5=LF, 6=CF, 7=RF, 8=UTIL,
+# 9-10=SP, 11-12=RP, 13=P
+ACTIVE_SLOT_IDS = set(range(14))  # 0-13 inclusive
+# Bench = 20, IL = 21+, anything >= 14 is non-active
+
+# Bench contribution weights (match draft-categories.ts / roster-optimizer.ts)
+HITTER_BENCH_WEIGHT = 0.20
+SP_BENCH_WEIGHT = 0.45
+RP_BENCH_WEIGHT = 0.15
+IL_WEIGHT = 0.0
+
 
 # ── Data structures ──────────────────────────────────────────────────────────
 
@@ -103,47 +115,47 @@ class TeamTotals:
             "SVHD": float(self.svhd),
         }
 
-    def add_player(self, p: PlayerProjection) -> None:
+    def add_player(self, p: PlayerProjection, weight: float = 1.0) -> None:
         if p.player_type == "hitter" or p.pa > 0:
-            self.pa += p.pa
-            self.ab += p.ab
-            self.hits += p.hits
-            self.bb += p.bb
-            self.hbp += p.hbp
-            self.sf += p.sf
-            self.r += p.r
-            self.tb += p.tb
-            self.rbi += p.rbi
-            self.sb += p.sb
+            self.pa += int(p.pa * weight)
+            self.ab += int(p.ab * weight)
+            self.hits += int(p.hits * weight)
+            self.bb += int(p.bb * weight)
+            self.hbp += int(p.hbp * weight)
+            self.sf += int(p.sf * weight)
+            self.r += int(p.r * weight)
+            self.tb += int(p.tb * weight)
+            self.rbi += int(p.rbi * weight)
+            self.sb += int(p.sb * weight)
         if p.player_type == "pitcher" or p.ip > 0:
-            self.ip += p.ip
-            self.k += p.k
-            self.qs += p.qs
-            self.earned_runs += p.earned_runs
-            self.hits_allowed += p.hits_allowed
-            self.bb_allowed += p.bb_allowed
-            self.svhd += p.svhd
+            self.ip += p.ip * weight
+            self.k += int(p.k * weight)
+            self.qs += int(p.qs * weight)
+            self.earned_runs += int(p.earned_runs * weight)
+            self.hits_allowed += int(p.hits_allowed * weight)
+            self.bb_allowed += int(p.bb_allowed * weight)
+            self.svhd += int(p.svhd * weight)
 
-    def remove_player(self, p: PlayerProjection) -> None:
+    def remove_player(self, p: PlayerProjection, weight: float = 1.0) -> None:
         if p.player_type == "hitter" or p.pa > 0:
-            self.pa -= p.pa
-            self.ab -= p.ab
-            self.hits -= p.hits
-            self.bb -= p.bb
-            self.hbp -= p.hbp
-            self.sf -= p.sf
-            self.r -= p.r
-            self.tb -= p.tb
-            self.rbi -= p.rbi
-            self.sb -= p.sb
+            self.pa -= int(p.pa * weight)
+            self.ab -= int(p.ab * weight)
+            self.hits -= int(p.hits * weight)
+            self.bb -= int(p.bb * weight)
+            self.hbp -= int(p.hbp * weight)
+            self.sf -= int(p.sf * weight)
+            self.r -= int(p.r * weight)
+            self.tb -= int(p.tb * weight)
+            self.rbi -= int(p.rbi * weight)
+            self.sb -= int(p.sb * weight)
         if p.player_type == "pitcher" or p.ip > 0:
-            self.ip -= p.ip
-            self.k -= p.k
-            self.qs -= p.qs
-            self.earned_runs -= p.earned_runs
-            self.hits_allowed -= p.hits_allowed
-            self.bb_allowed -= p.bb_allowed
-            self.svhd -= p.svhd
+            self.ip -= p.ip * weight
+            self.k -= int(p.k * weight)
+            self.qs -= int(p.qs * weight)
+            self.earned_runs -= int(p.earned_runs * weight)
+            self.hits_allowed -= int(p.hits_allowed * weight)
+            self.bb_allowed -= int(p.bb_allowed * weight)
+            self.svhd -= int(p.svhd * weight)
 
     def copy(self) -> TeamTotals:
         return TeamTotals(
@@ -335,13 +347,36 @@ def compute_expected_wins(
     return sum(cat_win_probs.values()), cat_win_probs
 
 
+# ── Bench weighting ──────────────────────────────────────────────────────────
+
+
+def _player_weight(lineup_slot_id: int, proj: PlayerProjection) -> float:
+    """Return the contribution weight for a player based on lineup slot.
+
+    Starters contribute 100%. Bench/IL players contribute a fraction
+    matching the draft simulator's benchContribution logic.
+    """
+    if lineup_slot_id in ACTIVE_SLOT_IDS:
+        return 1.0
+    # IL players contribute nothing
+    if lineup_slot_id >= 21:
+        return IL_WEIGHT
+    # Bench (slot 20 or any other non-active slot)
+    if proj.player_type == "pitcher":
+        # SP vs RP: SP has QS projections, RP has SVHD but no QS
+        if proj.qs > 0:
+            return SP_BENCH_WEIGHT
+        return RP_BENCH_WEIGHT
+    return HITTER_BENCH_WEIGHT
+
+
 # ── Core recommendation engine ────────────────────────────────────────────────
 
 
 def compute_waiver_recommendations(
     my_roster_ids: list[int],
     my_roster_slots: list[dict],  # [{"mlb_id": int, "lineup_slot_id": int}]
-    all_team_roster_ids: list[list[int]],  # Other teams' rosters
+    all_team_roster_slots: list[list[dict]],  # Other teams: [{"mlb_id": int, "lineup_slot_id": int}]
     free_agent_ids: list[int],
     season: int,
     remaining_faab: float = 100.0,
@@ -352,28 +387,32 @@ def compute_waiver_recommendations(
     Returns ranked list of add/drop pairs with expected wins improvement.
     """
     # Collect all player IDs we need projections for
-    all_ids = list(set(
-        my_roster_ids
-        + [pid for team in all_team_roster_ids for pid in team]
-        + free_agent_ids
-    ))
+    other_team_ids = [s["mlb_id"] for team in all_team_roster_slots for s in team]
+    all_ids = list(set(my_roster_ids + other_team_ids + free_agent_ids))
 
     projections = load_projections_for_players(all_ids, season, source)
 
-    # Build team totals for each team
+    # Build my team totals with bench weighting
     my_totals = TeamTotals()
-    for pid in my_roster_ids:
+    my_weights: dict[int, float] = {}  # mlb_id -> weight (for swap calculations)
+    for slot in my_roster_slots:
+        pid = slot["mlb_id"]
         proj = projections.get(pid)
         if proj:
-            my_totals.add_player(proj)
+            w = _player_weight(slot.get("lineup_slot_id", 0), proj)
+            my_totals.add_player(proj, w)
+            my_weights[pid] = w
 
+    # Build other teams' totals with bench weighting
     other_team_totals: list[TeamTotals] = []
-    for team_ids in all_team_roster_ids:
+    for team_slots in all_team_roster_slots:
         tt = TeamTotals()
-        for pid in team_ids:
+        for slot in team_slots:
+            pid = slot["mlb_id"]
             proj = projections.get(pid)
             if proj:
-                tt.add_player(proj)
+                w = _player_weight(slot.get("lineup_slot_id", 0), proj)
+                tt.add_player(proj, w)
         other_team_totals.append(tt)
 
     # Compute baseline expected wins
@@ -387,22 +426,23 @@ def compute_waiver_recommendations(
     other_cat_values = [t.category_values() for t in other_team_totals]
     logger.info(f"My team category values: {my_cat_values}")
     other_team_player_counts = [
-        sum(1 for pid in team_ids if pid in projections)
-        for team_ids in all_team_roster_ids
+        sum(1 for s in team_slots if s["mlb_id"] in projections)
+        for team_slots in all_team_roster_slots
     ]
     logger.info(f"Other teams proj counts: {other_team_player_counts}")
     logger.info(f"Other teams R values: {[t.get('R', 0) for t in other_cat_values]}")
     baseline_wins, baseline_cat_probs = compute_expected_wins(my_cat_values, other_cat_values)
 
-    # Identify droppable players on my roster (IL slots deprioritized)
-    IL_SLOT_ID = 13
-    droppable: list[tuple[int, bool]] = []  # (mlb_id, is_IL)
+    # Identify droppable players on my roster (IL/bench deprioritized)
+    droppable: list[tuple[int, bool, float]] = []  # (mlb_id, is_bench_or_IL, weight)
     for slot in my_roster_slots:
         pid = slot["mlb_id"]
-        is_il = slot.get("lineup_slot_id") == IL_SLOT_ID
-        droppable.append((pid, is_il))
+        slot_id = slot.get("lineup_slot_id", 0)
+        is_non_active = slot_id not in ACTIVE_SLOT_IDS
+        w = my_weights.get(pid, 1.0)
+        droppable.append((pid, is_non_active, w))
 
-    # Sort: non-IL first, then IL
+    # Sort: non-IL/bench first, then bench/IL
     droppable.sort(key=lambda x: x[1])
 
     # Evaluate each free agent
@@ -417,15 +457,15 @@ def compute_waiver_recommendations(
         best_drop_id: Optional[int] = None
         best_cat_impact: dict[str, float] = {}
 
-        for drop_id, _is_il in droppable:
+        for drop_id, _is_non_active, drop_weight in droppable:
             drop_proj = projections.get(drop_id)
             if not drop_proj:
                 continue
 
-            # Swap: remove drop, add free agent
+            # Swap: remove drop (at its current weight), add FA as starter (weight 1.0)
             trial = my_totals.copy()
-            trial.remove_player(drop_proj)
-            trial.add_player(fa_proj)
+            trial.remove_player(drop_proj, drop_weight)
+            trial.add_player(fa_proj, 1.0)
 
             trial_cat_values = trial.category_values()
             trial_wins, trial_cat_probs = compute_expected_wins(trial_cat_values, other_cat_values)

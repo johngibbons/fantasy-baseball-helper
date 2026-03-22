@@ -658,12 +658,12 @@ def waiver_recommendations(req: WaiverRequest):
 
     other_team_rosters = []
     for team in req.other_team_rosters:
-        team_ids = []
+        team_slots = []
         for p in team.players:
             mid = p.mlb_id or name_to_id.get(p.name)
             if mid:
-                team_ids.append(mid)
-        other_team_rosters.append(team_ids)
+                team_slots.append({"mlb_id": mid, "lineup_slot_id": p.lineup_slot_id})
+        other_team_rosters.append(team_slots)
 
     fa_ids = []
     for p in req.free_agents:
@@ -696,7 +696,7 @@ def waiver_recommendations(req: WaiverRequest):
     result = compute_waiver_recommendations(
         my_roster_ids=my_roster_ids,
         my_roster_slots=my_roster_slots,
-        all_team_roster_ids=other_team_rosters,
+        all_team_roster_slots=other_team_rosters,
         free_agent_ids=fa_ids,
         season=req.season,
         remaining_faab=req.remaining_faab,
