@@ -187,7 +187,7 @@ export class ESPNApi {
 
     const filter = JSON.stringify({
       players: {
-        filterStatus: { value: ['FREEAGENT'] },
+        filterStatus: { value: ['FREEAGENT', 'WAIVERS'] },
         sortPercOwned: { sortPriority: 1, sortAsc: false },
         limit,
         offset: 0,
