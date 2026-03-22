@@ -634,6 +634,7 @@ class WaiverRequest(BaseModel):
     free_agents: list[WaiverRosterPlayer]
     remaining_faab: float = 100.0
     season: int = 2026
+    open_roster_slots: int = 0
 
 
 @router.post("/waivers/recommendations")
@@ -700,6 +701,7 @@ def waiver_recommendations(req: WaiverRequest):
         free_agent_ids=fa_ids,
         season=req.season,
         remaining_faab=req.remaining_faab,
+        open_roster_slots=req.open_roster_slots,
     )
     # Collect lineup slot distribution for diagnostics
     my_slot_ids = [p.lineup_slot_id for p in req.my_roster]

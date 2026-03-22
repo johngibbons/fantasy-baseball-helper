@@ -33,6 +33,13 @@ interface Recommendation {
   category_impact: Record<string, number>
 }
 
+interface RosterPlayer {
+  name: string
+  position: string
+  slot: string
+  lineup_slot_id: number
+}
+
 interface WaiverResults {
   baseline_expected_wins: number
   baseline_category_probs: Record<string, number>
@@ -41,6 +48,8 @@ interface WaiverResults {
   my_roster_count: number
   free_agent_count: number
   other_teams_count: number
+  open_roster_slots: number
+  my_roster_display: RosterPlayer[]
 }
 
 const CATS = ['R', 'TB', 'RBI', 'SB', 'OBP', 'K', 'QS', 'ERA', 'WHIP', 'SVHD']
@@ -50,6 +59,15 @@ const posColors: Record<string, string> = {
   C: 'text-blue-400', '1B': 'text-amber-400', '2B': 'text-orange-400', '3B': 'text-purple-400',
   SS: 'text-red-400', OF: 'text-emerald-400', LF: 'text-emerald-400', CF: 'text-teal-400',
   RF: 'text-emerald-400', DH: 'text-gray-400', SP: 'text-sky-400', RP: 'text-pink-400',
+  P: 'text-teal-400',
+}
+
+const slotOrder = ['C', '1B', '2B', '3B', 'SS', 'OF', 'UTIL', 'SP', 'RP', 'P', 'BE', 'IL']
+const slotColors: Record<string, string> = {
+  C: 'text-blue-500', '1B': 'text-amber-500', '2B': 'text-orange-500', '3B': 'text-purple-500',
+  SS: 'text-red-500', OF: 'text-emerald-500', UTIL: 'text-gray-400',
+  SP: 'text-sky-500', RP: 'text-pink-500', P: 'text-teal-500',
+  BE: 'text-gray-600', IL: 'text-red-600',
 }
 
 function impactColor(v: number): string {
@@ -169,6 +187,22 @@ export default function WaiversPage() {
       setLoading(false)
     }
   }
+
+  const rosterBySlot = useMemo(() => {
+    if (!results?.my_roster_display) return []
+    const groups: { slot: string; players: RosterPlayer[] }[] = []
+    const slotGroups = new Map<string, RosterPlayer[]>()
+    for (const p of results.my_roster_display) {
+      const list = slotGroups.get(p.slot) || []
+      list.push(p)
+      slotGroups.set(p.slot, list)
+    }
+    for (const slot of slotOrder) {
+      const players = slotGroups.get(slot)
+      if (players) groups.push({ slot, players })
+    }
+    return groups
+  }, [results])
 
   const filteredRecs = useMemo(() => {
     if (!results) return []
@@ -324,6 +358,29 @@ export default function WaiversPage() {
               </div>
             </div>
 
+            {/* My Roster */}
+            <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-3 mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-xs text-gray-500">My Roster</div>
+                {results.open_roster_slots > 0 && (
+                  <div className="text-xs text-emerald-400 font-medium">
+                    {results.open_roster_slots} open slot{results.open_roster_slots > 1 ? 's' : ''} (IL)
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-0.5 text-xs">
+                {rosterBySlot.map(({ slot, players }) => (
+                  players.map((p, i) => (
+                    <div key={`${slot}-${i}`} className="flex items-center gap-1.5 py-0.5">
+                      <span className={`w-6 text-right font-mono font-bold ${slotColors[slot] || 'text-gray-500'}`}>{slot}</span>
+                      <span className={slot === 'IL' ? 'text-gray-600 line-through' : 'text-gray-300'}>{p.name}</span>
+                      <span className={`text-[10px] ${posColors[p.position] || 'text-gray-500'}`}>{p.position}</span>
+                    </div>
+                  ))
+                ))}
+              </div>
+            </div>
+
             {/* Position filter */}
             <div className="flex gap-1 mb-3 flex-wrap">
               {POSITIONS.map((pos) => (
@@ -373,7 +430,7 @@ export default function WaiversPage() {
                         </span>
                       </td>
                       <td className="px-3 py-2">
-                        {rec.drop_player ? (
+                        {rec.drop_player?.name ? (
                           <>
                             <span className="text-gray-400">{rec.drop_player.name}</span>
                             <span className={`ml-1.5 text-xs ${posColors[rec.drop_player.position] || 'text-gray-400'}`}>
@@ -381,7 +438,7 @@ export default function WaiversPage() {
                             </span>
                           </>
                         ) : (
-                          <span className="text-gray-600">-</span>
+                          <span className="text-emerald-600 text-xs italic">No drop needed</span>
                         )}
                       </td>
                       <td className={`px-3 py-2 text-right font-mono font-bold ${

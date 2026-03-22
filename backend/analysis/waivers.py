@@ -337,6 +337,7 @@ def compute_waiver_recommendations(
     free_agent_ids: list[int],
     season: int,
     remaining_faab: float = 100.0,
+    open_roster_slots: int = 0,
 ) -> dict:
     """Compute waiver wire recommendations.
 
@@ -403,6 +404,7 @@ def compute_waiver_recommendations(
 
     # Evaluate each free agent
     recommendations: list[WaiverRecommendation] = []
+    no_drop_slots_used = 0  # Track how many open slots we've "used" for no-drop recs
 
     for fa_id in free_agent_ids:
         fa_proj = projections.get(fa_id)
@@ -412,7 +414,25 @@ def compute_waiver_recommendations(
         best_delta = -999.0
         best_drop_id: Optional[int] = None
         best_cat_impact: dict[str, float] = {}
+        is_no_drop = False
 
+        # Try "add without drop" if open roster slots are available
+        if open_roster_slots > 0:
+            trial = my_totals.copy()
+            trial.add_player(fa_proj, 1.0)
+            trial_cat_values = trial.category_values()
+            trial_wins, trial_cat_probs = compute_expected_wins(trial_cat_values, other_cat_values)
+            delta = trial_wins - baseline_wins
+            if delta > best_delta:
+                best_delta = delta
+                best_drop_id = None
+                is_no_drop = True
+                best_cat_impact = {
+                    cat: round(trial_cat_probs[cat] - baseline_cat_probs[cat], 4)
+                    for cat in ALL_CATS
+                }
+
+        # Also try each drop option
         for drop_id, _is_non_active, drop_weight in droppable:
             drop_proj = projections.get(drop_id)
             if not drop_proj:
@@ -430,20 +450,21 @@ def compute_waiver_recommendations(
             if delta > best_delta:
                 best_delta = delta
                 best_drop_id = drop_id
+                is_no_drop = False
                 best_cat_impact = {
                     cat: round(trial_cat_probs[cat] - baseline_cat_probs[cat], 4)
                     for cat in ALL_CATS
                 }
 
-        if best_delta > -10 and best_drop_id is not None:
-            drop_proj = projections.get(best_drop_id)
+        if best_delta > -10 and (best_drop_id is not None or is_no_drop):
+            drop_proj = projections.get(best_drop_id) if best_drop_id else None
             recommendations.append(WaiverRecommendation(
                 add_player_id=fa_id,
                 add_player_name=fa_proj.name,
                 add_player_position=fa_proj.position,
                 drop_player_id=best_drop_id,
-                drop_player_name=drop_proj.name if drop_proj else "Unknown",
-                drop_player_position=drop_proj.position if drop_proj else "",
+                drop_player_name=drop_proj.name if drop_proj else None,
+                drop_player_position=drop_proj.position if drop_proj else None,
                 delta_expected_wins=round(best_delta, 4),
                 suggested_faab_bid=0,  # Computed below
                 category_impact=best_cat_impact,

@@ -4,12 +4,23 @@ import { ESPNApi, ESPNRosterEntry } from '@/lib/espn-api'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
 
-// ESPN position ID to readable name
+// ESPN defaultPositionId to readable name
 const posMap: Record<number, string> = {
   0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS',
   5: 'LF', 6: 'CF', 7: 'RF', 8: 'DH',
   9: 'SP', 10: 'RP', 11: 'P',
 }
+
+// ESPN lineupSlotId to display slot name
+const slotMap: Record<number, string> = {
+  0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS',
+  5: 'OF', 6: 'OF', 7: 'OF', 12: 'UTIL',
+  13: 'P', 14: 'SP', 15: 'RP',
+  16: 'BE', 17: 'IL',
+}
+
+// Max non-IL roster size (C+1B+2B+3B+SS+3OF+2UTIL+3SP+2RP+2P+8BE = 25)
+const MAX_ROSTER_SIZE = 25
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,11 +54,23 @@ export async function POST(request: NextRequest) {
     const myTeamId = parseInt(teamId)
     const remainingFaab = teamsAndFaab.faabByTeamId[myTeamId] ?? 100
 
-    // Build my roster
-    const myRoster = (rosters[myTeamId] || []).map((entry: ESPNRosterEntry) => ({
+    // Build my roster with position info for UI
+    const myRosterEntries = rosters[myTeamId] || []
+    const myRoster = myRosterEntries.map((entry: ESPNRosterEntry) => ({
       name: entry.player?.fullName || `Player ${entry.playerId}`,
       lineup_slot_id: entry.lineupSlotId,
     }))
+    const myRosterDisplay = myRosterEntries.map((entry: ESPNRosterEntry) => ({
+      name: entry.player?.fullName || `Player ${entry.playerId}`,
+      position: posMap[entry.player?.defaultPositionId ?? 0] || 'UTIL',
+      slot: slotMap[entry.lineupSlotId] || 'BE',
+      lineup_slot_id: entry.lineupSlotId,
+    }))
+
+    // Calculate open roster slots (IL players free up regular roster spots)
+    const ilCount = myRosterEntries.filter((e: ESPNRosterEntry) => e.lineupSlotId >= 17).length
+    const nonIlCount = myRosterEntries.length - ilCount
+    const openRosterSlots = Math.max(0, MAX_ROSTER_SIZE - nonIlCount)
 
     // Build other teams' rosters
     const otherTeamRosters = Object.entries(rosters)
@@ -75,6 +98,7 @@ export async function POST(request: NextRequest) {
         free_agents: faList,
         remaining_faab: remainingFaab,
         season: parseInt(season),
+        open_roster_slots: openRosterSlots,
       }),
     })
 
@@ -99,7 +123,8 @@ export async function POST(request: NextRequest) {
       my_roster_count: myRoster.length,
       free_agent_count: faList.length,
       other_teams_count: otherTeamRosters.length,
-      roster_names_debug: myRoster.slice(0, 5).map((r: any) => r.name),
+      open_roster_slots: openRosterSlots,
+      my_roster_display: myRosterDisplay,
     })
   } catch (error: any) {
     console.error('Waiver recommendations error:', error)
