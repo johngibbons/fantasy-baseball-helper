@@ -99,6 +99,7 @@ export async function POST(request: NextRequest) {
       my_roster_count: myRoster.length,
       free_agent_count: faList.length,
       other_teams_count: otherTeamRosters.length,
+      roster_names_debug: myRoster.slice(0, 5).map((r: any) => r.name),
     })
   } catch (error: any) {
     console.error('Waiver recommendations error:', error)

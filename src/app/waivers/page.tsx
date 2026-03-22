@@ -161,6 +161,7 @@ export default function WaiversPage() {
       }
 
       const data = await response.json()
+      console.log('Waiver diagnostics:', data.diagnostics, 'roster_names_debug:', data.roster_names_debug)
       setResults(data)
     } catch (err: any) {
       setError(err.message || 'Failed to fetch recommendations')

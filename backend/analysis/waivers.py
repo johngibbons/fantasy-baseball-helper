@@ -235,8 +235,14 @@ def load_projections_for_players(
     conn = get_connection()
     projections: dict[int, PlayerProjection] = {}
 
-    # Try requested source first, fall back to atc
-    sources_to_try = [source, "atc"] if source != "atc" else ["atc"]
+    # Try requested source first, then fall back through expert sources.
+    # ATC is a pre-blended consensus system; the individual systems
+    # (steamer, thebatx, zips) are used when ATC isn't available.
+    _FALLBACK_SOURCES = ["atc", "steamer", "thebatx", "zips"]
+    sources_to_try = [source] if source in _FALLBACK_SOURCES else [source]
+    for fb in _FALLBACK_SOURCES:
+        if fb not in sources_to_try:
+            sources_to_try.append(fb)
 
     for src in sources_to_try:
         placeholders = ",".join(["?"] * len(mlb_ids))
@@ -292,7 +298,8 @@ def load_projections_for_players(
             break  # Got data from this source, no need to try fallback
 
     conn.close()
-    logger.info(f"Loaded projections for {len(projections)}/{len(mlb_ids)} players (source={sources_to_try})")
+    used_source = next((s for s in sources_to_try if projections), sources_to_try[0])
+    logger.info(f"Loaded projections for {len(projections)}/{len(mlb_ids)} players (tried={sources_to_try}, used={used_source})")
     return projections
 
 
@@ -370,8 +377,15 @@ def compute_waiver_recommendations(
         other_team_totals.append(tt)
 
     # Compute baseline expected wins
+    my_roster_with_proj = sum(1 for pid in my_roster_ids if pid in projections)
+    my_roster_without_proj = [pid for pid in my_roster_ids if pid not in projections]
+    logger.info(
+        f"My roster projections: {my_roster_with_proj}/{len(my_roster_ids)} have projections, "
+        f"missing: {my_roster_without_proj[:10]}"
+    )
     my_cat_values = my_totals.category_values()
     other_cat_values = [t.category_values() for t in other_team_totals]
+    logger.info(f"My team category values: {my_cat_values}")
     baseline_wins, baseline_cat_probs = compute_expected_wins(my_cat_values, other_cat_values)
 
     # Identify droppable players on my roster (IL slots deprioritized)
@@ -442,6 +456,11 @@ def compute_waiver_recommendations(
     return {
         "baseline_expected_wins": round(baseline_wins, 3),
         "baseline_category_probs": {cat: round(v, 4) for cat, v in baseline_cat_probs.items()},
+        "my_team_totals": {k: round(v, 3) for k, v in my_cat_values.items()},
+        "projection_coverage": {
+            "my_roster": f"{my_roster_with_proj}/{len(my_roster_ids)}",
+            "missing_ids": my_roster_without_proj[:10],
+        },
         "recommendations": [
             {
                 "rank": i + 1,

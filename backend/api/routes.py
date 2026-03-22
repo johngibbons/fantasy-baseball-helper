@@ -671,11 +671,15 @@ def waiver_recommendations(req: WaiverRequest):
         if mid:
             fa_ids.append(mid)
 
+    # Log unresolved roster players for debugging
+    unresolved_roster = [p.name for p in req.my_roster if not (p.mlb_id or name_to_id.get(p.name))]
     logger.info(
         f"Waiver resolution: {len(my_roster_ids)}/{len(req.my_roster)} roster, "
         f"{len(fa_ids)}/{len(req.free_agents)} FAs, "
         f"{len(name_to_id)} total names resolved"
     )
+    if unresolved_roster:
+        logger.warning(f"Unresolved roster players: {unresolved_roster}")
     if not my_roster_ids:
         sample_names = [p.name for p in req.my_roster[:5]]
         raise HTTPException(
@@ -697,6 +701,14 @@ def waiver_recommendations(req: WaiverRequest):
         season=req.season,
         remaining_faab=req.remaining_faab,
     )
+    result["diagnostics"] = {
+        "roster_resolved": len(my_roster_ids),
+        "roster_total": len(req.my_roster),
+        "fa_resolved": len(fa_ids),
+        "fa_total": len(req.free_agents),
+        "unresolved_roster": unresolved_roster[:10],
+        "roster_names_sent": [p.name for p in req.my_roster[:5]],
+    }
     return result
 
 
