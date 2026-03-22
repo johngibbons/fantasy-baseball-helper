@@ -26,10 +26,10 @@ ALL_CATS = HITTING_CATS + PITCHING_CATS
 INVERTED_CATS = {"ERA", "WHIP"}
 
 # ESPN lineup slot IDs that count as active starters
-# 0=C, 1=1B, 2=2B, 3=3B, 4=SS, 5=LF, 6=CF, 7=RF, 8=UTIL,
-# 9-10=SP, 11-12=RP, 13=P
-ACTIVE_SLOT_IDS = set(range(14))  # 0-13 inclusive
-# Bench = 20, IL = 21+, anything >= 14 is non-active
+# 0=C, 1=1B, 2=2B, 3=3B, 4=SS, 5=OF, 12=UTIL,
+# 13=P, 14=SP, 15=RP
+ACTIVE_SLOT_IDS = set(range(16))  # 0-15 inclusive
+# 16=Bench, 17=IL
 
 # Bench contribution weights (match draft-categories.ts / roster-optimizer.ts)
 HITTER_BENCH_WEIGHT = 0.20
@@ -358,10 +358,10 @@ def _player_weight(lineup_slot_id: int, proj: PlayerProjection) -> float:
     """
     if lineup_slot_id in ACTIVE_SLOT_IDS:
         return 1.0
-    # IL players contribute nothing
-    if lineup_slot_id >= 21:
+    # IL players (slot 17+) contribute nothing
+    if lineup_slot_id >= 17:
         return IL_WEIGHT
-    # Bench (slot 20 or any other non-active slot)
+    # Bench (slot 16)
     if proj.player_type == "pitcher":
         # SP vs RP: SP has QS projections, RP has SVHD but no QS
         if proj.qs > 0:
