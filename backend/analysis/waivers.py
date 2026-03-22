@@ -1,8 +1,8 @@
 """Waiver wire recommendation engine.
 
 Computes expected-wins improvement for each free agent relative to the
-user's current roster, using ATC DC (RoS) projections and the existing
-MCW scoring infrastructure.
+user's current roster, using the same rankings/projections data as the
+draft simulator and the existing MCW scoring infrastructure.
 """
 
 from __future__ import annotations
@@ -43,128 +43,101 @@ IL_WEIGHT = 0.0
 
 @dataclass
 class PlayerProjection:
+    """Projection data matching the rankings table fields used by the draft."""
     mlb_id: int
     name: str
     position: str
     player_type: str
-    # Hitting raw components
+    # Count stats
     pa: int = 0
-    ab: int = 0
-    hits: int = 0
-    bb: int = 0
-    hbp: int = 0
-    sf: int = 0
     r: int = 0
     tb: int = 0
     rbi: int = 0
     sb: int = 0
-    # Pitching raw components
     ip: float = 0.0
     k: int = 0
     qs: int = 0
+    svhd: int = 0
+    # Rate stats (pre-computed, weighted by PA/IP when aggregating)
+    obp: float = 0.0
     era: float = 0.0
     whip: float = 0.0
-    svhd: int = 0
-    earned_runs: int = 0
-    hits_allowed: int = 0
-    bb_allowed: int = 0
 
 
 @dataclass
 class TeamTotals:
-    """Raw summed stats for a fantasy team, used to compute category values."""
-    # Hitting components
-    pa: int = 0
-    ab: int = 0
-    hits: int = 0
-    bb: int = 0
-    hbp: int = 0
-    sf: int = 0
-    r: int = 0
-    tb: int = 0
-    rbi: int = 0
-    sb: int = 0
-    # Pitching components
-    ip: float = 0.0
-    k: int = 0
-    qs: int = 0
-    earned_runs: int = 0
-    hits_allowed: int = 0
-    bb_allowed: int = 0
-    svhd: int = 0
+    """Aggregated team stats matching draft-categories.ts computeTeamCategories.
+
+    Rate stats (OBP, ERA, WHIP) are PA/IP-weighted averages, not raw sums.
+    """
+    # Hitting count stats
+    r: float = 0.0
+    tb: float = 0.0
+    rbi: float = 0.0
+    sb: float = 0.0
+    # Pitching count stats
+    k: float = 0.0
+    qs: float = 0.0
+    svhd: float = 0.0
+    # Rate stat accumulators (weighted sums for final division)
+    total_pa: float = 0.0
+    weighted_obp: float = 0.0  # sum of obp * pa * weight
+    total_ip: float = 0.0
+    weighted_era: float = 0.0  # sum of era * ip * weight
+    weighted_whip: float = 0.0  # sum of whip * ip * weight
 
     def category_values(self) -> dict[str, float]:
-        """Compute the 10 category values from raw components."""
-        obp = (
-            (self.hits + self.bb + self.hbp) / (self.ab + self.bb + self.hbp + self.sf)
-            if (self.ab + self.bb + self.hbp + self.sf) > 0
-            else 0.0
-        )
-        era = (self.earned_runs * 9) / self.ip if self.ip > 0 else 9.99
-        whip = (self.hits_allowed + self.bb_allowed) / self.ip if self.ip > 0 else 2.50
+        """Compute the 10 category values (matches draft page logic)."""
+        obp = self.weighted_obp / self.total_pa if self.total_pa > 0 else 0.0
+        era = self.weighted_era / self.total_ip if self.total_ip > 0 else 9.99
+        whip = self.weighted_whip / self.total_ip if self.total_ip > 0 else 2.50
         return {
-            "R": float(self.r),
-            "TB": float(self.tb),
-            "RBI": float(self.rbi),
-            "SB": float(self.sb),
+            "R": self.r, "TB": self.tb, "RBI": self.rbi, "SB": self.sb,
             "OBP": obp,
-            "K": float(self.k),
-            "QS": float(self.qs),
-            "ERA": era,
-            "WHIP": whip,
-            "SVHD": float(self.svhd),
+            "K": self.k, "QS": self.qs,
+            "ERA": era, "WHIP": whip,
+            "SVHD": self.svhd,
         }
 
     def add_player(self, p: PlayerProjection, weight: float = 1.0) -> None:
         if p.player_type == "hitter" or p.pa > 0:
-            self.pa += int(p.pa * weight)
-            self.ab += int(p.ab * weight)
-            self.hits += int(p.hits * weight)
-            self.bb += int(p.bb * weight)
-            self.hbp += int(p.hbp * weight)
-            self.sf += int(p.sf * weight)
-            self.r += int(p.r * weight)
-            self.tb += int(p.tb * weight)
-            self.rbi += int(p.rbi * weight)
-            self.sb += int(p.sb * weight)
+            self.r += p.r * weight
+            self.tb += p.tb * weight
+            self.rbi += p.rbi * weight
+            self.sb += p.sb * weight
+            self.total_pa += p.pa * weight
+            self.weighted_obp += p.obp * p.pa * weight
         if p.player_type == "pitcher" or p.ip > 0:
-            self.ip += p.ip * weight
-            self.k += int(p.k * weight)
-            self.qs += int(p.qs * weight)
-            self.earned_runs += int(p.earned_runs * weight)
-            self.hits_allowed += int(p.hits_allowed * weight)
-            self.bb_allowed += int(p.bb_allowed * weight)
-            self.svhd += int(p.svhd * weight)
+            self.k += p.k * weight
+            self.qs += p.qs * weight
+            self.svhd += p.svhd * weight
+            self.total_ip += p.ip * weight
+            self.weighted_era += p.era * p.ip * weight
+            self.weighted_whip += p.whip * p.ip * weight
 
     def remove_player(self, p: PlayerProjection, weight: float = 1.0) -> None:
         if p.player_type == "hitter" or p.pa > 0:
-            self.pa -= int(p.pa * weight)
-            self.ab -= int(p.ab * weight)
-            self.hits -= int(p.hits * weight)
-            self.bb -= int(p.bb * weight)
-            self.hbp -= int(p.hbp * weight)
-            self.sf -= int(p.sf * weight)
-            self.r -= int(p.r * weight)
-            self.tb -= int(p.tb * weight)
-            self.rbi -= int(p.rbi * weight)
-            self.sb -= int(p.sb * weight)
+            self.r -= p.r * weight
+            self.tb -= p.tb * weight
+            self.rbi -= p.rbi * weight
+            self.sb -= p.sb * weight
+            self.total_pa -= p.pa * weight
+            self.weighted_obp -= p.obp * p.pa * weight
         if p.player_type == "pitcher" or p.ip > 0:
-            self.ip -= p.ip * weight
-            self.k -= int(p.k * weight)
-            self.qs -= int(p.qs * weight)
-            self.earned_runs -= int(p.earned_runs * weight)
-            self.hits_allowed -= int(p.hits_allowed * weight)
-            self.bb_allowed -= int(p.bb_allowed * weight)
-            self.svhd -= int(p.svhd * weight)
+            self.k -= p.k * weight
+            self.qs -= p.qs * weight
+            self.svhd -= p.svhd * weight
+            self.total_ip -= p.ip * weight
+            self.weighted_era -= p.era * p.ip * weight
+            self.weighted_whip -= p.whip * p.ip * weight
 
     def copy(self) -> TeamTotals:
         return TeamTotals(
-            pa=self.pa, ab=self.ab, hits=self.hits, bb=self.bb,
-            hbp=self.hbp, sf=self.sf, r=self.r, tb=self.tb,
-            rbi=self.rbi, sb=self.sb, ip=self.ip, k=self.k,
-            qs=self.qs, earned_runs=self.earned_runs,
-            hits_allowed=self.hits_allowed, bb_allowed=self.bb_allowed,
-            svhd=self.svhd,
+            r=self.r, tb=self.tb, rbi=self.rbi, sb=self.sb,
+            k=self.k, qs=self.qs, svhd=self.svhd,
+            total_pa=self.total_pa, weighted_obp=self.weighted_obp,
+            total_ip=self.total_ip, weighted_era=self.weighted_era,
+            weighted_whip=self.weighted_whip,
         )
 
 
@@ -238,80 +211,44 @@ def resolve_espn_names_to_mlbid(
 def load_projections_for_players(
     mlb_ids: list[int],
     season: int,
-    source: str = "atc",
 ) -> dict[int, PlayerProjection]:
-    """Load projections from the DB for a set of players.
-
-    Falls back to 'atc' source if 'atcdc' has no data.
-    """
+    """Load projections from the rankings table (same data the draft uses)."""
     conn = get_connection()
+    placeholders = ",".join(["?"] * len(mlb_ids))
+    rows = conn.execute(
+        f"""SELECT r.mlb_id, pl.full_name, pl.primary_position, r.player_type,
+                   r.proj_pa, r.proj_r, r.proj_tb, r.proj_rbi, r.proj_sb, r.proj_obp,
+                   r.proj_ip, r.proj_k, r.proj_qs, r.proj_era, r.proj_whip, r.proj_svhd
+            FROM rankings r
+            JOIN players pl ON r.mlb_id = pl.mlb_id
+            WHERE r.mlb_id IN ({placeholders})
+              AND r.season = ?""",
+        (*mlb_ids, season),
+    ).fetchall()
+
     projections: dict[int, PlayerProjection] = {}
-
-    # Try requested source first, then fall back through expert sources.
-    # ATC is a pre-blended consensus system; the individual systems
-    # (steamer, thebatx, zips) are used when ATC isn't available.
-    _FALLBACK_SOURCES = ["atc", "steamer", "thebatx", "zips"]
-    sources_to_try = [source] if source in _FALLBACK_SOURCES else [source]
-    for fb in _FALLBACK_SOURCES:
-        if fb not in sources_to_try:
-            sources_to_try.append(fb)
-
-    for src in sources_to_try:
-        placeholders = ",".join(["?"] * len(mlb_ids))
-        rows = conn.execute(
-            f"""SELECT p.mlb_id, pl.full_name, pl.primary_position, p.player_type,
-                       p.proj_pa, p.proj_at_bats, p.proj_hits, p.proj_walks,
-                       p.proj_hbp, p.proj_sac_flies,
-                       p.proj_runs, p.proj_total_bases, p.proj_rbi, p.proj_stolen_bases,
-                       p.proj_ip, p.proj_pitcher_strikeouts, p.proj_quality_starts,
-                       p.proj_era, p.proj_whip,
-                       p.proj_saves, p.proj_holds,
-                       p.proj_earned_runs, p.proj_hits_allowed, p.proj_walks_allowed
-                FROM projections p
-                JOIN players pl ON p.mlb_id = pl.mlb_id
-                WHERE p.mlb_id IN ({placeholders})
-                  AND p.season = ? AND p.source = ?""",
-            (*mlb_ids, season, src),
-        ).fetchall()
-
-        for row in rows:
-            mid = row["mlb_id"]
-            if mid in projections:
-                continue  # Already loaded from higher-priority source
-
-            proj = PlayerProjection(
-                mlb_id=mid,
-                name=row["full_name"],
-                position=row["primary_position"] or "",
-                player_type=row["player_type"] or "hitter",
-                pa=row["proj_pa"] or 0,
-                ab=row["proj_at_bats"] or 0,
-                hits=row["proj_hits"] or 0,
-                bb=row["proj_walks"] or 0,
-                hbp=row["proj_hbp"] or 0,
-                sf=row["proj_sac_flies"] or 0,
-                r=row["proj_runs"] or 0,
-                tb=row["proj_total_bases"] or 0,
-                rbi=row["proj_rbi"] or 0,
-                sb=row["proj_stolen_bases"] or 0,
-                ip=row["proj_ip"] or 0.0,
-                k=row["proj_pitcher_strikeouts"] or 0,
-                qs=row["proj_quality_starts"] or 0,
-                era=row["proj_era"] or 0.0,
-                whip=row["proj_whip"] or 0.0,
-                svhd=(row["proj_saves"] or 0) + (row["proj_holds"] or 0),
-                earned_runs=row["proj_earned_runs"] or 0,
-                hits_allowed=row["proj_hits_allowed"] or 0,
-                bb_allowed=row["proj_walks_allowed"] or 0,
-            )
-            projections[mid] = proj
-
-        if projections:
-            break  # Got data from this source, no need to try fallback
+    for row in rows:
+        projections[row["mlb_id"]] = PlayerProjection(
+            mlb_id=row["mlb_id"],
+            name=row["full_name"],
+            position=row["primary_position"] or "",
+            player_type=row["player_type"] or "hitter",
+            pa=row["proj_pa"] or 0,
+            r=row["proj_r"] or 0,
+            tb=row["proj_tb"] or 0,
+            rbi=row["proj_rbi"] or 0,
+            sb=row["proj_sb"] or 0,
+            obp=row["proj_obp"] or 0.0,
+            ip=row["proj_ip"] or 0.0,
+            k=row["proj_k"] or 0,
+            qs=row["proj_qs"] or 0,
+            era=row["proj_era"] or 0.0,
+            whip=row["proj_whip"] or 0.0,
+            svhd=row["proj_svhd"] or 0,
+        )
 
     conn.close()
-    used_source = next((s for s in sources_to_try if projections), sources_to_try[0])
-    logger.info(f"Loaded projections for {len(projections)}/{len(mlb_ids)} players (tried={sources_to_try}, used={used_source})")
+    logger.info(f"Loaded projections for {len(projections)}/{len(mlb_ids)} players from rankings")
     return projections
 
 
@@ -380,7 +317,6 @@ def compute_waiver_recommendations(
     free_agent_ids: list[int],
     season: int,
     remaining_faab: float = 100.0,
-    source: str = "atc",
 ) -> dict:
     """Compute waiver wire recommendations.
 
@@ -390,7 +326,7 @@ def compute_waiver_recommendations(
     other_team_ids = [s["mlb_id"] for team in all_team_roster_slots for s in team]
     all_ids = list(set(my_roster_ids + other_team_ids + free_agent_ids))
 
-    projections = load_projections_for_players(all_ids, season, source)
+    projections = load_projections_for_players(all_ids, season)
 
     # Build my team totals with bench weighting
     my_totals = TeamTotals()
