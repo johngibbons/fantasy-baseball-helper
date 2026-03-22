@@ -81,6 +81,23 @@ export default function WaiversPage() {
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<WaiverResults | null>(null)
   const [posFilter, setPosFilter] = useState('All')
+  const [refreshing, setRefreshing] = useState(false)
+  const [refreshStatus, setRefreshStatus] = useState<string | null>(null)
+
+  const handleRefreshProjections = async () => {
+    setRefreshing(true)
+    setRefreshStatus(null)
+    try {
+      const resp = await fetch('/api/v2/waivers/refresh-projections?season=2026', { method: 'POST' })
+      if (!resp.ok) throw new Error(`Error ${resp.status}`)
+      const data = await resp.json()
+      setRefreshStatus(`Updated: ${data.results?.batting ?? 0} hitters, ${data.results?.pitching ?? 0} pitchers`)
+    } catch (err: any) {
+      setRefreshStatus(`Failed: ${err.message}`)
+    } finally {
+      setRefreshing(false)
+    }
+  }
 
   // Load leagues and stored credentials
   useEffect(() => {
@@ -233,9 +250,21 @@ export default function WaiversPage() {
             >
               {loading ? 'Analyzing...' : 'Get Recommendations'}
             </button>
+            <button
+              onClick={handleRefreshProjections}
+              disabled={refreshing}
+              className="px-4 py-1.5 bg-[#0d1117] border border-white/10 text-gray-300 text-sm font-medium rounded hover:border-white/20 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {refreshing ? 'Refreshing...' : 'Refresh RoS Projections'}
+            </button>
             {loading && (
               <span className="text-xs text-gray-500">
                 Fetching rosters & computing expected wins...
+              </span>
+            )}
+            {refreshStatus && (
+              <span className={`text-xs ${refreshStatus.startsWith('Failed') ? 'text-red-400' : 'text-emerald-400'}`}>
+                {refreshStatus}
               </span>
             )}
           </div>
