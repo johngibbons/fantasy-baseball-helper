@@ -386,6 +386,12 @@ def compute_waiver_recommendations(
     my_cat_values = my_totals.category_values()
     other_cat_values = [t.category_values() for t in other_team_totals]
     logger.info(f"My team category values: {my_cat_values}")
+    other_team_player_counts = [
+        sum(1 for pid in team_ids if pid in projections)
+        for team_ids in all_team_roster_ids
+    ]
+    logger.info(f"Other teams proj counts: {other_team_player_counts}")
+    logger.info(f"Other teams R values: {[t.get('R', 0) for t in other_cat_values]}")
     baseline_wins, baseline_cat_probs = compute_expected_wins(my_cat_values, other_cat_values)
 
     # Identify droppable players on my roster (IL slots deprioritized)
@@ -460,7 +466,9 @@ def compute_waiver_recommendations(
         "projection_coverage": {
             "my_roster": f"{my_roster_with_proj}/{len(my_roster_ids)}",
             "missing_ids": my_roster_without_proj[:10],
+            "other_teams_player_counts": other_team_player_counts,
         },
+        "other_teams_R": [round(t.get("R", 0), 1) for t in other_cat_values],
         "recommendations": [
             {
                 "rank": i + 1,
