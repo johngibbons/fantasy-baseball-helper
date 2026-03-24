@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
 
 interface League {
@@ -167,6 +167,15 @@ export default function WaiversPage() {
       .catch(() => {})
   }, [selectedLeague])
 
+  // Auto-fetch recommendations when settings are restored from localStorage
+  const autoFetched = useRef(false)
+  useEffect(() => {
+    if (settingsLoaded && !autoFetched.current && selectedLeague && selectedTeam && swid && espnS2) {
+      autoFetched.current = true
+      handleFetchRecommendations()
+    }
+  }, [settingsLoaded, selectedLeague, selectedTeam])
+
   const hasAllSettings = !!(selectedLeague && selectedTeam && swid && espnS2)
 
   const handleSaveSettings = () => {
@@ -273,7 +282,7 @@ export default function WaiversPage() {
                   disabled={loading}
                   className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Analyzing...' : 'Get Recommendations'}
+                  {loading ? 'Analyzing...' : 'Refresh Recommendations'}
                 </button>
                 <button
                   onClick={handleRefreshProjections}
@@ -538,7 +547,7 @@ export default function WaiversPage() {
 
         {!results && !loading && !error && (
           <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-8 text-center text-gray-500">
-            <p className="mb-2">Select your league and team above, then click &quot;Get Recommendations&quot;.</p>
+            <p className="mb-2">Select your league and team above to get started. Recommendations load automatically.</p>
             <p className="text-xs">Uses ATC DC (RoS) projections to find free agents that improve your expected wins.</p>
           </div>
         )}
