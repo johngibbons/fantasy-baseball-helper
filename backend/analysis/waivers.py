@@ -334,7 +334,7 @@ def compute_expected_wins(
 # ── Bench weighting ──────────────────────────────────────────────────────────
 
 
-def _player_weight(lineup_slot_id: int, proj: PlayerProjection) -> float:
+def player_weight(lineup_slot_id: int, proj: PlayerProjection) -> float:
     """Return the contribution weight for a player based on lineup slot.
 
     Starters contribute 100%. Bench/IL players contribute a fraction
@@ -383,7 +383,7 @@ def compute_waiver_recommendations(
         pid = slot["mlb_id"]
         proj = projections.get(pid)
         if proj:
-            w = _player_weight(slot.get("lineup_slot_id", 0), proj)
+            w = player_weight(slot.get("lineup_slot_id", 0), proj)
             my_totals.add_player(proj, w)
             my_weights[pid] = w
 
@@ -395,7 +395,7 @@ def compute_waiver_recommendations(
             pid = slot["mlb_id"]
             proj = projections.get(pid)
             if proj:
-                w = _player_weight(slot.get("lineup_slot_id", 0), proj)
+                w = player_weight(slot.get("lineup_slot_id", 0), proj)
                 tt.add_player(proj, w)
         other_team_totals.append(tt)
 

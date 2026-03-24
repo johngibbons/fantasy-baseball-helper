@@ -19,6 +19,7 @@ from backend.analysis.waivers import (
     compute_waiver_recommendations,
     resolve_espn_names_to_mlbid,
 )
+from backend.analysis.trades import compute_trade_suggestions
 from backend.analysis.zscores import (
     calculate_hitter_zscores,
     calculate_pitcher_zscores,
@@ -724,6 +725,84 @@ def waiver_recommendations(req: WaiverRequest):
         "my_lineup_slot_ids": my_slot_ids,
         "other_team_slot_samples": other_slot_samples,
     }
+    return result
+
+
+# ── Trade Suggestions ──
+
+
+class TradeRosterPlayer(BaseModel):
+    mlb_id: Optional[int] = None
+    name: str
+    lineup_slot_id: int = 0
+    player_type: Optional[str] = None
+
+
+class TradeTeamRoster(BaseModel):
+    team_id: int
+    team_name: str = ""
+    players: list[TradeRosterPlayer]
+
+
+class TradeRequest(BaseModel):
+    my_roster: list[TradeRosterPlayer]
+    all_team_rosters: list[TradeTeamRoster]
+    my_team_index: int
+    season: int = 2026
+    max_trade_size: int = 2
+    fairness_threshold: float = 0.5
+    include_draft_picks: bool = False
+    max_tradeable_per_team: int = 15
+
+
+@router.post("/trades/suggestions")
+def trade_suggestions(req: TradeRequest):
+    """Compute trade suggestions ranked by expected wins improvement for both teams."""
+    # Resolve ESPN names to mlb_ids
+    all_espn_players = (
+        [{"name": p.name, "player_type": p.player_type} for p in req.my_roster]
+        + [
+            {"name": p.name, "player_type": p.player_type}
+            for team in req.all_team_rosters
+            for p in team.players
+        ]
+    )
+    name_to_id = resolve_espn_names_to_mlbid(all_espn_players, season=req.season)
+
+    # Build resolved roster structures
+    my_roster = []
+    for p in req.my_roster:
+        mid = p.mlb_id or name_to_id.get(p.name)
+        if mid:
+            my_roster.append({"mlb_id": mid, "lineup_slot_id": p.lineup_slot_id})
+
+    all_team_rosters = []
+    for team in req.all_team_rosters:
+        team_players = []
+        for p in team.players:
+            mid = p.mlb_id or name_to_id.get(p.name)
+            if mid:
+                team_players.append({"mlb_id": mid, "lineup_slot_id": p.lineup_slot_id})
+        all_team_rosters.append({
+            "team_id": team.team_id,
+            "team_name": team.team_name,
+            "players": team_players,
+        })
+
+    if not my_roster:
+        raise HTTPException(status_code=400, detail="No roster players could be resolved.")
+
+    result = compute_trade_suggestions(
+        my_roster=my_roster,
+        all_team_rosters=all_team_rosters,
+        my_team_index=req.my_team_index,
+        season=req.season,
+        max_trade_size=req.max_trade_size,
+        fairness_threshold=req.fairness_threshold,
+        include_draft_picks=req.include_draft_picks,
+        max_tradeable_per_team=req.max_tradeable_per_team,
+    )
+    result["name_to_mlb_id"] = name_to_id
     return result
 
 
