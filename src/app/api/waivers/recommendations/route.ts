@@ -6,9 +6,9 @@ const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
 
 // ESPN defaultPositionId to readable name
 const posMap: Record<number, string> = {
-  0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS',
-  5: 'LF', 6: 'CF', 7: 'RF', 8: 'DH',
-  9: 'SP', 10: 'RP', 11: 'P',
+  1: 'SP', 2: 'C', 3: '1B', 4: '2B', 5: '3B',
+  6: 'SS', 7: 'LF', 8: 'CF', 9: 'RF', 10: 'DH',
+  11: 'RP',
 }
 
 // ESPN lineupSlotId to display slot name
