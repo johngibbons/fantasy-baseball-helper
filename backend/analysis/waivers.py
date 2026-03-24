@@ -170,18 +170,20 @@ def resolve_espn_names_to_mlbid(
 ) -> dict[str, int]:
     """Map ESPN player names to mlb_id using name-based matching.
 
-    When duplicate names exist (e.g. two "Juan Soto" players), prefers
-    the one with an entry in the rankings table (i.e. the relevant player).
+    When duplicate names exist (e.g. two "Edwin Diaz" or "Juan Soto" players),
+    uses ESPN's player_type hint and rankings presence for disambiguation.
 
     Args:
-        espn_players: List of dicts with at least 'name' key.
+        espn_players: List of dicts with 'name' and optional 'player_type' keys.
         season: Season to check rankings for disambiguation.
 
     Returns:
         Dict of normalized_name -> mlb_id for successfully matched players.
     """
     conn = get_connection()
-    all_db_players = conn.execute("SELECT mlb_id, full_name FROM players").fetchall()
+    all_db_players = conn.execute(
+        "SELECT mlb_id, full_name, player_type FROM players"
+    ).fetchall()
 
     # Get ranked player IDs for disambiguation
     ranked_ids = set()
@@ -192,31 +194,56 @@ def resolve_espn_names_to_mlbid(
         ranked_ids.add(row["mlb_id"])
     conn.close()
 
-    # Build lookup tables — for duplicates, prefer the ranked player
-    name_to_id: dict[str, int] = {}
-    stripped_to_id: dict[str, int] = {}
+    # Build lookup: name -> list of (mlb_id, player_type, is_ranked) for disambiguation
+    from collections import defaultdict
+    name_candidates: dict[str, list[tuple[int, str, bool]]] = defaultdict(list)
+    stripped_candidates: dict[str, list[tuple[int, str, bool]]] = defaultdict(list)
     for p in all_db_players:
         key = p["full_name"].lower()
         stripped_key = _strip_accents(p["full_name"])
         mid = p["mlb_id"]
+        ptype = p["player_type"] or ""
+        is_ranked = mid in ranked_ids
+        name_candidates[key].append((mid, ptype, is_ranked))
+        stripped_candidates[stripped_key].append((mid, ptype, is_ranked))
 
-        # Prefer ranked players over unranked ones for name collisions
-        if key not in name_to_id or (mid in ranked_ids and name_to_id[key] not in ranked_ids):
-            name_to_id[key] = mid
-        if stripped_key not in stripped_to_id or (mid in ranked_ids and stripped_to_id[stripped_key] not in ranked_ids):
-            stripped_to_id[stripped_key] = mid
+    def _pick_best(candidates: list[tuple[int, str, bool]], hint_type: str | None) -> int:
+        """Pick the best candidate from duplicates using type hint and ranking."""
+        if len(candidates) == 1:
+            return candidates[0][0]
+        # If we have a type hint from ESPN, prefer matching type
+        if hint_type:
+            type_matches = [c for c in candidates if c[1] == hint_type]
+            if len(type_matches) == 1:
+                return type_matches[0][0]
+            if type_matches:
+                # Among type matches, prefer ranked
+                ranked_type = [c for c in type_matches if c[2]]
+                if ranked_type:
+                    return ranked_type[0][0]
+                return type_matches[0][0]
+        # No type hint or no type match — prefer ranked
+        ranked = [c for c in candidates if c[2]]
+        if ranked:
+            return ranked[0][0]
+        return candidates[0][0]
+
+    # Build a per-ESPN-player type hint map (first occurrence wins for each name)
+    name_type_hints: dict[str, str | None] = {}
+    for ep in espn_players:
+        name = ep.get("name", "").strip()
+        if name and name not in name_type_hints:
+            name_type_hints[name] = ep.get("player_type")
 
     resolved: dict[str, int] = {}
     unmatched = 0
-    for ep in espn_players:
-        name = ep.get("name", "").strip()
-        if not name:
-            continue
-        mlb_id = name_to_id.get(name.lower())
-        if not mlb_id:
-            mlb_id = stripped_to_id.get(_strip_accents(name))
-        if mlb_id:
-            resolved[name] = mlb_id
+    for name, hint_type in name_type_hints.items():
+        key = name.lower()
+        candidates = name_candidates.get(key)
+        if not candidates:
+            candidates = stripped_candidates.get(_strip_accents(name))
+        if candidates:
+            resolved[name] = _pick_best(candidates, hint_type)
         else:
             unmatched += 1
 

@@ -622,6 +622,7 @@ class WaiverRosterPlayer(BaseModel):
     mlb_id: Optional[int] = None
     name: str
     lineup_slot_id: int = 0
+    player_type: Optional[str] = None  # 'hitter' or 'pitcher' from ESPN for disambiguation
 
 
 class WaiverTeamRoster(BaseModel):
@@ -642,9 +643,9 @@ def waiver_recommendations(req: WaiverRequest):
     """Compute waiver wire recommendations ranked by expected wins improvement."""
     # Resolve ESPN names to mlb_ids
     all_espn_players = (
-        [{"name": p.name} for p in req.my_roster]
-        + [{"name": p.name} for team in req.other_team_rosters for p in team.players]
-        + [{"name": p.name} for p in req.free_agents]
+        [{"name": p.name, "player_type": p.player_type} for p in req.my_roster]
+        + [{"name": p.name, "player_type": p.player_type} for team in req.other_team_rosters for p in team.players]
+        + [{"name": p.name, "player_type": p.player_type} for p in req.free_agents]
     )
     name_to_id = resolve_espn_names_to_mlbid(all_espn_players, season=req.season)
 

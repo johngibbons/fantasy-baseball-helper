@@ -19,6 +19,11 @@ const slotMap: Record<number, string> = {
   16: 'BE', 17: 'IL',
 }
 
+// ESPN defaultPositionId -> player type for backend disambiguation
+function espnPlayerType(defaultPositionId: number | undefined): string {
+  return defaultPositionId === 1 || defaultPositionId === 11 ? 'pitcher' : 'hitter'
+}
+
 // Max non-IL roster size (C+1B+2B+3B+SS+3OF+2UTIL+3SP+2RP+2P+8BE = 25)
 const MAX_ROSTER_SIZE = 25
 
@@ -59,6 +64,7 @@ export async function POST(request: NextRequest) {
     const myRoster = myRosterEntries.map((entry: ESPNRosterEntry) => ({
       name: entry.player?.fullName || `Player ${entry.playerId}`,
       lineup_slot_id: entry.lineupSlotId,
+      player_type: espnPlayerType(entry.player?.defaultPositionId),
     }))
     const myRosterDisplay = myRosterEntries.map((entry: ESPNRosterEntry) => ({
       name: entry.player?.fullName || `Player ${entry.playerId}`,
@@ -79,6 +85,7 @@ export async function POST(request: NextRequest) {
         players: entries.map((entry: ESPNRosterEntry) => ({
           name: entry.player?.fullName || `Player ${entry.playerId}`,
           lineup_slot_id: entry.lineupSlotId,
+          player_type: espnPlayerType(entry.player?.defaultPositionId),
         })),
       }))
 
@@ -86,6 +93,7 @@ export async function POST(request: NextRequest) {
     const faList = freeAgents.map((p) => ({
       name: p.fullName,
       lineup_slot_id: 0,
+      player_type: espnPlayerType(p.defaultPositionId),
     }))
 
     // Call Python backend for recommendations
