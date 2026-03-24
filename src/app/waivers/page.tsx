@@ -54,7 +54,7 @@ interface WaiverResults {
 }
 
 const CATS = ['R', 'TB', 'RBI', 'SB', 'OBP', 'K', 'QS', 'ERA', 'WHIP', 'SVHD']
-const POSITIONS = ['All', 'C', '1B', '2B', '3B', 'SS', 'OF', 'LF', 'CF', 'RF', 'DH', 'SP', 'RP']
+const POSITIONS = ['All', 'C', '1B', '2B', '3B', 'SS', 'OF', 'DH', 'SP', 'RP']
 
 const posColors: Record<string, string> = {
   C: 'text-blue-400', '1B': 'text-amber-400', '2B': 'text-orange-400', '3B': 'text-purple-400',
@@ -236,10 +236,11 @@ export default function WaiversPage() {
   const filteredRecs = useMemo(() => {
     if (!results) return []
     if (posFilter === 'All') return results.recommendations
-    return results.recommendations.filter(
-      (r) => r.add_player.position === posFilter ||
-             r.add_player.position === 'OF' && ['LF', 'CF', 'RF'].includes(posFilter)
-    )
+    return results.recommendations.filter((r) => {
+      const pos = r.add_player.position
+      if (posFilter === 'OF') return ['OF', 'LF', 'CF', 'RF'].includes(pos)
+      return pos === posFilter
+    })
   }, [results, posFilter])
 
   return (
