@@ -89,6 +89,22 @@ function fmtCatImpact(v: number): string {
   return v > 0 ? `+${pct}` : pct
 }
 
+const STORAGE_KEY = 'waiver_settings'
+
+function loadSettings(): { leagueId: string; teamId: string; swid: string; espn_s2: string } | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const s = JSON.parse(raw)
+    if (s.leagueId && s.teamId && s.swid && s.espn_s2) return s
+    return null
+  } catch { return null }
+}
+
+function saveSettings(leagueId: string, teamId: string, swid: string, espn_s2: string) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ leagueId, teamId, swid, espn_s2 }))
+}
+
 export default function WaiversPage() {
   const [leagues, setLeagues] = useState<League[]>([])
   const [teams, setTeams] = useState<Team[]>([])
@@ -96,6 +112,8 @@ export default function WaiversPage() {
   const [selectedTeam, setSelectedTeam] = useState<string>('')
   const [swid, setSwid] = useState('')
   const [espnS2, setEspnS2] = useState('')
+  const [editing, setEditing] = useState(false)
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<WaiverResults | null>(null)
@@ -119,21 +137,25 @@ export default function WaiversPage() {
     }
   }
 
-  // Load leagues and stored credentials
+  // Load leagues and stored settings
   useEffect(() => {
     fetch('/api/leagues')
       .then((r) => r.ok ? r.json() : [])
-      .then(setLeagues)
-      .catch(() => {})
-
-    const stored = localStorage.getItem('espn_credentials')
-    if (stored) {
-      try {
-        const { swid: s, espn_s2: e } = JSON.parse(stored)
-        if (s) setSwid(s)
-        if (e) setEspnS2(e)
-      } catch {}
-    }
+      .then((data) => {
+        setLeagues(data)
+        // Restore saved settings after leagues load
+        const saved = loadSettings()
+        if (saved) {
+          setSelectedLeague(saved.leagueId)
+          setSelectedTeam(saved.teamId)
+          setSwid(saved.swid)
+          setEspnS2(saved.espn_s2)
+          setSettingsLoaded(true)
+        } else {
+          setEditing(true)
+        }
+      })
+      .catch(() => { setEditing(true) })
   }, [])
 
   // Load teams when league changes
@@ -145,12 +167,18 @@ export default function WaiversPage() {
       .catch(() => {})
   }, [selectedLeague])
 
-  // Save credentials to localStorage when they change
-  useEffect(() => {
-    if (swid && espnS2) {
-      localStorage.setItem('espn_credentials', JSON.stringify({ swid, espn_s2: espnS2 }))
+  const hasAllSettings = !!(selectedLeague && selectedTeam && swid && espnS2)
+
+  const handleSaveSettings = () => {
+    if (hasAllSettings) {
+      saveSettings(selectedLeague, selectedTeam, swid, espnS2)
+      setEditing(false)
+      setSettingsLoaded(true)
     }
-  }, [swid, espnS2])
+  }
+
+  const leagueName = leagues.find((l) => l.id === selectedLeague)?.name
+  const teamName = teams.find((t) => t.externalId === selectedTeam)?.name
 
   const handleFetchRecommendations = async () => {
     if (!selectedLeague || !selectedTeam || !swid || !espnS2) {
@@ -221,90 +249,127 @@ export default function WaiversPage() {
 
         {/* Config panel */}
         <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-4 mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* League selector */}
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">League</label>
-              <select
-                value={selectedLeague}
-                onChange={(e) => { setSelectedLeague(e.target.value); setSelectedTeam('') }}
-                className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
-              >
-                <option value="">Select league...</option>
-                {leagues.map((l) => (
-                  <option key={l.id} value={l.id}>{l.name} ({l.season})</option>
-                ))}
-              </select>
+          {settingsLoaded && !editing ? (
+            /* Collapsed view */
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4 text-sm">
+                <span className="text-gray-500">League:</span>
+                <span className="text-white">{leagueName || selectedLeague}</span>
+                <span className="text-gray-500">Team:</span>
+                <span className="text-white">{teamName || `#${selectedTeam}`}</span>
+                <span className="text-gray-500">ESPN:</span>
+                <span className="text-emerald-400 text-xs">Connected</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setEditing(true)}
+                  className="px-3 py-1 text-xs text-gray-400 hover:text-white border border-white/10 rounded hover:border-white/20"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={handleFetchRecommendations}
+                  disabled={loading}
+                  className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Analyzing...' : 'Get Recommendations'}
+                </button>
+                <button
+                  onClick={handleRefreshProjections}
+                  disabled={refreshing}
+                  className="px-4 py-1.5 bg-[#0d1117] border border-white/10 text-gray-300 text-sm font-medium rounded hover:border-white/20 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {refreshing ? 'Refreshing...' : 'Refresh RoS Projections'}
+                </button>
+                {loading && <span className="text-xs text-gray-500">Fetching rosters & computing expected wins...</span>}
+                {refreshStatus && (
+                  <span className={`text-xs ${refreshStatus.startsWith('Failed') ? 'text-red-400' : 'text-emerald-400'}`}>{refreshStatus}</span>
+                )}
+              </div>
             </div>
-
-            {/* Team selector */}
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">My Team</label>
-              <select
-                value={selectedTeam}
-                onChange={(e) => setSelectedTeam(e.target.value)}
-                className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
-              >
-                <option value="">Select team...</option>
-                {teams.map((t) => (
-                  <option key={t.externalId} value={t.externalId}>
-                    {t.name}{t.ownerName ? ` (${t.ownerName})` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* ESPN SWID */}
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">ESPN SWID</label>
-              <input
-                type="password"
-                value={swid}
-                onChange={(e) => setSwid(e.target.value)}
-                placeholder="Paste SWID cookie..."
-                className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
-              />
-            </div>
-
-            {/* ESPN S2 */}
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">ESPN S2</label>
-              <input
-                type="password"
-                value={espnS2}
-                onChange={(e) => setEspnS2(e.target.value)}
-                placeholder="Paste espn_s2 cookie..."
-                className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
-              />
-            </div>
-          </div>
-
-          <div className="mt-3 flex items-center gap-3">
-            <button
-              onClick={handleFetchRecommendations}
-              disabled={loading || !selectedLeague || !selectedTeam || !swid || !espnS2}
-              className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Analyzing...' : 'Get Recommendations'}
-            </button>
-            <button
-              onClick={handleRefreshProjections}
-              disabled={refreshing}
-              className="px-4 py-1.5 bg-[#0d1117] border border-white/10 text-gray-300 text-sm font-medium rounded hover:border-white/20 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {refreshing ? 'Refreshing...' : 'Refresh RoS Projections'}
-            </button>
-            {loading && (
-              <span className="text-xs text-gray-500">
-                Fetching rosters & computing expected wins...
-              </span>
-            )}
-            {refreshStatus && (
-              <span className={`text-xs ${refreshStatus.startsWith('Failed') ? 'text-red-400' : 'text-emerald-400'}`}>
-                {refreshStatus}
-              </span>
-            )}
-          </div>
+          ) : (
+            /* Expanded edit view */
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">League</label>
+                  <select
+                    value={selectedLeague}
+                    onChange={(e) => { setSelectedLeague(e.target.value); setSelectedTeam('') }}
+                    className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
+                  >
+                    <option value="">Select league...</option>
+                    {leagues.map((l) => (
+                      <option key={l.id} value={l.id}>{l.name} ({l.season})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">My Team</label>
+                  <select
+                    value={selectedTeam}
+                    onChange={(e) => setSelectedTeam(e.target.value)}
+                    className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
+                  >
+                    <option value="">Select team...</option>
+                    {teams.map((t) => (
+                      <option key={t.externalId} value={t.externalId}>
+                        {t.name}{t.ownerName ? ` (${t.ownerName})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">ESPN SWID</label>
+                  <input
+                    type="password"
+                    value={swid}
+                    onChange={(e) => setSwid(e.target.value)}
+                    placeholder="Paste SWID cookie..."
+                    className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">ESPN S2</label>
+                  <input
+                    type="password"
+                    value={espnS2}
+                    onChange={(e) => setEspnS2(e.target.value)}
+                    placeholder="Paste espn_s2 cookie..."
+                    className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
+                  />
+                </div>
+              </div>
+              <div className="mt-3 flex items-center gap-3">
+                <button
+                  onClick={() => { handleSaveSettings(); handleFetchRecommendations() }}
+                  disabled={loading || !hasAllSettings}
+                  className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Analyzing...' : 'Save & Get Recommendations'}
+                </button>
+                {settingsLoaded && (
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="px-3 py-1.5 text-sm text-gray-400 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  onClick={handleRefreshProjections}
+                  disabled={refreshing}
+                  className="px-4 py-1.5 bg-[#0d1117] border border-white/10 text-gray-300 text-sm font-medium rounded hover:border-white/20 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {refreshing ? 'Refreshing...' : 'Refresh RoS Projections'}
+                </button>
+                {loading && <span className="text-xs text-gray-500">Fetching rosters & computing expected wins...</span>}
+                {refreshStatus && (
+                  <span className={`text-xs ${refreshStatus.startsWith('Failed') ? 'text-red-400' : 'text-emerald-400'}`}>{refreshStatus}</span>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {error && (
