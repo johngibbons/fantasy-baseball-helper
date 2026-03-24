@@ -125,6 +125,14 @@ export async function POST(request: NextRequest) {
     }
 
     const recommendations = await backendResponse.json()
+    const nameToMlbId: Record<string, number> = recommendations.name_to_mlb_id || {}
+
+    // Merge mlb_ids into roster display for player detail links
+    const rosterWithIds = myRosterDisplay.map((p: any) => ({
+      ...p,
+      mlb_id: nameToMlbId[p.name] || null,
+    }))
+
     return NextResponse.json({
       ...recommendations,
       remaining_faab: remainingFaab,
@@ -132,7 +140,7 @@ export async function POST(request: NextRequest) {
       free_agent_count: faList.length,
       other_teams_count: otherTeamRosters.length,
       open_roster_slots: openRosterSlots,
-      my_roster_display: myRosterDisplay,
+      my_roster_display: rosterWithIds,
     })
   } catch (error: any) {
     console.error('Waiver recommendations error:', error)

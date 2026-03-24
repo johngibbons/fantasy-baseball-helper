@@ -38,6 +38,7 @@ interface RosterPlayer {
   position: string
   slot: string
   lineup_slot_id: number
+  mlb_id: number | null
 }
 
 interface WaiverResults {
@@ -373,7 +374,11 @@ export default function WaiversPage() {
                   players.map((p, i) => (
                     <div key={`${slot}-${i}`} className="flex items-center gap-1.5 py-0.5">
                       <span className={`w-6 text-right font-mono font-bold ${slotColors[slot] || 'text-gray-500'}`}>{slot}</span>
-                      <span className={slot === 'IL' ? 'text-gray-600 line-through' : 'text-gray-300'}>{p.name}</span>
+                      {p.mlb_id ? (
+                        <Link href={`/player/${p.mlb_id}`} className={`hover:underline ${slot === 'IL' ? 'text-gray-600 line-through' : 'text-gray-300 hover:text-white'}`}>{p.name}</Link>
+                      ) : (
+                        <span className={slot === 'IL' ? 'text-gray-600 line-through' : 'text-gray-300'}>{p.name}</span>
+                      )}
                       <span className={`text-[10px] ${posColors[p.position] || 'text-gray-500'}`}>{p.position}</span>
                     </div>
                   ))
@@ -424,7 +429,7 @@ export default function WaiversPage() {
                     <tr key={rec.rank} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
                       <td className="px-3 py-2 text-gray-500 font-mono">{rec.rank}</td>
                       <td className="px-3 py-2">
-                        <span className="text-white font-medium">{rec.add_player.name}</span>
+                        <Link href={`/player/${rec.add_player.id}`} className="text-white font-medium hover:underline hover:text-blue-300">{rec.add_player.name}</Link>
                         <span className={`ml-1.5 text-xs ${posColors[rec.add_player.position] || 'text-gray-400'}`}>
                           {rec.add_player.position}
                         </span>
@@ -432,7 +437,7 @@ export default function WaiversPage() {
                       <td className="px-3 py-2">
                         {rec.drop_player?.name ? (
                           <>
-                            <span className="text-gray-400">{rec.drop_player.name}</span>
+                            <Link href={`/player/${rec.drop_player.id}`} className="text-gray-400 hover:underline hover:text-white">{rec.drop_player.name}</Link>
                             <span className={`ml-1.5 text-xs ${posColors[rec.drop_player.position] || 'text-gray-400'}`}>
                               {rec.drop_player.position}
                             </span>

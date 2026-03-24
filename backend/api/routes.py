@@ -695,6 +695,9 @@ def waiver_recommendations(req: WaiverRequest):
             detail=f"No free agents could be resolved. Sample names: {sample_names}",
         )
 
+    # Pass name→mlb_id mapping so frontend can link roster players
+    result_name_to_id = name_to_id
+
     result = compute_waiver_recommendations(
         my_roster_ids=my_roster_ids,
         my_roster_slots=my_roster_slots,
@@ -710,6 +713,7 @@ def waiver_recommendations(req: WaiverRequest):
         [p.lineup_slot_id for p in team.players]
         for team in req.other_team_rosters[:2]  # first 2 teams
     ]
+    result["name_to_mlb_id"] = result_name_to_id
     result["diagnostics"] = {
         "roster_resolved": len(my_roster_ids),
         "roster_total": len(req.my_roster),
