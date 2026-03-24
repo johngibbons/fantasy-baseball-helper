@@ -417,14 +417,16 @@ def compute_waiver_recommendations(
     logger.info(f"Other teams R values: {[t.get('R', 0) for t in other_cat_values]}")
     baseline_wins, baseline_cat_probs = compute_expected_wins(my_cat_values, other_cat_values)
 
-    # Identify droppable players on my roster (IL/bench deprioritized)
-    droppable: list[tuple[int, bool, float]] = []  # (mlb_id, is_bench_or_IL, weight)
+    # Identify droppable players on my roster (exclude IL — can't drop while on IL)
+    droppable: list[tuple[int, bool, float]] = []  # (mlb_id, is_bench, weight)
     for slot in my_roster_slots:
         pid = slot["mlb_id"]
         slot_id = slot.get("lineup_slot_id", 0)
-        is_non_active = slot_id not in ACTIVE_SLOT_IDS
+        if slot_id >= 17:
+            continue  # IL players can't be dropped
+        is_bench = slot_id not in ACTIVE_SLOT_IDS
         w = my_weights.get(pid, 1.0)
-        droppable.append((pid, is_non_active, w))
+        droppable.append((pid, is_bench, w))
 
     # Sort: non-IL/bench first, then bench/IL
     droppable.sort(key=lambda x: x[1])
