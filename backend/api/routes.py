@@ -814,3 +814,32 @@ def refresh_ros_projections(season: int = Query(2026)):
     # Summarize for the frontend
     atc_count = results.get("atc", 0)
     return {"status": "ok", "results": {"batting_and_pitching": atc_count}}
+
+
+# ── Start/Sit Recommendations ──
+
+
+class StartSitRequest(BaseModel):
+    roster_pitcher_names: list[str]
+    matchup_categories: dict[str, dict[str, float]]
+    team_ip: dict[str, float]
+    days_remaining: int
+    opponent_name: str
+    today_date: str
+    matchup_end_date: str
+
+
+@router.post("/start-sit")
+def start_sit_recommendations(req: StartSitRequest):
+    """Compute start/sit recommendations for today's SP matchups."""
+    from backend.analysis.start_sit import compute_start_sit_recommendations
+
+    return compute_start_sit_recommendations(
+        roster_pitcher_names=req.roster_pitcher_names,
+        matchup_categories=req.matchup_categories,
+        team_ip=req.team_ip,
+        days_remaining=req.days_remaining,
+        opponent_name=req.opponent_name,
+        today_date=req.today_date,
+        matchup_end_date=req.matchup_end_date,
+    )
