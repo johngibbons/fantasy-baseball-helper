@@ -5,17 +5,18 @@ import { ESPNApi } from '@/lib/espn-api'
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
 
 // ESPN stat ID -> category name mapping
-// These are placeholders — Task 10 will verify with real API data
+// Verified from league scoring settings (statIds in scoringItems)
 const ESPN_STAT_MAP: Record<string, string> = {
   '20': 'R',
-  '5': 'RBI',
-  '11': 'SB',
+  '8': 'TB',
+  '21': 'RBI',
+  '23': 'SB',
   '17': 'OBP',
   '48': 'K',
   '63': 'QS',
   '47': 'ERA',
   '41': 'WHIP',
-  // TB and SVHD need verification in Task 10
+  '83': 'SVHD',
 }
 
 export async function POST(request: NextRequest) {
@@ -81,9 +82,6 @@ export async function POST(request: NextRequest) {
     const myStats = mySide.cumulativeScore?.scoreByStat || {}
     const theirStats = theirSide.cumulativeScore?.scoreByStat || {}
 
-    // Log stat IDs for debugging (helps Task 10 verify mapping)
-    console.log('ESPN scoreByStat keys (mine):', Object.keys(myStats))
-
     const matchupCategories: Record<string, { yours: number; theirs: number }> = {}
     for (const [statId, catName] of Object.entries(ESPN_STAT_MAP)) {
       matchupCategories[catName] = {
@@ -92,11 +90,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // IP for rate stat leverage (stat ID 34 is common for IP, needs verification)
+    // Log mapped category values for verification
+    console.log('Matchup categories:', JSON.stringify(matchupCategories, null, 2))
+
+    // IP from stat ID 34 (confirmed via league statQualificationMinimum)
     const teamIp = {
       yours: myStats['34']?.score ?? 0,
       theirs: theirStats['34']?.score ?? 0,
     }
+    console.log('Team IP:', teamIp)
 
     // Get SP names from roster (defaultPositionId 1 = SP)
     const myRosterEntries = rosters[myTeamId] || []
