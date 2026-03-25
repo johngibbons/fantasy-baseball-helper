@@ -100,8 +100,6 @@ const STORAGE_KEY = 'trade_settings'
 interface TradeSettings {
   leagueId: string
   teamId: string
-  swid: string
-  espn_s2: string
   max_trade_size: number
   fairness_threshold: number
   include_draft_picks: boolean
@@ -112,7 +110,7 @@ function loadSettings(): TradeSettings | null {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const s = JSON.parse(raw)
-    if (s.leagueId && s.teamId && s.swid && s.espn_s2) return s
+    if (s.leagueId && s.teamId) return s
     return null
   } catch { return null }
 }
@@ -128,8 +126,7 @@ export default function TradesPage() {
   const [teams, setTeams] = useState<Team[]>([])
   const [selectedLeague, setSelectedLeague] = useState('')
   const [selectedTeam, setSelectedTeam] = useState('')
-  const [swid, setSwid] = useState('')
-  const [espnS2, setEspnS2] = useState('')
+  const [hasCredentials, setHasCredentials] = useState<boolean | null>(null)
   const [maxTradeSize, setMaxTradeSize] = useState(2)
   const [fairnessThreshold, setFairnessThreshold] = useState(0.5)
   const [includeDraftPicks, setIncludeDraftPicks] = useState(false)
@@ -154,8 +151,6 @@ export default function TradesPage() {
         if (saved) {
           setSelectedLeague(saved.leagueId)
           setSelectedTeam(saved.teamId)
-          setSwid(saved.swid)
-          setEspnS2(saved.espn_s2)
           setMaxTradeSize(saved.max_trade_size ?? 2)
           setFairnessThreshold(saved.fairness_threshold ?? 0.5)
           setIncludeDraftPicks(saved.include_draft_picks ?? false)
@@ -176,22 +171,30 @@ export default function TradesPage() {
       .catch(() => {})
   }, [selectedLeague])
 
+  // Check credentials when league changes
+  useEffect(() => {
+    if (!selectedLeague) { setHasCredentials(null); return }
+    fetch(`/api/leagues/${selectedLeague}/credentials`)
+      .then((r) => r.ok ? r.json() : { has_credentials: false })
+      .then((data) => setHasCredentials(!!data.has_credentials))
+      .catch(() => setHasCredentials(false))
+  }, [selectedLeague])
+
   // Auto-fetch when settings restored
   const autoFetched = useRef(false)
   useEffect(() => {
-    if (settingsLoaded && !autoFetched.current && selectedLeague && selectedTeam && swid && espnS2) {
+    if (settingsLoaded && !autoFetched.current && selectedLeague && selectedTeam && hasCredentials) {
       autoFetched.current = true
       handleFetchSuggestions()
     }
-  }, [settingsLoaded, selectedLeague, selectedTeam])
+  }, [settingsLoaded, selectedLeague, selectedTeam, hasCredentials])
 
-  const hasAllSettings = !!(selectedLeague && selectedTeam && swid && espnS2)
+  const hasAllSettings = !!(selectedLeague && selectedTeam && hasCredentials)
 
   const handleSaveSettings = () => {
-    if (hasAllSettings) {
+    if (selectedLeague && selectedTeam) {
       saveSettings({
         leagueId: selectedLeague, teamId: selectedTeam,
-        swid, espn_s2: espnS2,
         max_trade_size: maxTradeSize,
         fairness_threshold: fairnessThreshold,
         include_draft_picks: includeDraftPicks,
@@ -205,8 +208,12 @@ export default function TradesPage() {
   const teamName = teams.find((t) => t.externalId === selectedTeam)?.name
 
   const handleFetchSuggestions = async () => {
-    if (!hasAllSettings) {
-      setError('Please select a league, team, and provide ESPN credentials')
+    if (!selectedLeague || !selectedTeam) {
+      setError('Please select a league and team')
+      return
+    }
+    if (!hasCredentials) {
+      setError('ESPN credentials not configured. Set them up in Settings.')
       return
     }
 
@@ -221,8 +228,6 @@ export default function TradesPage() {
         body: JSON.stringify({
           leagueId: selectedLeague,
           teamId: selectedTeam,
-          swid,
-          espn_s2: espnS2,
           max_trade_size: maxTradeSize,
           fairness_threshold: fairnessThreshold,
           include_draft_picks: includeDraftPicks,
@@ -439,7 +444,10 @@ export default function TradesPage() {
                 <span className="text-gray-500">Team:</span>
                 <span className="text-white">{teamName || `#${selectedTeam}`}</span>
                 <span className="text-gray-500">ESPN:</span>
-                <span className="text-emerald-400 text-xs">Connected</span>
+                {hasCredentials
+                  ? <span className="text-emerald-400 text-xs">Connected</span>
+                  : <Link href="/settings" className="text-yellow-400 text-xs hover:underline">Not configured — set up in Settings</Link>
+                }
                 <span className="text-gray-500">Max:</span>
                 <span className="text-white text-xs">{maxTradeSize === 1 ? '1-for-1 only' : 'Up to 2-for-2'}</span>
               </div>
@@ -462,7 +470,7 @@ export default function TradesPage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">League</label>
                   <select
@@ -491,27 +499,13 @@ export default function TradesPage() {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">ESPN SWID</label>
-                  <input
-                    type="password"
-                    value={swid}
-                    onChange={(e) => setSwid(e.target.value)}
-                    placeholder="Paste SWID cookie..."
-                    className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">ESPN S2</label>
-                  <input
-                    type="password"
-                    value={espnS2}
-                    onChange={(e) => setEspnS2(e.target.value)}
-                    placeholder="Paste espn_s2 cookie..."
-                    className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
-                  />
-                </div>
               </div>
+              {selectedLeague && hasCredentials === false && (
+                <div className="mt-2 text-xs text-yellow-400">
+                  ESPN credentials not configured for this league.{' '}
+                  <Link href="/settings" className="underline hover:text-yellow-300">Set them up in Settings.</Link>
+                </div>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
                 <div>
                   <label className="block text-xs text-gray-500 mb-1">Max Trade Size</label>
@@ -562,7 +556,7 @@ export default function TradesPage() {
               <div className="mt-3 flex items-center gap-3">
                 <button
                   onClick={() => { handleSaveSettings(); handleFetchSuggestions() }}
-                  disabled={loading || !hasAllSettings}
+                  disabled={loading || !selectedLeague || !selectedTeam || !hasCredentials}
                   className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {loading ? 'Analyzing...' : 'Save & Get Suggestions'}

@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const {
-      leagueId, teamId, swid, espn_s2,
+      leagueId, teamId,
       season = '2026',
       max_trade_size = 2,
       fairness_threshold = 0.5,
@@ -26,9 +26,9 @@ export async function POST(request: NextRequest) {
       max_tradeable_per_team = 15,
     } = body
 
-    if (!leagueId || !teamId || !swid || !espn_s2) {
+    if (!leagueId || !teamId) {
       return NextResponse.json(
-        { error: 'Missing required fields: leagueId, teamId, swid, espn_s2' },
+        { error: 'Missing required fields: leagueId, teamId' },
         { status: 400 },
       )
     }
@@ -41,7 +41,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'League not found' }, { status: 404 })
     }
 
-    const settings = { swid, espn_s2 }
+    const leagueSettings = league.settings as any
+    const credentials = leagueSettings?.credentials
+    if (!credentials?.swid || !credentials?.espn_s2) {
+      return NextResponse.json(
+        { error: 'ESPN credentials not configured. Set them up in Settings.' },
+        { status: 400 },
+      )
+    }
+
+    const settings = { swid: credentials.swid, espn_s2: credentials.espn_s2 }
 
     // Fetch rosters and team names from ESPN in parallel
     const [rosters, teams] = await Promise.all([
@@ -54,7 +63,7 @@ export async function POST(request: NextRequest) {
     // Build team name lookup
     const teamNames: Record<number, string> = {}
     for (const t of teams) {
-      teamNames[t.id] = `${t.location} ${t.nickname}`.trim()
+      teamNames[t.id] = [t.location, t.nickname].filter(Boolean).join(' ') || t.abbrev || `Team ${t.id}`
     }
 
     // Build my roster
