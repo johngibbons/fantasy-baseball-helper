@@ -10,8 +10,10 @@ const navItems = [
   { href: '/keepers', label: 'Keepers' },
   { href: '/waivers', label: 'Waivers' },
   { href: '/trades', label: 'Trades' },
+  { href: '/start-sit', label: 'Start/Sit' },
   { href: '/players', label: 'Player Search' },
   { href: '/leagues', label: 'Leagues' },
+  { href: '/settings', label: 'Settings' },
 ]
 
 export default function Navigation() {
