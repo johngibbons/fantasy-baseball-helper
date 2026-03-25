@@ -114,6 +114,7 @@ ESPN stat IDs for our categories (from espn-api library STATS_MAP — verify at 
 **Input:**
 - User's SP roster (from ESPN API)
 - Today's probable starters (from PitcherList — which of user's SPs appear in today's table)
+- Full week's PitcherList data: all of user's SP starts for the rest of the matchup period (today + future days)
 - Current matchup category totals for all 10 categories (user vs opponent)
 - PitcherList rankings for today's starters
 - Days remaining in matchup period
@@ -150,7 +151,24 @@ Status labels (used consistently throughout):
 
 **Tied categories (gap = 0):** Classify as `losing_close` — bias toward action. A tie is effectively a coin flip, and starting a pitcher gives you a chance to take the lead in K/QS while accepting rate stat risk.
 
-**Step 2 — Compute pitching category leverage:**
+**Step 2 — Compute remaining weekly exposure:**
+
+Using the full week's PitcherList data, count the user's remaining SP starts for the rest of the matchup period:
+- `starts_today`: number of user's SPs starting today
+- `starts_remaining_after_today`: number of user's SP starts on future days this matchup period
+- `total_starts_remaining`: `starts_today + starts_remaining_after_today`
+
+This informs how much each individual start matters:
+- **Many starts remaining (4+):** Each start matters less for ratio protection — one bad outing gets diluted. But counting stats accumulate, so starting is better for K/QS.
+- **Few starts remaining (1-2):** Each start has high impact on ratios. If protecting ERA/WHIP, sitting is more defensible.
+- **Last start of the week (0 after today):** Maximum leverage for ratio protection — this is the last chance to blow a lead.
+
+**Exposure multiplier** for the decision matrix (applied in Step 3):
+- `ratio_exposure = total_starts_remaining / 5` (normalized: 5+ starts = 1.0, 1 start = 0.2)
+- High `ratio_exposure` (many starts left) → ratio leads are fragile regardless of today's decision → **reduce** the ERA/WHIP winning_close downgrade effect (don't sit to protect a lead you'll expose to risk anyway)
+- Low `ratio_exposure` (last start or two) → ratio leads can be locked in → **increase** the ERA/WHIP winning_close downgrade effect
+
+**Step 3 — Compute pitching category leverage:**
 
 Only 4 categories are affected by an SP start decision: **K, QS, ERA, WHIP**. (SVHD is unaffected by SP starts; hitting categories are irrelevant.)
 
@@ -162,9 +180,14 @@ Directional context:
 - For K/QS: starting a pitcher **helps** (adds Ks and QS chances). Leverage is "positive" — starting is beneficial if losing_close, low-stakes if winning_big.
 - For ERA/WHIP: starting a pitcher **risks** hurting (a bad outing raises ratios). Leverage is "negative" — starting is risky if winning_close.
 
-**Step 3 — Decision matrix:**
+**Remaining exposure adjustment:**
+- When ERA/WHIP is `winning_close` but `ratio_exposure >= 0.8` (4+ starts left): treat as **default** column in the decision matrix instead of ERA/WHIP winning_close column. Rationale: sitting today to protect ratios is pointless if you have 4 more starts that will put the lead at risk anyway.
+- When ERA/WHIP is `winning_close` and `ratio_exposure <= 0.4` (1-2 starts left): apply the ERA/WHIP winning_close column strictly. This is when sitting actually locks in a lead.
+- Middle range (0.4 < ratio_exposure < 0.8): use the ERA/WHIP winning_close column but note in rationale that future starts add risk.
 
-Map (PitcherList tier, category context) to our recommendation using this matrix:
+**Step 4 — Decision matrix:**
+
+Map (PitcherList tier, category context, remaining exposure) to our recommendation using this matrix:
 
 | PitcherList Tier | ERA/WHIP winning_close | K/QS losing_close | Default |
 |---|---|---|---|
@@ -178,11 +201,12 @@ Priority rules when ERA/WHIP and K/QS conflict:
 - If ERA/WHIP `winning_big` AND K/QS `losing_close`: favor chasing Ks (upgrade one tier)
 - If all pitching cats `winning_big`: **safe_sit** regardless of PitcherList tier (protect all leads)
 
-**Step 4 — Generate rationale string:**
+**Step 5 — Generate rationale string:**
 
-Template-based rationale referencing the specific category context. Examples:
-- "PitcherList Start-8 vs CIN. Protect your ERA lead (3.12 vs 3.45) — worth the start."
-- "PitcherList Maybe-3 vs NYY. You're down 7 Ks with 2 days left — not enough upside to risk ERA."
+Template-based rationale referencing the specific category context and remaining exposure. Examples:
+- "Start-8 vs CIN. ERA close (3.12 vs 3.45) but you have 4 more starts this week — can't protect ratios anyway. Go for Ks."
+- "Maybe-3 vs NYY. You're down 7 Ks with 2 days left and this is your last start — not enough upside to risk ERA."
+- "Start-5 vs COL. Last start of the week and ERA is tight (3.12 vs 3.25). Sit to lock in the ratio lead."
 - "Winning all pitching categories comfortably. Safe to sit and protect leads."
 
 **Output:**
@@ -203,8 +227,16 @@ Template-based rationale referencing the specific category context. Examples:
       "SVHD": {"yours": 4, "theirs": 3, "status": "winning_close"}
     },
     "days_remaining": 4,
-    "overall": "W8 - L1 - T1"
+    "overall": "W8 - L1 - T1",
+    "starts_today": 2,
+    "starts_remaining_after_today": 3,
+    "ratio_exposure": 1.0
   },
+  "upcoming_starts": [
+    {"date": "2026-03-26", "pitcher_name": "Logan Webb", "opponent": "ARI", "pitcherlist_raw": "Start-6"},
+    {"date": "2026-03-27", "pitcher_name": "Zack Wheeler", "opponent": "MIA", "pitcherlist_raw": "Start-9"},
+    {"date": "2026-03-28", "pitcher_name": "Corbin Burnes", "opponent": "SD", "pitcherlist_raw": "Start-7"}
+  ],
   "recommendations": [
     {
       "pitcher_name": "Corbin Burnes",
@@ -280,7 +312,8 @@ Request body:
   "team_ip": {"yours": 35.1, "theirs": 32.0},
   "days_remaining": 4,
   "opponent_name": "Team Name",
-  "today_date": "2026-03-25"
+  "today_date": "2026-03-25",
+  "matchup_end_date": "2026-03-29"
 }
 ```
 
@@ -323,8 +356,14 @@ Orchestrates:
 - Columns: Pitcher name, Matchup (vs. team), PitcherList score (e.g., "Start-8"), Our recommendation, Rationale
 - Color-coded recommendations: green shades for starts, yellow for risky/maybe, red for sits
 
+**Upcoming starts section:**
+- Shows remaining SP starts for the rest of the matchup period (future days only)
+- Each row: date, pitcher name, opponent, PitcherList score
+- Helps the user see the full week's picture at a glance
+- Label: "X more starts this week" with the list below
+
 **Off-day section:**
-- SPs on roster who are NOT pitching today, shown muted below the main table
+- SPs on roster who have NO remaining starts this matchup period, shown muted below
 
 **Refresh button** to re-fetch latest data.
 
