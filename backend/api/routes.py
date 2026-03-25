@@ -837,7 +837,7 @@ def start_sit_recommendations(req: StartSitRequest):
     return compute_start_sit_recommendations(
         roster_pitcher_names=req.roster_pitcher_names,
         matchup_categories=req.matchup_categories,
-        team_ip=req.team_ip,
+        team_ip=req.team_ip["yours"],
         days_remaining=req.days_remaining,
         opponent_name=req.opponent_name,
         today_date=req.today_date,
