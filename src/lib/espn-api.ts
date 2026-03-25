@@ -307,4 +307,34 @@ export class ESPNApi {
       return false
     }
   }
+
+  static async getMatchupScoreboard(
+    leagueId: string,
+    season: string,
+    settings: ESPNLeagueSettings,
+    matchupPeriodId: number,
+  ): Promise<{
+    schedule: Array<{
+      matchupPeriodId: number
+      home: { teamId: number; cumulativeScore?: { scoreByStat?: Record<string, { score: number; result: string }> } }
+      away: { teamId: number; cumulativeScore?: { scoreByStat?: Record<string, { score: number; result: string }> } }
+    }>
+  }> {
+    const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/${season}/segments/0/leagues/${leagueId}?view=mMatchupScore&view=mScoreboard`
+
+    const response = await fetch(url, {
+      headers: this.getHeaders(settings),
+    })
+
+    if (!response.ok) {
+      throw new Error(`ESPN API error: ${response.status} - ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    const schedule = (data.schedule || []).filter(
+      (m: any) => m.matchupPeriodId === matchupPeriodId
+    )
+
+    return { schedule }
+  }
 }
