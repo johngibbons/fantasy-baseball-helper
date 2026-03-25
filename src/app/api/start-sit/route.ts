@@ -82,16 +82,21 @@ export async function POST(request: NextRequest) {
     const myStats = mySide.cumulativeScore?.scoreByStat || {}
     const theirStats = theirSide.cumulativeScore?.scoreByStat || {}
 
-    const matchupCategories: Record<string, { yours: number; theirs: number }> = {}
-    for (const [statId, catName] of Object.entries(ESPN_STAT_MAP)) {
-      matchupCategories[catName] = {
-        yours: myStats[statId]?.score ?? 0,
-        theirs: theirStats[statId]?.score ?? 0,
-      }
+    // Helper to sanitize ESPN scores (Infinity/NaN from 0 IP → default)
+    const sanitize = (val: number | undefined, fallback: number = 0): number => {
+      const v = val ?? fallback
+      return Number.isFinite(v) ? v : fallback
     }
 
-    // Log mapped category values for verification
-    console.log('Matchup categories:', JSON.stringify(matchupCategories, null, 2))
+    const matchupCategories: Record<string, { yours: number; theirs: number }> = {}
+    for (const [statId, catName] of Object.entries(ESPN_STAT_MAP)) {
+      // ERA/WHIP default to 0 when no IP (will be handled by low-IP override in engine)
+      const fallback = 0
+      matchupCategories[catName] = {
+        yours: sanitize(myStats[statId]?.score, fallback),
+        theirs: sanitize(theirStats[statId]?.score, fallback),
+      }
+    }
 
     // IP from stat ID 34 (confirmed via league statQualificationMinimum)
     const teamIp = {
