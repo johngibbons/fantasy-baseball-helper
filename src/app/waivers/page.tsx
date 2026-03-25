@@ -91,18 +91,18 @@ function fmtCatImpact(v: number): string {
 
 const STORAGE_KEY = 'waiver_settings'
 
-function loadSettings(): { leagueId: string; teamId: string; swid: string; espn_s2: string } | null {
+function loadSettings(): { leagueId: string; teamId: string } | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const s = JSON.parse(raw)
-    if (s.leagueId && s.teamId && s.swid && s.espn_s2) return s
+    if (s.leagueId && s.teamId) return { leagueId: s.leagueId, teamId: s.teamId }
     return null
   } catch { return null }
 }
 
-function saveSettings(leagueId: string, teamId: string, swid: string, espn_s2: string) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ leagueId, teamId, swid, espn_s2 }))
+function saveSettings(leagueId: string, teamId: string) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ leagueId, teamId }))
 }
 
 export default function WaiversPage() {
@@ -110,10 +110,8 @@ export default function WaiversPage() {
   const [teams, setTeams] = useState<Team[]>([])
   const [selectedLeague, setSelectedLeague] = useState<string>('')
   const [selectedTeam, setSelectedTeam] = useState<string>('')
-  const [swid, setSwid] = useState('')
-  const [espnS2, setEspnS2] = useState('')
-  const [editing, setEditing] = useState(false)
   const [settingsLoaded, setSettingsLoaded] = useState(false)
+  const [credentialsOk, setCredentialsOk] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<WaiverResults | null>(null)
@@ -143,19 +141,15 @@ export default function WaiversPage() {
       .then((r) => r.ok ? r.json() : [])
       .then((data) => {
         setLeagues(data)
-        // Restore saved settings after leagues load
+        // Restore saved leagueId/teamId after leagues load
         const saved = loadSettings()
         if (saved) {
           setSelectedLeague(saved.leagueId)
           setSelectedTeam(saved.teamId)
-          setSwid(saved.swid)
-          setEspnS2(saved.espn_s2)
           setSettingsLoaded(true)
-        } else {
-          setEditing(true)
         }
       })
-      .catch(() => { setEditing(true) })
+      .catch(() => {})
   }, [])
 
   // Load teams when league changes
@@ -167,31 +161,29 @@ export default function WaiversPage() {
       .catch(() => {})
   }, [selectedLeague])
 
+  // Check credentials when league changes
+  useEffect(() => {
+    if (!selectedLeague) { setCredentialsOk(null); return }
+    fetch(`/api/leagues/${selectedLeague}/credentials`)
+      .then((r) => r.ok ? r.json() : { has_credentials: false })
+      .then((data) => setCredentialsOk(data.has_credentials === true))
+      .catch(() => setCredentialsOk(false))
+  }, [selectedLeague])
+
   // Auto-fetch recommendations when settings are restored from localStorage
   const autoFetched = useRef(false)
   useEffect(() => {
-    if (settingsLoaded && !autoFetched.current && selectedLeague && selectedTeam && swid && espnS2) {
+    if (settingsLoaded && !autoFetched.current && selectedLeague && selectedTeam && credentialsOk) {
       autoFetched.current = true
       handleFetchRecommendations()
     }
-  }, [settingsLoaded, selectedLeague, selectedTeam])
+  }, [settingsLoaded, selectedLeague, selectedTeam, credentialsOk])
 
-  const hasAllSettings = !!(selectedLeague && selectedTeam && swid && espnS2)
-
-  const handleSaveSettings = () => {
-    if (hasAllSettings) {
-      saveSettings(selectedLeague, selectedTeam, swid, espnS2)
-      setEditing(false)
-      setSettingsLoaded(true)
-    }
-  }
-
-  const leagueName = leagues.find((l) => l.id === selectedLeague)?.name
-  const teamName = teams.find((t) => t.externalId === selectedTeam)?.name
+  const hasAllSettings = !!(selectedLeague && selectedTeam)
 
   const handleFetchRecommendations = async () => {
-    if (!selectedLeague || !selectedTeam || !swid || !espnS2) {
-      setError('Please select a league, team, and provide ESPN credentials')
+    if (!selectedLeague || !selectedTeam) {
+      setError('Please select a league and team')
       return
     }
 
@@ -206,8 +198,6 @@ export default function WaiversPage() {
         body: JSON.stringify({
           leagueId: selectedLeague,
           teamId: selectedTeam,
-          swid,
-          espn_s2: espnS2,
         }),
       })
 
@@ -259,30 +249,56 @@ export default function WaiversPage() {
 
         {/* Config panel */}
         <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-4 mb-4">
-          {settingsLoaded && !editing ? (
-            /* Collapsed view */
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4 text-sm">
-                <span className="text-gray-500">League:</span>
-                <span className="text-white">{leagueName || selectedLeague}</span>
-                <span className="text-gray-500">Team:</span>
-                <span className="text-white">{teamName || `#${selectedTeam}`}</span>
-                <span className="text-gray-500">ESPN:</span>
-                <span className="text-emerald-400 text-xs">Connected</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setEditing(true)}
-                  className="px-3 py-1 text-xs text-gray-400 hover:text-white border border-white/10 rounded hover:border-white/20"
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-wrap items-end gap-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">League</label>
+                <select
+                  value={selectedLeague}
+                  onChange={(e) => {
+                    const id = e.target.value
+                    setSelectedLeague(id)
+                    setSelectedTeam('')
+                    setResults(null)
+                    if (id) saveSettings(id, '')
+                  }}
+                  className="bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
                 >
-                  Edit
-                </button>
+                  <option value="">Select league...</option>
+                  {leagues.map((l) => (
+                    <option key={l.id} value={l.id}>{l.name} ({l.season})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">My Team</label>
+                <select
+                  value={selectedTeam}
+                  onChange={(e) => {
+                    const id = e.target.value
+                    setSelectedTeam(id)
+                    if (selectedLeague && id) saveSettings(selectedLeague, id)
+                  }}
+                  className="bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
+                >
+                  <option value="">Select team...</option>
+                  {teams.map((t) => (
+                    <option key={t.externalId} value={t.externalId}>
+                      {t.name}{t.ownerName ? ` (${t.ownerName})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {selectedLeague && credentialsOk === true && (
+                <span className="text-xs text-emerald-400 pb-1.5">ESPN: Connected</span>
+              )}
+              <div className="flex items-center gap-3 pb-0.5">
                 <button
                   onClick={handleFetchRecommendations}
-                  disabled={loading}
+                  disabled={loading || !hasAllSettings || credentialsOk !== true}
                   className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Analyzing...' : 'Refresh Recommendations'}
+                  {loading ? 'Analyzing...' : 'Get Recommendations'}
                 </button>
                 <button
                   onClick={handleRefreshProjections}
@@ -297,89 +313,14 @@ export default function WaiversPage() {
                 )}
               </div>
             </div>
-          ) : (
-            /* Expanded edit view */
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">League</label>
-                  <select
-                    value={selectedLeague}
-                    onChange={(e) => { setSelectedLeague(e.target.value); setSelectedTeam('') }}
-                    className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
-                  >
-                    <option value="">Select league...</option>
-                    {leagues.map((l) => (
-                      <option key={l.id} value={l.id}>{l.name} ({l.season})</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">My Team</label>
-                  <select
-                    value={selectedTeam}
-                    onChange={(e) => setSelectedTeam(e.target.value)}
-                    className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
-                  >
-                    <option value="">Select team...</option>
-                    {teams.map((t) => (
-                      <option key={t.externalId} value={t.externalId}>
-                        {t.name}{t.ownerName ? ` (${t.ownerName})` : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">ESPN SWID</label>
-                  <input
-                    type="password"
-                    value={swid}
-                    onChange={(e) => setSwid(e.target.value)}
-                    placeholder="Paste SWID cookie..."
-                    className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">ESPN S2</label>
-                  <input
-                    type="password"
-                    value={espnS2}
-                    onChange={(e) => setEspnS2(e.target.value)}
-                    placeholder="Paste espn_s2 cookie..."
-                    className="w-full bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
-                  />
-                </div>
+            {selectedLeague && credentialsOk === false && (
+              <div className="text-sm text-yellow-400">
+                ESPN credentials not configured.{' '}
+                <Link href="/settings" className="underline hover:text-yellow-300">Set them up in Settings</Link>
+                {' '}to use waiver recommendations.
               </div>
-              <div className="mt-3 flex items-center gap-3">
-                <button
-                  onClick={() => { handleSaveSettings(); handleFetchRecommendations() }}
-                  disabled={loading || !hasAllSettings}
-                  className="px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Analyzing...' : 'Save & Get Recommendations'}
-                </button>
-                {settingsLoaded && (
-                  <button
-                    onClick={() => setEditing(false)}
-                    className="px-3 py-1.5 text-sm text-gray-400 hover:text-white"
-                  >
-                    Cancel
-                  </button>
-                )}
-                <button
-                  onClick={handleRefreshProjections}
-                  disabled={refreshing}
-                  className="px-4 py-1.5 bg-[#0d1117] border border-white/10 text-gray-300 text-sm font-medium rounded hover:border-white/20 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {refreshing ? 'Refreshing...' : 'Refresh RoS Projections'}
-                </button>
-                {loading && <span className="text-xs text-gray-500">Fetching rosters & computing expected wins...</span>}
-                {refreshStatus && (
-                  <span className={`text-xs ${refreshStatus.startsWith('Failed') ? 'text-red-400' : 'text-emerald-400'}`}>{refreshStatus}</span>
-                )}
-              </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
 
         {error && (

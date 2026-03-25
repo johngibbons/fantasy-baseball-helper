@@ -30,11 +30,11 @@ const MAX_ROSTER_SIZE = 25
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { leagueId, teamId, swid, espn_s2, season = '2026' } = body
+    const { leagueId, teamId, season = '2026' } = body
 
-    if (!leagueId || !teamId || !swid || !espn_s2) {
+    if (!leagueId || !teamId) {
       return NextResponse.json(
-        { error: 'Missing required fields: leagueId, teamId, swid, espn_s2' },
+        { error: 'Missing required fields: leagueId, teamId' },
         { status: 400 },
       )
     }
@@ -47,7 +47,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'League not found' }, { status: 404 })
     }
 
-    const settings = { swid, espn_s2 }
+    const leagueSettings = league.settings as any
+    const credentials = leagueSettings?.credentials
+    if (!credentials?.swid || !credentials?.espn_s2) {
+      return NextResponse.json(
+        { error: 'ESPN credentials not configured. Set them up in Settings.' },
+        { status: 400 },
+      )
+    }
+
+    const settings = { swid: credentials.swid, espn_s2: credentials.espn_s2 }
 
     // Fetch all data from ESPN in parallel
     const [rosters, freeAgents, teamsAndFaab] = await Promise.all([
