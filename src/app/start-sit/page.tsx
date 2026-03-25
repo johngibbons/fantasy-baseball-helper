@@ -452,7 +452,7 @@ export default function StartSitPage() {
 
             {/* Recommendations */}
             <div className="mb-4">
-              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Today's Starts</h2>
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Today&apos;s Starts</h2>
               {results.recommendations.length === 0 ? (
                 <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-6 text-center text-gray-500">
                   No SP starts today
@@ -539,7 +539,7 @@ export default function StartSitPage() {
         {!results && !loading && !error && (
           <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-8 text-center text-gray-500">
             <p className="mb-2">Select your league and team above to get started.</p>
-            <p className="text-xs">Shows today's starting pitcher recommendations based on your matchup context.</p>
+            <p className="text-xs">Shows today&apos;s starting pitcher recommendations based on your matchup context.</p>
           </div>
         )}
       </div>
