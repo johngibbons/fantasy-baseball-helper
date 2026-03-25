@@ -282,20 +282,24 @@ def compute_start_sit_recommendations(
             cat, yours, theirs, days_remaining, team_ip=team_ip
         )
 
-    # Step 2: Fetch PitcherList data for the full week
-    pitcherlist_data = get_rankings_for_date(today_date, matchup_end_date)
+    # Step 2: Fetch PitcherList data for today and upcoming
+    todays_starters_raw, upcoming_starts_raw, off_day_raw = get_rankings_for_date(
+        today_date, roster_pitcher_names
+    )
 
-    # Pitchers with a start today
-    todays_starters = [
-        p for p in pitcherlist_data
-        if p.get("date") == today_date and p.get("pitcher_name") in roster_pitcher_names
-    ]
+    # Adapt field names from scraper output to what the engine expects
+    def _adapt(entry: dict) -> dict:
+        return {
+            "pitcher_name": entry.get("roster_name", entry.get("pitcher_name")),
+            "date": entry.get("date", ""),
+            "tier": entry.get("mapped_tier", "sit"),
+            "score": entry.get("score", 0),
+            "pitcherlist_raw": entry.get("raw", ""),
+            "opponent": entry.get("opponent", "???"),
+        }
 
-    # Upcoming starts (after today)
-    upcoming_starts = [
-        p for p in pitcherlist_data
-        if p.get("date") > today_date and p.get("pitcher_name") in roster_pitcher_names
-    ]
+    todays_starters = [_adapt(e) for e in todays_starters_raw]
+    upcoming_starts = [_adapt(e) for e in upcoming_starts_raw]
 
     starts_today = len(todays_starters)
     starts_after_today = len(upcoming_starts)
@@ -333,13 +337,8 @@ def compute_start_sit_recommendations(
             "rationale": rationale,
         })
 
-    # Step 4: Off-day pitchers (on roster, no start today)
-    pitchers_starting_today = {s.get("pitcher_name") for s in todays_starters}
-    off_day_pitchers = [
-        {"pitcher_name": name}
-        for name in roster_pitcher_names
-        if name not in pitchers_starting_today
-    ]
+    # Step 4: Off-day pitchers (already computed by get_rankings_for_date)
+    off_day_pitchers = off_day_raw
 
     # Step 5: Compute W/L/T from RAW values
     wins = 0
