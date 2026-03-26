@@ -293,11 +293,12 @@ def import_fangraphs_pitching(filepath: str, source: str, season: int = 2025):
 _FG_API_BASE = "https://www.fangraphs.com/api/projections"
 
 # FanGraphs projection type parameter → our source name.
-# ATC is a professionally-optimized blend of multiple systems (Steamer, ZiPS,
-# THE BAT X, PECOTA, etc.) that consistently ranks #1-2 in accuracy tests.
-# We fetch it as the primary source; individual systems are kept as fallback.
+# ATC RoS DC (rest-of-season depth charts) is a professionally-optimized blend
+# of multiple systems that updates daily during the season with playing time
+# adjustments.  We fetch it as the primary source; individual systems are
+# kept as fallback.
 _FG_SOURCES_PRIMARY = {
-    "atc": "atc",
+    "ratcdc": "atc",
 }
 _FG_SOURCES_FALLBACK = {
     "steamer": "steamer",
@@ -584,8 +585,8 @@ def import_adp_from_api(adp_map: dict[int, float], season: int) -> int:
 def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
     """Fetch projections from FanGraphs API.
 
-    Fetches ATC (pre-blended consensus) as the primary source.  Falls back
-    to individual systems (Steamer, ZiPS, THE BAT X) if ATC fails.
+    Fetches ATC RoS DC (rest-of-season depth charts) as the primary source.
+    Falls back to individual systems (Steamer, ZiPS, THE BAT X) if it fails.
     Also collects ADP data from whichever source provides it.
 
     Args:
@@ -597,7 +598,7 @@ def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
     results = {}
     adp_map: dict[int, float] = {}
 
-    # Try ATC first (professionally-blended consensus)
+    # Try ATC RoS DC first (professionally-blended consensus, updated daily)
     primary_ok = False
     for fg_type, source in _FG_SOURCES_PRIMARY.items():
         try:
@@ -613,9 +614,9 @@ def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
             logger.warning(f"Failed to fetch {source} projections from FanGraphs: {e}")
             results[source] = 0
 
-    # Always fetch THE BAT X alongside ATC for side-by-side comparison.
-    # THE BAT X updates daily during pre-season, so differences from ATC
-    # signal recent news (trades, injuries, role changes) not yet in ATC.
+    # Always fetch THE BAT X alongside ATC RoS DC for side-by-side comparison.
+    # Differences signal recent news (trades, injuries, role changes) not yet
+    # reflected in the consensus blend.
     if primary_ok:
         try:
             bat = fetch_fangraphs_batting("thebatx", "thebatx", season, adp_map)
@@ -628,9 +629,9 @@ def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
             logger.warning(f"Failed to fetch thebatx projections from FanGraphs: {e}")
             results["thebatx"] = 0
 
-    # Fall back to individual systems if ATC failed
+    # Fall back to individual systems if ATC RoS DC failed
     if not primary_ok:
-        logger.info("ATC unavailable, falling back to individual projection systems")
+        logger.info("ATC RoS DC unavailable, falling back to individual projection systems")
         for fg_type, source in _FG_SOURCES_FALLBACK.items():
             try:
                 bat = fetch_fangraphs_batting(fg_type, source, season, adp_map)
@@ -652,24 +653,24 @@ def fetch_all_fangraphs_projections(season: int) -> dict[str, int]:
     return results
 
 
-# ── ATC DC (RoS) Projections for In-Season Waiver Analysis ──
+# ── ATC RoS DC Projections for In-Season Waiver Analysis ──
 
-# Configurable FanGraphs type for ATC DC rest-of-season projections.
-_FG_ATCDC_TYPE = os.environ.get("FANGRAPHS_ROS_TYPE", "atcdc")
+# Configurable FanGraphs type for ATC RoS DC (rest-of-season depth chart) projections.
+_FG_ATCDC_TYPE = os.environ.get("FANGRAPHS_ROS_TYPE", "ratcdc")
 
 
 def fetch_atcdc_projections(season: int) -> dict[str, int]:
-    """Fetch ATC DC (rest-of-season depth chart) projections from FanGraphs.
+    """Fetch ATC RoS DC (rest-of-season depth chart) projections from FanGraphs.
 
-    Tries the configured type string first, then falls back to alternatives.
-    Stores in the projections table with source='atcdc'.
+    Tries the configured type string first (default 'ratcdc'), then falls back
+    to alternatives.  Stores in the projections table with source='atcdc'.
 
     Returns:
         Dict with 'batting' and 'pitching' counts.
     """
     candidates = [_FG_ATCDC_TYPE]
     # Add fallback type strings if the primary isn't one of these
-    for alt in ("atcdc", "rfangraphsdc", "fangraphsdc", "atc"):
+    for alt in ("ratcdc", "atcdc", "rfangraphsdc", "fangraphsdc", "atc"):
         if alt not in candidates:
             candidates.append(alt)
 
@@ -682,14 +683,14 @@ def fetch_atcdc_projections(season: int) -> dict[str, int]:
             pit = fetch_fangraphs_pitching(fg_type, "atcdc", season)
             results["batting"] = bat
             results["pitching"] = pit
-            logger.info(f"ATC DC (RoS) fetch successful with type='{fg_type}': {bat} batters, {pit} pitchers")
+            logger.info(f"ATC RoS DC fetch successful with type='{fg_type}': {bat} batters, {pit} pitchers")
             return results
         except Exception as e:
-            logger.warning(f"ATC DC fetch failed with type='{fg_type}': {e}")
+            logger.warning(f"ATC RoS DC fetch failed with type='{fg_type}': {e}")
             time.sleep(_FG_REQUEST_DELAY)
             continue
 
-    logger.error("All ATC DC type candidates failed. No RoS projections loaded.")
+    logger.error("All ATC RoS DC type candidates failed. No RoS projections loaded.")
     return results
 
 

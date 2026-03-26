@@ -808,7 +808,7 @@ def trade_suggestions(req: TradeRequest):
 
 @router.post("/waivers/refresh-projections")
 def refresh_ros_projections(season: int = Query(2026)):
-    """Fetch latest ATC projections from FanGraphs for waiver analysis."""
+    """Fetch latest ATC RoS DC projections from FanGraphs for waiver analysis."""
     from backend.data.projections import fetch_all_fangraphs_projections
     results = fetch_all_fangraphs_projections(season)
     # Summarize for the frontend

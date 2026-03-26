@@ -489,7 +489,7 @@ export default function WaiversPage() {
         {!results && !loading && !error && (
           <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-8 text-center text-gray-500">
             <p className="mb-2">Select your league and team above to get started. Recommendations load automatically.</p>
-            <p className="text-xs">Uses ATC DC (RoS) projections to find free agents that improve your expected wins.</p>
+            <p className="text-xs">Uses ATC RoS DC projections to find free agents that improve your expected wins.</p>
           </div>
         )}
       </div>
