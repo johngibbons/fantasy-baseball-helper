@@ -102,67 +102,56 @@ def parse_sit_start_tables(html: str) -> list[dict]:
 
             texts = [c.get_text(strip=True) for c in cells]
 
-            # Try to find a rating cell anywhere in the row
-            rating_idx = None
-            for i, text in enumerate(texts):
-                if _RATING_RE.match(text):
-                    rating_idx = i
-                    break
+            # Find ALL rating cells in the row (tables may have two
+            # pitcher/rating pairs per row: away and home)
+            rating_indices = [
+                i for i, text in enumerate(texts) if _RATING_RE.match(text)
+            ]
 
-            if rating_idx is None:
+            if not rating_indices:
                 # This row may be a date separator — check first cell
                 if texts and _looks_like_date(texts[0]):
                     current_date = texts[0]
                 continue
 
-            # We have a rating cell.  Now resolve the other columns.
-            # Expected column order (flexible): Date | Game | Pitcher | Rating
-            # or some subset.  We identify by position relative to rating_idx.
+            # Update current_date from the first cell if it looks like a date
+            if _looks_like_date(texts[0]):
+                current_date = texts[0]
 
-            raw_rating = texts[rating_idx]
-            try:
-                tier, score = parse_rating(raw_rating)
-            except ValueError:
-                continue
+            # Process each pitcher/rating pair in the row
+            for rating_idx in rating_indices:
+                raw_rating = texts[rating_idx]
+                try:
+                    tier, score = parse_rating(raw_rating)
+                except ValueError:
+                    continue
 
-            # Pitcher name: look for a non-date, non-game, non-rating cell
-            # Heuristic: the cell just before the rating is the pitcher name,
-            # the cell before that is the opponent/game, and the cell before
-            # that (if it looks like a date) updates current_date.
-            pitcher_name = ""
-            opponent = ""
+                # The pitcher name is the cell immediately before the rating
+                pitcher_name = texts[rating_idx - 1] if rating_idx >= 1 else ""
 
-            # Work backwards from rating_idx
-            before = [texts[i] for i in range(rating_idx)]
+                # The opponent/game: for the first pair, it's 2 cells before
+                # the rating; for subsequent pairs, reuse the same game cell
+                if rating_idx >= 2 and not _RATING_RE.match(texts[rating_idx - 2]):
+                    opponent = texts[rating_idx - 2]
+                else:
+                    # Reuse opponent from the first pair (e.g. home pitcher)
+                    opponent = results[-1]["opponent"] if results else ""
 
-            if len(before) >= 1:
-                pitcher_name = before[-1]
-            if len(before) >= 2:
-                opponent = before[-2]
-            if len(before) >= 3 and _looks_like_date(before[-3]):
-                current_date = before[-3]
-            elif len(before) >= 3 and not _looks_like_date(before[-3]):
-                # date may already be in current_date from a prior row
-                pass
-            # If the first column looks like a date, update current_date
-            if before and _looks_like_date(before[0]):
-                current_date = before[0]
+                if not pitcher_name:
+                    continue
 
-            if not pitcher_name:
-                continue
-
-            mapped = map_tier(tier, score)
-            results.append(
-                {
-                    "pitcher_name": pitcher_name,
-                    "opponent": opponent,
-                    "date": current_date,
-                    "tier": tier,
-                    "score": score,
-                    "raw": raw_rating,
-                    "mapped_tier": mapped,
-                }
-            )
+                mapped = map_tier(tier, score)
+                results.append(
+                    {
+                        "pitcher_name": pitcher_name,
+                        "opponent": opponent,
+                        "date": current_date,
+                        "tier": tier,
+                        "score": score,
+                        "raw": raw_rating,
+                        "mapped_tier": mapped,
+                    }
+                )
 
     return results
 
