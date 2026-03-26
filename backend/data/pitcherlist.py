@@ -304,6 +304,13 @@ def _name_matches(pl_name: str, roster_name: str) -> bool:
     if len(pl_first) == 1 and roster_first.startswith(pl_first):
         return True
 
+    # Check if one first name is a prefix of the other (e.g. "Matt" / "Matthew")
+    # Require at least 3 chars to avoid false positives
+    shorter = min(pl_first, roster_first, key=len)
+    longer = max(pl_first, roster_first, key=len)
+    if len(shorter) >= 3 and longer.startswith(shorter):
+        return True
+
     return False
 
 
