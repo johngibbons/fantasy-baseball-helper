@@ -163,6 +163,7 @@ class TestGenerateRationale:
             pitcherlist_raw="Start-8",
             opponent="CIN",
             recommendation="start",
+            pitcherlist_tier="start",
             cats=cat_states,
             ratio_exposure=0.8,
             starts_remaining=5,
@@ -181,8 +182,30 @@ class TestGenerateRationale:
             pitcherlist_raw="Start-3",
             opponent="NYY",
             recommendation="safe_sit",
+            pitcherlist_tier="strong_start",
             cats=cat_states,
             ratio_exposure=0.4,
             starts_remaining=2,
         )
         assert "protect" in rationale.lower() or "safe" in rationale.lower()
+
+    def test_sit_tier_gives_clear_rationale(self):
+        """Sit-tier pitchers should get a clear 'too low to start' message,
+        not misleading matchup context like 'Chasing Ks/QS upside'."""
+        cat_states = {
+            "K": "losing_close",
+            "QS": "losing_close",
+            "ERA": "winning_close",
+            "WHIP": "winning_close",
+        }
+        rationale = generate_rationale(
+            pitcherlist_raw="Sit-2",
+            opponent="HOU",
+            recommendation="sit",
+            pitcherlist_tier="sit",
+            cats=cat_states,
+            ratio_exposure=0.8,
+            starts_remaining=6,
+        )
+        assert "too low" in rationale.lower()
+        assert "Chasing" not in rationale

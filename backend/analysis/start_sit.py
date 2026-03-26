@@ -194,6 +194,7 @@ def generate_rationale(
     pitcherlist_raw: str,
     opponent: str,
     recommendation: str,
+    pitcherlist_tier: str,
     cats: dict[str, str],
     ratio_exposure: float,
     starts_remaining: int,
@@ -204,6 +205,7 @@ def generate_rationale(
         pitcherlist_raw: Raw PitcherList label, e.g. "Start-8" or "Maybe-3".
         opponent: Opponent team abbreviation, e.g. "CIN".
         recommendation: Our recommendation string.
+        pitcherlist_tier: Mapped tier, e.g. "strong_start", "start", "maybe", "sit".
         cats: Dict of K/QS/ERA/WHIP → state string.
         ratio_exposure: Float [0, 1].
         starts_remaining: Total SP starts remaining this week (including today).
@@ -213,6 +215,10 @@ def generate_rationale(
     """
     if recommendation == "safe_sit":
         return "Winning all pitching categories comfortably. Safe to sit and protect leads."
+
+    # Sit-tier pitchers always sit regardless of matchup context — say so clearly
+    if pitcherlist_tier == "sit":
+        return f"{pitcherlist_raw} vs {opponent}. PitcherList ranks too low to justify starting."
 
     era_whip_close = any(
         cats.get(c) == "winning_close" for c in ("ERA", "WHIP")
@@ -322,6 +328,7 @@ def compute_start_sit_recommendations(
             pitcherlist_raw=raw,
             opponent=opp,
             recommendation=rec,
+            pitcherlist_tier=tier,
             cats=sp_cat_states,
             ratio_exposure=ratio_exposure,
             starts_remaining=total_starts_remaining,
