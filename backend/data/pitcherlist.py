@@ -206,9 +206,10 @@ def discover_latest_article_url() -> Optional[str]:
 
     soup = BeautifulSoup(html, "html.parser")
     for a in soup.find_all("a", href=True):
+        href = a["href"]
         text = a.get_text(strip=True).lower()
-        if "sit" in text and "start" in text and "week" in text:
-            href = a["href"]
+        # Require "sit-start" in the URL path to skip nav/hub links
+        if "sit-start" in href and "sit" in text and "start" in text:
             if href.startswith("http"):
                 return href
             return PITCHERLIST_HOME.rstrip("/") + "/" + href.lstrip("/")
@@ -272,6 +273,40 @@ def _normalize(name: str) -> str:
     return "".join(c for c in nfkd if not unicodedata.combining(c)).lower().strip()
 
 
+def _name_matches(pl_name: str, roster_name: str) -> bool:
+    """Check if a PitcherList abbreviated name matches a full roster name.
+
+    Handles cases like "J. Soriano" matching "Jose Soriano" by comparing
+    the last name exactly and checking if the first initial matches.
+    Also handles exact normalized matches.
+    """
+    norm_pl = _normalize(pl_name)
+    norm_roster = _normalize(roster_name)
+
+    # Exact match
+    if norm_pl == norm_roster:
+        return True
+
+    pl_parts = norm_pl.split()
+    roster_parts = norm_roster.split()
+    if len(pl_parts) < 2 or len(roster_parts) < 2:
+        return False
+
+    # Compare last names (everything after first token)
+    pl_last = " ".join(pl_parts[1:])
+    roster_last = " ".join(roster_parts[1:])
+    if pl_last != roster_last:
+        return False
+
+    # Check if PL first part is an initial (e.g. "j." or "j")
+    pl_first = pl_parts[0].rstrip(".")
+    roster_first = roster_parts[0]
+    if len(pl_first) == 1 and roster_first.startswith(pl_first):
+        return True
+
+    return False
+
+
 def _dates_match(target: str, entry_date: str) -> bool:
     """Check whether an ISO date string matches a day-of-week date string.
 
@@ -318,29 +353,27 @@ def get_rankings_for_date(
     """
     all_rankings = fetch_weekly_rankings()
 
-    normalized_roster = {_normalize(n): n for n in roster_pitcher_names}
-
     todays_starters: list[dict] = []
     upcoming_starts: list[dict] = []
     matched_names: set[str] = set()
 
     for entry in all_rankings:
-        norm_pitcher = _normalize(entry["pitcher_name"])
-        if norm_pitcher not in normalized_roster:
-            continue
+        for roster_name in roster_pitcher_names:
+            if not _name_matches(entry["pitcher_name"], roster_name):
+                continue
 
-        original_name = normalized_roster[norm_pitcher]
-        matched_names.add(_normalize(original_name))
+            matched_names.add(roster_name)
 
-        if _dates_match(target_date, entry["date"]):
-            todays_starters.append({**entry, "roster_name": original_name})
-        else:
-            upcoming_starts.append({**entry, "roster_name": original_name})
+            if _dates_match(target_date, entry["date"]):
+                todays_starters.append({**entry, "roster_name": roster_name})
+            else:
+                upcoming_starts.append({**entry, "roster_name": roster_name})
+            break
 
     off_day_pitchers: list[dict] = [
         {"pitcher_name": name}
-        for norm, name in normalized_roster.items()
-        if norm not in matched_names
+        for name in roster_pitcher_names
+        if name not in matched_names
     ]
 
     return todays_starters, upcoming_starts, off_day_pitchers
