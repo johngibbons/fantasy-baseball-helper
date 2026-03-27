@@ -53,38 +53,83 @@ function getMatchupDateRangeFromESPN(
   const scheduleSettings = (leagueData.settings as any)?.scheduleSettings
   const matchupPeriodLengthWeeks: number = scheduleSettings?.matchupPeriodLength || 1
   const matchupPeriods: Record<string, number[]> = scheduleSettings?.matchupPeriods || {}
-  const scoringPeriodIds: number[] = matchupPeriods[String(matchupPeriodId)] || []
+  const matchupPeriodCount: number = Object.keys(matchupPeriods).length
 
   // Derive the epoch: scoring period 1 = which calendar date?
-  // We know today's date and today's scoring period ID from ESPN status.
   const latestScoringPeriod = leagueData.status?.latestScoringPeriod
     || leagueData.latestScoringPeriod
     || 0
 
   if (latestScoringPeriod > 0) {
-    // epoch = today - (latestScoringPeriod - 1) days
     const epochDate = new Date(today)
     epochDate.setDate(today.getDate() - (latestScoringPeriod - 1))
 
-    // ESPN matchupPeriods map may only contain elapsed scoring periods.
-    // Use the full range: if we have scoring period IDs AND they span
-    // the expected length, use them. Otherwise, compute from
-    // matchupPeriodLength (in weeks) and the epoch.
+    // ESPN's matchupPeriods map only contains elapsed scoring periods,
+    // so we can't rely on it for future dates. Instead, we build the
+    // full matchup boundaries from the default period length (in weeks),
+    // then check if the total scoring periods allocated adds up to the
+    // season length. Most periods are matchupPeriodLength weeks, but
+    // the first/last periods may differ (e.g., extended opening week).
+    //
+    // Strategy: compute the total season scoring periods from the
+    // finalScoringPeriod. Each "normal" period is matchupPeriodLength * 7
+    // days. Period 1 may start at scoring period 1 and be longer/shorter.
+    // We compute period boundaries by assuming all periods are the default
+    // length, then adjust the first period to absorb any remainder.
+
+    const finalScoringPeriod = leagueData.status?.finalScoringPeriod
+      || leagueData.finalScoringPeriod
+      || 152  // fallback: ~5 months of baseball
+
+    const defaultPeriodDays = matchupPeriodLengthWeeks * 7
+
+    // Build matchup boundaries: start scoring period for each matchup
+    // Work backwards from the end: the last regular matchup ends at
+    // finalScoringPeriod. Each period before it is defaultPeriodDays long.
+    // Period 1 gets whatever is left over (handles extended opening week).
+    const matchupBoundaries: { start: number; end: number }[] = []
+
+    if (matchupPeriodCount > 0) {
+      // Allocate from the end backwards: last matchup period ends at finalScoringPeriod
+      const starts: number[] = new Array(matchupPeriodCount)
+      const ends: number[] = new Array(matchupPeriodCount)
+
+      // Work backwards from last period
+      ends[matchupPeriodCount - 1] = finalScoringPeriod
+      starts[matchupPeriodCount - 1] = finalScoringPeriod - defaultPeriodDays + 1
+
+      for (let i = matchupPeriodCount - 2; i >= 1; i--) {
+        ends[i] = starts[i + 1] - 1
+        starts[i] = ends[i] - defaultPeriodDays + 1
+      }
+
+      // Period 1 (index 0) gets everything from scoring period 1
+      // to the start of period 2 - 1 (absorbs extended opening week)
+      if (matchupPeriodCount > 1) {
+        starts[0] = 1
+        ends[0] = starts[1] - 1
+      } else {
+        starts[0] = 1
+        ends[0] = finalScoringPeriod
+      }
+
+      for (let i = 0; i < matchupPeriodCount; i++) {
+        matchupBoundaries.push({ start: starts[i], end: ends[i] })
+      }
+    }
+
+    // Find current matchup period boundaries (1-indexed)
+    const periodIdx = matchupPeriodId - 1
     let firstScoringPeriod: number
     let lastScoringPeriod: number
 
-    const expectedDays = matchupPeriodLengthWeeks * 7
-
-    if (scoringPeriodIds.length >= expectedDays) {
-      // ESPN has the full map — use it directly
-      firstScoringPeriod = Math.min(...scoringPeriodIds)
-      lastScoringPeriod = Math.max(...scoringPeriodIds)
+    if (periodIdx >= 0 && periodIdx < matchupBoundaries.length) {
+      firstScoringPeriod = matchupBoundaries[periodIdx].start
+      lastScoringPeriod = matchupBoundaries[periodIdx].end
     } else {
-      // Compute from matchupPeriodLength and current period ID.
-      // Each matchup period spans matchupPeriodLengthWeeks * 7 scoring periods.
-      // Period 1 starts at scoring period 1, period 2 starts at 1 + expectedDays, etc.
-      firstScoringPeriod = 1 + (matchupPeriodId - 1) * expectedDays
-      lastScoringPeriod = firstScoringPeriod + expectedDays - 1
+      // Fallback
+      firstScoringPeriod = 1
+      lastScoringPeriod = defaultPeriodDays
     }
 
     const matchupStart = new Date(epochDate)
@@ -106,7 +151,7 @@ function getMatchupDateRangeFromESPN(
       cursor.setDate(cursor.getDate() + 1)
     }
 
-    console.log(`Matchup period ${matchupPeriodId}: scoring periods ${firstScoringPeriod}-${lastScoringPeriod}, dates ${startStr} to ${endStr}, ${remainingDates.length} days remaining (periodLength=${matchupPeriodLengthWeeks}w)`)
+    console.log(`Matchup period ${matchupPeriodId}: scoring periods ${firstScoringPeriod}-${lastScoringPeriod}, dates ${startStr} to ${endStr}, ${remainingDates.length} days remaining`)
 
     return { startDate: startStr, endDate: endStr, remainingDates }
   }
