@@ -11,6 +11,7 @@ const navItems = [
   { href: '/waivers', label: 'Waivers' },
   { href: '/trades', label: 'Trades' },
   { href: '/start-sit', label: 'Start/Sit' },
+  { href: '/matchup', label: 'Matchup' },
   { href: '/players', label: 'Player Search' },
   { href: '/leagues', label: 'Leagues' },
   { href: '/settings', label: 'Settings' },
