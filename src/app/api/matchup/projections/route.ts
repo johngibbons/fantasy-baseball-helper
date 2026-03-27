@@ -18,10 +18,18 @@ const ESPN_STAT_MAP: Record<string, string> = {
   '48': 'K', '63': 'QS', '47': 'ERA', '41': 'WHIP', '83': 'SVHD',
 }
 
-// ESPN position ID -> abbreviation
+// ESPN defaultPositionId -> abbreviation (for primary position)
 const ESPN_POSITION_MAP: Record<number, string> = {
   1: 'SP', 2: 'C', 3: '1B', 4: '2B', 5: '3B', 6: 'SS',
   7: 'LF', 8: 'CF', 9: 'RF', 10: 'DH', 11: 'RP',
+}
+
+// ESPN lineupSlotId -> abbreviation (for eligible positions)
+// These IDs differ from defaultPositionId — eligibleSlots uses this system
+const ESPN_LINEUP_SLOT_MAP: Record<number, string> = {
+  0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS', 5: 'OF',
+  10: 'DH', 12: 'UTIL', 13: 'P', 14: 'SP', 15: 'RP',
+  // 16: BE, 17: IL — skip non-active slots
 }
 
 // ESPN team ID -> MLB team abbreviation
@@ -176,7 +184,7 @@ export async function POST(request: NextRequest) {
           lineup_slot_id: entry.lineupSlotId,
           mlb_team: mlbTeam,
           eligible_positions: (player?.eligibleSlots || [])
-            .map((s: number) => ESPN_POSITION_MAP[s])
+            .map((s: number) => ESPN_LINEUP_SLOT_MAP[s])
             .filter(Boolean)
             .join('/'),
         }

@@ -32,10 +32,10 @@ class TestClassifyCategory:
         result = classify_category("K", yours=20, theirs=50, days_remaining=4)
         assert result == "losing_big"
 
-    def test_tied_is_losing_close(self):
-        # K: 40 vs 40 → gap=0, tied → losing_close (bias toward action)
+    def test_tied_returns_tied(self):
+        # K: 40 vs 40 → gap=0 → tied
         result = classify_category("K", yours=40, theirs=40, days_remaining=4)
-        assert result == "losing_close"
+        assert result == "tied"
 
     def test_rate_stat_era_winning_close(self):
         # ERA: 3.12 vs 3.32, IP=40 → gap=0.20 < 0.30 threshold → winning_close

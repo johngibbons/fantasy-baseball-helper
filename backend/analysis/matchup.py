@@ -317,11 +317,15 @@ def compute_matchup_projections(
             # Determine how many games/starts this player has remaining in matchup
             if is_sp:
                 # Count probable starts in remaining dates
-                starts = sum(
+                probable_starts = sum(
                     1 for date in remaining_dates
                     if mid in probable_pitcher_ids.get(date, [])
                 )
-                units_remaining = starts
+                # Fallback: if MLB hasn't announced probables, estimate from
+                # rotation frequency (~1 start per 5 team games)
+                team_games = team_games_remaining.get(team_abbrev, 0)
+                estimated_starts = max(1, round(team_games / 5)) if team_games > 0 else 0
+                units_remaining = max(probable_starts, estimated_starts)
             else:
                 # Count team games in remaining period
                 units_remaining = team_games_remaining.get(team_abbrev, 0)
@@ -351,9 +355,13 @@ def compute_matchup_projections(
                 "mlb_team": team_abbrev,
             })
 
+        # Per-SP: what fraction of team games they'd start (1 in 5 rotation)
+        sp_daily_probability = 1.0 / 5.0
+
         # Now simulate optimal daily lineups for remaining dates
         for date in remaining_dates:
             date_probable_ids = set(probable_pitcher_ids.get(date, []))
+            date_has_probables = len(date_probable_ids) > 0
 
             # Filter to players who have a game today
             available_today = []
@@ -374,8 +382,8 @@ def compute_matchup_projections(
                     continue
 
                 is_sp = proj.player_type == "pitcher" and (proj.position == "SP" or (proj.position == "P" and proj.ip >= 80))
-                if is_sp and mid not in date_probable_ids:
-                    continue  # SP not pitching today
+                if is_sp and date_has_probables and mid not in date_probable_ids:
+                    continue  # SP not pitching today (probables are known)
 
                 available_today.append({
                     "mlb_id": mid,
@@ -397,13 +405,21 @@ def compute_matchup_projections(
                 team_ros_games = remaining_season_games.get(detail.get("mlb_team", ""), 80)
                 per_unit = compute_per_game_projections(proj, team_ros_games)
 
+                # On dates without probable pitcher data, SPs pass the filter
+                # but each only pitches ~1 in 5 games — scale their contribution
+                is_sp = proj.player_type == "pitcher" and (proj.position == "SP" or (proj.position == "P" and proj.ip >= 80))
+                if is_sp and not date_has_probables:
+                    weight = sp_daily_probability  # 0.2 — expected fraction of games started
+                else:
+                    weight = 1.0
+
                 # Add counting stats
                 for stat in ["r", "tb", "rbi", "sb", "k", "qs", "svhd"]:
-                    total_remaining[stat.upper()] += per_unit[stat]
+                    total_remaining[stat.upper()] += per_unit[stat] * weight
 
                 # Accumulate rate stat components
-                day_pa = per_unit["pa"]
-                day_ip = per_unit["ip"]
+                day_pa = per_unit["pa"] * weight
+                day_ip = per_unit["ip"] * weight
                 total_remaining_pa += day_pa
                 total_remaining_ip += day_ip
                 weighted_obp += per_unit["obp"] * day_pa
