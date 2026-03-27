@@ -222,13 +222,16 @@ export default function MatchupPage() {
 
   if (!mounted) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <h1 className="text-xl font-bold text-white mb-4">Weekly Matchup Projections</h1>
-      </div>
+      <main className="min-h-screen bg-[#0d1117] text-gray-300">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <h1 className="text-xl font-bold text-white mb-4">Weekly Matchup Projections</h1>
+        </div>
+      </main>
     )
   }
 
   return (
+    <main className="min-h-screen bg-[#0d1117] text-gray-300">
     <div className="max-w-4xl mx-auto px-4 py-6">
       <h1 className="text-xl font-bold text-white mb-4">Weekly Matchup Projections</h1>
 
@@ -237,7 +240,7 @@ export default function MatchupPage() {
         <select
           value={selectedLeague}
           onChange={(e) => setSelectedLeague(e.target.value)}
-          className="bg-[#1e293b] text-gray-200 border border-gray-700 rounded-md px-3 py-1.5 text-sm"
+          className="bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
         >
           {leagues.map((l) => (
             <option key={l.id} value={l.id}>{l.name}</option>
@@ -246,7 +249,7 @@ export default function MatchupPage() {
         <select
           value={selectedTeam}
           onChange={(e) => setSelectedTeam(e.target.value)}
-          className="bg-[#1e293b] text-gray-200 border border-gray-700 rounded-md px-3 py-1.5 text-sm"
+          className="bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white"
         >
           {teams.map((t) => (
             <option key={t.externalId} value={t.externalId}>
@@ -433,5 +436,6 @@ export default function MatchupPage() {
         </div>
       )}
     </div>
+    </main>
   )
 }
