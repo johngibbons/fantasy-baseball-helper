@@ -1,7 +1,7 @@
 // src/app/matchup/page.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 
 interface League {
@@ -77,6 +77,7 @@ export default function MatchupPage() {
   const [selectedLeague, setSelectedLeague] = useState('')
   const [selectedTeam, setSelectedTeam] = useState('')
   const [mounted, setMounted] = useState(false)
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [results, setResults] = useState<MatchupResult | null>(null)
@@ -113,6 +114,7 @@ export default function MatchupPage() {
         const saved = localStorage.getItem('matchup_team')
         if (saved && teamList.some((t: Team) => t.externalId === saved)) {
           setSelectedTeam(saved)
+          setSettingsLoaded(true)
         } else if (teamList.length > 0) {
           setSelectedTeam(teamList[0].externalId)
         }
@@ -124,6 +126,15 @@ export default function MatchupPage() {
   useEffect(() => {
     if (selectedTeam) localStorage.setItem('matchup_team', selectedTeam)
   }, [selectedTeam])
+
+  // Auto-fetch when saved settings are restored
+  const autoFetched = useRef(false)
+  useEffect(() => {
+    if (settingsLoaded && !autoFetched.current && selectedLeague && selectedTeam) {
+      autoFetched.current = true
+      fetchProjections()
+    }
+  }, [settingsLoaded, selectedLeague, selectedTeam])
 
   const fetchProjections = async () => {
     if (!selectedLeague || !selectedTeam) return
