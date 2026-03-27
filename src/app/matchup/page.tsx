@@ -89,12 +89,13 @@ export default function MatchupPage() {
     fetch('/api/leagues')
       .then((r) => r.json())
       .then((data) => {
-        setLeagues(data.leagues || [])
+        const leagueList = Array.isArray(data) ? data : (data.leagues || [])
+        setLeagues(leagueList)
         const saved = localStorage.getItem('matchup_league')
-        if (saved && data.leagues?.some((l: League) => l.id === saved)) {
+        if (saved && leagueList.some((l: League) => l.id === saved)) {
           setSelectedLeague(saved)
-        } else if (data.leagues?.length > 0) {
-          setSelectedLeague(data.leagues[0].id)
+        } else if (leagueList.length > 0) {
+          setSelectedLeague(leagueList[0].id)
         }
       })
       .catch(() => setError('Failed to load leagues'))
