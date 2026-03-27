@@ -227,8 +227,7 @@ export async function POST(request: NextRequest) {
         const position = ESPN_POSITION_MAP[posId] || ''
         const playerType = posId === 1 || posId === 11 ? 'pitcher' : 'hitter'
         // ESPN proTeamId → MLB team abbreviation
-        // The proTeamId is available in the player stats array
-        const proTeamId = (player?.stats?.[0] as any)?.proTeamId || 0
+        const proTeamId = player?.proTeamId || 0
         const mlbTeam = ESPN_TEAM_MAP[proTeamId] || ''
 
         return {
@@ -247,6 +246,12 @@ export async function POST(request: NextRequest) {
 
     const myRosterPayload = buildRosterPayload(myTeamId)
     const oppRosterPayload = buildRosterPayload(theirSide.teamId)
+
+    // Log roster diagnostics
+    const myWithTeam = myRosterPayload.filter(p => p.mlb_team).length
+    console.log(`My roster: ${myRosterPayload.length} players, ${myWithTeam} with mlb_team`)
+    console.log('Sample:', myRosterPayload.slice(0, 3).map(p => `${p.name} (${p.mlb_team || 'NO TEAM'})`))
+    console.log('Team games remaining:', JSON.stringify(teamGamesRemaining))
 
     // Call Python backend
     const backendResponse = await fetch(`${BACKEND_URL}/api/matchup/projections`, {

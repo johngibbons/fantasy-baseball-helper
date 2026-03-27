@@ -56,6 +56,7 @@ export interface ESPNPlayer {
   lastName: string
   eligibleSlots: number[]
   defaultPositionId: number
+  proTeamId?: number
   stats?: any[]
 }
 
@@ -149,6 +150,7 @@ export class ESPNApi {
                 lastName: espnPlayer.lastName,
                 eligibleSlots: espnPlayer.eligibleSlots || [],
                 defaultPositionId: espnPlayer.defaultPositionId,
+                proTeamId: espnPlayer.proTeamId,
                 stats: espnPlayer.stats
               }
               console.log(`Found player data for ${player.fullName} (ID: ${player.id})`)
