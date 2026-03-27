@@ -219,11 +219,9 @@ export async function POST(request: NextRequest) {
     // Compute matchup date range from ESPN league settings
     const today = new Date()
     const scheduleSettings = (leagueData.settings as any)?.scheduleSettings
-    console.log('ESPN matchupPeriodLength:', scheduleSettings?.matchupPeriodLength)
-    console.log('ESPN matchupPeriodCount:', scheduleSettings?.matchupPeriodCount)
-    console.log('ESPN matchupPeriods keys:', scheduleSettings?.matchupPeriods ? Object.keys(scheduleSettings.matchupPeriods).slice(0, 5) : 'none')
-    console.log('ESPN matchupPeriods[1]:', JSON.stringify(scheduleSettings?.matchupPeriods?.['1']))
-    console.log('ESPN matchupPeriods[2]:', JSON.stringify(scheduleSettings?.matchupPeriods?.['2']))
+    const mp = scheduleSettings?.matchupPeriods || {}
+    console.log('ESPN matchupPeriods[1] length:', mp['1']?.length, 'values:', JSON.stringify(mp['1']))
+    console.log('ESPN matchupPeriods[2] length:', mp['2']?.length, 'first/last:', mp['2']?.[0], mp['2']?.[mp['2']?.length - 1])
     const { startDate, endDate, remainingDates } = getMatchupDateRangeFromESPN(leagueData, matchupPeriod, today)
 
     // Fetch MLB data in parallel
