@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
 
     // Compute matchup date range from ESPN league settings
     const today = new Date()
-    const matchupPeriods = leagueData.settings?.scheduleSettings?.matchupPeriods
+    const matchupPeriods = (leagueData.settings as any)?.scheduleSettings?.matchupPeriods
     console.log('ESPN matchupPeriod:', matchupPeriod, 'scoringPeriodIds:', matchupPeriods?.[String(matchupPeriod)])
     const { startDate, endDate, remainingDates } = getMatchupDateRangeFromESPN(leagueData, matchupPeriod, today)
 
