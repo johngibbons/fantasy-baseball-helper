@@ -98,7 +98,7 @@ function statusLabel(status: CategoryStatus['status']): string {
     case 'winning_close': return 'Edge'
     case 'tied': return 'Tied'
     case 'losing_close': return 'Behind'
-    case 'losing_big': return 'Loss'
+    case 'losing_big': return 'Losing'
   }
 }
 
@@ -493,7 +493,7 @@ export default function StartSitPage() {
                 <div className="bg-[#161b22] border border-white/[0.06] rounded-lg divide-y divide-white/[0.04]">
                   {results.upcoming_starts.map((s, i) => (
                     <div key={i} className="flex items-center gap-4 px-4 py-2.5 text-sm">
-                      <span className="text-gray-500 w-10 shrink-0 font-mono text-xs">{s.date}</span>
+                      <span className="text-gray-500 w-24 shrink-0 font-mono text-xs">{s.date}</span>
                       <span className="text-white font-medium flex-1">{s.pitcher_name}</span>
                       <span className="text-gray-400">{s.opponent}</span>
                       {s.pitcherlist_raw && (

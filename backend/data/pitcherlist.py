@@ -303,6 +303,23 @@ def _name_matches(pl_name: str, roster_name: str) -> bool:
     return False
 
 
+def _parse_entry_date(entry_date: str) -> tuple[int, int] | None:
+    """Extract (month, day) from a human-readable date like 'Wednesday 3/25'."""
+    m = re.search(r"(\d{1,2})/(\d{1,2})", entry_date)
+    if not m:
+        return None
+    return int(m.group(1)), int(m.group(2))
+
+
+def _parse_iso_date(iso_date: str) -> tuple[int, int] | None:
+    """Extract (month, day) from an ISO date like '2026-03-25'."""
+    try:
+        parts = iso_date.split("-")
+        return int(parts[1]), int(parts[2])
+    except (IndexError, ValueError):
+        return None
+
+
 def _dates_match(target: str, entry_date: str) -> bool:
     """Check whether an ISO date string matches a day-of-week date string.
 
@@ -313,22 +330,23 @@ def _dates_match(target: str, entry_date: str) -> bool:
     Returns:
         True if month and day match.
     """
-    # Extract month/day from target "YYYY-MM-DD"
-    try:
-        parts = target.split("-")
-        t_month = int(parts[1])
-        t_day = int(parts[2])
-    except (IndexError, ValueError):
+    t = _parse_iso_date(target)
+    e = _parse_entry_date(entry_date)
+    if t is None or e is None:
         return False
+    return t == e
 
-    # Extract month/day from entry_date "Weekday M/D"
-    m = re.search(r"(\d{1,2})/(\d{1,2})", entry_date)
-    if not m:
+
+def _entry_date_is_after(entry_date: str, target: str) -> bool:
+    """Check whether an entry date (e.g. 'Thursday 3/27') is strictly after an ISO date.
+
+    Compares month/day only (safe within a baseball season).
+    """
+    e = _parse_entry_date(entry_date)
+    t = _parse_iso_date(target)
+    if e is None or t is None:
         return False
-    e_month = int(m.group(1))
-    e_day = int(m.group(2))
-
-    return t_month == e_month and t_day == e_day
+    return e > t
 
 
 def get_rankings_for_date(
@@ -362,8 +380,9 @@ def get_rankings_for_date(
 
             if _dates_match(target_date, entry["date"]):
                 todays_starters.append({**entry, "roster_name": roster_name})
-            else:
+            elif _entry_date_is_after(entry["date"], target_date):
                 upcoming_starts.append({**entry, "roster_name": roster_name})
+            # else: past date — skip
             break
 
     off_day_pitchers: list[dict] = [

@@ -97,9 +97,8 @@ def classify_category(
 
     abs_gap = abs(yours - theirs)
 
-    # Tied → losing_close (bias toward action)
     if abs_gap == 0:
-        return "losing_close"
+        return "tied"
 
     # Determine size: big or close
     if cat in RATE_THRESHOLDS:

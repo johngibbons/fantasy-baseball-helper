@@ -8,6 +8,7 @@ import {
   getProbablePitchers,
   getRemainingSeasonGames,
 } from '@/lib/mlb-schedule'
+import { MATCHUP_SCHEDULE, getMatchupDateRange } from '@/lib/matchup-schedule'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
 
@@ -36,78 +37,6 @@ const ESPN_TEAM_MAP: Record<number, string> = {
 function sanitize(val: number | undefined, fallback: number = 0): number {
   const v = val ?? fallback
   return Number.isFinite(v) ? v : fallback
-}
-
-// League 77166 matchup schedule (from ESPN league settings page)
-// Matchup period ID → [start date, end date]
-const MATCHUP_SCHEDULE: Record<number, [string, string]> = {
-  1:  ['2026-03-25', '2026-04-05'],
-  2:  ['2026-04-06', '2026-04-12'],
-  3:  ['2026-04-13', '2026-04-19'],
-  4:  ['2026-04-20', '2026-04-26'],
-  5:  ['2026-04-27', '2026-05-03'],
-  6:  ['2026-05-04', '2026-05-10'],
-  7:  ['2026-05-11', '2026-05-17'],
-  8:  ['2026-05-18', '2026-05-24'],
-  9:  ['2026-05-25', '2026-05-31'],
-  10: ['2026-06-01', '2026-06-07'],
-  11: ['2026-06-08', '2026-06-14'],
-  12: ['2026-06-15', '2026-06-21'],
-  13: ['2026-06-22', '2026-06-28'],
-  14: ['2026-06-29', '2026-07-05'],
-  15: ['2026-07-06', '2026-07-19'],
-  16: ['2026-07-20', '2026-07-26'],
-  17: ['2026-07-27', '2026-08-02'],
-  18: ['2026-08-03', '2026-08-09'],
-  19: ['2026-08-10', '2026-08-16'],
-  20: ['2026-08-17', '2026-08-23'],
-  21: ['2026-08-17', '2026-08-23'],
-}
-
-function getMatchupDateRange(
-  matchupPeriodId: number,
-  today: Date,
-): { startDate: string; endDate: string; remainingDates: string[] } {
-  const schedule = MATCHUP_SCHEDULE[matchupPeriodId]
-
-  if (schedule) {
-    const [startDate, endDate] = schedule
-    const endDateObj = new Date(endDate + 'T23:59:59')
-
-    // Remaining dates: tomorrow through end of matchup
-    const remainingDates: string[] = []
-    const tomorrow = new Date(today)
-    tomorrow.setDate(today.getDate() + 1)
-    const cursor = new Date(tomorrow)
-    while (cursor <= endDateObj) {
-      remainingDates.push(cursor.toISOString().split('T')[0])
-      cursor.setDate(cursor.getDate() + 1)
-    }
-
-    return { startDate, endDate, remainingDates }
-  }
-
-  // Fallback: Mon-Sun estimate for unknown matchup periods
-  const dayOfWeek = today.getDay()
-  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-  const monday = new Date(today)
-  monday.setDate(today.getDate() + mondayOffset)
-  const sunday = new Date(monday)
-  sunday.setDate(monday.getDate() + 6)
-
-  const startDate = monday.toISOString().split('T')[0]
-  const endDate = sunday.toISOString().split('T')[0]
-
-  const remainingDates: string[] = []
-  const tomorrow = new Date(today)
-  tomorrow.setDate(today.getDate() + 1)
-  const cursor = new Date(tomorrow)
-  while (cursor <= sunday) {
-    remainingDates.push(cursor.toISOString().split('T')[0])
-    cursor.setDate(cursor.getDate() + 1)
-  }
-
-  return { startDate, endDate, remainingDates }
 }
 
 export async function POST(request: NextRequest) {
@@ -193,8 +122,18 @@ export async function POST(request: NextRequest) {
 
     // Compute matchup date range from ESPN league settings
     const today = new Date()
-    const { startDate, endDate, remainingDates } = getMatchupDateRange(matchupPeriod, today)
-    console.log(`Matchup ${matchupPeriod}: ${startDate} to ${endDate}, ${remainingDates.length} days remaining`)
+    const { startDate, endDate, daysRemaining } = getMatchupDateRange(matchupPeriod, today)
+
+    // Build remaining dates list for MLB schedule queries
+    const remainingDates: string[] = []
+    const cursor = new Date(today)
+    cursor.setDate(today.getDate() + 1)
+    const endDateObj = new Date(endDate + 'T23:59:59')
+    while (cursor <= endDateObj) {
+      remainingDates.push(cursor.toISOString().split('T')[0])
+      cursor.setDate(cursor.getDate() + 1)
+    }
+    console.log(`Matchup ${matchupPeriod}: ${startDate} to ${endDate}, ${daysRemaining} days remaining`)
 
     // Fetch MLB data in parallel
     const [teamGamesRemaining, probablePitchers, remainingSeasonGames] = await Promise.all([

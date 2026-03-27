@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ESPNApi } from '@/lib/espn-api'
+import { getMatchupDateRange } from '@/lib/matchup-schedule'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
 
@@ -122,13 +123,9 @@ export async function POST(request: NextRequest) {
     const today = new Date()
     const todayStr = today.toISOString().split('T')[0]
 
-    // Days remaining: estimate from day of week (Mon-Sun matchup periods)
-    const dayOfWeek = today.getDay()
-    const daysRemaining = dayOfWeek === 0 ? 0 : 7 - dayOfWeek
-
-    const endDate = new Date(today)
-    endDate.setDate(endDate.getDate() + daysRemaining)
-    const endDateStr = endDate.toISOString().split('T')[0]
+    // Use hardcoded league schedule (same as matchup page)
+    const { endDate, daysRemaining } = getMatchupDateRange(matchupPeriod, today)
+    const endDateStr = endDate
 
     // Call Python backend
     const backendResponse = await fetch(`${BACKEND_URL}/api/start-sit`, {
