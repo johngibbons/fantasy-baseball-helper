@@ -76,9 +76,13 @@ export default function MatchupPage() {
   const [teams, setTeams] = useState<Team[]>([])
   const [selectedLeague, setSelectedLeague] = useState('')
   const [selectedTeam, setSelectedTeam] = useState('')
+  const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [results, setResults] = useState<MatchupResult | null>(null)
+
+  // Prevent hydration mismatch — don't render dynamic content until mounted
+  useEffect(() => setMounted(true), [])
 
   // Load leagues
   useEffect(() => {
@@ -214,6 +218,14 @@ export default function MatchupPage() {
   const pitchers = results?.my_roster_projections.filter((p) =>
     ['SP', 'RP'].includes(p.position)
   ) || []
+
+  if (!mounted) {
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <h1 className="text-xl font-bold text-white mb-4">Weekly Matchup Projections</h1>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6">
