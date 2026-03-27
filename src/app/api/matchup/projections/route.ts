@@ -38,103 +38,56 @@ function sanitize(val: number | undefined, fallback: number = 0): number {
   return Number.isFinite(v) ? v : fallback
 }
 
-/**
- * Derive matchup period date range from ESPN league settings.
- *
- * ESPN's scheduleSettings.matchupPeriods maps matchup period ID → array of
- * scoring period IDs. We derive the epoch (scoring period 1 = which date)
- * from the current date and latestScoringPeriod, then convert.
- */
-function getMatchupDateRangeFromESPN(
-  leagueData: any,
+// League 77166 matchup schedule (from ESPN league settings page)
+// Matchup period ID → [start date, end date]
+const MATCHUP_SCHEDULE: Record<number, [string, string]> = {
+  1:  ['2026-03-25', '2026-04-05'],
+  2:  ['2026-04-06', '2026-04-12'],
+  3:  ['2026-04-13', '2026-04-19'],
+  4:  ['2026-04-20', '2026-04-26'],
+  5:  ['2026-04-27', '2026-05-03'],
+  6:  ['2026-05-04', '2026-05-10'],
+  7:  ['2026-05-11', '2026-05-17'],
+  8:  ['2026-05-18', '2026-05-24'],
+  9:  ['2026-05-25', '2026-05-31'],
+  10: ['2026-06-01', '2026-06-07'],
+  11: ['2026-06-08', '2026-06-14'],
+  12: ['2026-06-15', '2026-06-21'],
+  13: ['2026-06-22', '2026-06-28'],
+  14: ['2026-06-29', '2026-07-05'],
+  15: ['2026-07-06', '2026-07-19'],
+  16: ['2026-07-20', '2026-07-26'],
+  17: ['2026-07-27', '2026-08-02'],
+  18: ['2026-08-03', '2026-08-09'],
+  19: ['2026-08-10', '2026-08-16'],
+  20: ['2026-08-17', '2026-08-23'],
+  21: ['2026-08-17', '2026-08-23'],
+}
+
+function getMatchupDateRange(
   matchupPeriodId: number,
   today: Date,
 ): { startDate: string; endDate: string; remainingDates: string[] } {
-  const scheduleSettings = (leagueData.settings as any)?.scheduleSettings
-  const matchupPeriodLengthWeeks: number = scheduleSettings?.matchupPeriodLength || 1
-  const matchupPeriods: Record<string, number[]> = scheduleSettings?.matchupPeriods || {}
-  const matchupPeriodCount: number = Object.keys(matchupPeriods).length
+  const schedule = MATCHUP_SCHEDULE[matchupPeriodId]
 
-  // Derive the epoch: scoring period 1 = which calendar date?
-  const latestScoringPeriod = leagueData.status?.latestScoringPeriod
-    || leagueData.latestScoringPeriod
-    || 0
-
-  if (latestScoringPeriod > 0) {
-    // Use America/New_York timezone (ESPN's reference timezone) to avoid
-    // UTC date boundary issues
-    const todayET = new Date(today.toLocaleString('en-US', { timeZone: 'America/New_York' }))
-    const todayStr = todayET.toISOString().split('T')[0]
-
-    // Epoch: scoring period 1 = today minus (latestScoringPeriod - 1) days
-    const epochMs = todayET.getTime() - (latestScoringPeriod - 1) * 86400000
-    const epochDate = new Date(epochMs)
-
-    // Helper to convert scoring period ID to YYYY-MM-DD
-    const spToDate = (sp: number): string => {
-      const d = new Date(epochDate.getTime() + (sp - 1) * 86400000)
-      return d.toISOString().split('T')[0]
-    }
-
-    // The matchupPeriods map from ESPN only has elapsed scoring periods.
-    // We need to compute the full matchup boundaries. We know:
-    // - Total matchup periods (matchupPeriodCount)
-    // - Default period length (matchupPeriodLengthWeeks * 7 days)
-    // - Total season length (finalScoringPeriod)
-    // - Period 1 often has extra days (extended opening week)
-    // - Some mid-season periods (ASB) may also be longer
-    //
-    // Strategy: assume all periods except period 1 are the default length.
-    // Period 1 absorbs the remainder. This handles opening week correctly.
-    // ASB double-weeks are a known limitation — they'll show as two
-    // consecutive normal-length periods instead of one double.
-
-    const finalScoringPeriod = leagueData.status?.finalScoringPeriod
-      || leagueData.finalScoringPeriod
-      || 152
-
-    const defaultPeriodDays = matchupPeriodLengthWeeks * 7
-
-    // Period 2 starts after period 1 ends. If we assume periods 2..N are
-    // each defaultPeriodDays long, then period 2 starts at:
-    // finalScoringPeriod - (matchupPeriodCount - 1) * defaultPeriodDays + 1
-    const period2Start = matchupPeriodCount > 1
-      ? finalScoringPeriod - (matchupPeriodCount - 1) * defaultPeriodDays + 1
-      : finalScoringPeriod + 1
-
-    let firstScoringPeriod: number
-    let lastScoringPeriod: number
-
-    if (matchupPeriodId === 1) {
-      firstScoringPeriod = 1
-      lastScoringPeriod = period2Start - 1
-    } else {
-      // Periods 2..N each start defaultPeriodDays after the previous
-      firstScoringPeriod = period2Start + (matchupPeriodId - 2) * defaultPeriodDays
-      lastScoringPeriod = firstScoringPeriod + defaultPeriodDays - 1
-      // Clamp to season end
-      if (lastScoringPeriod > finalScoringPeriod) {
-        lastScoringPeriod = finalScoringPeriod
-      }
-    }
-
-    const startStr = spToDate(firstScoringPeriod)
-    const endStr = spToDate(lastScoringPeriod)
+  if (schedule) {
+    const [startDate, endDate] = schedule
+    const endDateObj = new Date(endDate + 'T23:59:59')
 
     // Remaining dates: tomorrow through end of matchup
     const remainingDates: string[] = []
-    // Use todayStr for comparison to avoid timezone issues
-    for (let sp = latestScoringPeriod + 1; sp <= lastScoringPeriod; sp++) {
-      remainingDates.push(spToDate(sp))
+    const tomorrow = new Date(today)
+    tomorrow.setDate(today.getDate() + 1)
+    const cursor = new Date(tomorrow)
+    while (cursor <= endDateObj) {
+      remainingDates.push(cursor.toISOString().split('T')[0])
+      cursor.setDate(cursor.getDate() + 1)
     }
 
-    console.log(`Matchup period ${matchupPeriodId}: scoring periods ${firstScoringPeriod}-${lastScoringPeriod}, dates ${startStr} to ${endStr}, ${remainingDates.length} days remaining (epoch=${spToDate(1)}, finalSP=${finalScoringPeriod})`)
-
-    return { startDate: startStr, endDate: endStr, remainingDates }
+    return { startDate, endDate, remainingDates }
   }
 
-  // Fallback: Mon-Sun estimate
-  console.log('Matchup period: falling back to Mon-Sun estimate (no ESPN schedule data)')
+  // Fallback: Mon-Sun estimate for unknown matchup periods
   const dayOfWeek = today.getDay()
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
   const monday = new Date(today)
@@ -240,14 +193,8 @@ export async function POST(request: NextRequest) {
 
     // Compute matchup date range from ESPN league settings
     const today = new Date()
-    const scheduleSettings = (leagueData.settings as any)?.scheduleSettings
-    // Log key schedule info for debugging
-    console.log('ESPN currentMatchupPeriod:', matchupPeriod,
-      'latestScoringPeriod:', leagueData.status?.latestScoringPeriod || leagueData.latestScoringPeriod,
-      'finalScoringPeriod:', leagueData.status?.finalScoringPeriod || leagueData.finalScoringPeriod,
-      'matchupPeriodLength:', scheduleSettings?.matchupPeriodLength,
-      'matchupPeriodCount:', Object.keys(scheduleSettings?.matchupPeriods || {}).length)
-    const { startDate, endDate, remainingDates } = getMatchupDateRangeFromESPN(leagueData, matchupPeriod, today)
+    const { startDate, endDate, remainingDates } = getMatchupDateRange(matchupPeriod, today)
+    console.log(`Matchup ${matchupPeriod}: ${startDate} to ${endDate}, ${remainingDates.length} days remaining`)
 
     // Fetch MLB data in parallel
     const [teamGamesRemaining, probablePitchers, remainingSeasonGames] = await Promise.all([
