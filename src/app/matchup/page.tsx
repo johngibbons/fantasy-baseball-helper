@@ -214,10 +214,10 @@ export default function MatchupPage() {
   }
 
   const hitters = results?.my_roster_projections.filter((p) =>
-    !['SP', 'RP'].includes(p.position)
+    !['SP', 'RP', 'P'].includes(p.position)
   ) || []
   const pitchers = results?.my_roster_projections.filter((p) =>
-    ['SP', 'RP'].includes(p.position)
+    ['SP', 'RP', 'P'].includes(p.position)
   ) || []
 
   if (!mounted) {
