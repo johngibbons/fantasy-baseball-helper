@@ -728,6 +728,85 @@ def waiver_recommendations(req: WaiverRequest):
     return result
 
 
+# ── Matchup Projections ──
+
+
+class MatchupRosterPlayer(BaseModel):
+    mlb_id: Optional[int] = None
+    name: str
+    position: str = ""
+    player_type: Optional[str] = None
+    lineup_slot_id: int = 0
+    mlb_team: str = ""
+    eligible_positions: str = ""
+
+
+class MatchupActuals(BaseModel):
+    my: dict[str, float] = {}
+    opponent: dict[str, float] = {}
+
+
+class MatchupRequest(BaseModel):
+    my_roster: list[MatchupRosterPlayer]
+    opponent_roster: list[MatchupRosterPlayer]
+    actuals: MatchupActuals
+    team_games_remaining: dict[str, int] = {}
+    probable_pitcher_ids: dict[str, list[int]] = {}
+    remaining_season_games: dict[str, int] = {}
+    days_remaining: int = 0
+    remaining_dates: list[str] = []
+    season: int = 2026
+
+
+@router.post("/matchup/projections")
+def matchup_projections(req: MatchupRequest):
+    """Compute projected matchup category finals and win/loss outcome."""
+    from backend.analysis.matchup import compute_matchup_projections
+
+    # Resolve ESPN names to mlb_ids
+    all_espn_players = (
+        [{"name": p.name, "player_type": p.player_type} for p in req.my_roster]
+        + [{"name": p.name, "player_type": p.player_type} for p in req.opponent_roster]
+    )
+    name_to_id = resolve_espn_names_to_mlbid(all_espn_players, season=req.season)
+
+    def _resolve_roster(players: list[MatchupRosterPlayer]) -> list[dict]:
+        resolved = []
+        for p in players:
+            mid = p.mlb_id or name_to_id.get(p.name)
+            if mid:
+                resolved.append({
+                    "mlb_id": mid,
+                    "name": p.name,
+                    "position": p.position,
+                    "player_type": p.player_type,
+                    "lineup_slot_id": p.lineup_slot_id,
+                    "mlb_team": p.mlb_team,
+                    "eligible_positions": p.eligible_positions,
+                })
+        return resolved
+
+    my_resolved = _resolve_roster(req.my_roster)
+    opp_resolved = _resolve_roster(req.opponent_roster)
+
+    if not my_resolved:
+        raise HTTPException(status_code=400, detail="No roster players could be resolved.")
+
+    result = compute_matchup_projections(
+        my_roster=my_resolved,
+        opponent_roster=opp_resolved,
+        actuals=req.actuals.dict(),
+        team_games_remaining=req.team_games_remaining,
+        probable_pitcher_ids=req.probable_pitcher_ids,
+        remaining_season_games=req.remaining_season_games,
+        days_remaining=req.days_remaining,
+        remaining_dates=req.remaining_dates,
+        season=req.season,
+    )
+    result["name_to_mlb_id"] = name_to_id
+    return result
+
+
 # ── Trade Suggestions ──
 
 
