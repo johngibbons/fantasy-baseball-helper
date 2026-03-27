@@ -66,7 +66,7 @@ def compute_per_game_projections(
     is_sp = player.player_type == "pitcher" and player.position == "SP"
 
     if is_sp:
-        projected_starts = max(1, round(player.ip / 6)) if player.ip > 0 else 0
+        projected_starts = round(player.ip / 6) if player.ip > 0 else 0
         if projected_starts == 0:
             return {"pa": 0, "r": 0, "tb": 0, "rbi": 0, "sb": 0, "obp": 0,
                     "ip": 0, "k": 0, "qs": 0, "era": 0, "whip": 0, "svhd": 0}
@@ -129,25 +129,6 @@ def compute_win_probability(
     if sigma <= 0:
         return 0.5
     return 1.0 / (1.0 + math.exp(-margin / sigma))
-
-
-# ── Projected finals (placeholder for future use) ────────────────────────────
-
-
-def compute_projected_finals(
-    actuals: dict[str, float],
-    remaining: dict[str, float],
-    cat: str,
-) -> float:
-    """Compute projected final for a category by combining actuals and remaining projections.
-
-    For counting stats: actual + remaining.
-    For rate stats: use blend_rate_stat with PA/IP weights.
-    """
-    if cat in INVERTED_CATS or cat == "OBP":
-        # Rate stats are handled by blend_rate_stat in compute_matchup_projections
-        return actuals.get(cat, 0.0) + remaining.get(cat, 0.0)
-    return actuals.get(cat, 0.0) + remaining.get(cat, 0.0)
 
 
 # ── Daily lineup optimizer ───────────────────────────────────────────────────
@@ -379,6 +360,11 @@ def compute_matchup_projections(
                     continue
                 proj = projections[mid]
                 team_abbrev = detail.get("mlb_team", "")
+                # NOTE: team_games_remaining is a total for the remaining matchup period,
+                # not per-date. This means a player is considered "available" on any
+                # remaining date if their team has games left this week, even if
+                # the team doesn't play on this specific date. This slightly
+                # overestimates contribution but is acceptable for v1.
                 team_has_game = team_games_remaining.get(team_abbrev, 0) > 0
 
                 if not team_has_game:

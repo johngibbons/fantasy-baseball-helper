@@ -6,7 +6,6 @@ from backend.analysis.matchup import (
     compute_per_game_projections,
     blend_rate_stat,
     compute_win_probability,
-    compute_projected_finals,
     optimize_daily_lineup,
 )
 
@@ -54,6 +53,17 @@ class TestPerGameProjections:
             mlb_id=4, name="Injured Pitcher", position="SP", player_type="pitcher",
             pa=0, r=0, tb=0, rbi=0, sb=0, obp=0.0,
             ip=0.0, k=0, qs=0, era=0.0, whip=0.0, svhd=0,
+        )
+        result = compute_per_game_projections(player, remaining_season_games=80)
+        assert result["k"] == 0.0
+        assert result["ip"] == 0.0
+
+    def test_low_ip_sp_returns_zeroes(self):
+        """SP with very low IP (round(ip/6) == 0) should return zeroes."""
+        player = PlayerProjection(
+            mlb_id=5, name="Low IP Pitcher", position="SP", player_type="pitcher",
+            pa=0, r=0, tb=0, rbi=0, sb=0, obp=0.0,
+            ip=2.0, k=3, qs=0, era=4.50, whip=1.50, svhd=0,
         )
         result = compute_per_game_projections(player, remaining_season_games=80)
         assert result["k"] == 0.0
