@@ -38,10 +38,56 @@ function sanitize(val: number | undefined, fallback: number = 0): number {
   return Number.isFinite(v) ? v : fallback
 }
 
-function getMatchupDateRange(today: Date): { startDate: string; endDate: string; remainingDates: string[] } {
-  // ESPN H2H matchup periods run Mon-Sun
-  const dayOfWeek = today.getDay() // 0=Sun, 1=Mon, ...
-  // Find start of current matchup week (Monday)
+/**
+ * Derive matchup period date range from ESPN league settings.
+ *
+ * ESPN's scheduleSettings.matchupPeriods maps matchup period ID → array of
+ * scoring period IDs. Scoring period 1 corresponds to the season's first game
+ * day. We convert scoring period IDs to calendar dates using the season start.
+ */
+function getMatchupDateRangeFromESPN(
+  leagueData: any,
+  matchupPeriodId: number,
+  today: Date,
+): { startDate: string; endDate: string; remainingDates: string[] } {
+  const scheduleSettings = leagueData.settings?.scheduleSettings
+  const matchupPeriods: Record<string, number[]> = scheduleSettings?.matchupPeriods || {}
+  const scoringPeriodIds: number[] = matchupPeriods[String(matchupPeriodId)] || []
+
+  if (scoringPeriodIds.length > 0) {
+    // MLB 2026 season starts March 26. ESPN scoring period 1 = opening day.
+    // Adjust this if needed — could also derive from leagueData.status.firstScoringPeriod
+    const seasonStartDate = new Date(`${today.getFullYear()}-03-20T12:00:00`)
+
+    const firstScoringPeriod = Math.min(...scoringPeriodIds)
+    const lastScoringPeriod = Math.max(...scoringPeriodIds)
+
+    const startDate = new Date(seasonStartDate)
+    startDate.setDate(seasonStartDate.getDate() + firstScoringPeriod - 1)
+
+    const endDate = new Date(seasonStartDate)
+    endDate.setDate(seasonStartDate.getDate() + lastScoringPeriod - 1)
+
+    const startStr = startDate.toISOString().split('T')[0]
+    const endStr = endDate.toISOString().split('T')[0]
+
+    // Remaining dates: tomorrow through end of matchup
+    const remainingDates: string[] = []
+    const tomorrow = new Date(today)
+    tomorrow.setDate(today.getDate() + 1)
+    const cursor = new Date(tomorrow)
+    while (cursor <= endDate) {
+      remainingDates.push(cursor.toISOString().split('T')[0])
+      cursor.setDate(cursor.getDate() + 1)
+    }
+
+    return { startDate: startStr, endDate: endStr, remainingDates }
+  }
+
+  // Fallback: use latestScoringPeriod-based calculation from ESPN status
+  // ESPN status provides firstScoringPeriod of current matchup implicitly
+  // through currentMatchupPeriod. Fall back to Mon-Sun estimate.
+  const dayOfWeek = today.getDay()
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
   const monday = new Date(today)
   monday.setDate(today.getDate() + mondayOffset)
@@ -51,7 +97,6 @@ function getMatchupDateRange(today: Date): { startDate: string; endDate: string;
   const startDate = monday.toISOString().split('T')[0]
   const endDate = sunday.toISOString().split('T')[0]
 
-  // Remaining dates: tomorrow through end of matchup
   const remainingDates: string[] = []
   const tomorrow = new Date(today)
   tomorrow.setDate(today.getDate() + 1)
@@ -145,9 +190,11 @@ export async function POST(request: NextRequest) {
       ? [opponentTeam.location, opponentTeam.nickname].filter(Boolean).join(' ')
       : `Team ${theirSide.teamId}`
 
-    // Compute matchup date range
+    // Compute matchup date range from ESPN league settings
     const today = new Date()
-    const { startDate, endDate, remainingDates } = getMatchupDateRange(today)
+    const matchupPeriods = leagueData.settings?.scheduleSettings?.matchupPeriods
+    console.log('ESPN matchupPeriod:', matchupPeriod, 'scoringPeriodIds:', matchupPeriods?.[String(matchupPeriod)])
+    const { startDate, endDate, remainingDates } = getMatchupDateRangeFromESPN(leagueData, matchupPeriod, today)
 
     // Fetch MLB data in parallel
     const [teamGamesRemaining, probablePitchers, remainingSeasonGames] = await Promise.all([
