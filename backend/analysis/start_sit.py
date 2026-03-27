@@ -289,7 +289,7 @@ def compute_start_sit_recommendations(
 
     # Step 2: Fetch PitcherList data for today and upcoming
     todays_starters_raw, upcoming_starts_raw, off_day_raw = get_rankings_for_date(
-        today_date, roster_pitcher_names
+        today_date, roster_pitcher_names, matchup_end_date=matchup_end_date
     )
 
     # Adapt field names from scraper output to what the engine expects

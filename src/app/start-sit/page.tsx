@@ -437,7 +437,7 @@ export default function StartSitPage() {
                 <span className="text-gray-600">·</span>
                 <span>
                   <span className="text-white font-medium">{results.matchup_summary.starts_remaining_after_today}</span>
-                  {' '}more this week
+                  {' '}more this matchup
                 </span>
                 {results.matchup_summary.ratio_exposure < 1 && (
                   <>
@@ -489,7 +489,7 @@ export default function StartSitPage() {
             {/* Upcoming starts */}
             {results.upcoming_starts && results.upcoming_starts.length > 0 && (
               <div className="mb-4">
-                <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Upcoming Starts This Week</h2>
+                <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">Upcoming Starts This Matchup</h2>
                 <div className="bg-[#161b22] border border-white/[0.06] rounded-lg divide-y divide-white/[0.04]">
                   {results.upcoming_starts.map((s, i) => (
                     <div key={i} className="flex items-center gap-4 px-4 py-2.5 text-sm">
