@@ -35,7 +35,7 @@ POSITION_TO_SLOTS: dict[str, list[str]] = {
     "3B": ["3B", "UTIL"], "SS": ["SS", "UTIL"],
     "OF": ["OF", "UTIL"], "LF": ["OF", "UTIL"], "CF": ["OF", "UTIL"], "RF": ["OF", "UTIL"],
     "DH": ["UTIL"],
-    "SP": ["SP", "P"], "RP": ["RP", "P"],
+    "SP": ["SP", "P"], "RP": ["RP", "P"], "P": ["SP", "RP", "P"],
 }
 
 # Weekly variance sigma values per category (for win probability sigmoid)
@@ -63,7 +63,10 @@ def compute_per_game_projections(
         return {"pa": 0, "r": 0, "tb": 0, "rbi": 0, "sb": 0, "obp": 0,
                 "ip": 0, "k": 0, "qs": 0, "era": 0, "whip": 0, "svhd": 0}
 
-    is_sp = player.player_type == "pitcher" and player.position == "SP"
+    # Detect SP: explicit position or high IP projection (>= 80 IP = starter)
+    is_sp = player.player_type == "pitcher" and (
+        player.position == "SP" or (player.position == "P" and player.ip >= 80)
+    )
 
     if is_sp:
         projected_starts = round(player.ip / 6) if player.ip > 0 else 0
@@ -308,7 +311,7 @@ def compute_matchup_projections(
             eligible_pos = roster_entry.get("eligible_positions", getattr(proj, "_eligible_positions", proj.position))
             team_ros_games = remaining_season_games.get(team_abbrev, 80)
 
-            is_sp = proj.player_type == "pitcher" and proj.position == "SP"
+            is_sp = proj.player_type == "pitcher" and (proj.position == "SP" or (proj.position == "P" and proj.ip >= 80))
             per_unit = compute_per_game_projections(proj, team_ros_games)
 
             # Determine how many games/starts this player has remaining in matchup
@@ -370,7 +373,7 @@ def compute_matchup_projections(
                 if not team_has_game:
                     continue
 
-                is_sp = proj.player_type == "pitcher" and proj.position == "SP"
+                is_sp = proj.player_type == "pitcher" and (proj.position == "SP" or (proj.position == "P" and proj.ip >= 80))
                 if is_sp and mid not in date_probable_ids:
                     continue  # SP not pitching today
 
