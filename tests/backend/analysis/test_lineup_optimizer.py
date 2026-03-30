@@ -51,8 +51,9 @@ class TestOptimizeHitterLineup:
         result = optimize_hitter_lineup(hitters)
         starters = [a for a in result if a.is_starter]
         bench = [a for a in result if not a.is_starter]
-        assert len(starters) == 9
-        assert len(bench) == 3
+        # 10 active slots (C+1B+2B+3B+SS+OF×3+UTIL×2), 12 hitters → 2 bench
+        assert len(starters) == 10
+        assert len(bench) == 2
         bench_ids = {a.mlb_id for a in bench}
         assert 11 in bench_ids
         assert 12 in bench_ids

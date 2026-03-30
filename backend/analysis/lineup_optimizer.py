@@ -1,6 +1,6 @@
 """Position-aware greedy lineup optimizer for daily-lineup fantasy leagues.
 
-Assigns hitters to active roster slots (C, 1B, 2B, 3B, SS, OF×3, UTIL)
+Assigns hitters to active roster slots (C, 1B, 2B, 3B, SS, OF×3, UTIL×2)
 or bench using a two-phase algorithm:
 
   Phase 1 — positional slots: Players are sorted by fewest dedicated positional
@@ -26,7 +26,7 @@ from dataclasses import dataclass
 
 
 HITTER_ACTIVE_SLOTS: dict[str, int] = {
-    "C": 1, "1B": 1, "2B": 1, "3B": 1, "SS": 1, "OF": 3, "UTIL": 1,
+    "C": 1, "1B": 1, "2B": 1, "3B": 1, "SS": 1, "OF": 3, "UTIL": 2,
 }
 
 POSITION_TO_ACTIVE_SLOTS: dict[str, list[str]] = {
