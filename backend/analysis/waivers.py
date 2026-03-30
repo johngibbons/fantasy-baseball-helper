@@ -12,6 +12,7 @@ import unicodedata
 from dataclasses import dataclass
 from typing import Optional
 
+from backend.analysis.lineup_optimizer import optimize_hitter_lineup
 from backend.database import get_connection
 from backend.simulation.scoring_model import compute_rank, win_prob_from_rank
 
@@ -25,16 +26,8 @@ ALL_CATS = HITTING_CATS + PITCHING_CATS
 # Categories where lower is better
 INVERTED_CATS = {"ERA", "WHIP"}
 
-# ESPN lineup slot IDs that count as active starters
-# 0=C, 1=1B, 2=2B, 3=3B, 4=SS, 5=OF, 12=UTIL,
-# 13=P, 14=SP, 15=RP
-ACTIVE_SLOT_IDS = set(range(16))  # 0-15 inclusive
-# 16=Bench, 17=IL
-
 # Bench contribution weights (match draft-categories.ts / roster-optimizer.ts)
 HITTER_BENCH_WEIGHT = 0.20
-SP_BENCH_WEIGHT = 0.45
-RP_BENCH_WEIGHT = 0.15
 IL_WEIGHT = 0.0
 
 
@@ -62,6 +55,9 @@ class PlayerProjection:
     obp: float = 0.0
     era: float = 0.0
     whip: float = 0.0
+    # Lineup optimizer fields
+    eligible_positions: str = ""
+    overall_rank: int = 9999
 
 
 @dataclass
@@ -265,7 +261,8 @@ def load_projections_for_players(
     rows = conn.execute(
         f"""SELECT r.mlb_id, pl.full_name, pl.primary_position, r.player_type,
                    r.proj_pa, r.proj_r, r.proj_tb, r.proj_rbi, r.proj_sb, r.proj_obp,
-                   r.proj_ip, r.proj_k, r.proj_qs, r.proj_era, r.proj_whip, r.proj_svhd
+                   r.proj_ip, r.proj_k, r.proj_qs, r.proj_era, r.proj_whip, r.proj_svhd,
+                   pl.eligible_positions, r.overall_rank
             FROM rankings r
             JOIN players pl ON r.mlb_id = pl.mlb_id
             WHERE r.mlb_id IN ({placeholders})
@@ -292,6 +289,8 @@ def load_projections_for_players(
             era=row["proj_era"] or 0.0,
             whip=row["proj_whip"] or 0.0,
             svhd=row["proj_svhd"] or 0,
+            eligible_positions=row["eligible_positions"] or "",
+            overall_rank=row["overall_rank"] or 9999,
         )
 
     conn.close()
@@ -331,27 +330,69 @@ def compute_expected_wins(
     return sum(cat_win_probs.values()), cat_win_probs
 
 
-# ── Bench weighting ──────────────────────────────────────────────────────────
+# ── Lineup-optimized team building ───────────────────────────────────────────
+
+IL_SLOT_THRESHOLD = 17  # ESPN lineup_slot_id >= 17 means IL
 
 
-def player_weight(lineup_slot_id: int, proj: PlayerProjection) -> float:
-    """Return the contribution weight for a player based on lineup slot.
+def build_team_totals(
+    roster_slots: list[dict],
+    projections: dict[int, PlayerProjection],
+) -> tuple[TeamTotals, dict[int, float]]:
+    """Build team totals using lineup-optimized weights.
 
-    Starters contribute 100%. Bench/IL players contribute a fraction
-    matching the draft simulator's benchContribution logic.
+    Pitchers: all non-IL at 1.0 (daily league rotation).
+    Hitters: run greedy optimizer to assign active (1.0) or bench (0.20).
+    IL: 0.0.
+
+    Returns:
+        (TeamTotals, {mlb_id: weight})
     """
-    if lineup_slot_id in ACTIVE_SLOT_IDS:
-        return 1.0
-    # IL players (slot 17+) contribute nothing
-    if lineup_slot_id >= 17:
-        return IL_WEIGHT
-    # Bench (slot 16)
-    if proj.player_type == "pitcher":
-        # SP vs RP: SP has QS projections, RP has SVHD but no QS
-        if proj.qs > 0:
-            return SP_BENCH_WEIGHT
-        return RP_BENCH_WEIGHT
-    return HITTER_BENCH_WEIGHT
+    totals = TeamTotals()
+    weights: dict[int, float] = {}
+
+    il_ids: set[int] = set()
+    pitcher_ids: list[int] = []
+    hitter_dicts: list[dict] = []
+
+    for slot in roster_slots:
+        pid = slot["mlb_id"]
+        proj = projections.get(pid)
+        if not proj:
+            continue
+
+        if slot.get("lineup_slot_id", 0) >= IL_SLOT_THRESHOLD:
+            il_ids.add(pid)
+            weights[pid] = IL_WEIGHT
+            continue
+
+        if proj.player_type == "pitcher":
+            pitcher_ids.append(pid)
+        else:
+            hitter_dicts.append({
+                "mlb_id": pid,
+                "eligible_positions": proj.eligible_positions,
+                "overall_rank": proj.overall_rank,
+                "player_type": proj.player_type,
+            })
+
+    # Pitchers: all non-IL at 1.0
+    for pid in pitcher_ids:
+        w = 1.0
+        weights[pid] = w
+        totals.add_player(projections[pid], w)
+
+    # Hitters: optimize lineup
+    assignments = optimize_hitter_lineup(hitter_dicts)
+    for a in assignments:
+        proj = projections.get(a.mlb_id)
+        if not proj:
+            continue
+        w = 1.0 if a.is_starter else HITTER_BENCH_WEIGHT
+        weights[a.mlb_id] = w
+        totals.add_player(proj, w)
+
+    return totals, weights
 
 
 # ── Core recommendation engine ────────────────────────────────────────────────
@@ -359,8 +400,8 @@ def player_weight(lineup_slot_id: int, proj: PlayerProjection) -> float:
 
 def compute_waiver_recommendations(
     my_roster_ids: list[int],
-    my_roster_slots: list[dict],  # [{"mlb_id": int, "lineup_slot_id": int}]
-    all_team_roster_slots: list[list[dict]],  # Other teams: [{"mlb_id": int, "lineup_slot_id": int}]
+    my_roster_slots: list[dict],
+    all_team_roster_slots: list[list[dict]],
     free_agent_ids: list[int],
     season: int,
     remaining_faab: float = 100.0,
@@ -368,35 +409,21 @@ def compute_waiver_recommendations(
 ) -> dict:
     """Compute waiver wire recommendations.
 
-    Returns ranked list of add/drop pairs with expected wins improvement.
+    For each (FA, drop) pair, builds the trial roster and re-optimizes the
+    lineup to determine proper starter/bench assignments.
     """
-    # Collect all player IDs we need projections for
     other_team_ids = [s["mlb_id"] for team in all_team_roster_slots for s in team]
     all_ids = list(set(my_roster_ids + other_team_ids + free_agent_ids))
 
     projections = load_projections_for_players(all_ids, season)
 
-    # Build my team totals with bench weighting
-    my_totals = TeamTotals()
-    my_weights: dict[int, float] = {}  # mlb_id -> weight (for swap calculations)
-    for slot in my_roster_slots:
-        pid = slot["mlb_id"]
-        proj = projections.get(pid)
-        if proj:
-            w = player_weight(slot.get("lineup_slot_id", 0), proj)
-            my_totals.add_player(proj, w)
-            my_weights[pid] = w
+    # Build my baseline using lineup optimization
+    my_totals, my_weights = build_team_totals(my_roster_slots, projections)
 
-    # Build other teams' totals with bench weighting
+    # Build other teams' totals
     other_team_totals: list[TeamTotals] = []
     for team_slots in all_team_roster_slots:
-        tt = TeamTotals()
-        for slot in team_slots:
-            pid = slot["mlb_id"]
-            proj = projections.get(pid)
-            if proj:
-                w = player_weight(slot.get("lineup_slot_id", 0), proj)
-                tt.add_player(proj, w)
+        tt, _ = build_team_totals(team_slots, projections)
         other_team_totals.append(tt)
 
     # Compute baseline expected wins
@@ -409,31 +436,18 @@ def compute_waiver_recommendations(
     my_cat_values = my_totals.category_values()
     other_cat_values = [t.category_values() for t in other_team_totals]
     logger.info(f"My team category values: {my_cat_values}")
-    other_team_player_counts = [
-        sum(1 for s in team_slots if s["mlb_id"] in projections)
-        for team_slots in all_team_roster_slots
-    ]
-    logger.info(f"Other teams proj counts: {other_team_player_counts}")
-    logger.info(f"Other teams R values: {[t.get('R', 0) for t in other_cat_values]}")
     baseline_wins, baseline_cat_probs = compute_expected_wins(my_cat_values, other_cat_values)
 
-    # Identify droppable players on my roster (exclude IL — can't drop while on IL)
-    droppable: list[tuple[int, bool, float]] = []  # (mlb_id, is_bench, weight)
+    # Identify droppable players (exclude IL)
+    droppable_ids: list[int] = []
     for slot in my_roster_slots:
         pid = slot["mlb_id"]
-        slot_id = slot.get("lineup_slot_id", 0)
-        if slot_id >= 17:
-            continue  # IL players can't be dropped
-        is_bench = slot_id not in ACTIVE_SLOT_IDS
-        w = my_weights.get(pid, 1.0)
-        droppable.append((pid, is_bench, w))
-
-    # Sort: non-IL/bench first, then bench/IL
-    droppable.sort(key=lambda x: x[1])
+        if slot.get("lineup_slot_id", 0) >= IL_SLOT_THRESHOLD:
+            continue
+        droppable_ids.append(pid)
 
     # Evaluate each free agent
     recommendations: list[WaiverRecommendation] = []
-    no_drop_slots_used = 0  # Track how many open slots we've "used" for no-drop recs
 
     for fa_id in free_agent_ids:
         fa_proj = projections.get(fa_id)
@@ -445,11 +459,11 @@ def compute_waiver_recommendations(
         best_cat_impact: dict[str, float] = {}
         is_no_drop = False
 
-        # Try "add without drop" if open roster slots are available
+        # Try "add without drop" if open roster slots available
         if open_roster_slots > 0:
-            trial = my_totals.copy()
-            trial.add_player(fa_proj, 1.0)
-            trial_cat_values = trial.category_values()
+            trial_slots = list(my_roster_slots) + [{"mlb_id": fa_id, "lineup_slot_id": 0}]
+            trial_totals, _ = build_team_totals(trial_slots, projections)
+            trial_cat_values = trial_totals.category_values()
             trial_wins, trial_cat_probs = compute_expected_wins(trial_cat_values, other_cat_values)
             delta = trial_wins - baseline_wins
             if delta > best_delta:
@@ -461,18 +475,17 @@ def compute_waiver_recommendations(
                     for cat in ALL_CATS
                 }
 
-        # Also try each drop option
-        for drop_id, _is_non_active, drop_weight in droppable:
+        # Try each drop option
+        for drop_id in droppable_ids:
             drop_proj = projections.get(drop_id)
             if not drop_proj:
                 continue
 
-            # Swap: remove drop (at its current weight), add FA as starter (weight 1.0)
-            trial = my_totals.copy()
-            trial.remove_player(drop_proj, drop_weight)
-            trial.add_player(fa_proj, 1.0)
+            trial_slots = [s for s in my_roster_slots if s["mlb_id"] != drop_id]
+            trial_slots.append({"mlb_id": fa_id, "lineup_slot_id": 0})
 
-            trial_cat_values = trial.category_values()
+            trial_totals, _ = build_team_totals(trial_slots, projections)
+            trial_cat_values = trial_totals.category_values()
             trial_wins, trial_cat_probs = compute_expected_wins(trial_cat_values, other_cat_values)
             delta = trial_wins - baseline_wins
 
@@ -495,14 +508,11 @@ def compute_waiver_recommendations(
                 drop_player_name=drop_proj.name if drop_proj else None,
                 drop_player_position=drop_proj.position if drop_proj else None,
                 delta_expected_wins=round(best_delta, 4),
-                suggested_faab_bid=0,  # Computed below
+                suggested_faab_bid=0,
                 category_impact=best_cat_impact,
             ))
 
-    # Sort by delta expected wins descending
     recommendations.sort(key=lambda r: r.delta_expected_wins, reverse=True)
-
-    # Compute FAAB bids
     _assign_faab_bids(recommendations, remaining_faab)
 
     return {
@@ -512,9 +522,7 @@ def compute_waiver_recommendations(
         "projection_coverage": {
             "my_roster": f"{my_roster_with_proj}/{len(my_roster_ids)}",
             "missing_ids": my_roster_without_proj[:10],
-            "other_teams_player_counts": other_team_player_counts,
         },
-        "other_teams_R": [round(t.get("R", 0), 1) for t in other_cat_values],
         "recommendations": [
             {
                 "rank": i + 1,
