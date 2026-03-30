@@ -148,6 +148,7 @@ class WaiverRecommendation:
     delta_expected_wins: float
     suggested_faab_bid: int
     category_impact: dict[str, float]
+    category_stat_delta: dict[str, float]
 
 
 # ── Player ID resolution ─────────────────────────────────────────────────────
@@ -457,6 +458,7 @@ def compute_waiver_recommendations(
         best_delta = -999.0
         best_drop_id: Optional[int] = None
         best_cat_impact: dict[str, float] = {}
+        best_stat_delta: dict[str, float] = {}
         is_no_drop = False
 
         # Try "add without drop" if open roster slots available
@@ -472,6 +474,10 @@ def compute_waiver_recommendations(
                 is_no_drop = True
                 best_cat_impact = {
                     cat: round(trial_cat_probs[cat] - baseline_cat_probs[cat], 4)
+                    for cat in ALL_CATS
+                }
+                best_stat_delta = {
+                    cat: round(trial_cat_values[cat] - my_cat_values[cat], 3)
                     for cat in ALL_CATS
                 }
 
@@ -497,6 +503,10 @@ def compute_waiver_recommendations(
                     cat: round(trial_cat_probs[cat] - baseline_cat_probs[cat], 4)
                     for cat in ALL_CATS
                 }
+                best_stat_delta = {
+                    cat: round(trial_cat_values[cat] - my_cat_values[cat], 3)
+                    for cat in ALL_CATS
+                }
 
         if best_delta > -10 and (best_drop_id is not None or is_no_drop):
             drop_proj = projections.get(best_drop_id) if best_drop_id else None
@@ -510,6 +520,7 @@ def compute_waiver_recommendations(
                 delta_expected_wins=round(best_delta, 4),
                 suggested_faab_bid=0,
                 category_impact=best_cat_impact,
+                category_stat_delta=best_stat_delta,
             ))
 
     recommendations.sort(key=lambda r: r.delta_expected_wins, reverse=True)
@@ -539,6 +550,7 @@ def compute_waiver_recommendations(
                 "delta_expected_wins": r.delta_expected_wins,
                 "suggested_faab_bid": r.suggested_faab_bid,
                 "category_impact": r.category_impact,
+                "category_stat_delta": r.category_stat_delta,
             }
             for i, r in enumerate(recommendations)
         ],

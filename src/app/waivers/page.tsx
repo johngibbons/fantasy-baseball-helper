@@ -31,6 +31,7 @@ interface Recommendation {
   delta_expected_wins: number
   suggested_faab_bid: number
   category_impact: Record<string, number>
+  category_stat_delta: Record<string, number>
 }
 
 interface RosterPlayer {
@@ -87,6 +88,22 @@ function fmtDelta(v: number): string {
 function fmtCatImpact(v: number): string {
   const pct = (v * 100).toFixed(1)
   return v > 0 ? `+${pct}` : pct
+}
+
+const RATE_CATS = new Set(['OBP', 'ERA', 'WHIP'])
+
+function fmtStatDelta(cat: string, v: number): string {
+  if (RATE_CATS.has(cat)) {
+    const s = v.toFixed(3)
+    return v > 0 ? `+${s}` : s
+  }
+  const rounded = Math.round(v)
+  if (rounded === 0 && Math.abs(v) > 0.05) {
+    // Show fractional for small non-zero (bench-weighted)
+    const s = v.toFixed(1)
+    return v > 0 ? `+${s}` : s
+  }
+  return rounded > 0 ? `+${rounded}` : `${rounded}`
 }
 
 const STORAGE_KEY = 'waiver_settings'
@@ -472,9 +489,21 @@ export default function WaiversPage() {
                       </td>
                       {CATS.map((cat) => {
                         const impact = rec.category_impact[cat] ?? 0
+                        const stat = rec.category_stat_delta?.[cat] ?? 0
+                        const hasStatChange = Math.abs(stat) > 0.05
+                        const hasImpact = Math.abs(impact) >= 0.001
                         return (
                           <td key={cat} className={`px-2 py-2 text-right font-mono text-xs ${impactColor(impact)}`}>
-                            {Math.abs(impact) < 0.001 ? '-' : fmtCatImpact(impact)}
+                            {hasStatChange ? (
+                              <div>
+                                <div>{fmtStatDelta(cat, stat)}</div>
+                                {hasImpact && (
+                                  <div className="text-[10px] text-gray-500">{fmtCatImpact(impact)}</div>
+                                )}
+                              </div>
+                            ) : (
+                              hasImpact ? fmtCatImpact(impact) : '-'
+                            )}
                           </td>
                         )
                       })}
