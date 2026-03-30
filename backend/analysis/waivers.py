@@ -490,10 +490,19 @@ def compute_waiver_recommendations(
             trial_slots = [s for s in my_roster_slots if s["mlb_id"] != drop_id]
             trial_slots.append({"mlb_id": fa_id, "lineup_slot_id": 0})
 
-            trial_totals, _ = build_team_totals(trial_slots, projections)
+            trial_totals, trial_weights = build_team_totals(trial_slots, projections)
             trial_cat_values = trial_totals.category_values()
             trial_wins, trial_cat_probs = compute_expected_wins(trial_cat_values, other_cat_values)
             delta = trial_wins - baseline_wins
+
+            # Debug: log top FA swap options
+            if fa_proj.name == "Taylor Ward" and drop_proj.name in ("Lawrence Butler", "Carson Benge"):
+                logger.info(
+                    f"  DEBUG swap {fa_proj.name} for {drop_proj.name} (rank {drop_proj.overall_rank}): "
+                    f"delta={delta:.4f}, fa_weight={trial_weights.get(fa_id, '?')}, "
+                    f"TB={trial_cat_values['TB']:.1f} (base {my_cat_values['TB']:.1f}), "
+                    f"SB={trial_cat_values['SB']:.1f} (base {my_cat_values['SB']:.1f})"
+                )
 
             if delta > best_delta:
                 best_delta = delta
