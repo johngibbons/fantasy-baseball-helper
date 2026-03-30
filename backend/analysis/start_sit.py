@@ -47,21 +47,25 @@ _DECISION_MATRIX: dict[str, dict[str, str]] = {
     "strong_start": {
         "ratio_protect": "start",
         "k_chase": "strong_start",
+        "ratio_punt": "strong_start",
         "default": "strong_start",
     },
     "start": {
         "ratio_protect": "risky_start",
         "k_chase": "start",
+        "ratio_punt": "start",
         "default": "start",
     },
     "maybe": {
         "ratio_protect": "sit",
         "k_chase": "risky_start",
+        "ratio_punt": "start",
         "default": "sit",
     },
     "sit": {
         "ratio_protect": "sit",
         "k_chase": "sit",
+        "ratio_punt": "risky_start",
         "default": "sit",
     },
 }
@@ -158,6 +162,17 @@ def decide_recommendation(
     if all(s == "winning_big" for s in sp_cats.values()):
         return "safe_sit"
 
+    # Ratio punt: ERA/WHIP already lost — no downside to starting, go for K/QS
+    era_whip_losing_big = all(
+        sp_cats.get(c) in ("losing_big", "tied") for c in ("ERA", "WHIP")
+    ) and any(
+        sp_cats.get(c) == "losing_big" for c in ("ERA", "WHIP")
+    )
+    if era_whip_losing_big:
+        column = "ratio_punt"
+        tier_row = _DECISION_MATRIX.get(pitcherlist_tier, _DECISION_MATRIX["sit"])
+        return tier_row[column]
+
     # Identify conflict flags
     era_whip_close = any(
         sp_cats.get(c) == "winning_close" for c in ("ERA", "WHIP")
@@ -214,6 +229,15 @@ def generate_rationale(
     """
     if recommendation == "safe_sit":
         return "Winning all pitching categories comfortably. Safe to sit and protect leads."
+
+    # Ratio punt: ERA/WHIP already lost — start for counting stats
+    era_whip_losing_big = all(
+        cats.get(c) in ("losing_big", "tied") for c in ("ERA", "WHIP")
+    ) and any(
+        cats.get(c) == "losing_big" for c in ("ERA", "WHIP")
+    )
+    if era_whip_losing_big:
+        return f"{pitcherlist_raw} vs {opponent}. ERA/WHIP already lost — start for K/QS upside."
 
     # Sit-tier pitchers always sit regardless of matchup context — say so clearly
     if pitcherlist_tier == "sit":

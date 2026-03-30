@@ -148,6 +148,51 @@ class TestDecideRecommendation:
         result = decide_recommendation("sit", cat_states, ratio_exposure=0.2)
         assert result == "sit"
 
+    def test_ratio_punt_both_era_whip_losing_big_maybe_returns_start(self):
+        # ERA/WHIP both losing_big → ratio_punt column → maybe upgrades to start
+        cat_states = {
+            "K": "winning_close",
+            "QS": "tied",
+            "ERA": "losing_big",
+            "WHIP": "losing_big",
+        }
+        result = decide_recommendation("maybe", cat_states, ratio_exposure=0.5)
+        assert result == "start"
+
+    def test_ratio_punt_sit_tier_upgrades_to_risky_start(self):
+        # ERA/WHIP both losing_big → even sit-tier pitchers become risky_start
+        cat_states = {
+            "K": "winning_close",
+            "QS": "tied",
+            "ERA": "losing_big",
+            "WHIP": "losing_big",
+        }
+        result = decide_recommendation("sit", cat_states, ratio_exposure=0.5)
+        assert result == "risky_start"
+
+    def test_ratio_punt_one_losing_big_one_tied(self):
+        # ERA losing_big + WHIP tied → still ratio_punt (at least one losing_big, other not winning)
+        cat_states = {
+            "K": "winning_close",
+            "QS": "losing_close",
+            "ERA": "losing_big",
+            "WHIP": "tied",
+        }
+        result = decide_recommendation("maybe", cat_states, ratio_exposure=0.5)
+        assert result == "start"
+
+    def test_no_ratio_punt_when_winning_one_ratio(self):
+        # ERA losing_big but WHIP winning_close → NOT ratio_punt (still protecting WHIP)
+        cat_states = {
+            "K": "losing_close",
+            "QS": "losing_close",
+            "ERA": "losing_big",
+            "WHIP": "winning_close",
+        }
+        result = decide_recommendation("maybe", cat_states, ratio_exposure=0.2)
+        # WHIP winning_close + low exposure → ratio_protect → sit
+        assert result == "sit"
+
 
 class TestGenerateRationale:
     """Tests for generate_rationale()."""
@@ -188,6 +233,26 @@ class TestGenerateRationale:
             starts_remaining=2,
         )
         assert "protect" in rationale.lower() or "safe" in rationale.lower()
+
+    def test_ratio_punt_rationale(self):
+        """When ERA/WHIP are lost, rationale should explain we're starting for counting stats."""
+        cat_states = {
+            "K": "winning_close",
+            "QS": "tied",
+            "ERA": "losing_big",
+            "WHIP": "losing_big",
+        }
+        rationale = generate_rationale(
+            pitcherlist_raw="Sit-3",
+            opponent="TEX",
+            recommendation="risky_start",
+            pitcherlist_tier="sit",
+            cats=cat_states,
+            ratio_exposure=0.5,
+            starts_remaining=4,
+        )
+        assert "already lost" in rationale.lower()
+        assert "K/QS" in rationale
 
     def test_sit_tier_gives_clear_rationale(self):
         """Sit-tier pitchers should get a clear 'too low to start' message,

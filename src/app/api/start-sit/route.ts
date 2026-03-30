@@ -106,10 +106,14 @@ export async function POST(request: NextRequest) {
     }
     console.log('Team IP:', teamIp)
 
-    // Get SP names from roster (defaultPositionId 1 = SP)
+    // Get SP names from roster — include players eligible for SP slot (14),
+    // not just defaultPositionId 1, to catch RP/SP dual-eligible pitchers
     const myRosterEntries = rosters[myTeamId] || []
     const spNames = myRosterEntries
-      .filter((entry) => entry.player?.defaultPositionId === 1)
+      .filter((entry) =>
+        entry.player?.defaultPositionId === 1 ||
+        entry.player?.eligibleSlots?.includes(14)
+      )
       .map((entry) => entry.player?.fullName || '')
       .filter(Boolean)
 
