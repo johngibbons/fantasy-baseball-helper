@@ -17,9 +17,9 @@ from backend.analysis.waivers import (
     ALL_CATS,
     PlayerProjection,
     TeamTotals,
+    build_team_totals,
     compute_expected_wins,
     load_projections_for_players,
-    player_weight,
     resolve_espn_names_to_mlbid,
 )
 from backend.database import get_connection
@@ -147,16 +147,8 @@ def compute_trade_suggestions(
     projections = load_projections_for_players(all_ids_list, season)
     zscores = _load_zscores(all_ids_list, season)
 
-    # Build my team totals
-    my_totals = TeamTotals()
-    my_weights: dict[int, float] = {}
-    for slot in my_roster:
-        pid = slot["mlb_id"]
-        proj = projections.get(pid)
-        if proj:
-            w = player_weight(slot.get("lineup_slot_id", 0), proj)
-            my_totals.add_player(proj, w)
-            my_weights[pid] = w
+    # Build my team totals using lineup optimization
+    my_totals, my_weights = build_team_totals(my_roster, projections)
 
     # Build all other teams' totals
     other_team_totals_list: list[TeamTotals] = []
@@ -166,15 +158,7 @@ def compute_trade_suggestions(
             other_team_totals_list.append(TeamTotals())  # placeholder
             other_team_weights.append({})
             continue
-        tt = TeamTotals()
-        tw: dict[int, float] = {}
-        for slot in team["players"]:
-            pid = slot["mlb_id"]
-            proj = projections.get(pid)
-            if proj:
-                w = player_weight(slot.get("lineup_slot_id", 0), proj)
-                tt.add_player(proj, w)
-                tw[pid] = w
+        tt, tw = build_team_totals(team["players"], projections)
         other_team_totals_list.append(tt)
         other_team_weights.append(tw)
 
