@@ -518,30 +518,48 @@ export default function StartSitPage() {
             )}
 
             {/* Streaming options */}
-            {results.streamers && results.streamers.length > 0 && (
-              <div className="mb-4">
-                <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
-                  Streaming Options
-                  <span className="text-gray-600 font-normal normal-case ml-2">— unrostered SPs</span>
-                </h2>
-                <div className="bg-[#161b22] border border-white/[0.06] rounded-lg divide-y divide-white/[0.04]">
-                  {results.streamers.map((s, i) => (
-                    <div key={i} className="flex items-center gap-4 px-4 py-2.5 text-sm">
-                      <span className="text-gray-500 w-24 shrink-0 font-mono text-xs">{s.date}</span>
-                      <span className="text-white font-medium flex-1">{s.pitcher_name}</span>
-                      <span className="text-gray-400">{s.opponent}</span>
-                      <span className={`text-xs rounded px-1.5 py-0.5 shrink-0 ${
-                        s.tier === 'strong_start' ? 'bg-emerald-500/20 text-emerald-300' :
-                        s.tier === 'start' ? 'bg-emerald-500/10 text-emerald-400/70' :
-                        'bg-yellow-500/10 text-yellow-400/70'
-                      }`}>
-                        {s.raw}
-                      </span>
-                    </div>
-                  ))}
+            {results.streamers && results.streamers.length > 0 && (() => {
+              // Group streamers by date
+              const grouped: { date: string; pitchers: typeof results.streamers }[] = []
+              for (const s of results.streamers!) {
+                const last = grouped[grouped.length - 1]
+                if (last && last.date === s.date) {
+                  last.pitchers!.push(s)
+                } else {
+                  grouped.push({ date: s.date, pitchers: [s] })
+                }
+              }
+              return (
+                <div className="mb-4">
+                  <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                    Streaming Options
+                    <span className="text-gray-600 font-normal normal-case ml-2">— unrostered SPs</span>
+                  </h2>
+                  <div className="flex flex-col gap-3">
+                    {grouped.map((group) => (
+                      <div key={group.date}>
+                        <div className="text-xs text-gray-500 mb-1 px-1">{group.date}</div>
+                        <div className="bg-[#161b22] border border-white/[0.06] rounded-lg divide-y divide-white/[0.04]">
+                          {group.pitchers!.map((s, i) => (
+                            <div key={i} className="flex items-center gap-4 px-4 py-2.5 text-sm">
+                              <span className="text-white font-medium flex-1">{s.pitcher_name}</span>
+                              <span className="text-gray-400">{s.opponent}</span>
+                              <span className={`text-xs rounded px-1.5 py-0.5 shrink-0 ${
+                                s.tier === 'strong_start' ? 'bg-emerald-500/20 text-emerald-300' :
+                                s.tier === 'start' ? 'bg-emerald-500/10 text-emerald-400/70' :
+                                'bg-yellow-500/10 text-yellow-400/70'
+                              }`}>
+                                {s.raw}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )
+            })()}
 
             {/* Off-day pitchers */}
             {results.off_day_pitchers && results.off_day_pitchers.length > 0 && (

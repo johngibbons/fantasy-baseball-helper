@@ -488,8 +488,15 @@ def get_streaming_options(
             "raw": entry.get("raw", ""),
         })
 
-    # Sort by score descending (best streamers first)
-    streamers.sort(key=lambda s: s["score"], reverse=True)
+    # Sort by date (chronological), then score descending within each date
+    def _sort_key(s: dict) -> tuple:
+        parsed = _parse_entry_date(s["date"])
+        # (month, day) tuple for chronological order; fallback to (99, 99)
+        date_key = parsed if parsed else (99, 99)
+        # Negate score so higher scores sort first within a date
+        return (date_key, -s["score"])
+
+    streamers.sort(key=_sort_key)
     return streamers
 
 
