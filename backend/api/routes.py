@@ -906,6 +906,7 @@ class StartSitRequest(BaseModel):
     opponent_name: str
     today_date: str
     matchup_end_date: str
+    all_rostered_names: list[str] = []
 
 
 @router.post("/start-sit")
@@ -921,4 +922,5 @@ def start_sit_recommendations(req: StartSitRequest):
         opponent_name=req.opponent_name,
         today_date=req.today_date,
         matchup_end_date=req.matchup_end_date,
+        all_rostered_names=req.all_rostered_names,
     )

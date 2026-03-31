@@ -284,6 +284,7 @@ def compute_start_sit_recommendations(
     opponent_name: str,
     today_date: str,
     matchup_end_date: str,
+    all_rostered_names: list[str] | None = None,
 ) -> dict:
     """Compute start/sit recommendations for today's SP starters.
 
@@ -300,7 +301,7 @@ def compute_start_sit_recommendations(
     Returns:
         Dict with matchup_summary, upcoming_starts, recommendations, off_day_pitchers.
     """
-    from backend.data.pitcherlist import get_rankings_for_date
+    from backend.data.pitcherlist import get_rankings_for_date, get_streaming_options
 
     # Step 1: Classify all 10 categories
     cat_states: dict[str, str] = {}
@@ -404,6 +405,15 @@ def compute_start_sit_recommendations(
         for cat, vals in matchup_categories.items()
     }
 
+    # Step 6: Compute streaming options (unrostered pitchers with good ratings)
+    streamers = []
+    if all_rostered_names:
+        streamers = get_streaming_options(
+            all_rostered_names=all_rostered_names,
+            target_date=today_date,
+            matchup_end_date=matchup_end_date,
+        )
+
     return {
         "matchup_summary": {
             "opponent": opponent_name,
@@ -425,4 +435,5 @@ def compute_start_sit_recommendations(
         ],
         "recommendations": recommendations,
         "off_day_pitchers": off_day_pitchers,
+        "streamers": streamers,
     }

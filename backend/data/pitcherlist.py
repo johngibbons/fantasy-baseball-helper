@@ -429,6 +429,70 @@ def _entry_date_is_on_or_before(entry_date: str, target: str) -> bool:
     return e <= t
 
 
+def get_streaming_options(
+    all_rostered_names: list[str],
+    target_date: str,
+    matchup_end_date: str | None = None,
+) -> list[dict]:
+    """Find unrostered pitchers with good PitcherList ratings for streaming.
+
+    Filters the cached PitcherList weekly rankings to pitchers NOT on any
+    league roster, with dates on or after target_date.
+
+    Args:
+        all_rostered_names: Names of all rostered players across the league.
+        target_date: ISO date string like "2026-03-25".
+        matchup_end_date: ISO date of last day of matchup period.
+
+    Returns:
+        List of dicts sorted by score descending, each with:
+            pitcher_name, opponent, date, tier, score, raw
+    """
+    if not all_rostered_names:
+        return []
+
+    if matchup_end_date:
+        all_rankings = fetch_all_available_rankings()
+    else:
+        all_rankings = fetch_weekly_rankings()
+
+    # Exclude sit-tier pitchers — not worth streaming
+    _STREAMABLE_TIERS = {"strong_start", "start", "maybe"}
+
+    streamers: list[dict] = []
+    for entry in all_rankings:
+        # Filter by tier
+        if entry.get("mapped_tier") not in _STREAMABLE_TIERS:
+            continue
+
+        # Filter by date: on or after today, on or before matchup end
+        if not _dates_match(target_date, entry["date"]) and not _entry_date_is_after(entry["date"], target_date):
+            continue
+        if matchup_end_date and not _entry_date_is_on_or_before(entry["date"], matchup_end_date):
+            continue
+
+        # Check if pitcher is rostered
+        is_rostered = any(
+            _name_matches(entry["pitcher_name"], name)
+            for name in all_rostered_names
+        )
+        if is_rostered:
+            continue
+
+        streamers.append({
+            "pitcher_name": entry["pitcher_name"],
+            "opponent": entry.get("opponent", ""),
+            "date": entry.get("date", ""),
+            "tier": entry["mapped_tier"],
+            "score": entry.get("score", 0),
+            "raw": entry.get("raw", ""),
+        })
+
+    # Sort by score descending (best streamers first)
+    streamers.sort(key=lambda s: s["score"], reverse=True)
+    return streamers
+
+
 def get_rankings_for_date(
     target_date: str,
     roster_pitcher_names: list[str],

@@ -117,6 +117,16 @@ export async function POST(request: NextRequest) {
       .map((entry) => entry.player?.fullName || '')
       .filter(Boolean)
 
+    // Collect all rostered player names across the league for streamer filtering
+    const allRosteredNames: string[] = []
+    for (const teamRoster of Object.values(rosters)) {
+      for (const entry of teamRoster) {
+        if (entry.player?.fullName) {
+          allRosteredNames.push(entry.player.fullName)
+        }
+      }
+    }
+
     // Get opponent team name
     const teams = await ESPNApi.getTeams(league.externalId, season, espnSettings)
     const opponentTeam = teams.find((t) => t.id === theirSide.teamId)
@@ -143,6 +153,7 @@ export async function POST(request: NextRequest) {
         opponent_name: opponentName,
         today_date: todayStr,
         matchup_end_date: endDateStr,
+        all_rostered_names: allRosteredNames,
       }),
     })
 
