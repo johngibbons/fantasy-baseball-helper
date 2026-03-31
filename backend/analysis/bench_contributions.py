@@ -100,6 +100,39 @@ def compute_availability_rate(player: RosterPlayer, team_season_games: int) -> f
     return 1.0
 
 
+def distribute_sp_starts(
+    projected_starts: int,
+    team_game_dates: list[str],
+    rng: random.Random,
+) -> set[str]:
+    """Distribute an SP's projected starts evenly across their team's schedule with jitter."""
+    num_games = len(team_game_dates)
+    if num_games == 0 or projected_starts <= 0:
+        return set()
+    if projected_starts >= num_games:
+        return set(team_game_dates)
+
+    interval = num_games / projected_starts
+    ideal_indices = [round(i * interval) for i in range(projected_starts)]
+
+    jittered: list[int] = []
+    for idx in ideal_indices:
+        shift = rng.choice([-1, 0, 1])
+        new_idx = max(0, min(num_games - 1, idx + shift))
+        jittered.append(new_idx)
+
+    used: set[int] = set()
+    final_indices: list[int] = []
+    for idx in sorted(jittered):
+        while idx in used and idx < num_games - 1:
+            idx += 1
+        if idx not in used:
+            used.add(idx)
+            final_indices.append(idx)
+
+    return {team_game_dates[i] for i in final_indices}
+
+
 def fetch_season_schedule(start_date: str, end_date: str) -> dict[str, set[str]]:
     """Fetch full-season MLB schedule from Stats API."""
     url = f"{MLB_API_BASE}/schedule"

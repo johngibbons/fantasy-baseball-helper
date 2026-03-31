@@ -1,9 +1,12 @@
+import random
+
 import pytest
 from unittest.mock import patch, MagicMock
 from backend.analysis.bench_contributions import parse_schedule_response
 from backend.analysis.bench_contributions import (
     RosterPlayer,
     compute_availability_rate,
+    distribute_sp_starts,
 )
 
 
@@ -138,3 +141,38 @@ class TestAvailabilityModel:
         )
         rate = compute_availability_rate(player, team_season_games=162)
         assert rate == 1.0
+
+
+class TestSPStartDistribution:
+    def test_correct_number_of_starts(self):
+        """distribute_sp_starts returns exactly projected_starts dates."""
+        team_game_dates = [f"2026-04-{d:02d}" for d in range(1, 31)]
+        rng = random.Random(42)
+        starts = distribute_sp_starts(projected_starts=6, team_game_dates=team_game_dates, rng=rng)
+        assert len(starts) == 6
+        for d in starts:
+            assert d in team_game_dates
+
+    def test_starts_are_unique(self):
+        """No duplicate start dates."""
+        team_game_dates = [f"2026-04-{d:02d}" for d in range(1, 31)]
+        rng = random.Random(42)
+        starts = distribute_sp_starts(projected_starts=6, team_game_dates=team_game_dates, rng=rng)
+        assert len(starts) == len(set(starts))
+
+    def test_starts_roughly_evenly_spaced(self):
+        """Starts should be spread across the schedule, not clustered."""
+        team_game_dates = [f"2026-04-{d:02d}" for d in range(1, 31)]
+        rng = random.Random(42)
+        starts = distribute_sp_starts(projected_starts=6, team_game_dates=team_game_dates, rng=rng)
+        indices = sorted(team_game_dates.index(d) for d in starts)
+        gaps = [indices[i + 1] - indices[i] for i in range(len(indices) - 1)]
+        for gap in gaps:
+            assert 1 <= gap <= 10
+
+    def test_more_starts_than_games_caps(self):
+        """If projected_starts > team_game_dates, return all dates."""
+        team_game_dates = ["2026-04-01", "2026-04-02", "2026-04-03"]
+        rng = random.Random(42)
+        starts = distribute_sp_starts(projected_starts=10, team_game_dates=team_game_dates, rng=rng)
+        assert len(starts) == 3
