@@ -11,6 +11,7 @@ from backend.analysis.bench_contributions import (
     simulate_season,
     aggregate_by_role,
     RoleAggregation,
+    compute_stat_impact,
 )
 
 
@@ -275,3 +276,52 @@ class TestAggregation:
         result = aggregate_by_role(rates, players)
         assert result.avg_bench_sp_rate == pytest.approx(0.30, abs=0.01)
         assert result.avg_bench_rp_rate == pytest.approx(0.12, abs=0.01)
+
+
+class TestStatImpact:
+    def test_stat_impact_scales_by_contribution_rate(self):
+        """Season stat impact = projected stats * contribution rate."""
+        player = RosterPlayer(
+            mlb_id=1, name="Bench Hitter", position="OF", player_type="hitter",
+            eligible_positions="OF", team="NYY",
+            proj_pa=400, proj_r=60, proj_tb=150, proj_rbi=55,
+            proj_sb=10, proj_obp=0.320, overall_rank=100,
+        )
+        rates = {1: 0.20}
+        impact = compute_stat_impact([player], rates)
+        assert impact["R"] == pytest.approx(60 * 0.20, abs=0.1)
+        assert impact["TB"] == pytest.approx(150 * 0.20, abs=0.1)
+        assert impact["RBI"] == pytest.approx(55 * 0.20, abs=0.1)
+        assert impact["SB"] == pytest.approx(10 * 0.20, abs=0.1)
+
+    def test_stat_impact_sums_multiple_players(self):
+        """Impact sums across all players in the group."""
+        p1 = RosterPlayer(
+            mlb_id=1, name="H1", position="OF", player_type="hitter",
+            eligible_positions="OF", team="NYY",
+            proj_pa=400, proj_r=60, proj_tb=150, proj_rbi=55,
+            proj_sb=10, proj_obp=0.320, overall_rank=100,
+        )
+        p2 = RosterPlayer(
+            mlb_id=2, name="H2", position="1B", player_type="hitter",
+            eligible_positions="1B", team="NYY",
+            proj_pa=300, proj_r=40, proj_tb=100, proj_rbi=35,
+            proj_sb=5, proj_obp=0.310, overall_rank=120,
+        )
+        rates = {1: 0.20, 2: 0.15}
+        impact = compute_stat_impact([p1, p2], rates)
+        assert impact["R"] == pytest.approx(60 * 0.20 + 40 * 0.15, abs=0.1)
+
+    def test_pitcher_stat_impact(self):
+        """Pitching stats are included for pitcher players."""
+        pitcher = RosterPlayer(
+            mlb_id=10, name="SP", position="SP", player_type="pitcher",
+            eligible_positions="SP", team="NYY",
+            proj_ip=150.0, proj_k=140, proj_qs=15,
+            proj_era=3.50, proj_whip=1.15, proj_svhd=0,
+            overall_rank=60,
+        )
+        rates = {10: 0.30}
+        impact = compute_stat_impact([pitcher], rates)
+        assert impact["K"] == pytest.approx(140 * 0.30, abs=0.1)
+        assert impact["QS"] == pytest.approx(15 * 0.30, abs=0.1)

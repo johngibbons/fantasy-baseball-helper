@@ -300,6 +300,55 @@ def aggregate_by_role(
     )
 
 
+HITTING_CATS = ["R", "TB", "RBI", "SB", "OBP"]
+PITCHING_CATS = ["K", "QS", "ERA", "WHIP", "SVHD"]
+ALL_CATS = HITTING_CATS + PITCHING_CATS
+
+_CAT_TO_FIELD: dict[str, str] = {
+    "R": "proj_r", "TB": "proj_tb", "RBI": "proj_rbi", "SB": "proj_sb",
+    "K": "proj_k", "QS": "proj_qs", "SVHD": "proj_svhd",
+}
+
+_RATE_CATS = {"OBP", "ERA", "WHIP"}
+
+
+def compute_stat_impact(
+    players: list[RosterPlayer],
+    contribution_rates: dict[int, float],
+) -> dict[str, float]:
+    """Compute total season stat contribution for a group of players.
+
+    Counting stats are multiplied by contribution rate.
+    Rate stats (OBP, ERA, WHIP) are PA/IP-weighted averages.
+    """
+    totals: dict[str, float] = {cat: 0.0 for cat in ALL_CATS}
+    total_pa = 0.0
+    total_ip = 0.0
+    weighted_obp = 0.0
+    weighted_era = 0.0
+    weighted_whip = 0.0
+
+    for p in players:
+        rate = contribution_rates.get(p.mlb_id, 0.0)
+        for cat, field in _CAT_TO_FIELD.items():
+            totals[cat] += getattr(p, field, 0) * rate
+        if p.player_type == "hitter" and p.proj_pa > 0:
+            pa_contrib = p.proj_pa * rate
+            total_pa += pa_contrib
+            weighted_obp += p.proj_obp * pa_contrib
+        if p.player_type == "pitcher" and p.proj_ip > 0:
+            ip_contrib = p.proj_ip * rate
+            total_ip += ip_contrib
+            weighted_era += p.proj_era * ip_contrib
+            weighted_whip += p.proj_whip * ip_contrib
+
+    totals["OBP"] = weighted_obp / total_pa if total_pa > 0 else 0.0
+    totals["ERA"] = weighted_era / total_ip if total_ip > 0 else 0.0
+    totals["WHIP"] = weighted_whip / total_ip if total_ip > 0 else 0.0
+
+    return totals
+
+
 def fetch_season_schedule(start_date: str, end_date: str) -> dict[str, set[str]]:
     """Fetch full-season MLB schedule from Stats API."""
     url = f"{MLB_API_BASE}/schedule"
