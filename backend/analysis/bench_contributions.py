@@ -54,6 +54,52 @@ def parse_schedule_response(data: dict) -> dict[str, set[str]]:
     return schedule
 
 
+@dataclass
+class RosterPlayer:
+    """Player on a fantasy roster with projection data for simulation."""
+    mlb_id: int
+    name: str
+    position: str
+    player_type: str
+    eligible_positions: str
+    team: str
+    proj_pa: int = 0
+    proj_ip: float = 0.0
+    overall_rank: int = 9999
+    proj_r: int = 0
+    proj_tb: int = 0
+    proj_rbi: int = 0
+    proj_sb: int = 0
+    proj_obp: float = 0.0
+    proj_k: int = 0
+    proj_qs: int = 0
+    proj_era: float = 0.0
+    proj_whip: float = 0.0
+    proj_svhd: int = 0
+
+
+def _is_sp(player: RosterPlayer) -> bool:
+    """Determine if a pitcher is an SP (vs RP)."""
+    if player.player_type != "pitcher":
+        return False
+    if "SP" in player.eligible_positions.split("/"):
+        return True
+    return player.proj_ip >= 80
+
+
+def compute_availability_rate(player: RosterPlayer, team_season_games: int) -> float:
+    """Compute how often a player is available to play on days their team has a game."""
+    if team_season_games <= 0:
+        return 0.0
+    if player.player_type == "hitter":
+        games_played = player.proj_pa / 4.0
+        return min(1.0, games_played / team_season_games)
+    if _is_sp(player):
+        projected_starts = round(player.proj_ip / IP_PER_START)
+        return projected_starts / team_season_games
+    return 1.0
+
+
 def fetch_season_schedule(start_date: str, end_date: str) -> dict[str, set[str]]:
     """Fetch full-season MLB schedule from Stats API."""
     url = f"{MLB_API_BASE}/schedule"
