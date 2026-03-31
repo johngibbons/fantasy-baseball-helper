@@ -240,9 +240,71 @@ def simulate_season(
     )
 
 
+STARTER_THRESHOLD = 0.75
+
+
+@dataclass
+class RoleAggregation:
+    """Aggregated contribution rates by player role."""
+    bench_hitters: list[RosterPlayer]
+    bench_sps: list[RosterPlayer]
+    bench_rps: list[RosterPlayer]
+    starter_hitters: list[RosterPlayer]
+    starter_pitchers: list[RosterPlayer]
+    avg_bench_hitter_rate: float
+    avg_bench_sp_rate: float
+    avg_bench_rp_rate: float
+
+
+def aggregate_by_role(
+    contribution_rates: dict[int, float],
+    roster: list[RosterPlayer],
+) -> RoleAggregation:
+    """Classify players as starter/bench and compute per-role average contribution rates."""
+    bench_hitters: list[RosterPlayer] = []
+    bench_sps: list[RosterPlayer] = []
+    bench_rps: list[RosterPlayer] = []
+    starter_hitters: list[RosterPlayer] = []
+    starter_pitchers: list[RosterPlayer] = []
+
+    for p in roster:
+        rate = contribution_rates.get(p.mlb_id, 0.0)
+        if p.player_type == "hitter":
+            if rate >= STARTER_THRESHOLD:
+                starter_hitters.append(p)
+            else:
+                bench_hitters.append(p)
+        else:
+            if rate >= STARTER_THRESHOLD:
+                starter_pitchers.append(p)
+            elif _is_sp(p):
+                bench_sps.append(p)
+            else:
+                bench_rps.append(p)
+
+    def _avg_rate(players: list[RosterPlayer]) -> float:
+        if not players:
+            return 0.0
+        return sum(contribution_rates.get(p.mlb_id, 0.0) for p in players) / len(players)
+
+    bench_hitters.sort(key=lambda p: p.overall_rank)
+    bench_sps.sort(key=lambda p: p.overall_rank)
+    bench_rps.sort(key=lambda p: p.overall_rank)
+
+    return RoleAggregation(
+        bench_hitters=bench_hitters, bench_sps=bench_sps, bench_rps=bench_rps,
+        starter_hitters=starter_hitters, starter_pitchers=starter_pitchers,
+        avg_bench_hitter_rate=_avg_rate(bench_hitters),
+        avg_bench_sp_rate=_avg_rate(bench_sps),
+        avg_bench_rp_rate=_avg_rate(bench_rps),
+    )
+
+
 def fetch_season_schedule(start_date: str, end_date: str) -> dict[str, set[str]]:
     """Fetch full-season MLB schedule from Stats API."""
     url = f"{MLB_API_BASE}/schedule"
     resp = httpx.get(url, params={"sportId": 1, "startDate": start_date, "endDate": end_date})
     resp.raise_for_status()
     return parse_schedule_response(resp.json())
+
+

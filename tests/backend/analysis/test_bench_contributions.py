@@ -9,6 +9,8 @@ from backend.analysis.bench_contributions import (
     distribute_sp_starts,
     SimulationResult,
     simulate_season,
+    aggregate_by_role,
+    RoleAggregation,
 )
 
 
@@ -245,3 +247,31 @@ class TestSimulateSeason:
         result = simulate_season(roster, schedule, team_season_games={"NYY": 162}, num_sims=50, seed=42)
         bench_sp_rate = result.player_contribution_rates[27]
         assert 0.0 < bench_sp_rate < 0.8
+
+
+class TestAggregation:
+    def test_aggregate_separates_starters_from_bench(self):
+        """Players with >0.75 contribution rate are starters; others are bench."""
+        rates = {1: 0.93, 2: 0.91, 3: 0.15, 4: 0.88, 5: 0.20}
+        players = [
+            _make_hitter(1, "H1", "C", "NYY", rank=10),
+            _make_hitter(2, "H2", "1B", "NYY", rank=11),
+            _make_hitter(3, "BenchH", "OF", "NYY", rank=100),
+            _make_pitcher(4, "SP1", "SP", "NYY", ip=180.0, rank=20),
+            _make_pitcher(5, "BenchRP", "RP", "NYY", ip=60.0, rank=90),
+        ]
+        result = aggregate_by_role(rates, players)
+        assert len(result.bench_hitters) == 1
+        assert result.bench_hitters[0].mlb_id == 3
+        assert result.avg_bench_hitter_rate == pytest.approx(0.15, abs=0.01)
+
+    def test_aggregate_bench_pitcher_sp_vs_rp(self):
+        """Bench pitchers are split into SP and RP categories."""
+        rates = {10: 0.30, 20: 0.12}
+        players = [
+            _make_pitcher(10, "BenchSP", "SP", "NYY", ip=150.0, rank=60),
+            _make_pitcher(20, "BenchRP", "RP", "NYY", ip=55.0, rank=90),
+        ]
+        result = aggregate_by_role(rates, players)
+        assert result.avg_bench_sp_rate == pytest.approx(0.30, abs=0.01)
+        assert result.avg_bench_rp_rate == pytest.approx(0.12, abs=0.01)
