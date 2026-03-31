@@ -2,12 +2,28 @@ import random
 
 import pytest
 from unittest.mock import patch, MagicMock
-from backend.analysis.bench_contributions import parse_schedule_response
 from backend.analysis.bench_contributions import (
+    parse_schedule_response,
     RosterPlayer,
     compute_availability_rate,
     distribute_sp_starts,
+    SimulationResult,
+    simulate_season,
 )
+
+
+def _make_hitter(mlb_id: int, name: str, pos: str, team: str, pa: int = 600, rank: int = 50) -> RosterPlayer:
+    return RosterPlayer(
+        mlb_id=mlb_id, name=name, position=pos, player_type="hitter",
+        eligible_positions=pos, team=team, proj_pa=pa, overall_rank=rank,
+    )
+
+
+def _make_pitcher(mlb_id: int, name: str, pos: str, team: str, ip: float = 180.0, rank: int = 50) -> RosterPlayer:
+    return RosterPlayer(
+        mlb_id=mlb_id, name=name, position=pos, player_type="pitcher",
+        eligible_positions=pos, team=team, proj_ip=ip, overall_rank=rank,
+    )
 
 
 class TestScheduleParsing:
@@ -176,3 +192,56 @@ class TestSPStartDistribution:
         rng = random.Random(42)
         starts = distribute_sp_starts(projected_starts=10, team_game_dates=team_game_dates, rng=rng)
         assert len(starts) == 3
+
+
+class TestSimulateSeason:
+    def test_starter_contributes_more_than_bench(self):
+        """A starting-caliber C should have higher contribution than a bench OF."""
+        roster = [
+            _make_hitter(1, "C1", "C", "NYY", rank=10),
+            _make_hitter(2, "1B1", "1B", "NYY", rank=11),
+            _make_hitter(3, "2B1", "2B", "NYY", rank=12),
+            _make_hitter(4, "3B1", "3B", "NYY", rank=13),
+            _make_hitter(5, "SS1", "SS", "NYY", rank=14),
+            _make_hitter(6, "OF1", "OF", "NYY", rank=15),
+            _make_hitter(7, "OF2", "OF", "NYY", rank=16),
+            _make_hitter(8, "OF3", "OF", "NYY", rank=17),
+            _make_hitter(9, "UTIL1", "1B/DH", "NYY", rank=18),
+            _make_hitter(10, "UTIL2", "OF/DH", "NYY", rank=19),
+            _make_hitter(11, "BenchH1", "OF", "NYY", rank=100),
+            _make_hitter(12, "BenchH2", "1B", "NYY", rank=120),
+        ]
+        schedule = {f"2026-04-{d:02d}": {"NYY"} for d in range(1, 11)}
+        result = simulate_season(roster, schedule, team_season_games={"NYY": 162}, num_sims=50, seed=42)
+        starter_rate = result.player_contribution_rates[1]
+        assert starter_rate > 0.8
+        bench_rate = result.player_contribution_rates[11]
+        assert bench_rate < starter_rate
+        assert bench_rate > 0.0
+
+    def test_sp_only_contributes_on_start_days(self):
+        """Bench SP contribution rate should reflect start frequency, not every day."""
+        roster = [
+            _make_pitcher(20, "SP1", "SP", "NYY", ip=180.0, rank=10),
+            _make_pitcher(21, "SP2", "SP", "NYY", ip=180.0, rank=11),
+            _make_pitcher(22, "SP3", "SP", "NYY", ip=180.0, rank=12),
+            _make_pitcher(23, "RP1", "RP", "NYY", ip=60.0, rank=30),
+            _make_pitcher(24, "RP2", "RP", "NYY", ip=60.0, rank=31),
+            _make_pitcher(25, "P1", "SP", "NYY", ip=170.0, rank=20),
+            _make_pitcher(26, "P2", "RP", "NYY", ip=55.0, rank=40),
+            _make_pitcher(27, "BenchSP", "SP", "NYY", ip=150.0, rank=60),
+            _make_hitter(1, "C1", "C", "NYY", rank=10),
+            _make_hitter(2, "1B1", "1B", "NYY", rank=11),
+            _make_hitter(3, "2B1", "2B", "NYY", rank=12),
+            _make_hitter(4, "3B1", "3B", "NYY", rank=13),
+            _make_hitter(5, "SS1", "SS", "NYY", rank=14),
+            _make_hitter(6, "OF1", "OF", "NYY", rank=15),
+            _make_hitter(7, "OF2", "OF", "NYY", rank=16),
+            _make_hitter(8, "OF3", "OF", "NYY", rank=17),
+            _make_hitter(9, "UTIL1", "DH", "NYY", rank=18),
+            _make_hitter(10, "UTIL2", "DH", "NYY", rank=19),
+        ]
+        schedule = {f"2026-04-{d:02d}": {"NYY"} for d in range(1, 31)}
+        result = simulate_season(roster, schedule, team_season_games={"NYY": 162}, num_sims=50, seed=42)
+        bench_sp_rate = result.player_contribution_rates[27]
+        assert 0.0 < bench_sp_rate < 0.8

@@ -133,6 +133,113 @@ def distribute_sp_starts(
     return {team_game_dates[i] for i in final_indices}
 
 
+@dataclass
+class SimulationResult:
+    """Results from a full-season Monte Carlo lineup simulation."""
+    player_contribution_rates: dict[int, float]
+    player_days_started: dict[int, float]
+    player_days_available: dict[int, float]
+
+
+def simulate_season(
+    roster: list[RosterPlayer],
+    schedule: dict[str, set[str]],
+    team_season_games: dict[str, int],
+    num_sims: int = 200,
+    seed: int | None = None,
+) -> SimulationResult:
+    """Run Monte Carlo daily lineup simulation across a full MLB season.
+
+    For each iteration:
+    1. Distribute each SP's projected starts across their team's schedule (with jitter)
+    2. For each day, determine which players are available
+    3. Run the lineup optimizer on available players
+    4. Track starts vs bench
+    """
+    from backend.analysis.matchup import optimize_daily_lineup
+
+    rng = random.Random(seed)
+    sorted_dates = sorted(schedule.keys())
+
+    # Pre-compute team game dates
+    team_game_dates: dict[str, list[str]] = {}
+    for date in sorted_dates:
+        for team in schedule[date]:
+            team_game_dates.setdefault(team, []).append(date)
+
+    # Pre-compute availability rates for hitters
+    availability_rates: dict[int, float] = {}
+    for p in roster:
+        games = team_season_games.get(p.team, 162)
+        availability_rates[p.mlb_id] = compute_availability_rate(p, games)
+
+    # Track starts across all simulations
+    total_starts: dict[int, int] = {p.mlb_id: 0 for p in roster}
+    total_team_days: dict[int, int] = {p.mlb_id: 0 for p in roster}
+
+    player_by_id = {p.mlb_id: p for p in roster}
+
+    for _sim in range(num_sims):
+        # Distribute SP starts for this iteration
+        sp_start_dates: dict[int, set[str]] = {}
+        for p in roster:
+            if _is_sp(p):
+                full_season_starts = round(p.proj_ip / IP_PER_START)
+                dates = team_game_dates.get(p.team, [])
+                # Scale projected starts to the simulation window
+                season_games = team_season_games.get(p.team, 162)
+                if season_games > 0:
+                    sim_starts = max(1, round(full_season_starts * len(dates) / season_games))
+                else:
+                    sim_starts = full_season_starts
+                sp_start_dates[p.mlb_id] = distribute_sp_starts(sim_starts, dates, rng)
+
+        for date in sorted_dates:
+            teams_playing = schedule[date]
+            available_today: list[dict] = []
+
+            for p in roster:
+                if p.team not in teams_playing:
+                    continue
+                total_team_days[p.mlb_id] += 1
+
+                if p.player_type == "hitter":
+                    if rng.random() > availability_rates[p.mlb_id]:
+                        continue
+                elif _is_sp(p):
+                    if date not in sp_start_dates.get(p.mlb_id, set()):
+                        continue
+
+                available_today.append({
+                    "mlb_id": p.mlb_id,
+                    "position": p.position,
+                    "player_type": p.player_type,
+                    "eligible_positions": p.eligible_positions,
+                })
+
+            lineup = optimize_daily_lineup(available_today)
+            starting_ids = {pl["mlb_id"] for pl in lineup["starters"]}
+            for mid in starting_ids:
+                total_starts[mid] += 1
+
+    contribution_rates: dict[int, float] = {}
+    avg_starts: dict[int, float] = {}
+    avg_available: dict[int, float] = {}
+
+    for p in roster:
+        mid = p.mlb_id
+        team_days = total_team_days[mid]
+        avg_available[mid] = team_days / num_sims
+        avg_starts[mid] = total_starts[mid] / num_sims
+        contribution_rates[mid] = total_starts[mid] / team_days if team_days > 0 else 0.0
+
+    return SimulationResult(
+        player_contribution_rates=contribution_rates,
+        player_days_started=avg_starts,
+        player_days_available=avg_available,
+    )
+
+
 def fetch_season_schedule(start_date: str, end_date: str) -> dict[str, set[str]]:
     """Fetch full-season MLB schedule from Stats API."""
     url = f"{MLB_API_BASE}/schedule"
