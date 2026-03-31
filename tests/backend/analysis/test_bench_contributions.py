@@ -12,6 +12,8 @@ from backend.analysis.bench_contributions import (
     aggregate_by_role,
     RoleAggregation,
     compute_stat_impact,
+    build_sweep_configs,
+    SweepConfig,
 )
 
 
@@ -325,3 +327,43 @@ class TestStatImpact:
         impact = compute_stat_impact([pitcher], rates)
         assert impact["K"] == pytest.approx(140 * 0.30, abs=0.1)
         assert impact["QS"] == pytest.approx(15 * 0.30, abs=0.1)
+
+
+class TestSweepConfigs:
+    def test_baseline_config_unchanged(self):
+        """First config is 'baseline' with the original roster."""
+        roster = [
+            _make_hitter(1, "H1", "C", "NYY", rank=10),
+            _make_hitter(2, "H2", "1B", "NYY", rank=50),
+            _make_pitcher(10, "SP1", "SP", "NYY", ip=180.0, rank=20),
+            _make_pitcher(11, "RP1", "RP", "NYY", ip=60.0, rank=90),
+        ]
+        configs = build_sweep_configs(roster)
+        assert configs[0].label == "baseline"
+        assert len(configs[0].roster) == 4
+
+    def test_plus_one_hitter_drops_worst_pitcher(self):
+        """+1 hitter config drops the lowest-ranked pitcher."""
+        roster = [
+            _make_hitter(1, "H1", "C", "NYY", rank=10),
+            _make_pitcher(10, "SP1", "SP", "NYY", ip=180.0, rank=20),
+            _make_pitcher(11, "RP1", "RP", "NYY", ip=60.0, rank=90),
+        ]
+        configs = build_sweep_configs(roster)
+        plus1 = next(c for c in configs if c.label == "+1 hitter")
+        pitcher_ids = [p.mlb_id for p in plus1.roster if p.player_type == "pitcher"]
+        assert 11 not in pitcher_ids
+        hitter_ids = [p.mlb_id for p in plus1.roster if p.player_type == "hitter"]
+        assert len(hitter_ids) == 2
+
+    def test_minus_one_hitter_drops_worst_hitter(self):
+        """-1 hitter config drops the lowest-ranked hitter."""
+        roster = [
+            _make_hitter(1, "H1", "C", "NYY", rank=10),
+            _make_hitter(2, "H2", "OF", "NYY", rank=100),
+            _make_pitcher(10, "SP1", "SP", "NYY", ip=180.0, rank=20),
+        ]
+        configs = build_sweep_configs(roster)
+        minus1 = next(c for c in configs if c.label == "-1 hitter")
+        hitter_ids = [p.mlb_id for p in minus1.roster if p.player_type == "hitter"]
+        assert 2 not in hitter_ids

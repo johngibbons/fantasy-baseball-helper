@@ -349,6 +349,76 @@ def compute_stat_impact(
     return totals
 
 
+@dataclass
+class SweepConfig:
+    """A roster configuration to test in the sweep."""
+    label: str
+    roster: list[RosterPlayer]
+
+
+def _replacement_level_hitter(team: str) -> RosterPlayer:
+    return RosterPlayer(
+        mlb_id=-1, name="Repl. Hitter", position="OF", player_type="hitter",
+        eligible_positions="OF/DH", team=team,
+        proj_pa=350, proj_r=40, proj_tb=100, proj_rbi=35,
+        proj_sb=5, proj_obp=0.300, overall_rank=300,
+    )
+
+
+def _replacement_level_pitcher(team: str) -> RosterPlayer:
+    return RosterPlayer(
+        mlb_id=-2, name="Repl. Pitcher", position="SP", player_type="pitcher",
+        eligible_positions="SP", team=team,
+        proj_ip=100.0, proj_k=80, proj_qs=6,
+        proj_era=4.50, proj_whip=1.35, proj_svhd=0,
+        overall_rank=350,
+    )
+
+
+def build_sweep_configs(roster: list[RosterPlayer]) -> list[SweepConfig]:
+    """Build roster variations for the bench composition sweep."""
+    configs: list[SweepConfig] = [SweepConfig(label="baseline", roster=list(roster))]
+
+    pitchers_by_rank = sorted(
+        [p for p in roster if p.player_type == "pitcher"],
+        key=lambda p: p.overall_rank, reverse=True,
+    )
+    hitters_by_rank = sorted(
+        [p for p in roster if p.player_type == "hitter"],
+        key=lambda p: p.overall_rank, reverse=True,
+    )
+
+    team_counts: dict[str, int] = {}
+    for p in roster:
+        team_counts[p.team] = team_counts.get(p.team, 0) + 1
+    default_team = max(team_counts, key=team_counts.get) if team_counts else "NYY"
+
+    if pitchers_by_rank:
+        drop = pitchers_by_rank[0]
+        repl = _replacement_level_hitter(default_team)
+        repl.mlb_id = -(drop.mlb_id * 10 + 1)
+        new_roster = [p for p in roster if p.mlb_id != drop.mlb_id] + [repl]
+        configs.append(SweepConfig(label="+1 hitter", roster=new_roster))
+
+    if len(pitchers_by_rank) >= 2:
+        drop_ids = {pitchers_by_rank[0].mlb_id, pitchers_by_rank[1].mlb_id}
+        repl1 = _replacement_level_hitter(default_team)
+        repl1.mlb_id = -(pitchers_by_rank[0].mlb_id * 10 + 1)
+        repl2 = _replacement_level_hitter(default_team)
+        repl2.mlb_id = -(pitchers_by_rank[1].mlb_id * 10 + 2)
+        new_roster = [p for p in roster if p.mlb_id not in drop_ids] + [repl1, repl2]
+        configs.append(SweepConfig(label="+2 hitters", roster=new_roster))
+
+    if hitters_by_rank:
+        drop = hitters_by_rank[0]
+        repl = _replacement_level_pitcher(default_team)
+        repl.mlb_id = -(drop.mlb_id * 10 + 3)
+        new_roster = [p for p in roster if p.mlb_id != drop.mlb_id] + [repl]
+        configs.append(SweepConfig(label="-1 hitter", roster=new_roster))
+
+    return configs
+
+
 def fetch_season_schedule(start_date: str, end_date: str) -> dict[str, set[str]]:
     """Fetch full-season MLB schedule from Stats API."""
     url = f"{MLB_API_BASE}/schedule"
