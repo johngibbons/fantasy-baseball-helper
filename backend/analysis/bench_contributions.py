@@ -139,6 +139,8 @@ class SimulationResult:
     player_contribution_rates: dict[int, float]
     player_days_started: dict[int, float]
     player_days_available: dict[int, float]
+    streaming_starts: float = 0.0
+    streaming_stats: dict[str, float] | None = None
 
 
 def simulate_season(
@@ -147,6 +149,7 @@ def simulate_season(
     team_season_games: dict[str, int],
     num_sims: int = 200,
     seed: int | None = None,
+    streams_per_week: int = 0,
 ) -> SimulationResult:
     """Run Monte Carlo daily lineup simulation across a full MLB season.
 
@@ -173,6 +176,32 @@ def simulate_season(
         games = team_season_games.get(p.team, 162)
         availability_rates[p.mlb_id] = compute_availability_rate(p, games)
 
+    # Streaming stats tracking
+    total_streaming_starts = 0
+    per_start = replacement_level_per_start_stats() if streams_per_week > 0 else {}
+    streaming_stat_totals: dict[str, float] = {cat: 0.0 for cat in ["ip", "k", "qs", "era", "whip", "svhd"]}
+
+    # Identify streaming slot candidates: lowest-ranked pitchers
+    pitchers_by_rank = sorted(
+        [p for p in roster if p.player_type == "pitcher"],
+        key=lambda p: p.overall_rank, reverse=True,
+    )
+    streaming_slot_ids = [p.mlb_id for p in pitchers_by_rank[:streams_per_week]] if streams_per_week > 0 else []
+
+    # Group dates into weeks (Mon-Sun)
+    weeks: list[list[str]] = []
+    if sorted_dates:
+        from datetime import date as dt_date
+        current_week: list[str] = []
+        for d in sorted_dates:
+            parsed = dt_date.fromisoformat(d)
+            if current_week and parsed.weekday() == 0:  # Monday = new week
+                weeks.append(current_week)
+                current_week = []
+            current_week.append(d)
+        if current_week:
+            weeks.append(current_week)
+
     # Track starts across all simulations
     total_starts: dict[int, int] = {p.mlb_id: 0 for p in roster}
     total_team_days: dict[int, int] = {p.mlb_id: 0 for p in roster}
@@ -193,6 +222,20 @@ def simulate_season(
                 else:
                     sim_starts = full_season_starts
                 sp_start_dates[p.mlb_id] = distribute_sp_starts(sim_starts, dates, rng)
+
+        # Allocate streaming pickups per week
+        all_streams: dict[str, list[dict]] = {}
+        if streams_per_week > 0:
+            for week_dates in weeks:
+                week_streams = allocate_weekly_streams(
+                    streaming_slot_ids=streaming_slot_ids,
+                    sp_start_dates=sp_start_dates,
+                    week_dates=week_dates,
+                    schedule=schedule,
+                    max_transactions=streams_per_week,
+                )
+                for d, entries in week_streams.items():
+                    all_streams.setdefault(d, []).extend(entries)
 
         for date in sorted_dates:
             teams_playing = schedule[date]
@@ -217,10 +260,25 @@ def simulate_season(
                     "eligible_positions": p.eligible_positions,
                 })
 
+            # Add streamers for today
+            for stream_entry in all_streams.get(date, []):
+                available_today.append(stream_entry["player"])
+
             lineup = optimize_daily_lineup(available_today)
             starting_ids = {pl["mlb_id"] for pl in lineup["starters"]}
             for mid in starting_ids:
-                total_starts[mid] += 1
+                if mid in total_starts:
+                    total_starts[mid] += 1
+
+            # Track streaming starts and stats
+            for stream_entry in all_streams.get(date, []):
+                streamer_id = stream_entry["player"]["mlb_id"]
+                if streamer_id in starting_ids:
+                    total_streaming_starts += 1
+                    for stat in ["ip", "k", "qs", "svhd"]:
+                        streaming_stat_totals[stat] += per_start[stat]
+                    streaming_stat_totals["era"] += per_start["era"] * per_start["ip"]
+                    streaming_stat_totals["whip"] += per_start["whip"] * per_start["ip"]
 
     contribution_rates: dict[int, float] = {}
     avg_starts: dict[int, float] = {}
@@ -233,10 +291,24 @@ def simulate_season(
         avg_starts[mid] = total_starts[mid] / num_sims
         contribution_rates[mid] = total_starts[mid] / team_days if team_days > 0 else 0.0
 
+    avg_streaming_stats: dict[str, float] | None = None
+    if streams_per_week > 0:
+        total_stream_ip = streaming_stat_totals["ip"]
+        avg_streaming_stats = {
+            "IP": total_stream_ip / num_sims,
+            "K": streaming_stat_totals["k"] / num_sims,
+            "QS": streaming_stat_totals["qs"] / num_sims,
+            "ERA": streaming_stat_totals["era"] / total_stream_ip if total_stream_ip > 0 else 0.0,
+            "WHIP": streaming_stat_totals["whip"] / total_stream_ip if total_stream_ip > 0 else 0.0,
+            "SVHD": streaming_stat_totals["svhd"] / num_sims,
+        }
+
     return SimulationResult(
         player_contribution_rates=contribution_rates,
         player_days_started=avg_starts,
         player_days_available=avg_available,
+        streaming_starts=total_streaming_starts / num_sims,
+        streaming_stats=avg_streaming_stats,
     )
 
 

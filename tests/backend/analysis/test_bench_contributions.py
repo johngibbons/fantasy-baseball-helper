@@ -432,3 +432,52 @@ class TestStreaming:
         )
         total_pickups = sum(len(v) for v in streams.values())
         assert total_pickups == 0
+
+    def test_streaming_adds_extra_starts(self):
+        """With streaming enabled, total pitcher starts should increase."""
+        roster = [
+            _make_hitter(1, "C1", "C", "NYY", rank=10),
+            _make_hitter(2, "1B1", "1B", "NYY", rank=11),
+            _make_hitter(3, "2B1", "2B", "NYY", rank=12),
+            _make_hitter(4, "3B1", "3B", "NYY", rank=13),
+            _make_hitter(5, "SS1", "SS", "NYY", rank=14),
+            _make_hitter(6, "OF1", "OF", "NYY", rank=15),
+            _make_hitter(7, "OF2", "OF", "NYY", rank=16),
+            _make_hitter(8, "OF3", "OF", "NYY", rank=17),
+            _make_hitter(9, "UTIL1", "DH", "NYY", rank=18),
+            _make_hitter(10, "UTIL2", "DH", "NYY", rank=19),
+            _make_pitcher(20, "SP1", "SP", "NYY", ip=180.0, rank=10),
+            _make_pitcher(21, "SP2", "SP", "NYY", ip=180.0, rank=11),
+            _make_pitcher(22, "SP3", "SP", "NYY", ip=180.0, rank=12),
+            _make_pitcher(23, "RP1", "RP", "NYY", ip=60.0, rank=30),
+            _make_pitcher(24, "RP2", "RP", "NYY", ip=60.0, rank=31),
+            _make_pitcher(25, "StreamSP", "SP", "NYY", ip=100.0, rank=350),
+        ]
+        schedule_dict = {f"2026-04-{d:02d}": {"NYY"} for d in range(1, 29)}
+
+        result_no_stream = simulate_season(
+            roster, schedule_dict, team_season_games={"NYY": 162},
+            num_sims=30, seed=42, streams_per_week=0,
+        )
+        result_streaming = simulate_season(
+            roster, schedule_dict, team_season_games={"NYY": 162},
+            num_sims=30, seed=42, streams_per_week=10,
+        )
+
+        assert result_streaming.streaming_starts > 0
+        assert result_no_stream.streaming_starts == 0
+
+    def test_streaming_zero_is_backward_compatible(self):
+        """streams_per_week=0 produces identical results to no streaming."""
+        roster = [
+            _make_hitter(1, "C1", "C", "NYY", rank=10),
+            _make_hitter(2, "1B1", "1B", "NYY", rank=11),
+            _make_pitcher(20, "SP1", "SP", "NYY", ip=180.0, rank=10),
+            _make_pitcher(21, "RP1", "RP", "NYY", ip=60.0, rank=30),
+        ]
+        schedule = {f"2026-04-{d:02d}": {"NYY"} for d in range(1, 8)}
+        r1 = simulate_season(roster, schedule, {"NYY": 162}, num_sims=20, seed=42)
+        r2 = simulate_season(roster, schedule, {"NYY": 162}, num_sims=20, seed=42, streams_per_week=0)
+        assert r1.player_contribution_rates == r2.player_contribution_rates
+        assert r1.streaming_starts == 0
+        assert r2.streaming_starts == 0
