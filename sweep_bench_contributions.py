@@ -52,6 +52,30 @@ ESPN_TEAM_MAP: dict[int, str] = {
 SEASON_START = "2026-03-26"
 SEASON_END = "2026-09-27"
 
+STREAMING_LEVELS = [0, 3, 6, 10]
+
+
+def compute_total_impact(
+    config: SweepConfig,
+    result: SimulationResult,
+) -> dict[str, float]:
+    """Compute total stat impact: roster player contributions + streaming stats."""
+    impact = compute_stat_impact(config.roster, result.player_contribution_rates)
+    if result.streaming_stats:
+        for cat in ["K", "QS", "SVHD"]:
+            impact[cat] += result.streaming_stats.get(cat, 0.0)
+        stream_ip = result.streaming_stats.get("IP", 0.0)
+        if stream_ip > 0:
+            roster_ip = sum(
+                p.proj_ip * result.player_contribution_rates.get(p.mlb_id, 0.0)
+                for p in config.roster if p.player_type == "pitcher" and p.proj_ip > 0
+            )
+            total_ip = roster_ip + stream_ip
+            if total_ip > 0:
+                impact["ERA"] = (impact["ERA"] * roster_ip + result.streaming_stats["ERA"] * stream_ip) / total_ip
+                impact["WHIP"] = (impact["WHIP"] * roster_ip + result.streaming_stats["WHIP"] * stream_ip) / total_ip
+    return impact
+
 
 def fetch_espn_roster(
     league_id: str,
@@ -158,49 +182,55 @@ def print_contribution_report(
     print(f"    Bench RP:     {agg.avg_bench_rp_rate:.1%}  ({len(agg.bench_rps)} players)")
 
 
-def print_sweep_summary(
+def print_streaming_sweep_summary(
     configs: list[SweepConfig],
-    results: list[SimulationResult],
+    all_results: dict[str, dict[int, SimulationResult]],
 ) -> None:
-    """Print sweep comparison table with stat deltas."""
-    print(f"\n{'=' * 90}")
-    print(f"{'BENCH COMPOSITION SWEEP SUMMARY':^90}")
-    print(f"{'=' * 90}")
-
-    impacts: list[dict[str, float]] = []
-    for config, result in zip(configs, results):
-        impact = compute_stat_impact(config.roster, result.player_contribution_rates)
-        impacts.append(impact)
-
-    baseline_impact = impacts[0]
-
+    """Print 2D grid: rows = compositions, columns = streaming levels."""
     cats = ["R", "TB", "RBI", "SB", "OBP", "K", "QS", "ERA", "WHIP", "SVHD"]
-    header = f"  {'Config':<14}"
-    for cat in cats:
-        header += f" {cat:>6}"
-    print(header)
-    print(f"  {'-' * 86}")
 
-    line = f"  {'baseline':<14}"
-    for cat in cats:
-        val = baseline_impact[cat]
-        if cat in ("OBP", "ERA", "WHIP"):
-            line += f" {val:>6.3f}"
-        else:
-            line += f" {val:>6.1f}"
-    print(line)
+    print(f"\n{'=' * 100}")
+    print(f"{'BENCH COMPOSITION x STREAMING SWEEP':^100}")
+    print(f"{'=' * 100}")
 
-    for config, impact in zip(configs[1:], impacts[1:]):
-        line = f"  {config.label:<14}"
+    baseline_config = configs[0]
+    baseline_result = all_results[baseline_config.label][0]
+    baseline_impact = compute_total_impact(baseline_config, baseline_result)
+
+    for stream_level in STREAMING_LEVELS:
+        print(f"\n  --- {stream_level} streams/week ---")
+        header = f"  {'Config':<14}"
         for cat in cats:
-            delta = impact[cat] - baseline_impact[cat]
-            if cat in ("OBP", "ERA", "WHIP"):
-                line += f" {delta:>+6.3f}"
-            else:
-                line += f" {delta:>+6.1f}"
-        print(line)
+            header += f" {cat:>6}"
+        header += f" {'StrmK':>6} {'StrmQS':>6}"
+        print(header)
+        print(f"  {'-' * 96}")
 
-    print(f"  {'-' * 86}")
+        for config in configs:
+            result = all_results[config.label][stream_level]
+            impact = compute_total_impact(config, result)
+
+            line = f"  {config.label:<14}"
+            for cat in cats:
+                delta = impact[cat] - baseline_impact[cat]
+                if config.label == "baseline" and stream_level == 0:
+                    if cat in ("OBP", "ERA", "WHIP"):
+                        line += f" {impact[cat]:>6.3f}"
+                    else:
+                        line += f" {impact[cat]:>6.1f}"
+                else:
+                    if cat in ("OBP", "ERA", "WHIP"):
+                        line += f" {delta:>+6.3f}"
+                    else:
+                        line += f" {delta:>+6.1f}"
+
+            stream_k = result.streaming_stats.get("K", 0.0) if result.streaming_stats else 0.0
+            stream_qs = result.streaming_stats.get("QS", 0.0) if result.streaming_stats else 0.0
+            line += f" {stream_k:>6.1f} {stream_qs:>6.1f}"
+            print(line)
+
+    print(f"\n  Baseline = current roster with 0 streams. All other cells show delta vs baseline.")
+    print(f"  StrmK/StrmQS = K and QS contributed by streamers only.")
     print()
 
 
@@ -244,18 +274,31 @@ def main() -> None:
 
     if args.no_sweep:
         configs = [SweepConfig(label="baseline", roster=roster)]
+        stream_levels = [0]
     else:
         configs = build_sweep_configs(roster)
+        stream_levels = STREAMING_LEVELS
 
-    results: list[SimulationResult] = []
+    all_results: dict[str, dict[int, SimulationResult]] = {}
+    total_runs = len(configs) * len(stream_levels)
+    run_num = 0
+
     for config in configs:
-        print(f"\nSimulating '{config.label}' ({args.sims} iterations)...")
-        result = simulate_season(config.roster, schedule, team_season_games, args.sims, args.seed)
-        results.append(result)
-        print_contribution_report(config.label, config.roster, result)
+        all_results[config.label] = {}
+        for stream_level in stream_levels:
+            run_num += 1
+            print(f"\n[{run_num}/{total_runs}] '{config.label}' @ {stream_level} streams/week ({args.sims} sims)...")
+            result = simulate_season(
+                config.roster, schedule, team_season_games,
+                args.sims, args.seed, streams_per_week=stream_level,
+            )
+            all_results[config.label][stream_level] = result
 
-    if len(configs) > 1:
-        print_sweep_summary(configs, results)
+            if config.label == "baseline" and stream_level == 0:
+                print_contribution_report(config.label, config.roster, result)
+
+    if len(configs) > 1 or len(stream_levels) > 1:
+        print_streaming_sweep_summary(configs, all_results)
 
 
 if __name__ == "__main__":
