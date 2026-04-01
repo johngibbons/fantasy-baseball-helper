@@ -14,6 +14,7 @@ from backend.analysis.bench_contributions import (
     compute_stat_impact,
     build_sweep_configs,
     SweepConfig,
+    replacement_level_per_start_stats,
 )
 
 
@@ -367,3 +368,16 @@ class TestSweepConfigs:
         minus1 = next(c for c in configs if c.label == "-1 hitter")
         hitter_ids = [p.mlb_id for p in minus1.roster if p.player_type == "hitter"]
         assert 2 not in hitter_ids
+
+
+class TestStreaming:
+    def test_replacement_level_per_start_stats(self):
+        """Per-start stats are full-season replacement-level projections / projected starts."""
+        stats = replacement_level_per_start_stats()
+        # Replacement-level SP: 100 IP, 80 K, 6 QS over ~18 starts (100/5.5)
+        assert stats["k"] == pytest.approx(80 / 18, abs=0.5)
+        assert stats["qs"] == pytest.approx(6 / 18, abs=0.1)
+        assert stats["ip"] == pytest.approx(100 / 18, abs=0.5)
+        assert stats["era"] == pytest.approx(4.50, abs=0.01)
+        assert stats["whip"] == pytest.approx(1.35, abs=0.01)
+        assert stats["svhd"] == pytest.approx(0.0)

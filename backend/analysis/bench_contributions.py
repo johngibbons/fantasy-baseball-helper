@@ -419,6 +419,28 @@ def build_sweep_configs(roster: list[RosterPlayer]) -> list[SweepConfig]:
     return configs
 
 
+# Replacement-level SP full-season projections (same as _replacement_level_pitcher)
+_REPL_SP_IP = 100.0
+_REPL_SP_K = 80
+_REPL_SP_QS = 6
+_REPL_SP_ERA = 4.50
+_REPL_SP_WHIP = 1.35
+_REPL_SP_SVHD = 0
+_REPL_SP_STARTS = round(_REPL_SP_IP / IP_PER_START)  # ~18
+
+
+def replacement_level_per_start_stats() -> dict[str, float]:
+    """Return per-start stat line for a replacement-level streaming SP."""
+    return {
+        "ip": _REPL_SP_IP / _REPL_SP_STARTS,
+        "k": _REPL_SP_K / _REPL_SP_STARTS,
+        "qs": _REPL_SP_QS / _REPL_SP_STARTS,
+        "era": _REPL_SP_ERA,
+        "whip": _REPL_SP_WHIP,
+        "svhd": 0.0,
+    }
+
+
 def fetch_season_schedule(start_date: str, end_date: str) -> dict[str, set[str]]:
     """Fetch full-season MLB schedule from Stats API."""
     url = f"{MLB_API_BASE}/schedule"
