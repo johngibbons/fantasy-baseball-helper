@@ -15,6 +15,7 @@ from backend.analysis.bench_contributions import (
     build_sweep_configs,
     SweepConfig,
     replacement_level_per_start_stats,
+    allocate_weekly_streams,
 )
 
 
@@ -381,3 +382,53 @@ class TestStreaming:
         assert stats["era"] == pytest.approx(4.50, abs=0.01)
         assert stats["whip"] == pytest.approx(1.35, abs=0.01)
         assert stats["svhd"] == pytest.approx(0.0)
+
+    def test_allocate_weekly_streams_respects_budget(self):
+        """allocate_weekly_streams never exceeds max_transactions."""
+        week_dates = [f"2026-04-{d:02d}" for d in range(6, 13)]
+        schedule = {d: {"NYY", "BOS", "LAD"} for d in week_dates}
+        sp_start_dates: dict[int, set[str]] = {}
+        streaming_slot_ids = [-100, -200]
+
+        streams = allocate_weekly_streams(
+            streaming_slot_ids=streaming_slot_ids,
+            sp_start_dates=sp_start_dates,
+            week_dates=week_dates,
+            schedule=schedule,
+            max_transactions=3,
+        )
+        total_pickups = sum(len(v) for v in streams.values())
+        assert total_pickups == 3
+
+    def test_allocate_weekly_streams_skips_days_with_anchored_start(self):
+        """Don't stream into a slot on days when its anchored SP is already pitching."""
+        week_dates = [f"2026-04-{d:02d}" for d in range(6, 13)]
+        schedule = {d: {"NYY"} for d in week_dates}
+        sp_start_dates = {-100: {"2026-04-06", "2026-04-11"}}
+        streaming_slot_ids = [-100]
+
+        streams = allocate_weekly_streams(
+            streaming_slot_ids=streaming_slot_ids,
+            sp_start_dates=sp_start_dates,
+            week_dates=week_dates,
+            schedule=schedule,
+            max_transactions=10,
+        )
+        assert "2026-04-06" not in streams or -100 not in [s["slot_id"] for s in streams.get("2026-04-06", [])]
+        assert "2026-04-11" not in streams or -100 not in [s["slot_id"] for s in streams.get("2026-04-11", [])]
+        streamed_days = sum(1 for d, v in streams.items() if len(v) > 0)
+        assert streamed_days == 5
+
+    def test_allocate_weekly_streams_zero_budget(self):
+        """Zero transactions means no streaming."""
+        week_dates = [f"2026-04-{d:02d}" for d in range(6, 13)]
+        schedule = {d: {"NYY"} for d in week_dates}
+        streams = allocate_weekly_streams(
+            streaming_slot_ids=[-100],
+            sp_start_dates={},
+            week_dates=week_dates,
+            schedule=schedule,
+            max_transactions=0,
+        )
+        total_pickups = sum(len(v) for v in streams.values())
+        assert total_pickups == 0

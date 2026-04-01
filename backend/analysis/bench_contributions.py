@@ -441,6 +441,53 @@ def replacement_level_per_start_stats() -> dict[str, float]:
     }
 
 
+def allocate_weekly_streams(
+    streaming_slot_ids: list[int],
+    sp_start_dates: dict[int, set[str]],
+    week_dates: list[str],
+    schedule: dict[str, set[str]],
+    max_transactions: int,
+) -> dict[str, list[dict]]:
+    """Greedily assign streaming SP pickups across a week within the transaction budget.
+
+    For each streaming slot, on days when the slot's anchored SP is NOT pitching
+    and there are teams playing, assign a replacement-level streamer.
+
+    Returns dict mapping date -> list of streamer dicts with "slot_id" and "player" keys.
+    """
+    if max_transactions <= 0 or not streaming_slot_ids:
+        return {}
+
+    streamable: list[tuple[str, int]] = []
+    for date in week_dates:
+        if not schedule.get(date):
+            continue
+        for slot_id in streaming_slot_ids:
+            if date in sp_start_dates.get(slot_id, set()):
+                continue
+            streamable.append((date, slot_id))
+
+    streams: dict[str, list[dict]] = {}
+    used = 0
+    for date, slot_id in streamable:
+        if used >= max_transactions:
+            break
+        streamer_id = -(slot_id * 1000 + used)
+        entry = {
+            "slot_id": slot_id,
+            "player": {
+                "mlb_id": streamer_id,
+                "position": "SP",
+                "player_type": "pitcher",
+                "eligible_positions": "SP",
+            },
+        }
+        streams.setdefault(date, []).append(entry)
+        used += 1
+
+    return streams
+
+
 def fetch_season_schedule(start_date: str, end_date: str) -> dict[str, set[str]]:
     """Fetch full-season MLB schedule from Stats API."""
     url = f"{MLB_API_BASE}/schedule"
