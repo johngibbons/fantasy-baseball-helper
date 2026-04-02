@@ -28,7 +28,7 @@ from optuna.samplers import TPESampler
 from simulation.config import SimConfig
 from simulation.player_pool import load_players, load_keepers, Player, KeeperEntry
 from simulation.draft_engine import simulate_draft
-from simulation.evaluate import evaluate_draft
+from simulation.evaluate import evaluate_draft, compute_streaming_zscores
 from simulation.report import print_report, print_comparison
 
 
@@ -44,6 +44,7 @@ def run_sims(
     """Run simulations across all 10 slots, return evaluation results."""
     rng = random.Random(seed)
     num_teams = config.NUM_TEAMS
+    streaming_zscores = compute_streaming_zscores(players, config)
     results: list[dict] = []
 
     for slot in range(num_teams):
@@ -51,7 +52,7 @@ def run_sims(
             sim_seed = rng.randint(0, 2**31)
             sim_rng = random.Random(sim_seed)
             draft_result = simulate_draft(players, slot, config, sim_rng, keepers=keepers)
-            evaluation = evaluate_draft(draft_result, num_teams)
+            evaluation = evaluate_draft(draft_result, num_teams, config=config, streaming_zscores=streaming_zscores)
             evaluation["my_slot"] = slot
             results.append(evaluation)
 

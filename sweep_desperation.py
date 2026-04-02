@@ -25,7 +25,7 @@ import time
 
 from backend.simulation.config import SimConfig
 from backend.simulation.draft_engine import simulate_draft
-from backend.simulation.evaluate import evaluate_draft
+from backend.simulation.evaluate import evaluate_draft, compute_streaming_zscores
 from backend.simulation.player_pool import load_players, load_keepers
 from backend.simulation.report import print_report
 
@@ -132,6 +132,7 @@ def run_config(
     keepers=None,
 ) -> tuple[str, list[dict]]:
     config = SimConfig(**overrides)
+    streaming_zscores = compute_streaming_zscores(players, config)
     num_teams = config.NUM_TEAMS
     sims_per_slot = num_sims // num_teams
 
@@ -143,7 +144,7 @@ def run_config(
             sim_seed = rng.randint(0, 2**31)
             sim_rng = random.Random(sim_seed)
             draft = simulate_draft(players, slot, config, sim_rng, keepers=keepers)
-            ev = evaluate_draft(draft, num_teams)
+            ev = evaluate_draft(draft, num_teams, config=config, streaming_zscores=streaming_zscores)
             ev["my_slot"] = slot
             results.append(ev)
 

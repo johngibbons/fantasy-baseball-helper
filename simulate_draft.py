@@ -21,7 +21,7 @@ sys.path.insert(0, "backend")
 from simulation.config import SimConfig
 from simulation.player_pool import load_players, load_keepers, rescale_h2h_weights
 from simulation.draft_engine import simulate_draft
-from simulation.evaluate import evaluate_draft
+from simulation.evaluate import evaluate_draft, compute_streaming_zscores
 from simulation.report import print_report, print_comparison
 
 
@@ -38,6 +38,7 @@ def run_benchmark(
     """Run batch simulations and return list of evaluation results."""
     rng = random.Random(seed)
     num_teams = config.NUM_TEAMS
+    streaming_zscores = compute_streaming_zscores(players, config)
 
     if slots is None:
         slots = list(range(num_teams))
@@ -53,7 +54,7 @@ def run_benchmark(
             sim_rng = random.Random(sim_seed)
 
             draft_result = simulate_draft(players, slot, config, sim_rng, keepers=keepers)
-            evaluation = evaluate_draft(draft_result, num_teams)
+            evaluation = evaluate_draft(draft_result, num_teams, config=config, streaming_zscores=streaming_zscores)
             evaluation["my_slot"] = slot
             results.append(evaluation)
 

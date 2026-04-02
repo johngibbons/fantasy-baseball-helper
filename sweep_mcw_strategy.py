@@ -17,7 +17,7 @@ import time
 
 from backend.simulation.config import SimConfig
 from backend.simulation.draft_engine import simulate_draft
-from backend.simulation.evaluate import evaluate_draft
+from backend.simulation.evaluate import evaluate_draft, compute_streaming_zscores
 from backend.simulation.player_pool import load_players
 from backend.simulation.report import print_report
 
@@ -48,6 +48,7 @@ def run_sweep(num_sims: int, seed: int | None) -> None:
             LOCK_MCW_WEIGHT=lock_w,
             TARGET_MCW_WEIGHT=target_w,
         )
+        streaming_zscores = compute_streaming_zscores(players, config)
 
         results: list[dict] = []
         rng = random.Random(seed)
@@ -56,7 +57,7 @@ def run_sweep(num_sims: int, seed: int | None) -> None:
         for slot in range(num_teams):
             for _ in range(sims_per_slot):
                 draft = simulate_draft(players, slot, config, rng)
-                ev = evaluate_draft(draft, num_teams)
+                ev = evaluate_draft(draft, num_teams, config=config, streaming_zscores=streaming_zscores)
                 ev["my_slot"] = slot
                 results.append(ev)
 
