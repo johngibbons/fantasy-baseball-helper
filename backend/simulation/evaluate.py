@@ -2,9 +2,52 @@
 
 from __future__ import annotations
 
-from .player_pool import ALL_CAT_KEYS
+from .config import SimConfig
+from .player_pool import Player, ALL_CAT_KEYS, PITCHING_CAT_KEYS
 from .scoring_model import compute_rank, win_prob_from_rank
 from .draft_engine import DraftResult
+
+
+def compute_streaming_zscores(players: list[Player], config: SimConfig) -> dict[str, float]:
+    """Compute z-score bonus from one streaming slot over a full season.
+
+    Finds replacement-level SPs near STREAMING_SP_THRESHOLD in the player pool,
+    averages their per-category z-scores, then scales by the ratio of streaming
+    starts (STREAMS_PER_WEEK × STREAMING_WEEKS) to a replacement SP's projected
+    starts (STREAMING_REPL_SP_STARTS).
+
+    Z-scores scale linearly for both counting stats (raw_count / sgp_denom) and
+    rate stats ((league_avg - rate) × IP / avg_team_IP / sgp_denom) because
+    streaming SPs have the same per-start profile as replacement SPs.
+
+    Returns dict mapping cat_key → z-score (hitting cats are 0.0, SVHD is 0.0).
+    """
+    threshold = config.STREAMING_SP_THRESHOLD
+    repl_sps = [
+        p for p in players
+        if p.player_type == "pitcher" and p.pitcher_role() == "SP"
+        and threshold - 50 <= p.overall_rank <= threshold + 50
+    ]
+    result: dict[str, float] = {k: 0.0 for k in ALL_CAT_KEYS}
+    if not repl_sps:
+        return result
+
+    # Average z-scores of replacement-level SPs
+    for cat in PITCHING_CAT_KEYS:
+        vals = [p.zscores.get(cat, 0.0) for p in repl_sps]
+        result[cat] = sum(vals) / len(vals)
+
+    # Scale: streaming adds many more starts than one replacement SP projects
+    streaming_starts = config.STREAMS_PER_WEEK * config.STREAMING_WEEKS
+    scale = streaming_starts / config.STREAMING_REPL_SP_STARTS
+
+    for cat in PITCHING_CAT_KEYS:
+        if cat == "zscore_svhd":
+            result[cat] = 0.0  # Streamers don't earn saves/holds
+        else:
+            result[cat] *= scale
+
+    return result
 
 
 def evaluate_draft(result: DraftResult, num_teams: int) -> dict:
