@@ -50,12 +50,47 @@ def compute_streaming_zscores(players: list[Player], config: SimConfig) -> dict[
     return result
 
 
-def evaluate_draft(result: DraftResult, num_teams: int) -> dict:
+def evaluate_draft(
+    result: DraftResult,
+    num_teams: int,
+    config: SimConfig | None = None,
+    streaming_zscores: dict[str, float] | None = None,
+) -> dict:
     """Evaluate a completed draft. Returns per-category win rates and total expected weekly wins.
 
     Unlike the draft-time model, evaluation counts ALL 10 categories (no punt skipping).
+
+    If config and streaming_zscores are provided, replaces streamable bench SPs
+    (overall_rank > STREAMING_SP_THRESHOLD) with streaming value on my team only.
     """
-    my_totals = result.all_team_totals[result.my_slot]
+    # Copy my totals to avoid mutating shared state
+    my_totals = dict(result.all_team_totals[result.my_slot])
+
+    # Apply streaming: replace streamable bench SPs with streaming value
+    streaming_slot_count = 0
+    if config and streaming_zscores and result.bench_pitcher_count > 0:
+        # Identify bench pitchers: sort my pitchers by rank, worst N are bench
+        my_pitchers = sorted(
+            [p for p in result.my_players if p.player_type == "pitcher"],
+            key=lambda p: p.overall_rank,
+        )
+        bench_pitchers = my_pitchers[-result.bench_pitcher_count:]
+
+        # Streamable = bench SPs worse than threshold
+        streamable = [
+            p for p in bench_pitchers
+            if p.pitcher_role() == "SP"
+            and p.overall_rank > config.STREAMING_SP_THRESHOLD
+        ]
+        streaming_slot_count = len(streamable)
+
+        for sp in streamable:
+            bench_weight = config.PITCHER_BENCH_CONTRIBUTION
+            for cat_key in PITCHING_CAT_KEYS:
+                # Remove this bench SP's weighted contribution
+                my_totals[cat_key] -= sp.zscores.get(cat_key, 0.0) * bench_weight
+                # Add streaming z-scores for this slot
+                my_totals[cat_key] += streaming_zscores.get(cat_key, 0.0)
 
     cat_win_probs: dict[str, float] = {}
     for cat_key in ALL_CAT_KEYS:
@@ -90,4 +125,5 @@ def evaluate_draft(result: DraftResult, num_teams: int) -> dict:
         "bench_pitcher_count": result.bench_pitcher_count,
         "sp_count": result.sp_count,
         "rp_count": result.rp_count,
+        "streaming_slot_count": streaming_slot_count,
     }
