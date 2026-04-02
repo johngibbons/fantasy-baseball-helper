@@ -645,15 +645,20 @@ def full_player_score(
         avail = compute_availability(avail_adp, current_pick, picks_until_mine, avail_sigma)
         score *= 1 - avail * config.AVAILABILITY_DISCOUNT
 
-    # Bench penalty — pitcher-aware: softer penalty for first few bench pitchers
-    # (daily league streaming/swap value), then saturates to full penalty
+    # Bench penalty — pitcher-aware with streaming economics
+    # Bench pitchers contribute ~95% of stats, so first few get minimal penalty.
+    # Beyond 3 bench pitchers, the slot is more valuable for streaming
+    # (streaming one slot adds ~280K worth of z-score value per season).
     if has_starting_need == 0 and draft_progress > 0.15:
         if player.player_type == "pitcher":
-            saturation = min(1.0, bench_pitcher_count / 3)
-            floor = 0.65 - saturation * 0.30
-            scale = 0.35 + saturation * 0.28
-            score *= max(floor, 1 - draft_progress * scale)
+            if bench_pitcher_count < 3:
+                # First 3 bench pitchers: light penalty (high contribution rate)
+                score *= max(0.80, 1 - draft_progress * 0.15)
+            else:
+                # Beyond 3: steep penalty (streaming slot is more valuable)
+                score *= max(0.15, 1 - draft_progress * 0.85)
         else:
-            score *= max(0.35, 1 - draft_progress * config.BENCH_PENALTY_RATE)
+            # Bench hitters lose ~75% of value
+            score *= max(0.25, 1 - draft_progress * config.BENCH_PENALTY_RATE)
 
     return score
