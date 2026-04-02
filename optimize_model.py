@@ -78,6 +78,8 @@ def objective(
         BENCH_PENALTY_RATE=trial.suggest_float("BENCH_PENALTY_RATE", 0.2, 1.0),
         CONFIDENCE_START=trial.suggest_int("CONFIDENCE_START", 0, 60),
         CONFIDENCE_END=trial.suggest_int("CONFIDENCE_END", 40, 160),
+        STREAMS_PER_WEEK=trial.suggest_int("STREAMS_PER_WEEK", 0, 6),
+        STREAMING_SP_THRESHOLD=trial.suggest_int("STREAMING_SP_THRESHOLD", 200, 400),
     )
 
     results = run_sims(players, config, n_sims_per_slot, seed, keepers=keepers)
@@ -94,6 +96,9 @@ def objective(
     pitchers = [r["pitcher_count"] for r in results]
     trial.set_user_attr("avg_hitters", sum(hitters) / len(hitters))
     trial.set_user_attr("avg_pitchers", sum(pitchers) / len(pitchers))
+
+    streaming = [r.get("streaming_slot_count", 0) for r in results]
+    trial.set_user_attr("avg_streaming_slots", sum(streaming) / len(streaming))
 
     return mean_wins
 
