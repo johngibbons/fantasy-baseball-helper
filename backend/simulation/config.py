@@ -9,16 +9,16 @@ class SimConfig:
     LOCK_MCW_WEIGHT: float = 1.0    # rank 1-2 with big gap below
     TARGET_MCW_WEIGHT: float = 1.0  # rank 3-8, where marginal improvement flips matchups
 
-    # computeDraftScore coefficients
-    MCW_WEIGHT: float = 22.09
-    VONA_WEIGHT_MCW: float = 0.01
-    VONA_WEIGHT_BPA: float = 0.97
-    URGENCY_WEIGHT_MCW: float = 0.33
-    URGENCY_WEIGHT_BPA: float = 0.68
+    # computeDraftScore coefficients (optimized 2026-04-02, 100 trials, seed=42)
+    MCW_WEIGHT: float = 7.47
+    VONA_WEIGHT_MCW: float = 0.24
+    VONA_WEIGHT_BPA: float = 1.00
+    URGENCY_WEIGHT_MCW: float = 0.65
+    URGENCY_WEIGHT_BPA: float = 0.44
 
     # Post-score adjustments
-    AVAILABILITY_DISCOUNT: float = 0.03
-    BENCH_PENALTY_RATE: float = 0.58
+    AVAILABILITY_DISCOUNT: float = 0.12
+    BENCH_PENALTY_RATE: float = 0.95
 
     # Bench contribution rates (how much bench stats count toward team totals)
     # Empirically measured via full-season Monte Carlo daily lineup simulation.
@@ -30,9 +30,9 @@ class SimConfig:
     HITTER_BENCH_CONTRIBUTION: float = 0.25
 
     # Streaming model — replacement-level SP streaming through bench slots
-    STREAMS_PER_WEEK: int = 3              # weekly streaming transactions (sweet spot from analysis)
+    STREAMS_PER_WEEK: int = 6              # weekly streaming transactions (optimized: max streaming)
     STREAMING_WEEKS: int = 26              # approximate season length in weeks
-    STREAMING_SP_THRESHOLD: int = 300      # overall_rank above which a bench SP is "streamable"
+    STREAMING_SP_THRESHOLD: int = 202      # overall_rank above which a bench SP is "streamable"
     STREAMING_REPL_SP_STARTS: int = 18     # replacement SP projected starts (~100 IP / 5.5)
 
     # Opponent model
@@ -60,8 +60,8 @@ class SimConfig:
     RESTRICT_NORM_POOL: bool = True
 
     # Standings confidence ramp
-    CONFIDENCE_START: int = 1
-    CONFIDENCE_END: int = 112
+    CONFIDENCE_START: int = 24
+    CONFIDENCE_END: int = 108
 
     # Category desperation bonus: extra credit for players contributing to
     # categories where win probability is critically low (addresses MCW's
