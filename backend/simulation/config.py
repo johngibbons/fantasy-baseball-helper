@@ -21,11 +21,13 @@ class SimConfig:
     BENCH_PENALTY_RATE: float = 0.58
 
     # Bench contribution rates (how much bench stats count toward team totals)
-    # SPs have high streaming value (start on rotation days). Bench RPs contribute
-    # much less — starting RPs already play almost every day, so the 5th+ RP rarely swaps in.
-    PITCHER_BENCH_CONTRIBUTION: float = 0.45
-    RP_BENCH_CONTRIBUTION: float = 0.15
-    HITTER_BENCH_CONTRIBUTION: float = 0.20
+    # Empirically measured via full-season Monte Carlo daily lineup simulation.
+    # Pitcher projections are season totals that already account for start frequency,
+    # and with 7 pitcher slots there's almost always room on start days → ~95%.
+    # Bench hitters only fill in on rest days → ~25%.
+    PITCHER_BENCH_CONTRIBUTION: float = 0.95
+    RP_BENCH_CONTRIBUTION: float = 0.95
+    HITTER_BENCH_CONTRIBUTION: float = 0.25
 
     # Opponent model
     ADP_SIGMA: float = 18.0
