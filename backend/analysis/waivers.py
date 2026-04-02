@@ -27,7 +27,7 @@ ALL_CATS = HITTING_CATS + PITCHING_CATS
 INVERTED_CATS = {"ERA", "WHIP"}
 
 # Bench contribution weights (match draft-categories.ts / roster-optimizer.ts)
-HITTER_BENCH_WEIGHT = 0.20
+HITTER_BENCH_WEIGHT = 0.25
 IL_WEIGHT = 0.0
 
 
