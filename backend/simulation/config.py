@@ -29,6 +29,12 @@ class SimConfig:
     RP_BENCH_CONTRIBUTION: float = 0.95
     HITTER_BENCH_CONTRIBUTION: float = 0.25
 
+    # Streaming model — replacement-level SP streaming through bench slots
+    STREAMS_PER_WEEK: int = 3              # weekly streaming transactions (sweet spot from analysis)
+    STREAMING_WEEKS: int = 26              # approximate season length in weeks
+    STREAMING_SP_THRESHOLD: int = 300      # overall_rank above which a bench SP is "streamable"
+    STREAMING_REPL_SP_STARTS: int = 18     # replacement SP projected starts (~100 IP / 5.5)
+
     # Opponent model
     ADP_SIGMA: float = 18.0
     OPP_BENCH_ADP_PENALTY: float = 15.0  # ADP penalty for bench-only picks
