@@ -27,13 +27,14 @@ export const HITTER_STARTER_SLOT_COUNT = STARTER_SLOT_COUNT - PITCHER_STARTER_SL
 
 /**
  * Fraction of projected stats a bench player contributes over a season.
- * SPs have high streaming value (start them on rotation days). Bench RPs contribute
- * much less — your starting RPs already play almost every day, so the 5th+ RP
- * rarely gets swapped in. Hitters only cover rest days (~1-2 games/week).
+ * Empirically measured via full-season Monte Carlo daily lineup simulation.
+ * Pitcher projections are season totals that already account for start frequency,
+ * and with 7 pitcher slots there's almost always room on start days → ~95%.
+ * Bench hitters only fill in on rest days → ~25%.
  */
-export const PITCHER_BENCH_CONTRIBUTION = 0.45
-export const RP_BENCH_CONTRIBUTION = 0.15
-export const HITTER_BENCH_CONTRIBUTION = 0.20
+export const PITCHER_BENCH_CONTRIBUTION = 0.95
+export const RP_BENCH_CONTRIBUTION = 0.95
+export const HITTER_BENCH_CONTRIBUTION = 0.25
 
 /** Returns the appropriate bench contribution for a player based on type and pitcher role */
 export function benchContribution(p: { player_type: string; zscore_qs?: number | null; zscore_svhd?: number | null; zscores?: Record<string, number> }): number {

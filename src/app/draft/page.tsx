@@ -1059,11 +1059,11 @@ export default function DraftBoardPage() {
           score += computeDesperationBonus(playerZscores, categoryStandings) * confidence
         }
         // Blend with BPA (using surplus value) when confidence is low
-        const rawScore = surplusValue + vona * 0.97 + urgency * 0.68
+        const rawScore = surplusValue + vona * 1.00 + urgency * 0.44
         score = score * confidence + rawScore * (1 - confidence)
       } else {
         // Fallback: BPA formula using surplus value
-        score = surplusValue + vona * 0.97 + urgency * 0.68
+        score = surplusValue + vona * 1.00 + urgency * 0.44
       }
 
       // ── Multiplicative adjustments so #1 score = "pick this player now" ──
@@ -1071,30 +1071,25 @@ export default function DraftBoardPage() {
       // Availability discount: penalize players likely to still be available later
       const avail = availabilityMap.get(p.mlb_id)
       if (avail != null) {
-        score *= 1 - avail * 0.03
+        score *= 1 - avail * 0.12
       }
 
-      // Bench penalty — pitcher-aware with SP/RP split:
-      // Bench SPs have real streaming value (start on rotation days).
-      // Bench RPs have minimal value — starting RPs play almost every day.
+      // Bench penalty — pitcher-aware with streaming economics.
+      // Bench pitchers contribute ~95% of stats, so first few get minimal penalty.
+      // Beyond 3 bench pitchers, the slot is more valuable for streaming.
       if (rosterFit === 0 && draftProgress > 0.15) {
         if (p.player_type === 'pitcher') {
-          const isRP = pitcherRole(p) === 'RP'
-          if (isRP) {
-            const benchRPCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher' && pitcherRole(bp) === 'RP').length
-            const saturation = Math.min(1, benchRPCount / 2)
-            const floor = 0.40 - saturation * 0.15
-            const scale = 0.50 + saturation * 0.30
-            score *= Math.max(floor, 1 - draftProgress * scale)
+          const benchPitcherCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher').length
+          if (benchPitcherCount < 3) {
+            // First 3 bench pitchers: light penalty (high contribution rate)
+            score *= Math.max(0.80, 1 - draftProgress * 0.15)
           } else {
-            const benchSPCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher' && pitcherRole(bp) === 'SP').length
-            const saturation = Math.min(1, benchSPCount / 3)
-            const floor = 0.65 - saturation * 0.30
-            const scale = 0.35 + saturation * 0.28
-            score *= Math.max(floor, 1 - draftProgress * scale)
+            // Beyond 3: steep penalty (streaming slot is more valuable)
+            score *= Math.max(0.15, 1 - draftProgress * 0.85)
           }
         } else {
-          score *= Math.max(0.35, 1 - draftProgress * 0.58)
+          // Bench hitters lose ~75% of value
+          score *= Math.max(0.25, 1 - draftProgress * 0.95)
         }
       }
 
@@ -1226,40 +1221,32 @@ export default function DraftBoardPage() {
     }
 
     // Decomposed formula terms
-    const mcwComponent = mcw * 22.09 * confidence
-    const vonaComponentHigh = vona * 0.01
-    const urgencyComponentHigh = urgency * 0.33
+    const mcwComponent = mcw * 7.47 * confidence
+    const vonaComponentHigh = vona * 0.24
+    const urgencyComponentHigh = urgency * 0.65
     const rosterFitComponent = rosterFit * draftProgress
     const desperationComponent = desperationBonus * confidence
     const highConfidenceTotal = mcwComponent + vonaComponentHigh + urgencyComponentHigh + rosterFitComponent + desperationComponent
-    const lowConfidenceTotal = surplusValue + vona * 0.97 + urgency * 0.68
+    const lowConfidenceTotal = surplusValue + vona * 1.00 + urgency * 0.44
     const blendedScore = hasMCW && confidence > 0
       ? highConfidenceTotal * confidence + lowConfidenceTotal * (1 - confidence)
       : lowConfidenceTotal
 
-    // Bench penalty
+    // Bench penalty — streaming economics
     let benchPenalty = 1.0
     let benchPenaltyReason: string | null = null
     if (rosterFit === 0 && draftProgress > 0.15) {
       if (p.player_type === 'pitcher') {
-        const isRP = pitcherRole(p) === 'RP'
-        if (isRP) {
-          const benchRPCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher' && pitcherRole(bp) === 'RP').length
-          const saturation = Math.min(1, benchRPCount / 2)
-          const floor = 0.40 - saturation * 0.15
-          const scale = 0.50 + saturation * 0.30
-          benchPenalty = Math.max(floor, 1 - draftProgress * scale)
-          benchPenaltyReason = `RP bench (${benchRPCount} on bench, ${(saturation * 100).toFixed(0)}% saturated)`
+        const benchPitcherCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher').length
+        if (benchPitcherCount < 3) {
+          benchPenalty = Math.max(0.80, 1 - draftProgress * 0.15)
+          benchPenaltyReason = `Pitcher bench (${benchPitcherCount}/3, light penalty)`
         } else {
-          const benchSPCount = rosterState.bench.filter(bp => bp.player_type === 'pitcher' && pitcherRole(bp) === 'SP').length
-          const saturation = Math.min(1, benchSPCount / 3)
-          const floor = 0.65 - saturation * 0.30
-          const scale = 0.35 + saturation * 0.28
-          benchPenalty = Math.max(floor, 1 - draftProgress * scale)
-          benchPenaltyReason = `SP bench (${benchSPCount} on bench, ${(saturation * 100).toFixed(0)}% saturated)`
+          benchPenalty = Math.max(0.15, 1 - draftProgress * 0.85)
+          benchPenaltyReason = `Pitcher bench (${benchPitcherCount} on bench, streaming preferred)`
         }
       } else {
-        benchPenalty = Math.max(0.35, 1 - draftProgress * 0.58)
+        benchPenalty = Math.max(0.25, 1 - draftProgress * 0.95)
         benchPenaltyReason = `Hitter bench penalty`
       }
     }
@@ -1268,7 +1255,7 @@ export default function DraftBoardPage() {
     let availDiscount = 1.0
     const avail = availabilityMap.get(scoreDetailPlayer!)
     if (avail != null) {
-      availDiscount = 1 - avail * 0.03
+      availDiscount = 1 - avail * 0.12
     }
 
     const finalScore = blendedScore * benchPenalty * availDiscount

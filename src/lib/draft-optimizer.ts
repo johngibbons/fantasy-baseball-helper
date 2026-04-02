@@ -283,12 +283,14 @@ export function computeMCW(
 
 /**
  * Compute standings confidence based on draft progress.
- * Ramps from 0 at pick 30 (round 3 in 10-team) to 1.0 at pick 100 (round 10).
+ * Ramps from 0 at pick 24 to 1.0 at pick 108. (Optimized 2026-04-02.)
  */
 export function standingsConfidence(
   totalPicksMade: number
 ): number {
-  return Math.max(0, Math.min(1, (totalPicksMade - 1) / 111))
+  const start = 24
+  const end = 108
+  return Math.max(0, Math.min(1, (totalPicksMade - start) / (end - start)))
 }
 
 /**
@@ -352,9 +354,9 @@ export function computeDraftScore(
   confidence: number,
   draftProgress: number
 ): number {
-  return mcw * 22.09 * confidence
-    + vona * 0.01
-    + urgency * 0.33
+  return mcw * 7.47 * confidence
+    + vona * 0.24
+    + urgency * 0.65
     + rosterFit * draftProgress
 }
 
