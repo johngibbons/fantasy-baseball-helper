@@ -533,7 +533,7 @@ export default function StartSitPage() {
                 <div className="mb-4">
                   <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
                     Streaming Options
-                    <span className="text-gray-600 font-normal normal-case ml-2">— unrostered SPs</span>
+                    <span className="text-gray-600 font-normal normal-case ml-2">— PitcherList SP Streamer Ranks</span>
                   </h2>
                   <div className="flex flex-col gap-3">
                     {grouped.map((group) => (
@@ -545,8 +545,8 @@ export default function StartSitPage() {
                               <span className="text-white font-medium flex-1">{s.pitcher_name}</span>
                               <span className="text-gray-400">{s.opponent}</span>
                               <span className={`text-xs rounded px-1.5 py-0.5 shrink-0 ${
-                                s.tier === 'strong_start' ? 'bg-emerald-500/20 text-emerald-300' :
-                                s.tier === 'start' ? 'bg-emerald-500/10 text-emerald-400/70' :
+                                s.tier === 'auto_start' || s.tier === 'strong_start' ? 'bg-emerald-500/20 text-emerald-300' :
+                                s.tier === 'probably_start' || s.tier === 'start' ? 'bg-emerald-500/10 text-emerald-400/70' :
                                 'bg-yellow-500/10 text-yellow-400/70'
                               }`}>
                                 {s.raw}

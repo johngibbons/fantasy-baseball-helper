@@ -429,15 +429,271 @@ def _entry_date_is_on_or_before(entry_date: str, target: str) -> bool:
     return e <= t
 
 
+# ── Streamer article scraper ─────────────────────────────────────────────────
+
+# Tier labels used in the PitcherList SP Streamer Ranks article
+_STREAMER_TIER_MAP: dict[str, str] = {
+    "auto start": "auto_start",
+    "auto-start": "auto_start",
+    "probably start": "probably_start",
+    "probably-start": "probably_start",
+    "questionable start": "questionable_start",
+    "questionable-start": "questionable_start",
+    "do not start": "do_not_start",
+    "do-not-start": "do_not_start",
+}
+
+# Human-readable labels for display
+_STREAMER_TIER_LABELS: dict[str, str] = {
+    "auto_start": "Auto Start",
+    "probably_start": "Prob. Start",
+    "questionable_start": "Quest. Start",
+    "do_not_start": "Do Not Start",
+}
+
+_STREAMER_DATE_RE = re.compile(
+    r"(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+(\d{1,2}/\d{1,2})",
+    re.IGNORECASE,
+)
+
+
+def discover_streamer_article_urls(max_articles: int = 2) -> list[str]:
+    """Find SP Streamer Ranks article URLs on the PitcherList homepage.
+
+    Looks for anchor tags whose href contains "starting-pitcher-streamer".
+    Returns only the most recent articles (homepage lists them newest first).
+
+    Args:
+        max_articles: Maximum number of article URLs to return.
+
+    Returns:
+        List of absolute URL strings (may be empty).
+    """
+    import urllib.request
+
+    try:
+        req = urllib.request.Request(
+            PITCHERLIST_HOME,
+            headers={"User-Agent": "Mozilla/5.0 (fantasy-baseball-helper/1.0)"},
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Failed to fetch PitcherList homepage: %s", exc)
+        return []
+
+    from bs4 import BeautifulSoup
+
+    soup = BeautifulSoup(html, "html.parser")
+    seen: set[str] = set()
+    urls: list[str] = []
+    for a in soup.find_all("a", href=True):
+        href = a["href"]
+        text = a.get_text(strip=True).lower()
+        if "starting-pitcher-streamer" in href and "streamer" in text:
+            if href.startswith("http"):
+                url = href
+            else:
+                url = PITCHERLIST_HOME.rstrip("/") + "/" + href.lstrip("/")
+            if url not in seen:
+                seen.add(url)
+                urls.append(url)
+                if len(urls) >= max_articles:
+                    break
+
+    return urls
+
+
+def parse_streamer_tables(html: str) -> list[dict]:
+    """Parse HTML tables from a PitcherList SP Streamer Ranks article.
+
+    These articles have daily tables with columns: Rank, Pitcher, Matchup,
+    Rostership.  Pitchers are grouped by tier headers within the table
+    (Auto Start, Probably Start, Questionable Start, Do Not Start).
+
+    Uses document-order scanning to associate date headings (e.g.
+    "Friday 4/3 Starting Pitcher Streamer Rankings") with their
+    immediately following ranking table.
+
+    Args:
+        html: Full HTML of the article page.
+
+    Returns:
+        List of dicts with keys:
+            pitcher_name, opponent, date, rank, tier_label, mapped_tier,
+            rostership, raw
+    """
+    from bs4 import BeautifulSoup, NavigableString
+
+    soup = BeautifulSoup(html, "html.parser")
+    results: list[dict] = []
+
+    # Walk ALL elements in document order, pairing dates with tables
+    table_dates: dict[int, str] = {}  # table id → date string
+    last_date = ""
+
+    for el in soup.descendants:
+        if isinstance(el, NavigableString):
+            m = _STREAMER_DATE_RE.search(str(el))
+            if m:
+                last_date = f"{m.group(1).capitalize()} {m.group(2)}"
+        elif hasattr(el, "name") and el.name == "table":
+            table_dates[id(el)] = last_date
+
+    for table in soup.find_all("table"):
+        # Skip non-ranking tables (e.g. matchup quality grids)
+        first_row = table.find("tr")
+        if not first_row:
+            continue
+        header_texts = [c.get_text(strip=True).lower() for c in first_row.find_all(["td", "th"])]
+        if "rank" not in header_texts:
+            continue
+
+        current_date = table_dates.get(id(table), "")
+        current_tier = ""
+
+        for row in table.find_all("tr"):
+            cells = row.find_all(["td", "th"])
+            if not cells:
+                continue
+
+            texts = [c.get_text(strip=True) for c in cells]
+
+            # Skip header rows
+            if any(t.lower() in ("rank", "pitcher", "matchup", "rostership") for t in texts):
+                continue
+
+            # Check for tier header row: typically ['', 'Auto Start', '', '']
+            non_empty = [t for t in texts if t]
+            if non_empty:
+                tier_match = _match_streamer_tier(non_empty[0].lower())
+                if tier_match and len(non_empty) <= 2:
+                    current_tier = tier_match
+                    continue
+
+            # Parse pitcher data row: [rank, pitcher_name, opponent, rostership]
+            if len(texts) < 3:
+                continue
+
+            rank_val = None
+            pitcher_name = ""
+            opponent = ""
+            rostership = ""
+
+            for idx, text in enumerate(texts):
+                if rank_val is None and text.isdigit():
+                    rank_val = int(text)
+                    if idx + 1 < len(texts):
+                        pitcher_name = texts[idx + 1]
+                    if idx + 2 < len(texts):
+                        opponent = texts[idx + 2]
+                    if idx + 3 < len(texts):
+                        rostership = texts[idx + 3]
+                    break
+
+            if not pitcher_name or rank_val is None:
+                continue
+
+            mapped_tier = current_tier or "questionable_start"
+            raw_label = _STREAMER_TIER_LABELS.get(mapped_tier, mapped_tier)
+
+            results.append({
+                "pitcher_name": pitcher_name,
+                "opponent": opponent,
+                "date": current_date,
+                "rank": rank_val,
+                "tier_label": raw_label,
+                "mapped_tier": mapped_tier,
+                "rostership": rostership,
+                "raw": raw_label,
+            })
+
+    return results
+
+
+def _match_streamer_tier(text: str) -> str:
+    """Check if text matches a known streamer tier label.
+
+    Returns:
+        Mapped tier string (e.g. "auto_start") or empty string.
+    """
+    text = text.strip().lower()
+    # Direct match
+    if text in _STREAMER_TIER_MAP:
+        return _STREAMER_TIER_MAP[text]
+    # Check if the text contains a tier label (for rows with extra text)
+    for label, mapped in _STREAMER_TIER_MAP.items():
+        if label in text and len(text) < len(label) + 15:
+            return mapped
+    return ""
+
+
+def fetch_streamer_rankings() -> list[dict]:
+    """Fetch and cache SP Streamer Ranks from all available articles.
+
+    Returns:
+        Combined list of parsed streamer ranking dicts, deduplicated
+        by (pitcher_name, date).
+    """
+    import time
+
+    cache_key = "_streamer_articles"
+    now = time.time()
+    if cache_key in _cache:
+        ts, data = _cache[cache_key]
+        if now - ts < _CACHE_TTL_SECONDS:
+            logger.debug("Streamer rankings cache hit")
+            return data
+
+    urls = discover_streamer_article_urls()
+    if not urls:
+        logger.warning("Could not discover any SP Streamer article URLs")
+        return []
+
+    combined: list[dict] = []
+    seen: set[tuple[str, str]] = set()
+    for url in urls:
+        rankings = _fetch_and_parse_streamer_url(url)
+        for entry in rankings:
+            key = (entry["pitcher_name"], entry["date"])
+            if key not in seen:
+                seen.add(key)
+                combined.append(entry)
+
+    _cache[cache_key] = (now, combined)
+    logger.info("Fetched %d streamer rankings from %d articles", len(combined), len(urls))
+    return combined
+
+
+def _fetch_and_parse_streamer_url(url: str) -> list[dict]:
+    """Fetch a single SP Streamer Ranks article and parse its tables."""
+    import urllib.request
+
+    try:
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "Mozilla/5.0 (fantasy-baseball-helper/1.0)"},
+        )
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            html = resp.read().decode("utf-8", errors="replace")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Failed to fetch SP Streamer article %s: %s", url, exc)
+        return []
+
+    return parse_streamer_tables(html)
+
+
 def get_streaming_options(
     all_rostered_names: list[str],
     target_date: str,
     matchup_end_date: str | None = None,
 ) -> list[dict]:
-    """Find unrostered pitchers with good PitcherList ratings for streaming.
+    """Find unrostered pitchers from the PitcherList SP Streamer Ranks article.
 
-    Filters the cached PitcherList weekly rankings to pitchers NOT on any
-    league roster, with dates on or after target_date.
+    Uses the dedicated daily streaming article (separate from Sit/Start) which
+    ranks all SPs by day with tiers: Auto Start, Probably Start, Questionable
+    Start, Do Not Start.  Falls back to the Sit/Start article if the streaming
+    article is unavailable.
 
     Args:
         all_rostered_names: Names of all rostered players across the league.
@@ -445,23 +701,38 @@ def get_streaming_options(
         matchup_end_date: ISO date of last day of matchup period.
 
     Returns:
-        List of dicts sorted by score descending, each with:
+        List of dicts sorted by rank (best first), each with:
             pitcher_name, opponent, date, tier, score, raw
     """
     if not all_rostered_names:
         return []
 
-    if matchup_end_date:
-        all_rankings = fetch_all_available_rankings()
-    else:
-        all_rankings = fetch_weekly_rankings()
+    # Try the dedicated streaming article first
+    streamer_rankings = fetch_streamer_rankings()
 
-    # Exclude sit-tier pitchers — not worth streaming
-    _STREAMABLE_TIERS = {"strong_start", "start", "maybe"}
+    if streamer_rankings:
+        return _filter_streamers_from_streamer_article(
+            streamer_rankings, all_rostered_names, target_date, matchup_end_date
+        )
+
+    # Fallback: use Sit/Start article data
+    logger.info("Streamer article unavailable, falling back to Sit/Start data")
+    return _filter_streamers_from_sit_start(
+        all_rostered_names, target_date, matchup_end_date
+    )
+
+
+def _filter_streamers_from_streamer_article(
+    rankings: list[dict],
+    all_rostered_names: list[str],
+    target_date: str,
+    matchup_end_date: str | None,
+) -> list[dict]:
+    """Filter streamer article rankings to unrostered pitchers in date range."""
+    _STREAMABLE_TIERS = {"auto_start", "probably_start", "questionable_start"}
 
     streamers: list[dict] = []
-    for entry in all_rankings:
-        # Filter by tier
+    for entry in rankings:
         if entry.get("mapped_tier") not in _STREAMABLE_TIERS:
             continue
 
@@ -484,16 +755,62 @@ def get_streaming_options(
             "opponent": entry.get("opponent", ""),
             "date": entry.get("date", ""),
             "tier": entry["mapped_tier"],
+            "score": entry.get("rank", 99),
+            "raw": entry.get("raw", ""),
+        })
+
+    # Sort by date (chronological), then rank ascending within each date
+    def _sort_key(s: dict) -> tuple:
+        parsed = _parse_entry_date(s["date"])
+        date_key = parsed if parsed else (99, 99)
+        return (date_key, s["score"])
+
+    streamers.sort(key=_sort_key)
+    return streamers
+
+
+def _filter_streamers_from_sit_start(
+    all_rostered_names: list[str],
+    target_date: str,
+    matchup_end_date: str | None,
+) -> list[dict]:
+    """Fallback: filter Sit/Start article data for streaming options."""
+    if matchup_end_date:
+        all_rankings = fetch_all_available_rankings()
+    else:
+        all_rankings = fetch_weekly_rankings()
+
+    _STREAMABLE_TIERS = {"strong_start", "start", "maybe"}
+
+    streamers: list[dict] = []
+    for entry in all_rankings:
+        if entry.get("mapped_tier") not in _STREAMABLE_TIERS:
+            continue
+
+        if not _dates_match(target_date, entry["date"]) and not _entry_date_is_after(entry["date"], target_date):
+            continue
+        if matchup_end_date and not _entry_date_is_on_or_before(entry["date"], matchup_end_date):
+            continue
+
+        is_rostered = any(
+            _name_matches(entry["pitcher_name"], name)
+            for name in all_rostered_names
+        )
+        if is_rostered:
+            continue
+
+        streamers.append({
+            "pitcher_name": entry["pitcher_name"],
+            "opponent": entry.get("opponent", ""),
+            "date": entry.get("date", ""),
+            "tier": entry["mapped_tier"],
             "score": entry.get("score", 0),
             "raw": entry.get("raw", ""),
         })
 
-    # Sort by date (chronological), then score descending within each date
     def _sort_key(s: dict) -> tuple:
         parsed = _parse_entry_date(s["date"])
-        # (month, day) tuple for chronological order; fallback to (99, 99)
         date_key = parsed if parsed else (99, 99)
-        # Negate score so higher scores sort first within a date
         return (date_key, -s["score"])
 
     streamers.sort(key=_sort_key)
