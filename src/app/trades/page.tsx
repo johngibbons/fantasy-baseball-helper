@@ -347,7 +347,7 @@ export default function TradesPage() {
                   <span className={`text-xs ${posColors[p.position] || 'text-gray-400'}`}>{p.position}</span>
                   <span className={`text-[10px] ${roleTag(p.weight).color} font-medium`}>{roleTag(p.weight).label}</span>
                   <span className="text-[10px] text-gray-600 font-mono">{effectiveZscore(p.total_zscore, p.weight)}</span>
-                  {p.incoming_weight !== p.weight && (
+                  {Math.abs(p.incoming_weight - p.weight) > 0.01 && (
                     <span className="text-[10px] text-gray-500 font-mono">→ {p.incoming_weight >= 1 ? 'Starter' : 'Bench'}</span>
                   )}
                 </div>
@@ -372,7 +372,7 @@ export default function TradesPage() {
                   <span className={`text-xs ${posColors[p.position] || 'text-gray-400'}`}>{p.position}</span>
                   <span className={`text-[10px] ${roleTag(p.weight).color} font-medium`}>{roleTag(p.weight).label}</span>
                   <span className="text-[10px] text-gray-600 font-mono">{effectiveZscore(p.total_zscore, p.weight)}</span>
-                  {p.incoming_weight !== p.weight && (
+                  {Math.abs(p.incoming_weight - p.weight) > 0.01 && (
                     <span className={`text-[10px] font-mono ${p.incoming_weight >= 1 ? 'text-emerald-400/60' : 'text-yellow-400/60'}`}>
                       → {p.incoming_weight >= 1 ? 'Starter' : 'Bench'}
                     </span>
