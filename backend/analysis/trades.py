@@ -229,21 +229,27 @@ def compute_trade_suggestions(
                 trades_pruned += 1
                 continue
 
-            # Simulate trade: swap players
-            trial_my = my_totals.copy()
-            trial_their = their_totals.copy()
+            # Build post-trade rosters by swapping players
+            my_out_set = set(my_out_ids)
+            their_out_set = set(their_out_ids)
 
-            for pid in my_out_ids:
-                proj = projections.get(pid)
-                if proj:
-                    trial_my.remove_player(proj, my_weights.get(pid, 1.0))
-                    trial_their.add_player(proj, 1.0)  # assume starter weight on new team
-
+            # My post-trade roster: remove my outgoing, add their outgoing
+            post_my_slots = [s for s in my_roster if s["mlb_id"] not in my_out_set]
             for pid in their_out_ids:
-                proj = projections.get(pid)
-                if proj:
-                    trial_their.remove_player(proj, their_weights.get(pid, 1.0))
-                    trial_my.add_player(proj, 1.0)  # assume starter weight on my team
+                post_my_slots.append({"mlb_id": pid, "lineup_slot_id": 0})
+
+            # Their post-trade roster: remove their outgoing, add my outgoing
+            post_their_slots = [
+                {"mlb_id": s["mlb_id"], "lineup_slot_id": s.get("lineup_slot_id", 0)}
+                for s in team["players"]
+                if s["mlb_id"] not in their_out_set
+            ]
+            for pid in my_out_ids:
+                post_their_slots.append({"mlb_id": pid, "lineup_slot_id": 0})
+
+            # Re-optimize both rosters
+            trial_my, trial_my_weights = build_team_totals(post_my_slots, projections)
+            trial_their, trial_their_weights = build_team_totals(post_their_slots, projections)
 
             # Recompute expected wins for my team
             trial_my_cat = trial_my.category_values()
@@ -329,6 +335,8 @@ def compute_trade_suggestions(
                         name=projections[pid].name if pid in projections else f"Player {pid}",
                         position=projections[pid].position if pid in projections else "",
                         total_zscore=zscores.get(pid, 0.0),
+                        weight=my_weights.get(pid, 1.0),
+                        incoming_weight=trial_their_weights.get(pid, 1.0),
                     )
                     for pid in my_out_ids
                 ],
@@ -338,6 +346,8 @@ def compute_trade_suggestions(
                         name=projections[pid].name if pid in projections else f"Player {pid}",
                         position=projections[pid].position if pid in projections else "",
                         total_zscore=zscores.get(pid, 0.0),
+                        weight=their_weights.get(pid, 1.0),
+                        incoming_weight=trial_my_weights.get(pid, 1.0),
                     )
                     for pid in their_out_ids
                 ],
