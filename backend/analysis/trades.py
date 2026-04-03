@@ -36,6 +36,8 @@ class TradePlayerInfo:
     name: str
     position: str
     total_zscore: float
+    weight: float = 1.0           # current weight on source team
+    incoming_weight: float = 1.0  # projected weight on destination team
 
 
 @dataclass
@@ -443,11 +445,15 @@ def _suggestion_to_dict(s: TradeSuggestion) -> dict:
         "partner_team_id": s.partner_team_id,
         "partner_team_name": s.partner_team_name,
         "my_players_out": [
-            {"mlb_id": p.mlb_id, "name": p.name, "position": p.position, "total_zscore": p.total_zscore}
+            {"mlb_id": p.mlb_id, "name": p.name, "position": p.position,
+             "total_zscore": p.total_zscore, "weight": p.weight,
+             "incoming_weight": p.incoming_weight}
             for p in s.my_players_out
         ],
         "their_players_out": [
-            {"mlb_id": p.mlb_id, "name": p.name, "position": p.position, "total_zscore": p.total_zscore}
+            {"mlb_id": p.mlb_id, "name": p.name, "position": p.position,
+             "total_zscore": p.total_zscore, "weight": p.weight,
+             "incoming_weight": p.incoming_weight}
             for p in s.their_players_out
         ],
         "draft_pick_adjustment": {
