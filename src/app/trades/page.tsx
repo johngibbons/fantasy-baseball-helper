@@ -23,6 +23,8 @@ interface TradePlayerInfo {
   name: string
   position: string
   total_zscore: number
+  weight: number          // current weight on source team (1.0=starter, 0.25=bench hitter)
+  incoming_weight: number // projected weight on destination team
 }
 
 interface DraftPickAdjustment {
@@ -93,6 +95,17 @@ function acceptColor(p: number): string {
   if (p >= 0.6) return 'text-emerald-400'
   if (p >= 0.4) return 'text-yellow-400'
   return 'text-red-400'
+}
+
+function roleTag(weight: number): { label: string; color: string } {
+  if (weight >= 1.0) return { label: 'Starter', color: 'text-emerald-400/60' }
+  return { label: 'Bench', color: 'text-yellow-400/60' }
+}
+
+function effectiveZscore(zscore: number, weight: number): string {
+  if (weight >= 1.0) return `z${zscore.toFixed(1)}`
+  const effective = zscore * weight
+  return `z${effective.toFixed(1)} (bench)`
 }
 
 const STORAGE_KEY = 'trade_settings'
@@ -332,7 +345,11 @@ export default function TradesPage() {
                     {p.name}
                   </Link>
                   <span className={`text-xs ${posColors[p.position] || 'text-gray-400'}`}>{p.position}</span>
-                  <span className="text-[10px] text-gray-600 font-mono">z{p.total_zscore.toFixed(1)}</span>
+                  <span className={`text-[10px] ${roleTag(p.weight).color} font-medium`}>{roleTag(p.weight).label}</span>
+                  <span className="text-[10px] text-gray-600 font-mono">{effectiveZscore(p.total_zscore, p.weight)}</span>
+                  {p.incoming_weight !== p.weight && (
+                    <span className="text-[10px] text-gray-500 font-mono">→ {p.incoming_weight >= 1 ? 'Starter' : 'Bench'}</span>
+                  )}
                 </div>
               ))}
             </div>
@@ -353,7 +370,13 @@ export default function TradesPage() {
                     {p.name}
                   </Link>
                   <span className={`text-xs ${posColors[p.position] || 'text-gray-400'}`}>{p.position}</span>
-                  <span className="text-[10px] text-gray-600 font-mono">z{p.total_zscore.toFixed(1)}</span>
+                  <span className={`text-[10px] ${roleTag(p.weight).color} font-medium`}>{roleTag(p.weight).label}</span>
+                  <span className="text-[10px] text-gray-600 font-mono">{effectiveZscore(p.total_zscore, p.weight)}</span>
+                  {p.incoming_weight !== p.weight && (
+                    <span className={`text-[10px] font-mono ${p.incoming_weight >= 1 ? 'text-emerald-400/60' : 'text-yellow-400/60'}`}>
+                      → {p.incoming_weight >= 1 ? 'Starter' : 'Bench'}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>
