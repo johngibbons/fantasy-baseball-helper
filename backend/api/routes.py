@@ -887,12 +887,34 @@ def trade_suggestions(req: TradeRequest):
 
 @router.post("/waivers/refresh-projections")
 def refresh_ros_projections(season: int = Query(2026)):
-    """Fetch latest ATC RoS DC projections from FanGraphs for waiver analysis."""
+    """Fetch latest ATC RoS DC projections from FanGraphs and recalculate rankings.
+
+    The waiver analysis reads from the rankings table, so we must run the
+    full pipeline: fetch projections → recalculate z-scores/rankings.
+    """
+    import traceback
     from backend.data.projections import fetch_all_fangraphs_projections
-    results = fetch_all_fangraphs_projections(season)
-    # Summarize for the frontend
-    atc_count = results.get("atc", 0)
-    return {"status": "ok", "results": {"batting_and_pitching": atc_count}}
+
+    try:
+        results = fetch_all_fangraphs_projections(season)
+    except Exception as e:
+        tb = traceback.format_exc()
+        logger.error(f"FanGraphs API error: {e}\n{tb}")
+        raise HTTPException(status_code=502, detail=f"FanGraphs API error: {e}")
+
+    adp_map = results.pop("_adp_map", {})
+    total = sum(results.values())
+    if total == 0:
+        raise HTTPException(status_code=502, detail="FanGraphs API returned no projection data")
+
+    try:
+        calculate_all_zscores(season)
+    except Exception as e:
+        tb = traceback.format_exc()
+        logger.error(f"Ranking recalculation failed: {e}\n{tb}")
+        raise HTTPException(status_code=500, detail=f"Ranking recalculation failed: {e}")
+
+    return {"status": "ok", "results": {"batting_and_pitching": total}}
 
 
 # ── Start/Sit Recommendations ──
