@@ -140,7 +140,7 @@ export default function WaiversPage() {
     setRefreshing(true)
     setRefreshStatus(null)
     try {
-      const resp = await fetch('/api/v2/waivers/refresh-projections?season=2026', { method: 'POST' })
+      const resp = await fetch('/api/waivers/refresh-projections?season=2026', { method: 'POST' })
       if (!resp.ok) throw new Error(`Error ${resp.status}`)
       const data = await resp.json()
       const count = data.results?.batting_and_pitching ?? data.results?.batting ?? 0
