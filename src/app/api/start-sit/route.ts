@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ESPNApi } from '@/lib/espn-api'
-import { getMatchupDateRange } from '@/lib/matchup-schedule'
+import { getMatchupDateRange, getMatchupEndDateForDate } from '@/lib/matchup-schedule'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
 
@@ -141,6 +141,13 @@ export async function POST(request: NextRequest) {
     const { endDate, daysRemaining } = getMatchupDateRange(matchupPeriod, today)
     const endDateStr = endDate
 
+    // Streaming targets tomorrow (waiver claims process overnight)
+    const tomorrow = new Date(today)
+    tomorrow.setDate(today.getDate() + 1)
+    const tomorrowStr = tomorrow.toISOString().split('T')[0]
+    // If tomorrow is in a different matchup period, use that period's end date
+    const streamingEndDate = getMatchupEndDateForDate(tomorrowStr) || endDateStr
+
     // Call Python backend
     const backendResponse = await fetch(`${BACKEND_URL}/api/start-sit`, {
       method: 'POST',
@@ -154,6 +161,8 @@ export async function POST(request: NextRequest) {
         today_date: todayStr,
         matchup_end_date: endDateStr,
         all_rostered_names: allRosteredNames,
+        streaming_target_date: tomorrowStr,
+        streaming_end_date: streamingEndDate,
       }),
     })
 

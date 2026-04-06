@@ -285,6 +285,8 @@ def compute_start_sit_recommendations(
     today_date: str,
     matchup_end_date: str,
     all_rostered_names: list[str] | None = None,
+    streaming_target_date: str | None = None,
+    streaming_end_date: str | None = None,
 ) -> dict:
     """Compute start/sit recommendations for today's SP starters.
 
@@ -297,6 +299,8 @@ def compute_start_sit_recommendations(
         opponent_name: Opponent team name.
         today_date: ISO date string, e.g. "2026-03-25".
         matchup_end_date: ISO date string of last day of matchup period.
+        streaming_target_date: ISO date for first day to show streamers (tomorrow).
+        streaming_end_date: ISO date for last day to show streamers.
 
     Returns:
         Dict with matchup_summary, upcoming_starts, recommendations, off_day_pitchers.
@@ -406,12 +410,16 @@ def compute_start_sit_recommendations(
     }
 
     # Step 6: Compute streaming options (unrostered pitchers with good ratings)
+    # Use streaming-specific dates (targeting tomorrow, since waiver claims
+    # process overnight — no point showing today's streamers)
     streamers = []
     if all_rostered_names:
+        s_target = streaming_target_date or today_date
+        s_end = streaming_end_date or matchup_end_date
         streamers = get_streaming_options(
             all_rostered_names=all_rostered_names,
-            target_date=today_date,
-            matchup_end_date=matchup_end_date,
+            target_date=s_target,
+            matchup_end_date=s_end,
         )
 
     return {

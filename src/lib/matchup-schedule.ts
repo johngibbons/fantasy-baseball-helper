@@ -24,6 +24,15 @@ export const MATCHUP_SCHEDULE: Record<number, [string, string]> = {
   21: ['2026-08-17', '2026-08-23'],
 }
 
+export function getMatchupEndDateForDate(dateStr: string): string | null {
+  for (const [, [start, end]] of Object.entries(MATCHUP_SCHEDULE)) {
+    if (dateStr >= start && dateStr <= end) {
+      return end
+    }
+  }
+  return null
+}
+
 export function getMatchupDateRange(
   matchupPeriodId: number,
   today: Date,
