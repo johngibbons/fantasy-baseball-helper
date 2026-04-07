@@ -710,16 +710,25 @@ def get_streaming_options(
     # Try the dedicated streaming article first
     streamer_rankings = fetch_streamer_rankings()
 
+    streamer_results: list[dict] = []
     if streamer_rankings:
-        return _filter_streamers_from_streamer_article(
+        streamer_results = _filter_streamers_from_streamer_article(
             streamer_rankings, all_rostered_names, target_date, matchup_end_date
         )
 
-    # Fallback: use Sit/Start article data
-    logger.info("Streamer article unavailable, falling back to Sit/Start data")
-    return _filter_streamers_from_sit_start(
+    # Supplement with Sit/Start article data for dates not covered by
+    # the streamer article (which typically only spans 2-3 days while
+    # the matchup may run a full week).
+    streamer_dates = {_parse_entry_date(s["date"]) for s in streamer_results}
+    sit_start_results = _filter_streamers_from_sit_start(
         all_rostered_names, target_date, matchup_end_date
     )
+    for entry in sit_start_results:
+        parsed = _parse_entry_date(entry["date"])
+        if parsed not in streamer_dates:
+            streamer_results.append(entry)
+
+    return streamer_results
 
 
 def _filter_streamers_from_streamer_article(
