@@ -295,8 +295,10 @@ def compute_matchup_projections(
 
         for roster_entry in roster:
             mid = roster_entry.get("mlb_id")
+            injury_status = roster_entry.get("injury_status", "ACTIVE")
             is_il = roster_entry.get("lineup_slot_id") == 17
-            if not mid or mid not in projections or is_il:
+            is_injured = injury_status in ("INJURY_RESERVE", "OUT", "SUSPENSION")
+            if not mid or mid not in projections or is_il or is_injured:
                 player_details.append({
                     "mlb_id": mid,
                     "name": roster_entry.get("name", "Unknown"),
@@ -304,6 +306,7 @@ def compute_matchup_projections(
                     "games_remaining": 0,
                     "projected_stats": {},
                     "is_active": False,
+                    "injury_status": injury_status,
                 })
                 continue
 
@@ -351,6 +354,7 @@ def compute_matchup_projections(
                     k: round(v, 2) for k, v in player_remaining.items()
                 },
                 "is_active": units_remaining > 0,
+                "injury_status": injury_status,
                 "eligible_positions": eligible_pos,
                 "player_type": proj.player_type,
                 "mlb_team": team_abbrev,

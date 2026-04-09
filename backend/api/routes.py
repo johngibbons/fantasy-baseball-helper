@@ -738,6 +738,7 @@ class MatchupRosterPlayer(BaseModel):
     player_type: Optional[str] = None
     lineup_slot_id: int = 0
     mlb_team: str = ""
+    injury_status: str = "ACTIVE"
     eligible_positions: str = ""
 
 
@@ -782,6 +783,7 @@ def matchup_projections(req: MatchupRequest):
                     "player_type": p.player_type,
                     "lineup_slot_id": p.lineup_slot_id,
                     "mlb_team": p.mlb_team,
+                    "injury_status": p.injury_status,
                     "eligible_positions": p.eligible_positions,
                 })
         return resolved

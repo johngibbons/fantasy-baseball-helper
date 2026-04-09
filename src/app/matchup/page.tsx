@@ -35,6 +35,7 @@ interface PlayerProjection {
   games_remaining: number
   projected_stats: Record<string, number>
   is_active: boolean
+  injury_status?: string
 }
 
 interface MatchupResult {
@@ -363,6 +364,11 @@ export default function MatchupPage() {
                   {p.mlb_id ? (
                     <Link href={`/players/${p.mlb_id}`} className="hover:text-blue-400">{p.name}</Link>
                   ) : p.name}
+                  {p.injury_status && p.injury_status !== 'ACTIVE' && (
+                    <span className="ml-1 text-[8px] font-bold text-red-400">
+                      {p.injury_status === 'DAY_TO_DAY' ? 'DTD' : 'IL'}
+                    </span>
+                  )}
                 </div>
                 <div className="w-[40px] text-center">
                   <span className={`px-1 py-0.5 rounded text-[9px] ${posColors[p.position] || 'bg-gray-500/20 text-gray-400'}`}>
@@ -405,6 +411,11 @@ export default function MatchupPage() {
                   {p.mlb_id ? (
                     <Link href={`/players/${p.mlb_id}`} className="hover:text-blue-400">{p.name}</Link>
                   ) : p.name}
+                  {p.injury_status && p.injury_status !== 'ACTIVE' && (
+                    <span className="ml-1 text-[8px] font-bold text-red-400">
+                      {p.injury_status === 'DAY_TO_DAY' ? 'DTD' : 'IL'}
+                    </span>
+                  )}
                 </div>
                 <div className="w-[40px] text-center">
                   <span className={`px-1 py-0.5 rounded text-[9px] ${posColors[p.position] || 'bg-gray-500/20 text-gray-400'}`}>

@@ -183,6 +183,7 @@ export async function POST(request: NextRequest) {
           player_type: playerType,
           lineup_slot_id: entry.lineupSlotId,
           mlb_team: mlbTeam,
+          injury_status: player?.injuryStatus || 'ACTIVE',
           eligible_positions: (player?.eligibleSlots || [])
             .map((s: number) => ESPN_LINEUP_SLOT_MAP[s])
             .filter(Boolean)
