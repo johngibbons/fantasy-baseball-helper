@@ -117,6 +117,16 @@ export async function POST(request: NextRequest) {
       .map((entry) => entry.player?.fullName || '')
       .filter(Boolean)
 
+    // Get opponent SP names from their roster
+    const oppRosterEntries = rosters[theirSide.teamId] || []
+    const oppSpNames = oppRosterEntries
+      .filter((entry) =>
+        entry.player?.defaultPositionId === 1 ||
+        entry.player?.eligibleSlots?.includes(14)
+      )
+      .map((entry) => entry.player?.fullName || '')
+      .filter(Boolean)
+
     // Collect all rostered player names across the league for streamer filtering
     const allRosteredNames: string[] = []
     for (const teamRoster of Object.values(rosters)) {
@@ -154,6 +164,7 @@ export async function POST(request: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         roster_pitcher_names: spNames,
+        opponent_pitcher_names: oppSpNames,
         matchup_categories: matchupCategories,
         team_ip: teamIp,
         days_remaining: daysRemaining,

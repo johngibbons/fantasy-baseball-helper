@@ -922,6 +922,7 @@ def refresh_ros_projections(season: int = Query(2026)):
 
 class StartSitRequest(BaseModel):
     roster_pitcher_names: list[str]
+    opponent_pitcher_names: list[str] = []
     matchup_categories: dict[str, dict[str, float]]
     team_ip: dict[str, float]
     days_remaining: int
@@ -940,6 +941,7 @@ def start_sit_recommendations(req: StartSitRequest):
 
     return compute_start_sit_recommendations(
         roster_pitcher_names=req.roster_pitcher_names,
+        opponent_pitcher_names=req.opponent_pitcher_names,
         matchup_categories=req.matchup_categories,
         team_ip=req.team_ip["yours"],
         days_remaining=req.days_remaining,

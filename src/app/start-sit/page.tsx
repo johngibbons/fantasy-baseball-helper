@@ -32,6 +32,8 @@ interface MatchupSummary {
   starts_today: number
   starts_remaining_after_today: number
   ratio_exposure: number
+  opp_starts_today: number
+  opp_starts_remaining_after_today: number
 }
 
 interface Recommendation {
@@ -457,6 +459,17 @@ export default function StartSitPage() {
                     </span>
                   </>
                 )}
+              </div>
+              <div className="mt-1 flex items-center gap-4 text-sm text-gray-500">
+                <span>
+                  Opp: <span className="text-gray-400 font-medium">{results.matchup_summary.opp_starts_today}</span>
+                  {' '}start{results.matchup_summary.opp_starts_today !== 1 ? 's' : ''} today
+                </span>
+                <span className="text-gray-600">·</span>
+                <span>
+                  <span className="text-gray-400 font-medium">{results.matchup_summary.opp_starts_remaining_after_today}</span>
+                  {' '}more this matchup
+                </span>
               </div>
             </div>
 

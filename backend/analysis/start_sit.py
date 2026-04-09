@@ -287,6 +287,7 @@ def compute_start_sit_recommendations(
     all_rostered_names: list[str] | None = None,
     streaming_target_date: str | None = None,
     streaming_end_date: str | None = None,
+    opponent_pitcher_names: list[str] | None = None,
 ) -> dict:
     """Compute start/sit recommendations for today's SP starters.
 
@@ -339,6 +340,16 @@ def compute_start_sit_recommendations(
     starts_after_today = len(upcoming_starts)
     total_starts_remaining = starts_today + starts_after_today
     ratio_exposure = compute_ratio_exposure(total_starts_remaining)
+
+    # Count opponent starts remaining
+    opp_starts_today = 0
+    opp_starts_after_today = 0
+    if opponent_pitcher_names:
+        opp_today_raw, opp_upcoming_raw, _ = get_rankings_for_date(
+            today_date, opponent_pitcher_names, matchup_end_date=matchup_end_date
+        )
+        opp_starts_today = len(opp_today_raw)
+        opp_starts_after_today = len(opp_upcoming_raw)
 
     # SP-specific cat_states for decision logic
     sp_cat_states = {c: cat_states.get(c, "losing_close") for c in SP_AFFECTED_CATS}
@@ -431,6 +442,8 @@ def compute_start_sit_recommendations(
             "starts_today": starts_today,
             "starts_remaining_after_today": starts_after_today,
             "ratio_exposure": ratio_exposure,
+            "opp_starts_today": opp_starts_today,
+            "opp_starts_remaining_after_today": opp_starts_after_today,
         },
         "upcoming_starts": [
             {
