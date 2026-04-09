@@ -295,7 +295,8 @@ def compute_matchup_projections(
 
         for roster_entry in roster:
             mid = roster_entry.get("mlb_id")
-            if not mid or mid not in projections:
+            is_il = roster_entry.get("lineup_slot_id") == 17
+            if not mid or mid not in projections or is_il:
                 player_details.append({
                     "mlb_id": mid,
                     "name": roster_entry.get("name", "Unknown"),
