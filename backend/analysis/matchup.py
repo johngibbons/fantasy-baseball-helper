@@ -297,7 +297,7 @@ def compute_matchup_projections(
             mid = roster_entry.get("mlb_id")
             injury_status = roster_entry.get("injury_status", "ACTIVE")
             is_il = roster_entry.get("lineup_slot_id") == 17
-            is_injured = injury_status in ("INJURY_RESERVE", "OUT", "SUSPENSION")
+            is_injured = injury_status not in ("ACTIVE", "DAY_TO_DAY")
             if not mid or mid not in projections or is_il or is_injured:
                 player_details.append({
                     "mlb_id": mid,
