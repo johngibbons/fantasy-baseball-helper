@@ -19,6 +19,9 @@ _cache: dict[str, tuple[float, list[dict]]] = {}
 _CACHE_TTL_SECONDS = 6 * 3600  # 6 hours
 
 PITCHERLIST_HOME = "https://pitcherlist.com"
+PITCHERLIST_SIT_START_CATEGORY = (
+    "https://pitcherlist.com/category/fantasy/starting-pitchers/sit-or-start/"
+)
 
 # Regex to detect a rating cell like "Start-8", "Maybe-4", "Sit-2"
 _RATING_RE = re.compile(r"^(Start|Maybe|Sit)-(\d+)$", re.IGNORECASE)
@@ -169,29 +172,15 @@ def _looks_like_date(text: str) -> bool:
 # ── Discovery & fetching ──────────────────────────────────────────────────────
 
 
-def discover_article_urls() -> list[str]:
-    """Fetch pitcherlist.com homepage and find all Sit/Start article URLs.
+def _extract_sit_start_urls_from_html(html: str) -> list[str]:
+    """Extract Sit/Start article URLs from an HTML page.
 
-    Looks for anchor tags whose visible text contains "sit", "start", and
-    whose href contains "sit-start" (case-insensitive).  Returns multiple
-    URLs when more than one week's article is linked from the homepage.
+    Looks for anchor tags whose href contains "sit-start" and whose visible
+    text contains both "sit" and "start" (case-insensitive).
 
     Returns:
-        List of absolute URL strings (may be empty).
+        List of unique absolute URL strings, in discovery order.
     """
-    import urllib.request
-
-    try:
-        req = urllib.request.Request(
-            PITCHERLIST_HOME,
-            headers={"User-Agent": "Mozilla/5.0 (fantasy-baseball-helper/1.0)"},
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            html = resp.read().decode("utf-8", errors="replace")
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Failed to fetch PitcherList homepage: %s", exc)
-        return []
-
     from bs4 import BeautifulSoup
 
     soup = BeautifulSoup(html, "html.parser")
@@ -209,6 +198,50 @@ def discover_article_urls() -> list[str]:
             if url not in seen:
                 seen.add(url)
                 urls.append(url)
+    return urls
+
+
+def discover_article_urls() -> list[str]:
+    """Find Sit/Start article URLs from PitcherList.
+
+    First checks the homepage.  If no articles are found, or the homepage
+    only has next week's article (the current week's article may have been
+    replaced), also checks the Sit/Start category page to pick up the
+    most recent two articles.
+
+    Returns:
+        List of absolute URL strings (may be empty).
+    """
+    import urllib.request
+
+    def _fetch_html(url: str) -> str | None:
+        try:
+            req = urllib.request.Request(
+                url,
+                headers={"User-Agent": "Mozilla/5.0 (fantasy-baseball-helper/1.0)"},
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                return resp.read().decode("utf-8", errors="replace")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Failed to fetch %s: %s", url, exc)
+            return None
+
+    # Try homepage first
+    html = _fetch_html(PITCHERLIST_HOME)
+    urls = _extract_sit_start_urls_from_html(html) if html else []
+
+    # Also check the category page — the homepage may only show next week's
+    # article once it's published, dropping the current week's article.
+    cat_html = _fetch_html(PITCHERLIST_SIT_START_CATEGORY)
+    if cat_html:
+        cat_urls = _extract_sit_start_urls_from_html(cat_html)
+        # Merge: add category URLs not already discovered (keep first 2
+        # from category page — current + previous week at most)
+        seen = set(urls)
+        for u in cat_urls[:2]:
+            if u not in seen:
+                seen.add(u)
+                urls.append(u)
 
     return urls
 
