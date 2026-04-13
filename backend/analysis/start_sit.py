@@ -458,3 +458,93 @@ def compute_start_sit_recommendations(
         "off_day_pitchers": off_day_pitchers,
         "streamers": streamers,
     }
+
+
+# ── Next Week Preview ────────────────────────────────────────────────────────
+
+
+def compute_next_week_preview(
+    roster_pitcher_names: list[str],
+    opponent_pitcher_names: list[str],
+    start_date: str,
+    end_date: str,
+    all_rostered_names: list[str] | None = None,
+) -> dict:
+    """Compute next week SP schedule preview (no matchup context needed).
+
+    Iterates each day of the preview period, finds which roster SPs are
+    scheduled to start, counts opponent starts, and finds streaming options.
+
+    Args:
+        roster_pitcher_names: SP names on the user's roster.
+        opponent_pitcher_names: SP names on the opponent's roster.
+        start_date: ISO date of first day of preview period.
+        end_date: ISO date of last day of preview period.
+        all_rostered_names: All rostered player names for streamer filtering.
+
+    Returns:
+        Dict with my_starts, opp_start_count, total_my_starts, gap_days, streamers.
+    """
+    from datetime import timedelta
+
+    from backend.data.pitcherlist import get_rankings_for_date, get_streaming_options
+
+    # Collect starts across the full preview period by querying
+    # get_rankings_for_date with each day as "today" and end_date as the cap
+    my_today, my_upcoming, _ = get_rankings_for_date(
+        start_date, roster_pitcher_names, matchup_end_date=end_date
+    )
+
+    # Combine today + upcoming into a single list of starts
+    my_starts = []
+    for entry in my_today + my_upcoming:
+        my_starts.append({
+            "date": entry.get("date", ""),
+            "pitcher_name": entry.get("roster_name", entry.get("pitcher_name", "")),
+            "opponent": entry.get("opponent", ""),
+            "pitcherlist_raw": entry.get("raw", ""),
+        })
+
+    # Count opponent starts the same way
+    opp_today, opp_upcoming, _ = get_rankings_for_date(
+        start_date, opponent_pitcher_names, matchup_end_date=end_date
+    )
+    opp_start_count = len(opp_today) + len(opp_upcoming)
+
+    # Identify gap days (days with no scheduled SP start)
+    start_dt = date.fromisoformat(start_date)
+    end_dt = date.fromisoformat(end_date)
+
+    # Parse dates from my_starts entries to find which days have starts
+    from backend.data.pitcherlist import _parse_entry_date
+
+    days_with_starts: set[tuple[int, int]] = set()
+    for s in my_starts:
+        parsed = _parse_entry_date(s["date"])
+        if parsed:
+            days_with_starts.add(parsed)
+
+    gap_days: list[str] = []
+    cursor = start_dt
+    while cursor <= end_dt:
+        md = (cursor.month, cursor.day)
+        if md not in days_with_starts:
+            gap_days.append(cursor.isoformat())
+        cursor += timedelta(days=1)
+
+    # Streaming options for the full preview period
+    streamers = []
+    if all_rostered_names:
+        streamers = get_streaming_options(
+            all_rostered_names=all_rostered_names,
+            target_date=start_date,
+            matchup_end_date=end_date,
+        )
+
+    return {
+        "my_starts": my_starts,
+        "opp_start_count": opp_start_count,
+        "total_my_starts": len(my_starts),
+        "gap_days": gap_days,
+        "streamers": streamers,
+    }

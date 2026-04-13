@@ -954,3 +954,28 @@ def start_sit_recommendations(req: StartSitRequest):
         streaming_target_date=req.streaming_target_date,
         streaming_end_date=req.streaming_end_date,
     )
+
+
+# ── Next Week Preview ──
+
+
+class StartSitPreviewRequest(BaseModel):
+    roster_pitcher_names: list[str]
+    opponent_pitcher_names: list[str] = []
+    start_date: str
+    end_date: str
+    all_rostered_names: list[str] = []
+
+
+@router.post("/start-sit/preview")
+def start_sit_preview(req: StartSitPreviewRequest):
+    """Compute next week SP schedule preview."""
+    from backend.analysis.start_sit import compute_next_week_preview
+
+    return compute_next_week_preview(
+        roster_pitcher_names=req.roster_pitcher_names,
+        opponent_pitcher_names=req.opponent_pitcher_names,
+        start_date=req.start_date,
+        end_date=req.end_date,
+        all_rostered_names=req.all_rostered_names,
+    )

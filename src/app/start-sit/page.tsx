@@ -74,6 +74,18 @@ interface StartSitResults {
   streamers?: Streamer[]
 }
 
+interface PreviewResults {
+  my_starts: UpcomingStart[]
+  opp_start_count: number
+  total_my_starts: number
+  gap_days: string[]
+  streamers: Streamer[]
+  opponent_name: string
+  start_date: string
+  end_date: string
+  matchup_period: number
+}
+
 const PITCHING_CATS = ['K', 'QS', 'ERA', 'WHIP']
 const HITTING_CATS = ['R', 'TB', 'RBI', 'SB', 'OBP']
 const CONTEXT_CATS = ['SVHD']
@@ -162,6 +174,9 @@ export default function StartSitPage() {
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<StartSitResults | null>(null)
   const [showHitting, setShowHitting] = useState(false)
+  const [activeTab, setActiveTab] = useState<'current' | 'preview'>('current')
+  const [previewResults, setPreviewResults] = useState<PreviewResults | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
 
   const today = new Date()
   const dateStr = today.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' })
@@ -244,6 +259,35 @@ export default function StartSitPage() {
       setError(message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleFetchPreview = async () => {
+    if (!selectedLeague || !selectedTeam) return
+
+    setPreviewLoading(true)
+    setError(null)
+    setPreviewResults(null)
+
+    try {
+      const response = await fetch('/api/start-sit/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leagueId: selectedLeague, teamId: selectedTeam }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || `Error ${response.status}`)
+      }
+
+      const data = await response.json()
+      setPreviewResults(data)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to fetch preview'
+      setError(message)
+    } finally {
+      setPreviewLoading(false)
     }
   }
 
@@ -361,20 +405,194 @@ export default function StartSitPage() {
           )}
         </div>
 
+        {/* Tab bar */}
+        {settingsLoaded && !editing && (
+          <div className="flex gap-1 mb-4">
+            <button
+              onClick={() => setActiveTab('current')}
+              className={`px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 ${
+                activeTab === 'current'
+                  ? 'bg-[#161b22] text-white border-white/[0.06]'
+                  : 'bg-transparent text-gray-500 border-transparent hover:text-gray-300'
+              }`}
+            >
+              This Week
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('preview')
+                if (!previewResults && !previewLoading) handleFetchPreview()
+              }}
+              className={`px-4 py-2 text-sm font-medium rounded-t-lg border border-b-0 ${
+                activeTab === 'preview'
+                  ? 'bg-[#161b22] text-white border-white/[0.06]'
+                  : 'bg-transparent text-gray-500 border-transparent hover:text-gray-300'
+              }`}
+            >
+              Next Week Preview
+            </button>
+          </div>
+        )}
+
         {error && (
           <div className="bg-red-900/30 border border-red-500/30 rounded-lg p-3 mb-4 text-sm text-red-400">
             {error}
           </div>
         )}
 
-        {loading && (
+        {(loading || previewLoading) && (
           <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-8 text-center text-gray-500">
-            Loading start/sit recommendations...
+            {previewLoading ? 'Loading next week preview...' : 'Loading start/sit recommendations...'}
           </div>
         )}
 
+        {/* Preview Results */}
+        {activeTab === 'preview' && previewResults && !previewLoading && (
+          <>
+            {/* Preview header */}
+            <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-4 mb-4">
+              <div className="flex items-start justify-between flex-wrap gap-3">
+                <div>
+                  <div className="text-xs text-gray-500 mb-1">Next Week Preview</div>
+                  <div className="text-lg font-bold text-white">vs. {previewResults.opponent_name}</div>
+                  <div className="text-sm text-gray-400 mt-0.5">
+                    {previewResults.start_date} — {previewResults.end_date}
+                    <span className="text-gray-600 ml-2">(Period {previewResults.matchup_period})</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Start count summary */}
+              <div className="mt-3 flex items-center gap-4 text-sm text-gray-400 flex-wrap">
+                <span>
+                  <span className="text-white font-medium">{previewResults.total_my_starts}</span>
+                  {' '}start{previewResults.total_my_starts !== 1 ? 's' : ''} scheduled
+                </span>
+                <span className="text-gray-600">·</span>
+                <span>
+                  <span className={`font-medium ${previewResults.gap_days.length > 0 ? 'text-yellow-400' : 'text-white'}`}>
+                    {previewResults.gap_days.length}
+                  </span>
+                  {' '}gap day{previewResults.gap_days.length !== 1 ? 's' : ''}
+                </span>
+                <span className="text-gray-600">·</span>
+                <span>
+                  Opp: <span className="text-gray-300 font-medium">{previewResults.opp_start_count}</span> starts
+                </span>
+              </div>
+            </div>
+
+            {/* SP Schedule */}
+            <div className="mb-4">
+              <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">SP Schedule</h2>
+              {previewResults.my_starts.length > 0 ? (
+                <div className="bg-[#161b22] border border-white/[0.06] rounded-lg divide-y divide-white/[0.04]">
+                  {previewResults.my_starts.map((s, i) => (
+                    <div key={i} className="flex items-center gap-4 px-4 py-2.5 text-sm">
+                      <span className="text-gray-500 w-28 shrink-0 font-mono text-xs">{s.date}</span>
+                      <span className="text-white font-medium flex-1">{s.pitcher_name}</span>
+                      <span className="text-gray-400">{s.opponent}</span>
+                      {s.pitcherlist_raw && (
+                        <span className="text-xs text-gray-500 bg-white/5 rounded px-1.5 py-0.5 shrink-0">
+                          {s.pitcherlist_raw}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-6 text-center text-gray-500">
+                  No SP starts found for next week. PitcherList data may not be available yet.
+                </div>
+              )}
+            </div>
+
+            {/* Gap days */}
+            {previewResults.gap_days.length > 0 && (
+              <div className="mb-4">
+                <h2 className="text-sm font-semibold text-yellow-400/80 uppercase tracking-wide mb-2">Gap Days (No SP Start)</h2>
+                <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-lg p-3">
+                  <div className="flex flex-wrap gap-2">
+                    {previewResults.gap_days.map((d, i) => {
+                      const dayDate = new Date(d + 'T12:00:00')
+                      const dayName = dayDate.toLocaleDateString('en-US', { weekday: 'short' })
+                      const monthDay = dayDate.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })
+                      return (
+                        <span key={i} className="text-xs text-yellow-400/80 bg-yellow-500/10 rounded px-2 py-1 border border-yellow-500/20">
+                          {dayName} {monthDay}
+                        </span>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Streaming options */}
+            {(() => {
+              const streamers = previewResults.streamers || []
+              const grouped: { date: string; pitchers: typeof previewResults.streamers }[] = []
+              for (const s of streamers) {
+                const last = grouped[grouped.length - 1]
+                if (last && last.date === s.date) {
+                  last.pitchers!.push(s)
+                } else {
+                  grouped.push({ date: s.date, pitchers: [s] })
+                }
+              }
+              return (
+                <div className="mb-4">
+                  <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-2">
+                    Streaming Options
+                    <span className="text-gray-600 font-normal normal-case ml-2">— PitcherList SP Streamer Ranks</span>
+                  </h2>
+                  {streamers.length > 0 ? (
+                    <div className="flex flex-col gap-3">
+                      {grouped.map((group) => (
+                        <div key={group.date}>
+                          <div className="text-xs text-gray-500 mb-1 px-1">{group.date}</div>
+                          <div className="bg-[#161b22] border border-white/[0.06] rounded-lg divide-y divide-white/[0.04]">
+                            {group.pitchers!.map((s, i) => (
+                              <div key={i} className="flex items-center gap-4 px-4 py-2.5 text-sm">
+                                <span className="text-white font-medium flex-1">{s.pitcher_name}</span>
+                                <span className="text-gray-400">{s.opponent}</span>
+                                <span className={`text-xs rounded px-1.5 py-0.5 shrink-0 ${
+                                  s.tier === 'auto_start' || s.tier === 'strong_start' ? 'bg-emerald-500/20 text-emerald-300' :
+                                  s.tier === 'probably_start' || s.tier === 'start' ? 'bg-emerald-500/10 text-emerald-400/70' :
+                                  'bg-yellow-500/10 text-yellow-400/70'
+                                }`}>
+                                  {s.raw}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="bg-[#161b22] border border-white/[0.06] rounded-lg px-4 py-3 text-sm text-gray-500">
+                      No unrostered streamers available for next week.
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+
+            {/* Refresh button */}
+            <div className="flex justify-end mt-2">
+              <button
+                onClick={handleFetchPreview}
+                disabled={previewLoading}
+                className="px-4 py-1.5 bg-[#161b22] border border-white/10 text-gray-400 text-sm rounded hover:border-white/20 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Refresh
+              </button>
+            </div>
+          </>
+        )}
+
         {/* Results */}
-        {results && !loading && (
+        {activeTab === 'current' && results && !loading && (
           <>
             {/* Matchup header */}
             <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-4 mb-4">
@@ -610,7 +828,7 @@ export default function StartSitPage() {
           </>
         )}
 
-        {!results && !loading && !error && (
+        {!results && !previewResults && !loading && !previewLoading && !error && (
           <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-8 text-center text-gray-500">
             <p className="mb-2">Select your league and team above to get started.</p>
             <p className="text-xs">Shows today&apos;s starting pitcher recommendations based on your matchup context.</p>
