@@ -455,11 +455,11 @@ def compute_waiver_recommendations(
         if not fa_proj:
             continue
 
-        best_delta = -999.0
-        best_drop_id: Optional[int] = None
-        best_cat_impact: dict[str, float] = {}
-        best_stat_delta: dict[str, float] = {}
-        is_no_drop = False
+        # Track best drop per dropped-player type so cross-type swaps
+        # (e.g. drop worst pitcher for a hitter) don't hide same-type
+        # upgrades (e.g. drop worst hitter for a better hitter).
+        # Keys: "no_drop", "hitter", "pitcher"
+        best_drops: dict[str, dict] = {}
 
         # Try "add without drop" if open roster slots available
         if open_roster_slots > 0:
@@ -468,24 +468,26 @@ def compute_waiver_recommendations(
             trial_cat_values = trial_totals.category_values()
             trial_wins, trial_cat_probs = compute_expected_wins(trial_cat_values, other_cat_values)
             delta = trial_wins - baseline_wins
-            if delta > best_delta:
-                best_delta = delta
-                best_drop_id = None
-                is_no_drop = True
-                best_cat_impact = {
+            best_drops["no_drop"] = {
+                "delta": delta,
+                "drop_id": None,
+                "cat_impact": {
                     cat: round(trial_cat_probs[cat] - baseline_cat_probs[cat], 4)
                     for cat in ALL_CATS
-                }
-                best_stat_delta = {
+                },
+                "stat_delta": {
                     cat: round(trial_cat_values[cat] - my_cat_values[cat], 3)
                     for cat in ALL_CATS
-                }
+                },
+            }
 
-        # Try each drop option
+        # Try each drop option, tracking best per dropped-player type
         for drop_id in droppable_ids:
             drop_proj = projections.get(drop_id)
             if not drop_proj:
                 continue
+
+            drop_type = drop_proj.player_type  # "hitter" or "pitcher"
 
             trial_slots = [s for s in my_roster_slots if s["mlb_id"] != drop_id]
             trial_slots.append({"mlb_id": fa_id, "lineup_slot_id": 0})
@@ -495,37 +497,45 @@ def compute_waiver_recommendations(
             trial_wins, trial_cat_probs = compute_expected_wins(trial_cat_values, other_cat_values)
             delta = trial_wins - baseline_wins
 
-            # Prefer dropping worse-ranked player when deltas are tied
+            # Compare against current best for this drop type
+            current_best = best_drops.get(drop_type)
             drop_rank = drop_proj.overall_rank
-            best_drop_rank = projections[best_drop_id].overall_rank if best_drop_id and best_drop_id in projections else -1
-            is_better = delta > best_delta or (delta == best_delta and drop_rank > best_drop_rank)
+            if current_best is None:
+                is_better = True
+            else:
+                cur_drop_id = current_best["drop_id"]
+                cur_drop_rank = projections[cur_drop_id].overall_rank if cur_drop_id and cur_drop_id in projections else -1
+                is_better = delta > current_best["delta"] or (delta == current_best["delta"] and drop_rank > cur_drop_rank)
 
             if is_better:
-                best_delta = delta
-                best_drop_id = drop_id
-                is_no_drop = False
-                best_cat_impact = {
-                    cat: round(trial_cat_probs[cat] - baseline_cat_probs[cat], 4)
-                    for cat in ALL_CATS
-                }
-                best_stat_delta = {
-                    cat: round(trial_cat_values[cat] - my_cat_values[cat], 3)
-                    for cat in ALL_CATS
+                best_drops[drop_type] = {
+                    "delta": delta,
+                    "drop_id": drop_id,
+                    "cat_impact": {
+                        cat: round(trial_cat_probs[cat] - baseline_cat_probs[cat], 4)
+                        for cat in ALL_CATS
+                    },
+                    "stat_delta": {
+                        cat: round(trial_cat_values[cat] - my_cat_values[cat], 3)
+                        for cat in ALL_CATS
+                    },
                 }
 
-        if best_delta > -10 and (best_drop_id is not None or is_no_drop):
-            drop_proj = projections.get(best_drop_id) if best_drop_id else None
+        # Emit one recommendation per drop type
+        for entry in best_drops.values():
+            drop_id = entry["drop_id"]
+            drop_proj = projections.get(drop_id) if drop_id else None
             recommendations.append(WaiverRecommendation(
                 add_player_id=fa_id,
                 add_player_name=fa_proj.name,
                 add_player_position=fa_proj.position,
-                drop_player_id=best_drop_id,
+                drop_player_id=drop_id,
                 drop_player_name=drop_proj.name if drop_proj else None,
                 drop_player_position=drop_proj.position if drop_proj else None,
-                delta_expected_wins=round(best_delta, 4),
+                delta_expected_wins=round(entry["delta"], 4),
                 suggested_faab_bid=0,
-                category_impact=best_cat_impact,
-                category_stat_delta=best_stat_delta,
+                category_impact=entry["cat_impact"],
+                category_stat_delta=entry["stat_delta"],
             ))
 
     recommendations.sort(key=lambda r: r.delta_expected_wins, reverse=True)
