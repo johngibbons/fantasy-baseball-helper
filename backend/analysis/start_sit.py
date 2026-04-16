@@ -288,7 +288,7 @@ def compute_start_sit_recommendations(
     streaming_target_date: str | None = None,
     streaming_end_date: str | None = None,
     opponent_pitcher_names: list[str] | None = None,
-    today_mlb_probable_names: list[str] | None = None,
+    mlb_probables_by_date: dict[str, list[str]] | None = None,
 ) -> dict:
     """Compute start/sit recommendations for today's SP starters.
 
@@ -307,7 +307,12 @@ def compute_start_sit_recommendations(
     Returns:
         Dict with matchup_summary, upcoming_starts, recommendations, off_day_pitchers.
     """
-    from backend.data.pitcherlist import get_rankings_for_date, get_streaming_options
+    from backend.data.pitcherlist import (
+        _entry_date_to_iso,
+        _normalize,
+        get_rankings_for_date,
+        get_streaming_options,
+    )
 
     # Step 1: Classify all 10 categories
     cat_states: dict[str, str] = {}
@@ -323,23 +328,33 @@ def compute_start_sit_recommendations(
         today_date, roster_pitcher_names, matchup_end_date=matchup_end_date
     )
 
-    # Cross-reference today's starters against MLB actual probable pitchers.
-    # PitcherList sometimes has pitchers on the wrong date.
-    if today_mlb_probable_names:
-        from backend.data.pitcherlist import _normalize
+    # When MLB probables are provided, they are the source of truth.
+    # Filter PitcherList entries down to (date, pitcher) pairs MLB has confirmed.
+    # PitcherList sometimes has pitchers on the wrong date, or predicts starts
+    # that MLB has overridden.
+    probable_sets_by_date: dict[str, set[str]] = {}
+    if mlb_probables_by_date is not None:
+        probable_sets_by_date = {
+            d: {_normalize(n) for n in names}
+            for d, names in mlb_probables_by_date.items()
+        }
 
-        mlb_normalized = {_normalize(n) for n in today_mlb_probable_names}
-        verified = []
-        for s in todays_starters_raw:
-            roster_name = s.get("roster_name", s.get("pitcher_name", ""))
-            if _normalize(roster_name) in mlb_normalized:
-                verified.append(s)
-            else:
-                logger.info(
-                    "Filtering %s from today's starters — not in MLB probables",
-                    roster_name,
-                )
-        todays_starters_raw = verified
+        def _is_confirmed(entry: dict, iso_date: str) -> bool:
+            roster_name = entry.get("roster_name", entry.get("pitcher_name", ""))
+            return _normalize(roster_name) in probable_sets_by_date.get(iso_date, set())
+
+        todays_starters_raw = [
+            s for s in todays_starters_raw if _is_confirmed(s, today_date)
+        ]
+
+        filtered_upcoming: list[dict] = []
+        for entry in upcoming_starts_raw:
+            iso = _entry_date_to_iso(entry.get("date", ""), today_date)
+            if iso is None:
+                continue
+            if _is_confirmed(entry, iso):
+                filtered_upcoming.append(entry)
+        upcoming_starts_raw = filtered_upcoming
 
     # Adapt field names from scraper output to what the engine expects
     def _adapt(entry: dict) -> dict:
@@ -367,6 +382,21 @@ def compute_start_sit_recommendations(
         opp_today_raw, opp_upcoming_raw, _ = get_rankings_for_date(
             today_date, opponent_pitcher_names, matchup_end_date=matchup_end_date
         )
+        if mlb_probables_by_date is not None:
+            opp_today_raw = [
+                s for s in opp_today_raw
+                if _normalize(s.get("roster_name", s.get("pitcher_name", "")))
+                in probable_sets_by_date.get(today_date, set())
+            ]
+            opp_upcoming_filtered: list[dict] = []
+            for entry in opp_upcoming_raw:
+                iso = _entry_date_to_iso(entry.get("date", ""), today_date)
+                if iso is None:
+                    continue
+                name = entry.get("roster_name", entry.get("pitcher_name", ""))
+                if _normalize(name) in probable_sets_by_date.get(iso, set()):
+                    opp_upcoming_filtered.append(entry)
+            opp_upcoming_raw = opp_upcoming_filtered
         opp_starts_today = len(opp_today_raw)
         opp_starts_after_today = len(opp_upcoming_raw)
 

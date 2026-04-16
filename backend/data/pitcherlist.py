@@ -462,6 +462,22 @@ def _entry_date_is_on_or_before(entry_date: str, target: str) -> bool:
     return e <= t
 
 
+def _entry_date_to_iso(entry_date: str, reference_iso: str) -> str | None:
+    """Convert a PitcherList date string like 'Thursday 4/17' to an ISO date.
+
+    Uses the year from reference_iso (safe within a baseball season).
+    """
+    parsed = _parse_entry_date(entry_date)
+    if parsed is None:
+        return None
+    month, day = parsed
+    try:
+        year = int(reference_iso.split("-")[0])
+    except (IndexError, ValueError):
+        return None
+    return f"{year:04d}-{month:02d}-{day:02d}"
+
+
 # ── Streamer article scraper ─────────────────────────────────────────────────
 
 # Tier labels used in the PitcherList SP Streamer Ranks article

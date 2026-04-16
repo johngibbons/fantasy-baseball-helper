@@ -159,14 +159,26 @@ export async function POST(request: NextRequest) {
     // If tomorrow is in a different matchup period, use that period's end date
     const streamingEndDate = getMatchupEndDateForDate(tomorrowStr) || endDateStr
 
-    // Fetch today's actual probable pitchers from MLB API to cross-reference
-    // against PitcherList (which sometimes has wrong dates)
-    let todayMlbProbableNames: string[] = []
+    // Fetch MLB probable pitchers for the entire matchup period. MLB is the
+    // source of truth for both "starts today" and "more this matchup" counts;
+    // PitcherList entries that aren't confirmed by MLB are filtered out.
+    let mlbProbablesByDate: Record<string, string[]> | null = null
     try {
-      const probables = await getProbablePitchers(todayStr, todayStr)
-      todayMlbProbableNames = probables.map(p => p.fullName).filter(Boolean)
+      const probables = await getProbablePitchers(todayStr, endDateStr)
+      mlbProbablesByDate = {}
+      const cursor = new Date(`${todayStr}T00:00:00Z`)
+      const end = new Date(`${endDateStr}T00:00:00Z`)
+      while (cursor <= end) {
+        mlbProbablesByDate[cursor.toISOString().split('T')[0]] = []
+        cursor.setUTCDate(cursor.getUTCDate() + 1)
+      }
+      for (const p of probables) {
+        if (!p.fullName) continue
+        if (!mlbProbablesByDate[p.date]) mlbProbablesByDate[p.date] = []
+        mlbProbablesByDate[p.date].push(p.fullName)
+      }
     } catch (e) {
-      console.warn('Failed to fetch MLB probable pitchers, skipping validation:', e)
+      console.warn('Failed to fetch MLB probable pitchers, falling back to PitcherList only:', e)
     }
 
     // Call Python backend
@@ -185,7 +197,7 @@ export async function POST(request: NextRequest) {
         all_rostered_names: allRosteredNames,
         streaming_target_date: tomorrowStr,
         streaming_end_date: streamingEndDate,
-        today_mlb_probable_names: todayMlbProbableNames,
+        mlb_probables_by_date: mlbProbablesByDate,
       }),
     })
 
