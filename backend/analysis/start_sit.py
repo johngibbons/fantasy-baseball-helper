@@ -288,6 +288,7 @@ def compute_start_sit_recommendations(
     streaming_target_date: str | None = None,
     streaming_end_date: str | None = None,
     opponent_pitcher_names: list[str] | None = None,
+    today_mlb_probable_names: list[str] | None = None,
 ) -> dict:
     """Compute start/sit recommendations for today's SP starters.
 
@@ -321,6 +322,24 @@ def compute_start_sit_recommendations(
     todays_starters_raw, upcoming_starts_raw, off_day_raw = get_rankings_for_date(
         today_date, roster_pitcher_names, matchup_end_date=matchup_end_date
     )
+
+    # Cross-reference today's starters against MLB actual probable pitchers.
+    # PitcherList sometimes has pitchers on the wrong date.
+    if today_mlb_probable_names:
+        from backend.data.pitcherlist import _normalize
+
+        mlb_normalized = {_normalize(n) for n in today_mlb_probable_names}
+        verified = []
+        for s in todays_starters_raw:
+            roster_name = s.get("roster_name", s.get("pitcher_name", ""))
+            if _normalize(roster_name) in mlb_normalized:
+                verified.append(s)
+            else:
+                logger.info(
+                    "Filtering %s from today's starters — not in MLB probables",
+                    roster_name,
+                )
+        todays_starters_raw = verified
 
     # Adapt field names from scraper output to what the engine expects
     def _adapt(entry: dict) -> dict:

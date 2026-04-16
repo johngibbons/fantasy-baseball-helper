@@ -934,6 +934,7 @@ class StartSitRequest(BaseModel):
     all_rostered_names: list[str] = []
     streaming_target_date: str | None = None
     streaming_end_date: str | None = None
+    today_mlb_probable_names: list[str] = []
 
 
 @router.post("/start-sit")
@@ -953,6 +954,7 @@ def start_sit_recommendations(req: StartSitRequest):
         all_rostered_names=req.all_rostered_names,
         streaming_target_date=req.streaming_target_date,
         streaming_end_date=req.streaming_end_date,
+        today_mlb_probable_names=req.today_mlb_probable_names,
     )
 
 

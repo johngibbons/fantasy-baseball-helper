@@ -16,6 +16,7 @@ export interface TeamGamesRemaining {
 export interface ProbablePitcherEntry {
   date: string
   mlbPlayerId: number
+  fullName: string
   teamId: number
   opponentTeamId: number
 }
@@ -77,6 +78,7 @@ export async function getProbablePitchers(
         pitchers.push({
           date,
           mlbPlayerId: homePitcher.id,
+          fullName: homePitcher.fullName ?? '',
           teamId: homeTeamId,
           opponentTeamId: awayTeamId,
         })
@@ -85,6 +87,7 @@ export async function getProbablePitchers(
         pitchers.push({
           date,
           mlbPlayerId: awayPitcher.id,
+          fullName: awayPitcher.fullName ?? '',
           teamId: awayTeamId,
           opponentTeamId: homeTeamId,
         })

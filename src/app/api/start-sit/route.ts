@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ESPNApi } from '@/lib/espn-api'
 import { getMatchupDateRange, getMatchupEndDateForDate } from '@/lib/matchup-schedule'
+import { getProbablePitchers } from '@/lib/mlb-schedule'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
 
@@ -158,6 +159,16 @@ export async function POST(request: NextRequest) {
     // If tomorrow is in a different matchup period, use that period's end date
     const streamingEndDate = getMatchupEndDateForDate(tomorrowStr) || endDateStr
 
+    // Fetch today's actual probable pitchers from MLB API to cross-reference
+    // against PitcherList (which sometimes has wrong dates)
+    let todayMlbProbableNames: string[] = []
+    try {
+      const probables = await getProbablePitchers(todayStr, todayStr)
+      todayMlbProbableNames = probables.map(p => p.fullName).filter(Boolean)
+    } catch (e) {
+      console.warn('Failed to fetch MLB probable pitchers, skipping validation:', e)
+    }
+
     // Call Python backend
     const backendResponse = await fetch(`${BACKEND_URL}/api/start-sit`, {
       method: 'POST',
@@ -174,6 +185,7 @@ export async function POST(request: NextRequest) {
         all_rostered_names: allRosteredNames,
         streaming_target_date: tomorrowStr,
         streaming_end_date: streamingEndDate,
+        today_mlb_probable_names: todayMlbProbableNames,
       }),
     })
 
