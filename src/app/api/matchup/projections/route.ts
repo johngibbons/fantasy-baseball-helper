@@ -8,7 +8,7 @@ import {
   getProbablePitchers,
   getRemainingSeasonGames,
 } from '@/lib/mlb-schedule'
-import { MATCHUP_SCHEDULE, getMatchupDateRange } from '@/lib/matchup-schedule'
+import { MATCHUP_SCHEDULE, getMatchupDateRange, toLocalDateStr } from '@/lib/matchup-schedule'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
 
@@ -132,13 +132,11 @@ export async function POST(request: NextRequest) {
     const today = new Date()
     const { startDate, endDate, daysRemaining } = getMatchupDateRange(matchupPeriod, today)
 
-    // Build remaining dates list for MLB schedule queries
+    // Build remaining dates list for MLB schedule queries (local timezone-safe)
     const remainingDates: string[] = []
-    const cursor = new Date(today)
-    cursor.setDate(today.getDate() + 1)
-    const endDateObj = new Date(endDate + 'T23:59:59')
-    while (cursor <= endDateObj) {
-      remainingDates.push(cursor.toISOString().split('T')[0])
+    const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    while (toLocalDateStr(cursor) <= endDate) {
+      remainingDates.push(toLocalDateStr(cursor))
       cursor.setDate(cursor.getDate() + 1)
     }
     console.log(`Matchup ${matchupPeriod}: ${startDate} to ${endDate}, ${daysRemaining} days remaining`)

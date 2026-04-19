@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ESPNApi } from '@/lib/espn-api'
-import { getMatchupDateRange, getMatchupEndDateForDate } from '@/lib/matchup-schedule'
+import { getMatchupDateRange, getMatchupEndDateForDate, toLocalDateStr } from '@/lib/matchup-schedule'
 import { getProbablePitchers } from '@/lib/mlb-schedule'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
@@ -146,16 +146,16 @@ export async function POST(request: NextRequest) {
       : `Team ${theirSide.teamId}`
 
     const today = new Date()
-    const todayStr = today.toISOString().split('T')[0]
+    // Use local timezone for date strings (toISOString() is UTC and shifts dates in US evenings)
+    const todayStr = toLocalDateStr(today)
 
     // Use hardcoded league schedule (same as matchup page)
     const { endDate, daysRemaining } = getMatchupDateRange(matchupPeriod, today)
     const endDateStr = endDate
 
     // Streaming targets tomorrow (waiver claims process overnight)
-    const tomorrow = new Date(today)
-    tomorrow.setDate(today.getDate() + 1)
-    const tomorrowStr = tomorrow.toISOString().split('T')[0]
+    const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    const tomorrowStr = toLocalDateStr(tomorrow)
     // If tomorrow is in a different matchup period, use that period's end date
     const streamingEndDate = getMatchupEndDateForDate(tomorrowStr) || endDateStr
 
