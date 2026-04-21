@@ -934,9 +934,7 @@ class StartSitRequest(BaseModel):
     all_rostered_names: list[str] = []
     streaming_target_date: str | None = None
     streaming_end_date: str | None = None
-    mlb_probables_by_date: dict[str, list[str]] | None = None  # deprecated, kept for compat
-    pitcher_teams: dict[str, str] | None = None  # pitcher name → MLB team abbreviation (from ESPN)
-    team_games_by_date: dict[str, list[str]] | None = None  # date → list of team abbreviations playing
+    espn_starts_by_date: dict[str, list[str]] | None = None  # date → pitcher names with ESPN PP tag
 
 
 @router.post("/start-sit")
@@ -956,8 +954,7 @@ def start_sit_recommendations(req: StartSitRequest):
         all_rostered_names=req.all_rostered_names,
         streaming_target_date=req.streaming_target_date,
         streaming_end_date=req.streaming_end_date,
-        pitcher_teams=req.pitcher_teams,
-        team_games_by_date=req.team_games_by_date,
+        espn_starts_by_date=req.espn_starts_by_date,
     )
 
 

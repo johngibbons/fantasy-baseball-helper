@@ -2,19 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ESPNApi } from '@/lib/espn-api'
 import { getMatchupDateRange, getMatchupEndDateForDate, toLocalDateStr } from '@/lib/matchup-schedule'
-import { getTeamScheduleByDate } from '@/lib/mlb-schedule'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
-
-// ESPN proTeamId → MLB team abbreviation (same mapping used in matchup projections)
-const ESPN_TEAM_MAP: Record<number, string> = {
-  1: 'BAL', 2: 'BOS', 3: 'LAA', 4: 'CWS', 5: 'CLE',
-  6: 'DET', 7: 'KC', 8: 'MIL', 9: 'MIN', 10: 'NYY',
-  11: 'OAK', 12: 'SEA', 13: 'TEX', 14: 'TOR', 15: 'ATL',
-  16: 'CHC', 17: 'CIN', 18: 'HOU', 19: 'LAD', 20: 'WSH',
-  21: 'NYM', 22: 'PHI', 23: 'PIT', 24: 'STL', 25: 'SD',
-  26: 'SF', 27: 'COL', 28: 'MIA', 29: 'ARI', 30: 'TB',
-}
 
 // ESPN stat ID -> category name mapping
 // Verified from league scoring settings (statIds in scoringItems)
@@ -137,15 +126,6 @@ export async function POST(request: NextRequest) {
       .map((entry) => entry.player?.fullName || '')
       .filter(Boolean)
 
-    // Build pitcher → MLB team mapping from ESPN proTeamId
-    const pitcherTeams: Record<string, string> = {}
-    for (const entry of [...myRosterEntries, ...oppRosterEntries]) {
-      if (isSP(entry) && entry.player?.fullName && entry.player?.proTeamId) {
-        const team = ESPN_TEAM_MAP[entry.player.proTeamId]
-        if (team) pitcherTeams[entry.player.fullName] = team
-      }
-    }
-
     // Collect all rostered player names across the league for streamer filtering
     const allRosteredNames: string[] = []
     for (const teamRoster of Object.values(rosters)) {
@@ -177,14 +157,47 @@ export async function POST(request: NextRequest) {
     // If tomorrow is in a different matchup period, use that period's end date
     const streamingEndDate = getMatchupEndDateForDate(tomorrowStr) || endDateStr
 
-    // Fetch team schedule for the matchup period. This tells us which MLB
-    // teams play on which dates — used to validate PitcherList start predictions
-    // against the real schedule (replaces MLB probables which only worked 1-2 days out).
-    let teamGamesByDate: Record<string, string[]> | null = null
+    // Resolve ESPN PP (Probable Pitcher) tags to dates.
+    // ESPN's starterStatusByProGame maps game event IDs → "PROBABLE".
+    // We fetch the ESPN scoreboard to map those game IDs to actual dates.
+    let espnStartsByDate: Record<string, string[]> | null = null
     try {
-      teamGamesByDate = await getTeamScheduleByDate(todayStr, endDateStr)
+      // Collect all game IDs from both rosters' starterStatusByProGame
+      const allGameIds = new Set<string>()
+      for (const entry of [...myRosterEntries, ...oppRosterEntries]) {
+        if (isSP(entry) && entry.player?.starterStatusByProGame) {
+          for (const gameId of Object.keys(entry.player.starterStatusByProGame)) {
+            allGameIds.add(gameId)
+          }
+        }
+      }
+
+      if (allGameIds.size > 0) {
+        // Fetch game ID → date mapping from ESPN public scoreboard
+        const gameIdToDate = await ESPNApi.getGameIdToDateMap(todayStr, endDateStr)
+        console.log(`ESPN PP: resolved ${Object.keys(gameIdToDate).length} game IDs to dates`)
+
+        // Build espnStartsByDate: date → list of pitcher names with PP on that date
+        espnStartsByDate = {}
+        for (const entry of [...myRosterEntries, ...oppRosterEntries]) {
+          if (!isSP(entry) || !entry.player?.starterStatusByProGame) continue
+          const name = entry.player.fullName || ''
+          if (!name) continue
+
+          for (const [gameId, status] of Object.entries(entry.player.starterStatusByProGame)) {
+            if (status !== 'PROBABLE') continue
+            const date = gameIdToDate[gameId]
+            if (!date) continue
+            // Only include dates within the matchup period
+            if (date < todayStr || date > endDateStr) continue
+            if (!espnStartsByDate[date]) espnStartsByDate[date] = []
+            espnStartsByDate[date].push(name)
+          }
+        }
+        console.log('ESPN PP starts by date:', JSON.stringify(espnStartsByDate))
+      }
     } catch (e) {
-      console.warn('Failed to fetch team schedule, PitcherList entries will not be validated:', e)
+      console.warn('Failed to resolve ESPN PP data, falling back to PitcherList only:', e)
     }
 
     // Call Python backend
@@ -203,8 +216,7 @@ export async function POST(request: NextRequest) {
         all_rostered_names: allRosteredNames,
         streaming_target_date: tomorrowStr,
         streaming_end_date: streamingEndDate,
-        pitcher_teams: pitcherTeams,
-        team_games_by_date: teamGamesByDate,
+        espn_starts_by_date: espnStartsByDate,
       }),
     })
 

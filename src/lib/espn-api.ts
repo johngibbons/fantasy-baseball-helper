@@ -59,6 +59,8 @@ export interface ESPNPlayer {
   proTeamId?: number
   injuryStatus?: string
   stats?: any[]
+  /** Maps ESPN game event ID → starter status (e.g. "PROBABLE"). This is the PP tag. */
+  starterStatusByProGame?: Record<string, string>
 }
 
 export class ESPNApi {
@@ -153,39 +155,8 @@ export class ESPNApi {
                 defaultPositionId: espnPlayer.defaultPositionId,
                 proTeamId: espnPlayer.proTeamId,
                 injuryStatus: espnPlayer.injuryStatus,
-                stats: espnPlayer.stats
-              }
-              // Log full ESPN player keys for pitchers (SP=1) to discover PP/schedule fields
-              if (espnPlayer.defaultPositionId === 1) {
-                const extraKeys = Object.keys(espnPlayer).filter(
-                  k => !['id','fullName','firstName','lastName','eligibleSlots',
-                         'defaultPositionId','proTeamId','injuryStatus','stats',
-                         'ownership','draftRanksByRankType','ratings'].includes(k)
-                )
-                if (extraKeys.length > 0) {
-                  console.log(`[ESPN SP DEBUG] ${espnPlayer.fullName} extra keys:`, extraKeys)
-                  for (const key of extraKeys) {
-                    const val = espnPlayer[key]
-                    if (val !== null && val !== undefined && typeof val === 'object') {
-                      console.log(`[ESPN SP DEBUG]   ${key}:`, JSON.stringify(val).slice(0, 500))
-                    } else {
-                      console.log(`[ESPN SP DEBUG]   ${key}:`, val)
-                    }
-                  }
-                }
-                // Also check the entry-level fields (outside player object)
-                const entryExtraKeys = Object.keys(entry.playerPoolEntry).filter(
-                  k => k !== 'player'
-                )
-                if (entryExtraKeys.length > 0) {
-                  console.log(`[ESPN SP DEBUG] ${espnPlayer.fullName} playerPoolEntry keys:`, entryExtraKeys)
-                  for (const key of entryExtraKeys) {
-                    const val = entry.playerPoolEntry[key]
-                    if (val !== null && val !== undefined && typeof val === 'object') {
-                      console.log(`[ESPN SP DEBUG]   poolEntry.${key}:`, JSON.stringify(val).slice(0, 500))
-                    }
-                  }
-                }
+                stats: espnPlayer.stats,
+                starterStatusByProGame: espnPlayer.starterStatusByProGame,
               }
               console.log(`Found player data for ${player.fullName} (ID: ${player.id})`)
             } else {
@@ -372,5 +343,44 @@ export class ESPNApi {
     )
 
     return { schedule }
+  }
+
+  /**
+   * Map ESPN game event IDs to dates using the public MLB scoreboard API.
+   * This resolves the IDs found in starterStatusByProGame to actual dates.
+   * No auth required — this is a public ESPN endpoint.
+   */
+  static async getGameIdToDateMap(
+    startDate: string,
+    endDate: string,
+  ): Promise<Record<string, string>> {
+    const gameIdToDate: Record<string, string> = {}
+    const cursor = new Date(`${startDate}T12:00:00`)
+    const end = new Date(`${endDate}T12:00:00`)
+
+    // Fetch scoreboard for each date in the range (typically 5-7 days)
+    const fetches: Promise<void>[] = []
+    while (cursor <= end) {
+      const isoDate = cursor.toISOString().split('T')[0]
+      const espnDate = isoDate.replace(/-/g, '')
+      const url = `https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=${espnDate}`
+
+      fetches.push(
+        fetch(url)
+          .then((r) => r.json())
+          .then((data) => {
+            for (const event of data.events || []) {
+              gameIdToDate[event.id] = isoDate
+            }
+          })
+          .catch((e) => {
+            console.warn(`Failed to fetch ESPN scoreboard for ${isoDate}:`, e)
+          }),
+      )
+      cursor.setDate(cursor.getDate() + 1)
+    }
+
+    await Promise.all(fetches)
+    return gameIdToDate
   }
 }
