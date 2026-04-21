@@ -323,44 +323,85 @@ def compute_start_sit_recommendations(
             cat, yours, theirs, days_remaining, team_ip=team_ip
         )
 
-    # Step 2: Fetch PitcherList data for today and upcoming
-    todays_starters_raw, upcoming_starts_raw, off_day_raw = get_rankings_for_date(
+    # Step 2: Build start lists.
+    # ESPN PP (Probable Pitcher) is the source of truth for WHO starts WHEN.
+    # PitcherList provides quality ratings (tier/score) as an optional overlay.
+    # Fetch PitcherList data to use for enrichment.
+    pl_today, pl_upcoming, _ = get_rankings_for_date(
         today_date, roster_pitcher_names, matchup_end_date=matchup_end_date
     )
 
-    # Validate PitcherList entries against ESPN's Probable Pitcher (PP) data.
-    # ESPN provides starterStatusByProGame for each pitcher, which we resolve
-    # to dates in the frontend and pass as espn_starts_by_date.
-    # This is the same data behind the PP tags on ESPN's roster page.
+    # Build a PitcherList lookup: normalized(name) → entry, keyed by date
+    pl_by_name_date: dict[tuple[str, str], dict] = {}
+    for entry in pl_today:
+        name = entry.get("roster_name", entry.get("pitcher_name", ""))
+        pl_by_name_date[(_normalize(name), today_date)] = entry
+    for entry in pl_upcoming:
+        iso = _entry_date_to_iso(entry.get("date", ""), today_date)
+        if iso:
+            name = entry.get("roster_name", entry.get("pitcher_name", ""))
+            pl_by_name_date[(_normalize(name), iso)] = entry
+
     if espn_starts_by_date is not None:
-        espn_sets_by_date: dict[str, set[str]] = {
-            d: {_normalize(n) for n in names}
-            for d, names in espn_starts_by_date.items()
-        }
+        # ESPN PP is the primary source — build start lists from it
+        roster_set = {_normalize(n) for n in roster_pitcher_names}
 
-        def _is_espn_pp(entry: dict, iso_date: str) -> bool:
-            roster_name = entry.get("roster_name", entry.get("pitcher_name", ""))
-            return _normalize(roster_name) in espn_sets_by_date.get(iso_date, set())
+        todays_starters_raw = []
+        upcoming_starts_raw = []
 
-        todays_starters_raw = [
-            s for s in todays_starters_raw if _is_espn_pp(s, today_date)
+        for iso_date, names in espn_starts_by_date.items():
+            for name in names:
+                norm = _normalize(name)
+                if norm not in roster_set:
+                    continue  # opponent pitcher, not ours
+
+                # Try to find PitcherList data for this pitcher+date
+                pl_entry = pl_by_name_date.get((norm, iso_date))
+
+                entry = {
+                    "roster_name": name,
+                    "pitcher_name": name,
+                    "date": iso_date,
+                    "mapped_tier": pl_entry.get("mapped_tier", "start") if pl_entry else "start",
+                    "score": pl_entry.get("score", 0) if pl_entry else 0,
+                    "raw": pl_entry.get("raw", "") if pl_entry else "",
+                    "opponent": pl_entry.get("opponent", "???") if pl_entry else "???",
+                }
+
+                if iso_date == today_date:
+                    todays_starters_raw.append(entry)
+                else:
+                    upcoming_starts_raw.append(entry)
+
+        # Off-day: roster pitchers with no ESPN PP start at all this matchup
+        all_espn_names: set[str] = set()
+        for names in espn_starts_by_date.values():
+            for n in names:
+                all_espn_names.add(_normalize(n))
+        off_day_raw = [
+            {"pitcher_name": name}
+            for name in roster_pitcher_names
+            if _normalize(name) not in all_espn_names
+        ]
+    else:
+        # Fallback: no ESPN data, use PitcherList as-is
+        todays_starters_raw = pl_today
+        upcoming_starts_raw = pl_upcoming
+        off_day_raw = [
+            {"pitcher_name": name}
+            for name in roster_pitcher_names
+            if _normalize(name) not in {
+                _normalize(e.get("roster_name", e.get("pitcher_name", "")))
+                for e in pl_today + pl_upcoming
+            }
         ]
 
-        filtered_upcoming: list[dict] = []
-        for entry in upcoming_starts_raw:
-            iso = _entry_date_to_iso(entry.get("date", ""), today_date)
-            if iso is None:
-                continue
-            if _is_espn_pp(entry, iso):
-                filtered_upcoming.append(entry)
-        upcoming_starts_raw = filtered_upcoming
-
-    # Adapt field names from scraper output to what the engine expects
+    # Adapt field names from scraper/ESPN output to what the engine expects
     def _adapt(entry: dict) -> dict:
         return {
             "pitcher_name": entry.get("roster_name", entry.get("pitcher_name")),
             "date": entry.get("date", ""),
-            "tier": entry.get("mapped_tier", "sit"),
+            "tier": entry.get("mapped_tier", "start"),
             "score": entry.get("score", 0),
             "pitcherlist_raw": entry.get("raw", ""),
             "opponent": entry.get("opponent", "???"),
@@ -378,23 +419,23 @@ def compute_start_sit_recommendations(
     opp_starts_today = 0
     opp_starts_after_today = 0
     if opponent_pitcher_names:
-        opp_today_raw, opp_upcoming_raw, _ = get_rankings_for_date(
-            today_date, opponent_pitcher_names, matchup_end_date=matchup_end_date
-        )
         if espn_starts_by_date is not None:
-            opp_today_raw = [
-                s for s in opp_today_raw if _is_espn_pp(s, today_date)
-            ]
-            opp_upcoming_filtered: list[dict] = []
-            for entry in opp_upcoming_raw:
-                iso = _entry_date_to_iso(entry.get("date", ""), today_date)
-                if iso is None:
-                    continue
-                if _is_espn_pp(entry, iso):
-                    opp_upcoming_filtered.append(entry)
-            opp_upcoming_raw = opp_upcoming_filtered
-        opp_starts_today = len(opp_today_raw)
-        opp_starts_after_today = len(opp_upcoming_raw)
+            # Use ESPN PP for opponent too
+            opp_set = {_normalize(n) for n in opponent_pitcher_names}
+            for iso_date, names in espn_starts_by_date.items():
+                for name in names:
+                    if _normalize(name) not in opp_set:
+                        continue
+                    if iso_date == today_date:
+                        opp_starts_today += 1
+                    elif iso_date > today_date:
+                        opp_starts_after_today += 1
+        else:
+            opp_today_raw, opp_upcoming_raw, _ = get_rankings_for_date(
+                today_date, opponent_pitcher_names, matchup_end_date=matchup_end_date
+            )
+            opp_starts_today = len(opp_today_raw)
+            opp_starts_after_today = len(opp_upcoming_raw)
 
     # SP-specific cat_states for decision logic
     sp_cat_states = {c: cat_states.get(c, "losing_close") for c in SP_AFFECTED_CATS}
