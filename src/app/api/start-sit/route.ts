@@ -106,13 +106,16 @@ export async function POST(request: NextRequest) {
     }
     console.log('Team IP:', teamIp)
 
-    // Get SP names from roster — include players eligible for SP slot (14),
-    // not just defaultPositionId 1, to catch RP/SP dual-eligible pitchers.
-    // Also capture proTeamId for team schedule validation.
+    // Identify pitchers who may start: SP by position, SP-eligible, or
+    // any pitcher ESPN has tagged as Probable Pitcher (PP).
     const myRosterEntries = rosters[myTeamId] || []
+    const hasPP = (entry: typeof myRosterEntries[0]) =>
+      entry.player?.starterStatusByProGame &&
+      Object.values(entry.player.starterStatusByProGame).some((s) => s === 'PROBABLE')
     const isSP = (entry: typeof myRosterEntries[0]) =>
       entry.player?.defaultPositionId === 1 ||
-      entry.player?.eligibleSlots?.includes(14)
+      entry.player?.eligibleSlots?.includes(14) ||
+      hasPP(entry)
 
     const spNames = myRosterEntries
       .filter(isSP)
