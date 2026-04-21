@@ -2,9 +2,19 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ESPNApi } from '@/lib/espn-api'
 import { getMatchupDateRange, getMatchupEndDateForDate, toLocalDateStr } from '@/lib/matchup-schedule'
-import { getProbablePitchers } from '@/lib/mlb-schedule'
+import { getTeamScheduleByDate } from '@/lib/mlb-schedule'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
+
+// ESPN proTeamId → MLB team abbreviation (same mapping used in matchup projections)
+const ESPN_TEAM_MAP: Record<number, string> = {
+  1: 'BAL', 2: 'BOS', 3: 'LAA', 4: 'CWS', 5: 'CLE',
+  6: 'DET', 7: 'KC', 8: 'MIL', 9: 'MIN', 10: 'NYY',
+  11: 'OAK', 12: 'SEA', 13: 'TEX', 14: 'TOR', 15: 'ATL',
+  16: 'CHC', 17: 'CIN', 18: 'HOU', 19: 'LAD', 20: 'WSH',
+  21: 'NYM', 22: 'PHI', 23: 'PIT', 24: 'STL', 25: 'SD',
+  26: 'SF', 27: 'COL', 28: 'MIA', 29: 'ARI', 30: 'TB',
+}
 
 // ESPN stat ID -> category name mapping
 // Verified from league scoring settings (statIds in scoringItems)
@@ -108,25 +118,33 @@ export async function POST(request: NextRequest) {
     console.log('Team IP:', teamIp)
 
     // Get SP names from roster — include players eligible for SP slot (14),
-    // not just defaultPositionId 1, to catch RP/SP dual-eligible pitchers
+    // not just defaultPositionId 1, to catch RP/SP dual-eligible pitchers.
+    // Also capture proTeamId for team schedule validation.
     const myRosterEntries = rosters[myTeamId] || []
+    const isSP = (entry: typeof myRosterEntries[0]) =>
+      entry.player?.defaultPositionId === 1 ||
+      entry.player?.eligibleSlots?.includes(14)
+
     const spNames = myRosterEntries
-      .filter((entry) =>
-        entry.player?.defaultPositionId === 1 ||
-        entry.player?.eligibleSlots?.includes(14)
-      )
+      .filter(isSP)
       .map((entry) => entry.player?.fullName || '')
       .filter(Boolean)
 
     // Get opponent SP names from their roster
     const oppRosterEntries = rosters[theirSide.teamId] || []
     const oppSpNames = oppRosterEntries
-      .filter((entry) =>
-        entry.player?.defaultPositionId === 1 ||
-        entry.player?.eligibleSlots?.includes(14)
-      )
+      .filter(isSP)
       .map((entry) => entry.player?.fullName || '')
       .filter(Boolean)
+
+    // Build pitcher → MLB team mapping from ESPN proTeamId
+    const pitcherTeams: Record<string, string> = {}
+    for (const entry of [...myRosterEntries, ...oppRosterEntries]) {
+      if (isSP(entry) && entry.player?.fullName && entry.player?.proTeamId) {
+        const team = ESPN_TEAM_MAP[entry.player.proTeamId]
+        if (team) pitcherTeams[entry.player.fullName] = team
+      }
+    }
 
     // Collect all rostered player names across the league for streamer filtering
     const allRosteredNames: string[] = []
@@ -159,26 +177,14 @@ export async function POST(request: NextRequest) {
     // If tomorrow is in a different matchup period, use that period's end date
     const streamingEndDate = getMatchupEndDateForDate(tomorrowStr) || endDateStr
 
-    // Fetch MLB probable pitchers for the entire matchup period. MLB is the
-    // source of truth for both "starts today" and "more this matchup" counts;
-    // PitcherList entries that aren't confirmed by MLB are filtered out.
-    let mlbProbablesByDate: Record<string, string[]> | null = null
+    // Fetch team schedule for the matchup period. This tells us which MLB
+    // teams play on which dates — used to validate PitcherList start predictions
+    // against the real schedule (replaces MLB probables which only worked 1-2 days out).
+    let teamGamesByDate: Record<string, string[]> | null = null
     try {
-      const probables = await getProbablePitchers(todayStr, endDateStr)
-      mlbProbablesByDate = {}
-      const cursor = new Date(`${todayStr}T00:00:00Z`)
-      const end = new Date(`${endDateStr}T00:00:00Z`)
-      while (cursor <= end) {
-        mlbProbablesByDate[cursor.toISOString().split('T')[0]] = []
-        cursor.setUTCDate(cursor.getUTCDate() + 1)
-      }
-      for (const p of probables) {
-        if (!p.fullName) continue
-        if (!mlbProbablesByDate[p.date]) mlbProbablesByDate[p.date] = []
-        mlbProbablesByDate[p.date].push(p.fullName)
-      }
+      teamGamesByDate = await getTeamScheduleByDate(todayStr, endDateStr)
     } catch (e) {
-      console.warn('Failed to fetch MLB probable pitchers, falling back to PitcherList only:', e)
+      console.warn('Failed to fetch team schedule, PitcherList entries will not be validated:', e)
     }
 
     // Call Python backend
@@ -197,7 +203,8 @@ export async function POST(request: NextRequest) {
         all_rostered_names: allRosteredNames,
         streaming_target_date: tomorrowStr,
         streaming_end_date: streamingEndDate,
-        mlb_probables_by_date: mlbProbablesByDate,
+        pitcher_teams: pitcherTeams,
+        team_games_by_date: teamGamesByDate,
       }),
     })
 

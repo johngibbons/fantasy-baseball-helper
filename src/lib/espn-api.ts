@@ -155,6 +155,38 @@ export class ESPNApi {
                 injuryStatus: espnPlayer.injuryStatus,
                 stats: espnPlayer.stats
               }
+              // Log full ESPN player keys for pitchers (SP=1) to discover PP/schedule fields
+              if (espnPlayer.defaultPositionId === 1) {
+                const extraKeys = Object.keys(espnPlayer).filter(
+                  k => !['id','fullName','firstName','lastName','eligibleSlots',
+                         'defaultPositionId','proTeamId','injuryStatus','stats',
+                         'ownership','draftRanksByRankType','ratings'].includes(k)
+                )
+                if (extraKeys.length > 0) {
+                  console.log(`[ESPN SP DEBUG] ${espnPlayer.fullName} extra keys:`, extraKeys)
+                  for (const key of extraKeys) {
+                    const val = espnPlayer[key]
+                    if (val !== null && val !== undefined && typeof val === 'object') {
+                      console.log(`[ESPN SP DEBUG]   ${key}:`, JSON.stringify(val).slice(0, 500))
+                    } else {
+                      console.log(`[ESPN SP DEBUG]   ${key}:`, val)
+                    }
+                  }
+                }
+                // Also check the entry-level fields (outside player object)
+                const entryExtraKeys = Object.keys(entry.playerPoolEntry).filter(
+                  k => k !== 'player'
+                )
+                if (entryExtraKeys.length > 0) {
+                  console.log(`[ESPN SP DEBUG] ${espnPlayer.fullName} playerPoolEntry keys:`, entryExtraKeys)
+                  for (const key of entryExtraKeys) {
+                    const val = entry.playerPoolEntry[key]
+                    if (val !== null && val !== undefined && typeof val === 'object') {
+                      console.log(`[ESPN SP DEBUG]   poolEntry.${key}:`, JSON.stringify(val).slice(0, 500))
+                    }
+                  }
+                }
+              }
               console.log(`Found player data for ${player.fullName} (ID: ${player.id})`)
             } else {
               console.log(`No player data found for playerId ${entry.playerId}`)

@@ -98,6 +98,45 @@ export async function getProbablePitchers(
   return pitchers
 }
 
+/**
+ * Get team game schedule by date for a date range.
+ * Returns a map of date → list of team abbreviations that have games on that date.
+ * Used to validate pitcher start predictions against the actual team schedule.
+ */
+export async function getTeamScheduleByDate(
+  startDate: string,
+  endDate: string,
+): Promise<Record<string, string[]>> {
+  const url = `${MLB_API_BASE}/schedule?sportId=1&startDate=${startDate}&endDate=${endDate}`
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`MLB Schedule API error: ${response.status}`)
+  }
+
+  const data = await response.json()
+  const schedule: Record<string, string[]> = {}
+
+  for (const dateEntry of data.dates || []) {
+    const date = dateEntry.date as string
+    if (!schedule[date]) schedule[date] = []
+    for (const game of dateEntry.games || []) {
+      if (game.status?.abstractGameCode === 'F' || game.gameType !== 'R') continue
+      const homeId = game.teams?.home?.team?.id
+      const awayId = game.teams?.away?.team?.id
+      if (homeId) {
+        const abbrev = MLB_TEAM_ABBREVS[homeId]
+        if (abbrev) schedule[date].push(abbrev)
+      }
+      if (awayId) {
+        const abbrev = MLB_TEAM_ABBREVS[awayId]
+        if (abbrev) schedule[date].push(abbrev)
+      }
+    }
+  }
+
+  return schedule
+}
+
 export async function getRemainingSeasonGames(
   season: string,
 ): Promise<TeamGamesRemaining> {

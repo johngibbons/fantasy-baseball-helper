@@ -288,7 +288,9 @@ def compute_start_sit_recommendations(
     streaming_target_date: str | None = None,
     streaming_end_date: str | None = None,
     opponent_pitcher_names: list[str] | None = None,
-    mlb_probables_by_date: dict[str, list[str]] | None = None,
+    mlb_probables_by_date: dict[str, list[str]] | None = None,  # deprecated
+    pitcher_teams: dict[str, str] | None = None,
+    team_games_by_date: dict[str, list[str]] | None = None,
 ) -> dict:
     """Compute start/sit recommendations for today's SP starters.
 
@@ -328,23 +330,26 @@ def compute_start_sit_recommendations(
         today_date, roster_pitcher_names, matchup_end_date=matchup_end_date
     )
 
-    # When MLB probables are provided, they are the source of truth.
-    # Filter PitcherList entries down to (date, pitcher) pairs MLB has confirmed.
-    # PitcherList sometimes has pitchers on the wrong date, or predicts starts
-    # that MLB has overridden.
-    probable_sets_by_date: dict[str, set[str]] = {}
-    if mlb_probables_by_date is not None:
-        probable_sets_by_date = {
-            d: {_normalize(n) for n in names}
-            for d, names in mlb_probables_by_date.items()
+    # Validate PitcherList entries against the ESPN team schedule.
+    # Instead of checking MLB probables (which only works 1-2 days out),
+    # we check whether the pitcher's team actually has a game on that date.
+    # This catches PitcherList errors (wrong dates, off-day listings) without
+    # over-filtering future starts the way MLB probables did.
+    if pitcher_teams and team_games_by_date:
+        teams_by_date: dict[str, set[str]] = {
+            d: set(teams) for d, teams in team_games_by_date.items()
         }
 
-        def _is_confirmed(entry: dict, iso_date: str) -> bool:
+        def _team_has_game(entry: dict, iso_date: str) -> bool:
             roster_name = entry.get("roster_name", entry.get("pitcher_name", ""))
-            return _normalize(roster_name) in probable_sets_by_date.get(iso_date, set())
+            team = pitcher_teams.get(roster_name, "")
+            if not team:
+                # No team mapping — give benefit of the doubt
+                return True
+            return team in teams_by_date.get(iso_date, set())
 
         todays_starters_raw = [
-            s for s in todays_starters_raw if _is_confirmed(s, today_date)
+            s for s in todays_starters_raw if _team_has_game(s, today_date)
         ]
 
         filtered_upcoming: list[dict] = []
@@ -352,7 +357,7 @@ def compute_start_sit_recommendations(
             iso = _entry_date_to_iso(entry.get("date", ""), today_date)
             if iso is None:
                 continue
-            if _is_confirmed(entry, iso):
+            if _team_has_game(entry, iso):
                 filtered_upcoming.append(entry)
         upcoming_starts_raw = filtered_upcoming
 
@@ -382,19 +387,16 @@ def compute_start_sit_recommendations(
         opp_today_raw, opp_upcoming_raw, _ = get_rankings_for_date(
             today_date, opponent_pitcher_names, matchup_end_date=matchup_end_date
         )
-        if mlb_probables_by_date is not None:
+        if pitcher_teams and team_games_by_date:
             opp_today_raw = [
-                s for s in opp_today_raw
-                if _normalize(s.get("roster_name", s.get("pitcher_name", "")))
-                in probable_sets_by_date.get(today_date, set())
+                s for s in opp_today_raw if _team_has_game(s, today_date)
             ]
             opp_upcoming_filtered: list[dict] = []
             for entry in opp_upcoming_raw:
                 iso = _entry_date_to_iso(entry.get("date", ""), today_date)
                 if iso is None:
                     continue
-                name = entry.get("roster_name", entry.get("pitcher_name", ""))
-                if _normalize(name) in probable_sets_by_date.get(iso, set()):
+                if _team_has_game(entry, iso):
                     opp_upcoming_filtered.append(entry)
             opp_upcoming_raw = opp_upcoming_filtered
         opp_starts_today = len(opp_today_raw)
