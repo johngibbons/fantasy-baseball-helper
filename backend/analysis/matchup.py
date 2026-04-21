@@ -248,6 +248,7 @@ def compute_matchup_projections(
     days_remaining: int,
     remaining_dates: list[str],
     season: int = 2026,
+    espn_pp_starts_by_name: dict[str, int] | None = None,
 ) -> dict:
     """Compute projected matchup finals by combining actuals with remaining-week projections.
 
@@ -320,16 +321,24 @@ def compute_matchup_projections(
 
             # Determine how many games/starts this player has remaining in matchup
             if is_sp:
-                # Count probable starts in remaining dates
-                probable_starts = sum(
-                    1 for date in remaining_dates
-                    if mid in probable_pitcher_ids.get(date, [])
-                )
-                # Fallback: if MLB hasn't announced probables, estimate from
-                # rotation frequency (~1 start per 5 team games)
-                team_games = team_games_remaining.get(team_abbrev, 0)
-                estimated_starts = max(1, round(team_games / 5)) if team_games > 0 else 0
-                units_remaining = max(probable_starts, estimated_starts)
+                # Use ESPN PP start count if available (most accurate),
+                # then fall back to MLB probable pitcher IDs,
+                # then estimate from rotation frequency.
+                player_name = roster_entry.get("name", "")
+                espn_starts = (espn_pp_starts_by_name or {}).get(player_name, 0)
+
+                if espn_starts > 0:
+                    units_remaining = espn_starts
+                else:
+                    # Fall back to MLB probables
+                    probable_starts = sum(
+                        1 for date in remaining_dates
+                        if mid in probable_pitcher_ids.get(date, [])
+                    )
+                    # Final fallback: estimate from rotation frequency
+                    team_games = team_games_remaining.get(team_abbrev, 0)
+                    estimated_starts = max(1, round(team_games / 5)) if team_games > 0 else 0
+                    units_remaining = max(probable_starts, estimated_starts)
             else:
                 # Count team games in remaining period
                 units_remaining = team_games_remaining.get(team_abbrev, 0)

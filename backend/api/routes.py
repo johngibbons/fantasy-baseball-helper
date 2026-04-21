@@ -752,7 +752,8 @@ class MatchupRequest(BaseModel):
     opponent_roster: list[MatchupRosterPlayer]
     actuals: MatchupActuals
     team_games_remaining: dict[str, int] = {}
-    probable_pitcher_ids: dict[str, list[int]] = {}
+    probable_pitcher_ids: dict[str, list[int]] = {}  # deprecated, kept for compat
+    espn_pp_starts_by_name: dict[str, int] = {}  # pitcher name → PP start count
     remaining_season_games: dict[str, int] = {}
     days_remaining: int = 0
     remaining_dates: list[str] = []
@@ -800,6 +801,7 @@ def matchup_projections(req: MatchupRequest):
         actuals=req.actuals.dict(),
         team_games_remaining=req.team_games_remaining,
         probable_pitcher_ids=req.probable_pitcher_ids,
+        espn_pp_starts_by_name=req.espn_pp_starts_by_name,
         remaining_season_games=req.remaining_season_games,
         days_remaining=req.days_remaining,
         remaining_dates=req.remaining_dates,

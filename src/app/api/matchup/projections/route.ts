@@ -5,7 +5,6 @@ import { prisma } from '@/lib/prisma'
 import { ESPNApi } from '@/lib/espn-api'
 import {
   getTeamGamesInRange,
-  getProbablePitchers,
   getRemainingSeasonGames,
 } from '@/lib/mlb-schedule'
 import { MATCHUP_SCHEDULE, getMatchupDateRange, toLocalDateStr } from '@/lib/matchup-schedule'
@@ -142,26 +141,36 @@ export async function POST(request: NextRequest) {
     console.log(`Matchup ${matchupPeriod}: ${startDate} to ${endDate}, ${daysRemaining} days remaining`)
 
     // Fetch MLB data in parallel
-    const [teamGamesRemaining, probablePitchers, remainingSeasonGames] = await Promise.all([
-      getTeamGamesInRange(
-        remainingDates.length > 0 ? remainingDates[0] : endDate,
-        endDate,
-      ),
-      getProbablePitchers(
-        remainingDates.length > 0 ? remainingDates[0] : endDate,
-        endDate,
-      ),
+    const rangeStart = remainingDates.length > 0 ? remainingDates[0] : endDate
+    const [teamGamesRemaining, remainingSeasonGames, gameIdToDate] = await Promise.all([
+      getTeamGamesInRange(rangeStart, endDate),
       getRemainingSeasonGames(season),
+      ESPNApi.getGameIdToDateMap(rangeStart, endDate),
     ])
 
-    // Build probable pitcher lookup: date → [mlb_id, ...]
-    const probablePitcherIds: Record<string, number[]> = {}
-    for (const entry of probablePitchers) {
-      if (!probablePitcherIds[entry.date]) {
-        probablePitcherIds[entry.date] = []
+    // Build ESPN PP start counts per pitcher name.
+    // ESPN's starterStatusByProGame on each roster entry tells us which
+    // games a pitcher is marked as Probable Pitcher — same as PP tags on ESPN.
+    const espnPPStartsByName: Record<string, number> = {}
+    for (const espnTeamId of [myTeamId, theirSide.teamId]) {
+      const entries = rosters[espnTeamId] || []
+      for (const entry of entries) {
+        const player = entry.player
+        if (!player?.starterStatusByProGame || !player.fullName) continue
+        let startCount = 0
+        for (const [gameId, status] of Object.entries(player.starterStatusByProGame)) {
+          if (status !== 'PROBABLE') continue
+          const date = gameIdToDate[gameId]
+          if (date && remainingDates.includes(date)) {
+            startCount++
+          }
+        }
+        if (startCount > 0) {
+          espnPPStartsByName[player.fullName] = startCount
+        }
       }
-      probablePitcherIds[entry.date].push(entry.mlbPlayerId)
     }
+    console.log('ESPN PP starts for matchup:', JSON.stringify(espnPPStartsByName))
 
     // Build roster player lists for both teams
     function buildRosterPayload(espnTeamId: number) {
@@ -208,7 +217,7 @@ export async function POST(request: NextRequest) {
         opponent_roster: oppRosterPayload,
         actuals: { my: myActuals, opponent: oppActuals },
         team_games_remaining: teamGamesRemaining,
-        probable_pitcher_ids: probablePitcherIds,
+        espn_pp_starts_by_name: espnPPStartsByName,
         remaining_season_games: remainingSeasonGames,
         days_remaining: remainingDates.length,
         remaining_dates: remainingDates,
