@@ -281,6 +281,8 @@ def _call_engine(**kwargs):
         season=2026,
         remaining_faab=100.0,
         open_roster_slots=0,
+        exclude_stream_slot=True,
+        same_type_only=True,
     )
     defaults.update(kwargs)
 
@@ -317,6 +319,7 @@ class TestComputeWaiverRecommendationsStreamSlot:
         assert result["stream_slot_player"] is not None
         assert result["stream_slot_player"]["id"] == 202
         assert result["stream_slot_player"]["name"] == "Streamer_Me"
+        assert result["stream_slot_player"]["position"] == "SP"
 
     def test_response_stream_slot_null_when_flag_off(self):
         result = _call_engine(exclude_stream_slot=False)
