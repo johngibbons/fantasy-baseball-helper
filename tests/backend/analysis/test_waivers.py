@@ -112,6 +112,34 @@ class TestBuildTeamTotals:
         assert trial_weights[99] == pytest.approx(1.0)
         assert trial_weights[2] == pytest.approx(HITTER_BENCH_WEIGHT)
 
+    def test_stream_slot_zero_weighted(self):
+        """Stream-slot pitcher is weight 0 — his projections don't enter totals."""
+        projections = {
+            1: _proj(1, "Ace",      "SP", "pitcher", overall_rank=30,
+                     ip=180, k=220, qs=18, era=3.20, whip=1.10),
+            2: _proj(2, "Streamer", "SP", "pitcher", overall_rank=400,
+                     ip=80,  k=60,  qs=4,  era=5.80, whip=1.55),
+        }
+        slots = [
+            {"mlb_id": 1, "lineup_slot_id": 14},
+            {"mlb_id": 2, "lineup_slot_id": 14},
+        ]
+        totals_with, weights_with = build_team_totals(
+            slots, projections, stream_slot_id=2,
+        )
+        # Compare against totals built from the ace alone
+        ace_only_slots = [{"mlb_id": 1, "lineup_slot_id": 14}]
+        totals_ace, _ = build_team_totals(ace_only_slots, projections)
+
+        assert weights_with[2] == 0.0
+        assert weights_with[1] == 1.0
+        # Zero-weighting is equivalent to absence for all count & rate-weighted sums
+        assert totals_with.k == pytest.approx(totals_ace.k)
+        assert totals_with.qs == pytest.approx(totals_ace.qs)
+        assert totals_with.total_ip == pytest.approx(totals_ace.total_ip)
+        assert totals_with.weighted_era == pytest.approx(totals_ace.weighted_era)
+        assert totals_with.weighted_whip == pytest.approx(totals_ace.weighted_whip)
+
 
 class TestIdentifyStreamSlot:
     def test_picks_highest_rank_pitcher(self):

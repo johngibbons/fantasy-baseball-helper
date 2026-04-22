@@ -339,12 +339,14 @@ IL_SLOT_THRESHOLD = 17  # ESPN lineup_slot_id >= 17 means IL
 def build_team_totals(
     roster_slots: list[dict],
     projections: dict[int, PlayerProjection],
+    stream_slot_id: Optional[int] = None,
 ) -> tuple[TeamTotals, dict[int, float]]:
     """Build team totals using lineup-optimized weights.
 
     Pitchers: all non-IL at 1.0 (daily league rotation).
     Hitters: run greedy optimizer to assign active (1.0) or bench (0.20).
     IL: 0.0.
+    Stream slot (if provided): 0.0 — treated as replacement-level.
 
     Returns:
         (TeamTotals, {mlb_id: weight})
@@ -365,6 +367,10 @@ def build_team_totals(
         if slot.get("lineup_slot_id", 0) >= IL_SLOT_THRESHOLD:
             il_ids.add(pid)
             weights[pid] = IL_WEIGHT
+            continue
+
+        if stream_slot_id is not None and pid == stream_slot_id:
+            weights[pid] = 0.0
             continue
 
         if proj.player_type == "pitcher":
