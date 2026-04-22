@@ -406,7 +406,7 @@ def identify_stream_slot(
     Ties broken by lowest proj_ip (fewer innings = more churn-like).
     Returns None if no eligible active pitcher exists.
     """
-    candidates: list[tuple[int, int, float]] = []  # (overall_rank, -ip, mlb_id)
+    candidates: list[tuple[int, float, int]] = []  # (overall_rank, ip, mlb_id)
     for slot in roster_slots:
         if slot.get("lineup_slot_id", 0) >= IL_SLOT_THRESHOLD:
             continue

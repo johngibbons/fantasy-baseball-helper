@@ -146,6 +146,7 @@ class TestIdentifyStreamSlot:
         assert identify_stream_slot(slots, projections) == 1
 
     def test_ignores_hitters(self):
+        """Only pitchers are stream-slot candidates."""
         projections = {
             1: _proj(1, "SP", "SP", "pitcher", overall_rank=60, ip=180),
             2: _proj(2, "WorstBatter", "2B", "hitter", overall_rank=999, r=5),
@@ -164,6 +165,7 @@ class TestIdentifyStreamSlot:
         assert identify_stream_slot(slots, projections) is None
 
     def test_skips_players_without_projections(self):
+        """Players missing from the projections dict are skipped without error."""
         projections = {
             1: _proj(1, "A", "SP", "pitcher", overall_rank=50, ip=180),
         }
