@@ -202,3 +202,149 @@ class TestIdentifyStreamSlot:
             {"mlb_id": 99, "lineup_slot_id": 14},  # no projection
         ]
         assert identify_stream_slot(slots, projections) == 1
+
+
+from unittest.mock import patch
+from backend.analysis.waivers import compute_waiver_recommendations
+
+
+def _build_test_projections():
+    """Minimal roster + opponents + FAs sufficient to exercise the engine."""
+    projs = {}
+    # My roster: 10 hitters + 1 ace + 1 streamer
+    hitter_defs = [
+        (101, "C_Me",   "C",   10, 85, 280, 95, 5, 0.360),
+        (102, "1B_Me",  "1B",  20, 90, 300, 100, 2, 0.370),
+        (103, "2B_Me",  "2B",  30, 80, 240, 70, 20, 0.340),
+        (104, "3B_Me",  "3B",  40, 75, 260, 85, 5, 0.355),
+        (105, "SS_Me",  "SS",  50, 85, 250, 75, 25, 0.345),
+        (106, "OF1_Me", "OF",  60, 95, 310, 100, 8, 0.370),
+        (107, "OF2_Me", "OF",  70, 75, 230, 80, 12, 0.335),
+        (108, "OF3_Me", "OF",  80, 70, 210, 65, 18, 0.325),
+        (109, "DH_Me",  "DH",  90, 100, 330, 120, 0, 0.390),
+        (110, "BenchH", "1B", 300, 40, 120, 40, 3, 0.310),  # bench-worthy
+    ]
+    for pid, name, pos, rk, r, tb, rbi, sb, obp in hitter_defs:
+        projs[pid] = _proj(pid, name, pos, "hitter",
+                           eligible_positions=pos, overall_rank=rk,
+                           pa=600, r=r, tb=tb, rbi=rbi, sb=sb, obp=obp)
+
+    projs[201] = _proj(201, "Ace_Me",      "SP", "pitcher",
+                       overall_rank=25, ip=200, k=240, qs=20,
+                       era=3.10, whip=1.05, svhd=0)
+    projs[202] = _proj(202, "Streamer_Me", "SP", "pitcher",
+                       overall_rank=450, ip=60,  k=40,  qs=2,
+                       era=5.80, whip=1.55, svhd=0)
+
+    # Opponents: 9 copies of a "median" team
+    for i in range(301, 310):
+        projs[i] = _proj(i, f"Opp{i}", "SS", "hitter",
+                         eligible_positions="SS", overall_rank=100,
+                         pa=600, r=75, tb=250, rbi=80, sb=10, obp=0.340)
+    for i in range(401, 410):
+        projs[i] = _proj(i, f"OppSP{i}", "SP", "pitcher",
+                         overall_rank=150, ip=180, k=180, qs=14,
+                         era=3.80, whip=1.25, svhd=0)
+
+    # Free agents
+    projs[501] = _proj(501, "FA_Hitter", "2B", "hitter",
+                       eligible_positions="2B", overall_rank=70,
+                       pa=600, r=90, tb=290, rbi=95, sb=8, obp=0.365)
+    projs[502] = _proj(502, "FA_Pitcher", "SP", "pitcher",
+                       overall_rank=80,  ip=190, k=210, qs=18,
+                       era=3.30, whip=1.10, svhd=0)
+    return projs
+
+
+def _call_engine(**kwargs):
+    """Call compute_waiver_recommendations with _build_test_projections patched in."""
+    projs = _build_test_projections()
+    my_roster_ids = list(range(101, 111)) + [201, 202]
+    my_roster_slots = (
+        [{"mlb_id": i, "lineup_slot_id": 0} for i in range(101, 111)]
+        + [{"mlb_id": 201, "lineup_slot_id": 14},
+           {"mlb_id": 202, "lineup_slot_id": 14}]
+    )
+    # 9 opponent teams, each a median hitter + median pitcher
+    opp_team_slots = [
+        [{"mlb_id": 301 + i, "lineup_slot_id": 0},
+         {"mlb_id": 401 + i, "lineup_slot_id": 14}]
+        for i in range(9)
+    ]
+    fa_ids = [501, 502]
+
+    defaults = dict(
+        my_roster_ids=my_roster_ids,
+        my_roster_slots=my_roster_slots,
+        all_team_roster_slots=opp_team_slots,
+        free_agent_ids=fa_ids,
+        season=2026,
+        remaining_faab=100.0,
+        open_roster_slots=0,
+    )
+    defaults.update(kwargs)
+
+    with patch(
+        "backend.analysis.waivers.load_projections_for_players",
+        return_value=projs,
+    ):
+        return compute_waiver_recommendations(**defaults)
+
+
+class TestComputeWaiverRecommendationsStreamSlot:
+    def test_stream_slot_never_appears_as_drop_when_excluded(self):
+        result = _call_engine(exclude_stream_slot=True, same_type_only=False)
+        drop_ids = [
+            r["drop_player"]["id"]
+            for r in result["recommendations"]
+            if r["drop_player"] is not None
+        ]
+        assert 202 not in drop_ids, f"Stream slot 202 appeared as drop: {drop_ids}"
+
+    def test_stream_slot_included_when_flag_off(self):
+        """Disabling the flag returns to the pre-change behavior."""
+        result = _call_engine(exclude_stream_slot=False, same_type_only=False)
+        drop_ids = [
+            r["drop_player"]["id"]
+            for r in result["recommendations"]
+            if r["drop_player"] is not None
+        ]
+        # Streamer becomes a drop candidate again (for hitter adds)
+        assert 202 in drop_ids
+
+    def test_response_includes_stream_slot_player(self):
+        result = _call_engine(exclude_stream_slot=True)
+        assert result["stream_slot_player"] is not None
+        assert result["stream_slot_player"]["id"] == 202
+        assert result["stream_slot_player"]["name"] == "Streamer_Me"
+
+    def test_response_stream_slot_null_when_flag_off(self):
+        result = _call_engine(exclude_stream_slot=False)
+        assert result["stream_slot_player"] is None
+
+
+class TestComputeWaiverRecommendationsSameType:
+    def test_same_type_only_no_cross_type_drops(self):
+        result = _call_engine(exclude_stream_slot=True, same_type_only=True)
+        for r in result["recommendations"]:
+            if r["drop_player"] is None:
+                continue
+            add_pos = r["add_player"]["position"]
+            drop_pos = r["drop_player"]["position"]
+            add_is_pitcher = add_pos in ("SP", "RP", "P")
+            drop_is_pitcher = drop_pos in ("SP", "RP", "P")
+            assert add_is_pitcher == drop_is_pitcher, (
+                f"Cross-type rec: add={add_pos} drop={drop_pos}"
+            )
+
+    def test_same_type_default_off_allows_cross_type(self):
+        """When disabled, the engine can return cross-type recommendations."""
+        result = _call_engine(exclude_stream_slot=False, same_type_only=False)
+        # FA_Hitter (501, hitter) may have a pitcher drop in this mode
+        crosses = [
+            r for r in result["recommendations"]
+            if r["drop_player"] is not None
+            and r["add_player"]["id"] == 501
+            and r["drop_player"]["position"] in ("SP", "RP", "P")
+        ]
+        assert len(crosses) >= 1

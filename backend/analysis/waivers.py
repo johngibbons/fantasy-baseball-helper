@@ -441,21 +441,38 @@ def compute_waiver_recommendations(
     season: int,
     remaining_faab: float = 100.0,
     open_roster_slots: int = 0,
+    exclude_stream_slot: bool = True,
+    same_type_only: bool = True,
 ) -> dict:
     """Compute waiver wire recommendations.
 
     For each (FA, drop) pair, builds the trial roster and re-optimizes the
     lineup to determine proper starter/bench assignments.
+
+    Args:
+        exclude_stream_slot: If True, the user's worst-projected active pitcher
+            is treated as replacement-level (weight 0 in baseline, not a drop
+            candidate). Matches the real-world behavior of streaming that slot.
+        same_type_only: If True, only hitter-for-hitter and pitcher-for-pitcher
+            drops are evaluated. If False, cross-type drops are also considered
+            (tracks one best drop per dropped-player type).
     """
     other_team_ids = [s["mlb_id"] for team in all_team_roster_slots for s in team]
     all_ids = list(set(my_roster_ids + other_team_ids + free_agent_ids))
 
     projections = load_projections_for_players(all_ids, season)
 
-    # Build my baseline using lineup optimization
-    my_totals, my_weights = build_team_totals(my_roster_slots, projections)
+    # Identify stream slot (may be None)
+    stream_slot_id: Optional[int] = None
+    if exclude_stream_slot:
+        stream_slot_id = identify_stream_slot(my_roster_slots, projections)
 
-    # Build other teams' totals
+    # Build my baseline using lineup optimization
+    my_totals, my_weights = build_team_totals(
+        my_roster_slots, projections, stream_slot_id=stream_slot_id,
+    )
+
+    # Build other teams' totals (stream-slot logic is user-only in v1)
     other_team_totals: list[TeamTotals] = []
     for team_slots in all_team_roster_slots:
         tt, _ = build_team_totals(team_slots, projections)
@@ -471,13 +488,16 @@ def compute_waiver_recommendations(
     my_cat_values = my_totals.category_values()
     other_cat_values = [t.category_values() for t in other_team_totals]
     logger.info(f"My team category values: {my_cat_values}")
+    logger.info(f"Stream slot id: {stream_slot_id}, same_type_only: {same_type_only}")
     baseline_wins, baseline_cat_probs = compute_expected_wins(my_cat_values, other_cat_values)
 
-    # Identify droppable players (exclude IL)
+    # Identify droppable players (exclude IL and stream slot)
     droppable_ids: list[int] = []
     for slot in my_roster_slots:
         pid = slot["mlb_id"]
         if slot.get("lineup_slot_id", 0) >= IL_SLOT_THRESHOLD:
+            continue
+        if stream_slot_id is not None and pid == stream_slot_id:
             continue
         droppable_ids.append(pid)
 
@@ -489,16 +509,16 @@ def compute_waiver_recommendations(
         if not fa_proj:
             continue
 
-        # Track best drop per dropped-player type so cross-type swaps
-        # (e.g. drop worst pitcher for a hitter) don't hide same-type
-        # upgrades (e.g. drop worst hitter for a better hitter).
+        # Track best drop per dropped-player type (or just "same_type" when filtered)
         # Keys: "no_drop", "hitter", "pitcher"
         best_drops: dict[str, dict] = {}
 
         # Try "add without drop" if open roster slots available
         if open_roster_slots > 0:
             trial_slots = list(my_roster_slots) + [{"mlb_id": fa_id, "lineup_slot_id": 0}]
-            trial_totals, _ = build_team_totals(trial_slots, projections)
+            trial_totals, _ = build_team_totals(
+                trial_slots, projections, stream_slot_id=stream_slot_id,
+            )
             trial_cat_values = trial_totals.category_values()
             trial_wins, trial_cat_probs = compute_expected_wins(trial_cat_values, other_cat_values)
             delta = trial_wins - baseline_wins
@@ -523,10 +543,16 @@ def compute_waiver_recommendations(
 
             drop_type = drop_proj.player_type  # "hitter" or "pitcher"
 
+            # Same-type filter: skip cross-type drops when enabled
+            if same_type_only and drop_type != fa_proj.player_type:
+                continue
+
             trial_slots = [s for s in my_roster_slots if s["mlb_id"] != drop_id]
             trial_slots.append({"mlb_id": fa_id, "lineup_slot_id": 0})
 
-            trial_totals, _ = build_team_totals(trial_slots, projections)
+            trial_totals, _ = build_team_totals(
+                trial_slots, projections, stream_slot_id=stream_slot_id,
+            )
             trial_cat_values = trial_totals.category_values()
             trial_wins, trial_cat_probs = compute_expected_wins(trial_cat_values, other_cat_values)
             delta = trial_wins - baseline_wins
@@ -575,10 +601,21 @@ def compute_waiver_recommendations(
     recommendations.sort(key=lambda r: r.delta_expected_wins, reverse=True)
     _assign_faab_bids(recommendations, remaining_faab)
 
+    stream_slot_payload = None
+    if stream_slot_id is not None:
+        sp = projections.get(stream_slot_id)
+        if sp is not None:
+            stream_slot_payload = {
+                "id": stream_slot_id,
+                "name": sp.name,
+                "position": sp.position,
+            }
+
     return {
         "baseline_expected_wins": round(baseline_wins, 3),
         "baseline_category_probs": {cat: round(v, 4) for cat, v in baseline_cat_probs.items()},
         "my_team_totals": {k: round(v, 3) for k, v in my_cat_values.items()},
+        "stream_slot_player": stream_slot_payload,
         "projection_coverage": {
             "my_roster": f"{my_roster_with_proj}/{len(my_roster_ids)}",
             "missing_ids": my_roster_without_proj[:10],
