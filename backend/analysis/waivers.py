@@ -396,6 +396,34 @@ def build_team_totals(
     return totals, weights
 
 
+def identify_stream_slot(
+    roster_slots: list[dict],
+    projections: dict[int, PlayerProjection],
+) -> Optional[int]:
+    """Pick the stream-slot pitcher: worst active pitcher by projection.
+
+    "Worst" = highest overall_rank (rank 500 is worse than rank 50).
+    Ties broken by lowest proj_ip (fewer innings = more churn-like).
+    Returns None if no eligible active pitcher exists.
+    """
+    candidates: list[tuple[int, int, float]] = []  # (overall_rank, -ip, mlb_id)
+    for slot in roster_slots:
+        if slot.get("lineup_slot_id", 0) >= IL_SLOT_THRESHOLD:
+            continue
+        pid = slot["mlb_id"]
+        proj = projections.get(pid)
+        if not proj or proj.player_type != "pitcher":
+            continue
+        candidates.append((proj.overall_rank, proj.ip, pid))
+
+    if not candidates:
+        return None
+
+    # Highest rank wins; tie-break by lowest ip
+    candidates.sort(key=lambda t: (-t[0], t[1]))
+    return candidates[0][2]
+
+
 # ── Core recommendation engine ────────────────────────────────────────────────
 
 

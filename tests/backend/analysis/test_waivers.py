@@ -7,6 +7,7 @@ from backend.analysis.waivers import (
     HITTER_BENCH_WEIGHT,
     IL_WEIGHT,
 )
+from backend.analysis.waivers import identify_stream_slot
 
 
 def _proj(mlb_id, name, position, player_type,
@@ -110,3 +111,64 @@ class TestBuildTeamTotals:
         _, trial_weights = build_team_totals(trial_slots, trial_projs)
         assert trial_weights[99] == pytest.approx(1.0)
         assert trial_weights[2] == pytest.approx(HITTER_BENCH_WEIGHT)
+
+
+class TestIdentifyStreamSlot:
+    def test_picks_highest_rank_pitcher(self):
+        """Highest overall_rank = worst projection = stream slot."""
+        projections = {
+            1: _proj(1, "Ace",    "SP", "pitcher", overall_rank=20,  ip=180),
+            2: _proj(2, "Mid",    "SP", "pitcher", overall_rank=120, ip=150),
+            3: _proj(3, "Streamer", "SP", "pitcher", overall_rank=400, ip=80),
+        }
+        slots = [{"mlb_id": i, "lineup_slot_id": 14} for i in (1, 2, 3)]
+        assert identify_stream_slot(slots, projections) == 3
+
+    def test_tie_breaks_by_lowest_ip(self):
+        """Equal overall_rank → fewer IP wins (more churn-like)."""
+        projections = {
+            1: _proj(1, "A", "SP", "pitcher", overall_rank=300, ip=140),
+            2: _proj(2, "B", "SP", "pitcher", overall_rank=300, ip=90),
+        }
+        slots = [{"mlb_id": i, "lineup_slot_id": 14} for i in (1, 2)]
+        assert identify_stream_slot(slots, projections) == 2
+
+    def test_ignores_il_pitchers(self):
+        """IL pitchers are not candidates."""
+        projections = {
+            1: _proj(1, "Active",   "SP", "pitcher", overall_rank=50, ip=180),
+            2: _proj(2, "InjuredWorst", "SP", "pitcher", overall_rank=500, ip=40),
+        }
+        slots = [
+            {"mlb_id": 1, "lineup_slot_id": 14},
+            {"mlb_id": 2, "lineup_slot_id": 17},  # IL
+        ]
+        assert identify_stream_slot(slots, projections) == 1
+
+    def test_ignores_hitters(self):
+        projections = {
+            1: _proj(1, "SP", "SP", "pitcher", overall_rank=60, ip=180),
+            2: _proj(2, "WorstBatter", "2B", "hitter", overall_rank=999, r=5),
+        }
+        slots = [
+            {"mlb_id": 1, "lineup_slot_id": 14},
+            {"mlb_id": 2, "lineup_slot_id": 2},
+        ]
+        assert identify_stream_slot(slots, projections) == 1
+
+    def test_returns_none_when_no_active_pitchers(self):
+        projections = {
+            1: _proj(1, "H", "SS", "hitter", overall_rank=10, r=80),
+        }
+        slots = [{"mlb_id": 1, "lineup_slot_id": 4}]
+        assert identify_stream_slot(slots, projections) is None
+
+    def test_skips_players_without_projections(self):
+        projections = {
+            1: _proj(1, "A", "SP", "pitcher", overall_rank=50, ip=180),
+        }
+        slots = [
+            {"mlb_id": 1, "lineup_slot_id": 14},
+            {"mlb_id": 99, "lineup_slot_id": 14},  # no projection
+        ]
+        assert identify_stream_slot(slots, projections) == 1
