@@ -52,6 +52,7 @@ interface WaiverResults {
   other_teams_count: number
   open_roster_slots: number
   my_roster_display: RosterPlayer[]
+  stream_slot_player: { id: number; name: string; position: string } | null
 }
 
 const CATS = ['R', 'TB', 'RBI', 'SB', 'OBP', 'K', 'QS', 'ERA', 'WHIP', 'SVHD']
@@ -135,6 +136,8 @@ export default function WaiversPage() {
   const [posFilter, setPosFilter] = useState('All')
   const [refreshing, setRefreshing] = useState(false)
   const [refreshStatus, setRefreshStatus] = useState<string | null>(null)
+  const [excludeStreamSlot, setExcludeStreamSlot] = useState(true)
+  const [includeCrossType, setIncludeCrossType] = useState(false)
 
   const handleRefreshProjections = async () => {
     setRefreshing(true)
@@ -196,6 +199,12 @@ export default function WaiversPage() {
     }
   }, [settingsLoaded, selectedLeague, selectedTeam, credentialsOk])
 
+  useEffect(() => {
+    if (!results) return
+    handleFetchRecommendations()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [excludeStreamSlot, includeCrossType])
+
   const hasAllSettings = !!(selectedLeague && selectedTeam)
 
   const handleFetchRecommendations = async () => {
@@ -215,6 +224,8 @@ export default function WaiversPage() {
         body: JSON.stringify({
           leagueId: selectedLeague,
           teamId: selectedTeam,
+          excludeStreamSlot,
+          includeCrossType,
         }),
       })
 
@@ -404,19 +415,67 @@ export default function WaiversPage() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-0.5 text-xs">
                 {rosterBySlot.map(({ slot, players }) => (
-                  players.map((p, i) => (
-                    <div key={`${slot}-${i}`} className="flex items-center gap-1.5 py-0.5">
-                      <span className={`w-6 text-right font-mono font-bold ${slotColors[slot] || 'text-gray-500'}`}>{slot}</span>
-                      {p.mlb_id ? (
-                        <Link href={`/player/${p.mlb_id}`} className={`hover:underline ${slot === 'IL' ? 'text-gray-600 line-through' : 'text-gray-300 hover:text-white'}`}>{p.name}</Link>
-                      ) : (
-                        <span className={slot === 'IL' ? 'text-gray-600 line-through' : 'text-gray-300'}>{p.name}</span>
-                      )}
-                      <span className={`text-[10px] ${posColors[p.position] || 'text-gray-500'}`}>{p.position}</span>
-                    </div>
-                  ))
+                  players.map((p, i) => {
+                    const isStreamSlot = !!(
+                      results.stream_slot_player &&
+                      p.mlb_id === results.stream_slot_player.id &&
+                      excludeStreamSlot
+                    )
+                    return (
+                      <div key={`${slot}-${i}`} className="flex items-center gap-1.5 py-0.5">
+                        <span className={`w-6 text-right font-mono font-bold ${slotColors[slot] || 'text-gray-500'}`}>{slot}</span>
+                        {p.mlb_id ? (
+                          <Link
+                            href={`/player/${p.mlb_id}`}
+                            className={`hover:underline ${
+                              slot === 'IL'
+                                ? 'text-gray-600 line-through'
+                                : isStreamSlot
+                                  ? 'text-gray-500 hover:text-white'
+                                  : 'text-gray-300 hover:text-white'
+                            }`}
+                          >
+                            {p.name}
+                          </Link>
+                        ) : (
+                          <span className={slot === 'IL' ? 'text-gray-600 line-through' : 'text-gray-300'}>{p.name}</span>
+                        )}
+                        <span className={`text-[10px] ${posColors[p.position] || 'text-gray-500'}`}>{p.position}</span>
+                        {isStreamSlot && (
+                          <span className="text-[9px] font-bold text-orange-400 bg-orange-500/10 px-1 rounded">STREAM</span>
+                        )}
+                      </div>
+                    )
+                  })
                 ))}
               </div>
+            </div>
+
+            {/* Recommendation filters */}
+            <div className="flex gap-4 mb-2 text-xs">
+              <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={excludeStreamSlot}
+                  onChange={(e) => setExcludeStreamSlot(e.target.checked)}
+                  className="accent-blue-500"
+                />
+                <span className="text-gray-400">
+                  Exclude stream slot
+                  {results.stream_slot_player && (
+                    <span className="text-gray-500"> ({results.stream_slot_player.name})</span>
+                  )}
+                </span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={includeCrossType}
+                  onChange={(e) => setIncludeCrossType(e.target.checked)}
+                  className="accent-blue-500"
+                />
+                <span className="text-gray-400">Show cross-type swaps</span>
+              </label>
             </div>
 
             {/* Position filter */}
