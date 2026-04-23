@@ -637,6 +637,8 @@ class WaiverRequest(BaseModel):
     remaining_faab: float = 100.0
     season: int = 2026
     open_roster_slots: int = 0
+    exclude_stream_slot: bool = True
+    include_cross_type: bool = False
 
 
 @router.post("/waivers/recommendations")
@@ -707,6 +709,8 @@ def waiver_recommendations(req: WaiverRequest):
         season=req.season,
         remaining_faab=req.remaining_faab,
         open_roster_slots=req.open_roster_slots,
+        exclude_stream_slot=req.exclude_stream_slot,
+        same_type_only=not req.include_cross_type,
     )
     # Collect lineup slot distribution for diagnostics
     my_slot_ids = [p.lineup_slot_id for p in req.my_roster]
