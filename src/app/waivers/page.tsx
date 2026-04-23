@@ -199,8 +199,13 @@ export default function WaiversPage() {
     }
   }, [settingsLoaded, selectedLeague, selectedTeam, credentialsOk])
 
+  // Re-run the waiver query when a toggle flips, but only if we already have
+  // data (avoids fetching on mount) and aren't already fetching (avoids
+  // overlapping requests on rapid clicks). `results` and `loading` are used as
+  // guards and intentionally omitted from deps — including them would cause a
+  // re-fetch on every response arrival or loading transition.
   useEffect(() => {
-    if (!results) return
+    if (!results || loading) return
     handleFetchRecommendations()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [excludeStreamSlot, includeCrossType])
