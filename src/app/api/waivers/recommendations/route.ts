@@ -30,7 +30,13 @@ const MAX_ROSTER_SIZE = 25
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { leagueId, teamId, season = '2026' } = body
+    const {
+      leagueId,
+      teamId,
+      season = '2026',
+      excludeStreamSlot = true,
+      includeCrossType = false,
+    } = body
 
     if (!leagueId || !teamId) {
       return NextResponse.json(
@@ -116,6 +122,8 @@ export async function POST(request: NextRequest) {
         remaining_faab: remainingFaab,
         season: parseInt(season),
         open_roster_slots: openRosterSlots,
+        exclude_stream_slot: excludeStreamSlot,
+        include_cross_type: includeCrossType,
       }),
     })
 
