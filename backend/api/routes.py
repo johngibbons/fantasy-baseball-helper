@@ -915,8 +915,13 @@ def refresh_ros_projections(season: int = Query(2026)):
     if total == 0:
         raise HTTPException(status_code=502, detail="FanGraphs API returned no projection data")
 
+    # Sources that imported rows this refresh are authoritative — a player
+    # absent from them (e.g. Profar post-suspension) should be dropped rather
+    # than backfilled with stale preseason Steamer/ZiPS rows.
+    authoritative = {source for source, n in results.items() if n > 0}
+
     try:
-        calculate_all_zscores(season)
+        calculate_all_zscores(season, authoritative_sources=authoritative)
     except Exception as e:
         tb = traceback.format_exc()
         logger.error(f"Ranking recalculation failed: {e}\n{tb}")
