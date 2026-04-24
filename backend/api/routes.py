@@ -757,6 +757,7 @@ class MatchupRequest(BaseModel):
     actuals: MatchupActuals
     team_games_remaining: dict[str, int] = {}
     probable_pitcher_ids: dict[str, list[int]] = {}  # deprecated, kept for compat
+    probable_pitcher_names_by_date: dict[str, list[str]] = {}  # date → names probable that date
     espn_pp_starts_by_name: dict[str, int] = {}  # pitcher name → PP start count
     remaining_season_games: dict[str, int] = {}
     days_remaining: int = 0
@@ -799,12 +800,23 @@ def matchup_projections(req: MatchupRequest):
     if not my_resolved:
         raise HTTPException(status_code=400, detail="No roster players could be resolved.")
 
+    # Convert probable_pitcher_names_by_date (from Next.js using ESPN names) to
+    # mlb_ids using the same name_to_id map used for roster resolution.
+    probable_pitcher_ids: dict[str, list[int]] = {}
+    for date, names in (req.probable_pitcher_names_by_date or {}).items():
+        ids = [name_to_id[n] for n in names if n in name_to_id]
+        if ids:
+            probable_pitcher_ids[date] = ids
+    # Fall back to the legacy field if the new one wasn't provided.
+    if not probable_pitcher_ids and req.probable_pitcher_ids:
+        probable_pitcher_ids = req.probable_pitcher_ids
+
     result = compute_matchup_projections(
         my_roster=my_resolved,
         opponent_roster=opp_resolved,
         actuals=req.actuals.dict(),
         team_games_remaining=req.team_games_remaining,
-        probable_pitcher_ids=req.probable_pitcher_ids,
+        probable_pitcher_ids=probable_pitcher_ids,
         espn_pp_starts_by_name=req.espn_pp_starts_by_name,
         remaining_season_games=req.remaining_season_games,
         days_remaining=req.days_remaining,

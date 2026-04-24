@@ -148,10 +148,15 @@ export async function POST(request: NextRequest) {
       ESPNApi.getGameIdToDateMap(rangeStart, endDate),
     ])
 
-    // Build ESPN PP start counts per pitcher name.
+    // Build ESPN PP data per pitcher name.
     // ESPN's starterStatusByProGame on each roster entry tells us which
     // games a pitcher is marked as Probable Pitcher — same as PP tags on ESPN.
+    // We produce two structures:
+    //   - espnPPStartsByName: name → total probable starts this matchup (display/per-player)
+    //   - probablePitcherNamesByDate: date → names probable that date (team aggregation)
     const espnPPStartsByName: Record<string, number> = {}
+    const probablePitcherNamesByDate: Record<string, string[]> = {}
+    const remainingDateSet = new Set(remainingDates)
     for (const espnTeamId of [myTeamId, theirSide.teamId]) {
       const entries = rosters[espnTeamId] || []
       for (const entry of entries) {
@@ -161,9 +166,12 @@ export async function POST(request: NextRequest) {
         for (const [gameId, status] of Object.entries(player.starterStatusByProGame)) {
           if (status !== 'PROBABLE') continue
           const date = gameIdToDate[gameId]
-          if (date && remainingDates.includes(date)) {
-            startCount++
+          if (!date || !remainingDateSet.has(date)) continue
+          startCount++
+          if (!probablePitcherNamesByDate[date]) {
+            probablePitcherNamesByDate[date] = []
           }
+          probablePitcherNamesByDate[date].push(player.fullName)
         }
         if (startCount > 0) {
           espnPPStartsByName[player.fullName] = startCount
@@ -171,6 +179,7 @@ export async function POST(request: NextRequest) {
       }
     }
     console.log('ESPN PP starts for matchup:', JSON.stringify(espnPPStartsByName))
+    console.log('ESPN probable pitchers by date:', JSON.stringify(probablePitcherNamesByDate))
 
     // Build roster player lists for both teams
     function buildRosterPayload(espnTeamId: number) {
@@ -218,6 +227,7 @@ export async function POST(request: NextRequest) {
         actuals: { my: myActuals, opponent: oppActuals },
         team_games_remaining: teamGamesRemaining,
         espn_pp_starts_by_name: espnPPStartsByName,
+        probable_pitcher_names_by_date: probablePitcherNamesByDate,
         remaining_season_games: remainingSeasonGames,
         days_remaining: remainingDates.length,
         remaining_dates: remainingDates,

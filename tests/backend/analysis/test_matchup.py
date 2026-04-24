@@ -7,6 +7,7 @@ from backend.analysis.matchup import (
     blend_rate_stat,
     compute_win_probability,
     optimize_daily_lineup,
+    compute_matchup_projections,
 )
 
 
@@ -153,3 +154,87 @@ class TestDailyLineupOptimizer:
         result = optimize_daily_lineup(players)
         assert len(result["starters"]) == 2
         assert len(result["bench"]) == 0
+
+
+class TestMatchupProjectionProbableStarts:
+    """Verify team K/QS aggregation uses per-date probable-pitcher data."""
+
+    def _build_sp(self, mlb_id, name):
+        # 180 IP / 6 per start = 30 projected starts, 210 K → 7 K/start
+        return PlayerProjection(
+            mlb_id=mlb_id, name=name, position="SP", player_type="pitcher",
+            pa=0, r=0, tb=0, rbi=0, sb=0, obp=0.0,
+            ip=180.0, k=210, qs=18, era=3.50, whip=1.20, svhd=0,
+        )
+
+    def _roster_entry(self, mlb_id, name, lineup_slot_id, team="NYY"):
+        return {
+            "mlb_id": mlb_id,
+            "name": name,
+            "position": "SP",
+            "player_type": "pitcher",
+            "lineup_slot_id": lineup_slot_id,
+            "mlb_team": team,
+            "injury_status": "ACTIVE",
+            "eligible_positions": "SP/P",
+        }
+
+    def test_probable_starts_drive_k_projection(self, monkeypatch):
+        """When probable_pitcher_ids lists 3 SP starts, K ≈ 3 × per-start K.
+        Without probable_pitcher_ids, the 0.2 fallback vastly undercounts."""
+        # Build 3 opponent SPs, each projected 7 K/start (210 K / 30 starts)
+        sps = {i: self._build_sp(i, f"SP{i}") for i in (101, 102, 103)}
+
+        def mock_load(ids, season):
+            return {pid: sps[pid] for pid in ids if pid in sps}
+        monkeypatch.setattr("backend.analysis.matchup._load_projections", mock_load)
+
+        opp_roster = [
+            self._roster_entry(101, "SP1", lineup_slot_id=14),
+            self._roster_entry(102, "SP2", lineup_slot_id=14),
+            self._roster_entry(103, "SP3", lineup_slot_id=13),
+        ]
+
+        actuals = {"my": {}, "opponent": {}}
+        team_games_remaining = {"NYY": 3}
+        remaining_season_games = {"NYY": 150}
+        remaining_dates = ["2026-04-25", "2026-04-26", "2026-04-27"]
+
+        # With probable pitcher IDs: each SP probable on exactly one date
+        probable_ids = {
+            "2026-04-25": [101],
+            "2026-04-26": [102],
+            "2026-04-27": [103],
+        }
+        with_probables = compute_matchup_projections(
+            my_roster=[],
+            opponent_roster=opp_roster,
+            actuals=actuals,
+            team_games_remaining=team_games_remaining,
+            probable_pitcher_ids=probable_ids,
+            remaining_season_games=remaining_season_games,
+            days_remaining=len(remaining_dates),
+            remaining_dates=remaining_dates,
+        )
+
+        # Without probable pitcher IDs (legacy buggy behavior): all SPs fall back to 0.2
+        without_probables = compute_matchup_projections(
+            my_roster=[],
+            opponent_roster=opp_roster,
+            actuals=actuals,
+            team_games_remaining=team_games_remaining,
+            probable_pitcher_ids={},
+            remaining_season_games=remaining_season_games,
+            days_remaining=len(remaining_dates),
+            remaining_dates=remaining_dates,
+        )
+
+        k_with = with_probables["categories"]["K"]["opponent_projected_final"]
+        k_without = without_probables["categories"]["K"]["opponent_projected_final"]
+
+        # Expected K with probables: 3 starts × 7 K/start = 21
+        assert k_with == pytest.approx(21.0, abs=1.0)
+        # Expected K without: 3 SPs × 3 days × 0.2 × 7 K = 12.6 (undercount)
+        assert k_without == pytest.approx(12.6, abs=1.0)
+        # The fix should produce materially more K than the fallback
+        assert k_with > k_without * 1.5
