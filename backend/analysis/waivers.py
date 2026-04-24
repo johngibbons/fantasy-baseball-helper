@@ -256,18 +256,30 @@ def load_projections_for_players(
     mlb_ids: list[int],
     season: int,
 ) -> dict[int, PlayerProjection]:
-    """Load projections from the rankings table (same data the draft uses)."""
+    """Load ATC RoS DC projections directly from the projections table.
+
+    Waivers use the raw ATC rest-of-season projection (source='atc') rather
+    than the blended rankings values, because the blend mixes fresh RoS data
+    with preseason full-season data from sources that aren't refreshed daily
+    (steamer/zips), inflating count stats like SVHD.
+    """
     conn = get_connection()
     placeholders = ",".join(["?"] * len(mlb_ids))
     rows = conn.execute(
-        f"""SELECT r.mlb_id, pl.full_name, pl.primary_position, r.player_type,
-                   r.proj_pa, r.proj_r, r.proj_tb, r.proj_rbi, r.proj_sb, r.proj_obp,
-                   r.proj_ip, r.proj_k, r.proj_qs, r.proj_era, r.proj_whip, r.proj_svhd,
-                   pl.eligible_positions, r.overall_rank
-            FROM rankings r
-            JOIN players pl ON r.mlb_id = pl.mlb_id
-            WHERE r.mlb_id IN ({placeholders})
-              AND r.season = ?""",
+        f"""SELECT p.mlb_id, pl.full_name, pl.primary_position, p.player_type,
+                   p.proj_pa, p.proj_runs, p.proj_total_bases, p.proj_rbi,
+                   p.proj_stolen_bases, p.proj_obp,
+                   p.proj_ip, p.proj_pitcher_strikeouts, p.proj_quality_starts,
+                   p.proj_era, p.proj_whip, p.proj_saves, p.proj_holds,
+                   pl.eligible_positions,
+                   COALESCE(r.overall_rank, 9999) AS overall_rank
+            FROM projections p
+            JOIN players pl ON p.mlb_id = pl.mlb_id
+            LEFT JOIN rankings r
+              ON r.mlb_id = p.mlb_id AND r.season = p.season
+            WHERE p.mlb_id IN ({placeholders})
+              AND p.season = ?
+              AND p.source = 'atc'""",
         (*mlb_ids, season),
     ).fetchall()
 
@@ -279,23 +291,23 @@ def load_projections_for_players(
             position=row["primary_position"] or "",
             player_type=row["player_type"] or "hitter",
             pa=row["proj_pa"] or 0,
-            r=row["proj_r"] or 0,
-            tb=row["proj_tb"] or 0,
+            r=row["proj_runs"] or 0,
+            tb=row["proj_total_bases"] or 0,
             rbi=row["proj_rbi"] or 0,
-            sb=row["proj_sb"] or 0,
+            sb=row["proj_stolen_bases"] or 0,
             obp=row["proj_obp"] or 0.0,
             ip=row["proj_ip"] or 0.0,
-            k=row["proj_k"] or 0,
-            qs=row["proj_qs"] or 0,
+            k=row["proj_pitcher_strikeouts"] or 0,
+            qs=row["proj_quality_starts"] or 0,
             era=row["proj_era"] or 0.0,
             whip=row["proj_whip"] or 0.0,
-            svhd=row["proj_svhd"] or 0,
+            svhd=(row["proj_saves"] or 0) + (row["proj_holds"] or 0),
             eligible_positions=row["eligible_positions"] or "",
             overall_rank=row["overall_rank"] or 9999,
         )
 
     conn.close()
-    logger.info(f"Loaded projections for {len(projections)}/{len(mlb_ids)} players from rankings")
+    logger.info(f"Loaded ATC RoS projections for {len(projections)}/{len(mlb_ids)} players")
     return projections
 
 

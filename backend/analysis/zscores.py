@@ -220,116 +220,6 @@ def _compute_sgp_denominators(categories: list[str]) -> dict[str, float]:
     return result
 
 
-def _blend_projection_rows(
-    rows, numeric_fields: list[str], player_type: str = "hitter",
-    authoritative_sources: set[str] | None = None,
-) -> tuple[list[dict], int, float]:
-    """Blend multiple projection sources into one row per player.
-
-    Groups rows by mlb_id, weighted-averages numeric_fields across sources.
-    Source weights reflect empirical projection-system accuracy:
-      - Hitters: THE BAT X 0.40, Steamer 0.30, ZiPS 0.30
-      - Pitchers: Steamer 0.40, THE BAT X 0.30, ZiPS 0.30
-
-    The 'trend' and 'statcast_adjusted' sources are excluded from blending
-    when expert projections are available.  These internal sources use
-    historical stats that penalise players with injury-shortened seasons,
-    while the expert systems (Steamer, THEBATX, ZiPS) already incorporate
-    Statcast data and injury recovery timelines.  Trend/statcast_adjusted
-    are only used as a fallback for players with no expert projections.
-
-    Args:
-        authoritative_sources: If provided and non-empty, a player is only
-            kept in the blend when they have at least one row from one of
-            these sources. This lets an in-season refresh treat absence
-            from ATC/THE BAT X RoS as a "not playing" signal instead of
-            falling back to stale preseason Steamer/ZiPS rows.
-            None or empty set = no filter (pre-existing behavior).
-
-    Returns:
-        (blended_rows, player_count, avg_sources_per_player)
-    """
-    _EXPERT_SOURCES = {"atc", "steamer", "thebatx", "zips"}
-    _INTERNAL_SOURCES = {"trend", "statcast_adjusted"}
-
-    # Source-specific weights (keys must match the 'source' column values).
-    # ATC is a pre-blended consensus system, so it gets full weight on its own.
-    # Individual systems are used as fallback when ATC is unavailable.
-    _SOURCE_WEIGHTS = {
-        "hitter": {
-            "atc": 1.0,
-            "thebatx": 0.40,
-            "steamer": 0.30,
-            "zips": 0.30,
-            "statcast_adjusted": 0.40,
-            "trend": 0.20,
-        },
-        "pitcher": {
-            "atc": 1.0,
-            "steamer": 0.40,
-            "thebatx": 0.30,
-            "zips": 0.30,
-            "statcast_adjusted": 0.40,
-            "trend": 0.20,
-        },
-    }
-    weights_map = _SOURCE_WEIGHTS.get(player_type, _SOURCE_WEIGHTS["hitter"])
-
-    by_player = defaultdict(list)
-    for row in rows:
-        by_player[row["mlb_id"]].append(row)
-
-    # Drop players who have no row from any authoritative source (e.g. ATC
-    # RoS DC dropped them, so only stale preseason Steamer/ZiPS rows remain).
-    if authoritative_sources:
-        dropped = 0
-        filtered: dict[int, list] = {}
-        for mlb_id, player_rows in by_player.items():
-            if any(r["source"] in authoritative_sources for r in player_rows):
-                filtered[mlb_id] = player_rows
-            else:
-                dropped += 1
-        if dropped:
-            logger.info(
-                f"Dropped {dropped} {player_type}(s) with no authoritative "
-                f"source ({sorted(authoritative_sources)})"
-            )
-        by_player = filtered
-
-    blended = []
-    total_source_count = 0
-    for mlb_id, player_rows in by_player.items():
-        # Exclude trend/statcast_adjusted when any expert source is available.
-        # They use historical stats that penalise injury-shortened seasons;
-        # expert systems already account for Statcast and injury recovery.
-        sources = {r["source"] for r in player_rows}
-        has_expert = bool(sources & _EXPERT_SOURCES)
-        if has_expert:
-            player_rows = [r for r in player_rows if r["source"] not in _INTERNAL_SOURCES]
-
-        total_source_count += len(player_rows)
-        first = player_rows[0]
-        result = {
-            "mlb_id": first["mlb_id"],
-            "full_name": first["full_name"],
-            "primary_position": first["primary_position"],
-            "team": first["team"],
-            "eligible_positions": first["eligible_positions"] if "eligible_positions" in first.keys() else None,
-        }
-        # Weighted blend: look up each source's weight, then normalise so
-        # the weights of the sources actually present sum to 1.0.
-        row_weights = [weights_map.get(r["source"], 0.25) for r in player_rows]
-        total_w = sum(row_weights) or 1.0
-        for field in numeric_fields:
-            result[field] = sum(
-                (r[field] or 0) * w for r, w in zip(player_rows, row_weights)
-            ) / total_w
-        blended.append(result)
-
-    avg_sources = total_source_count / len(blended) if blended else 0
-    return blended, len(by_player), avg_sources
-
-
 def _compute_hitter_replacement_levels(results: list[dict]) -> dict[str, float]:
     """Compute replacement-level z-scores per hitter roster slot.
 
@@ -438,74 +328,40 @@ def _compute_pitcher_replacement_levels(
     return replacement
 
 
-def calculate_hitter_zscores(season: int = 2026, source: str = None,
-                             excluded_ids: set[int] | None = None,
-                             authoritative_sources: set[str] | None = None) -> list[dict]:
+def calculate_hitter_zscores(season: int = 2026, source: str = "atc",
+                             excluded_ids: set[int] | None = None) -> list[dict]:
     """Calculate z-scores for all hitters with projections.
 
     Categories: R, TB, RBI, SB, OBP (weighted by PA)
 
     Args:
-        excluded_ids: If provided, exclude these mlb_ids after blending but
-                      before z-score computation (for draft recalculation).
-        authoritative_sources: If provided and non-empty, drop players who
-                      don't have a row from one of these sources (used by
-                      in-season refresh to reflect ATC RoS DC absence).
+        source: Projection source to read. Defaults to 'atc' — ATC is itself
+                a consensus blend, so re-blending with other systems double-
+                counts and mixes fresh RoS data with stale preseason rows.
+        excluded_ids: If provided, exclude these mlb_ids before z-score
+                      computation (for draft recalculation).
     """
     conn = get_connection()
 
-    _HITTER_NUMERIC = [
-        "proj_pa", "proj_runs", "proj_total_bases", "proj_rbi",
-        "proj_stolen_bases", "proj_obp",
-        "proj_hits", "proj_walks", "proj_hbp", "proj_sac_flies", "proj_at_bats",
-    ]
-
-    # Build query - prefer specific source, fall back to any
-    if source:
-        query = """
-            SELECT p.mlb_id, p.full_name, p.primary_position, p.team,
-                   p.eligible_positions,
-                   pr.proj_pa, pr.proj_runs, pr.proj_total_bases, pr.proj_rbi,
-                   pr.proj_stolen_bases, pr.proj_obp,
-                   pr.proj_hits, pr.proj_walks, pr.proj_hbp, pr.proj_sac_flies, pr.proj_at_bats
-            FROM projections pr
-            JOIN players p ON pr.mlb_id = p.mlb_id
-            WHERE pr.season = ? AND pr.player_type = 'hitter' AND pr.source = ?
-        """
-        rows = conn.execute(query, (season, source)).fetchall()
-    else:
-        query = """
-            SELECT p.mlb_id, p.full_name, p.primary_position, p.team,
-                   p.eligible_positions,
-                   pr.proj_pa, pr.proj_runs, pr.proj_total_bases, pr.proj_rbi,
-                   pr.proj_stolen_bases, pr.proj_obp,
-                   pr.proj_hits, pr.proj_walks, pr.proj_hbp, pr.proj_sac_flies, pr.proj_at_bats,
-                   pr.source
-            FROM projections pr
-            JOIN players p ON pr.mlb_id = p.mlb_id
-            WHERE pr.season = ? AND pr.player_type = 'hitter'
-        """
-        rows = conn.execute(query, (season,)).fetchall()
-
+    query = """
+        SELECT p.mlb_id, p.full_name, p.primary_position, p.team,
+               p.eligible_positions,
+               pr.proj_pa, pr.proj_runs, pr.proj_total_bases, pr.proj_rbi,
+               pr.proj_stolen_bases, pr.proj_obp,
+               pr.proj_hits, pr.proj_walks, pr.proj_hbp, pr.proj_sac_flies, pr.proj_at_bats
+        FROM projections pr
+        JOIN players p ON pr.mlb_id = p.mlb_id
+        WHERE pr.season = ? AND pr.player_type = 'hitter' AND pr.source = ?
+    """
+    rows = conn.execute(query, (season, source)).fetchall()
     conn.close()
 
     if not rows:
-        logger.warning(f"No hitter projections found for {season}")
+        logger.warning(f"No hitter projections found for {season} (source={source})")
         return []
 
-    # Blend multiple sources or use single-source rows as-is
-    if source:
-        rows = [dict(r) for r in rows]
-    else:
-        rows, n_players, avg_src = _blend_projection_rows(
-            rows, _HITTER_NUMERIC, "hitter",
-            authoritative_sources=authoritative_sources,
-        )
-        logger.info(
-            f"Blended projections from multiple sources for {n_players} hitters "
-            f"(avg {avg_src:.1f} sources/player)"
-        )
-    # Exclude drafted players (after blending, before z-score computation)
+    rows = [dict(r) for r in rows]
+
     if excluded_ids:
         rows = [r for r in rows if r["mlb_id"] not in excluded_ids]
 
@@ -774,9 +630,8 @@ def _compute_pitcher_pool_zscores(
     return results
 
 
-def calculate_pitcher_zscores(season: int = 2026, source: str = None,
-                              excluded_ids: set[int] | None = None,
-                              authoritative_sources: set[str] | None = None) -> list[dict]:
+def calculate_pitcher_zscores(season: int = 2026, source: str = "atc",
+                              excluded_ids: set[int] | None = None) -> list[dict]:
     """Calculate z-scores for all pitchers, split into SP and RP pools.
 
     SP categories: K, QS, ERA, WHIP (min 30 IP)
@@ -786,64 +641,31 @@ def calculate_pitcher_zscores(season: int = 2026, source: str = None,
     then results are combined and sorted by total z-score.
 
     Args:
-        excluded_ids: If provided, exclude these mlb_ids after blending but
-                      before pool splitting (for draft recalculation).
-        authoritative_sources: If provided and non-empty, drop pitchers who
-                      don't have a row from one of these sources.
+        source: Projection source to read. Defaults to 'atc'.
+        excluded_ids: If provided, exclude these mlb_ids before pool splitting
+                      (for draft recalculation).
     """
-    _PITCHER_NUMERIC = [
-        "proj_ip", "proj_pitcher_strikeouts", "proj_quality_starts",
-        "proj_era", "proj_whip", "proj_saves", "proj_holds",
-        "proj_hits_allowed", "proj_walks_allowed", "proj_earned_runs",
-    ]
-
     conn = get_connection()
 
-    # Query all pitchers without IP filter — filtering happens per-pool
-    if source:
-        query = """
-            SELECT p.mlb_id, p.full_name, p.primary_position, p.team,
-                   pr.proj_ip, pr.proj_pitcher_strikeouts, pr.proj_quality_starts,
-                   pr.proj_era, pr.proj_whip, pr.proj_saves, pr.proj_holds,
-                   pr.proj_hits_allowed, pr.proj_walks_allowed, pr.proj_earned_runs
-            FROM projections pr
-            JOIN players p ON pr.mlb_id = p.mlb_id
-            WHERE pr.season = ? AND pr.player_type = 'pitcher' AND pr.source = ?
-        """
-        rows = conn.execute(query, (season, source)).fetchall()
-    else:
-        query = """
-            SELECT p.mlb_id, p.full_name, p.primary_position, p.team,
-                   pr.proj_ip, pr.proj_pitcher_strikeouts, pr.proj_quality_starts,
-                   pr.proj_era, pr.proj_whip, pr.proj_saves, pr.proj_holds,
-                   pr.proj_hits_allowed, pr.proj_walks_allowed, pr.proj_earned_runs,
-                   pr.source
-            FROM projections pr
-            JOIN players p ON pr.mlb_id = p.mlb_id
-            WHERE pr.season = ? AND pr.player_type = 'pitcher'
-        """
-        rows = conn.execute(query, (season,)).fetchall()
-
+    query = """
+        SELECT p.mlb_id, p.full_name, p.primary_position, p.team,
+               pr.proj_ip, pr.proj_pitcher_strikeouts, pr.proj_quality_starts,
+               pr.proj_era, pr.proj_whip, pr.proj_saves, pr.proj_holds,
+               pr.proj_hits_allowed, pr.proj_walks_allowed, pr.proj_earned_runs
+        FROM projections pr
+        JOIN players p ON pr.mlb_id = p.mlb_id
+        WHERE pr.season = ? AND pr.player_type = 'pitcher' AND pr.source = ?
+    """
+    rows = conn.execute(query, (season, source)).fetchall()
     conn.close()
 
     if not rows:
-        logger.warning(f"No pitcher projections found for {season}")
+        logger.warning(f"No pitcher projections found for {season} (source={source})")
         return []
 
-    # Blend multiple sources or use single-source rows as-is
-    if source:
-        rows = [dict(r) for r in rows]
-    else:
-        rows, n_players, avg_src = _blend_projection_rows(
-            rows, _PITCHER_NUMERIC, "pitcher",
-            authoritative_sources=authoritative_sources,
-        )
-        logger.info(
-            f"Blended projections from multiple sources for {n_players} pitchers "
-            f"(avg {avg_src:.1f} sources/player)"
-        )
+    rows = [dict(r) for r in rows]
 
-    # Exclude drafted players (after blending, before pool splitting)
+    # Exclude drafted players (before pool splitting)
     if excluded_ids:
         rows = [r for r in rows if r["mlb_id"] not in excluded_ids]
 
@@ -905,24 +727,22 @@ def calculate_pitcher_zscores(season: int = 2026, source: str = None,
     return results
 
 
-def calculate_all_zscores(season: int = 2026, source: str = None,
+def calculate_all_zscores(season: int = 2026, source: str = "atc",
                           excluded_ids: set[int] | None = None,
-                          save_to_db: bool = True,
-                          authoritative_sources: set[str] | None = None):
+                          save_to_db: bool = True):
     """Calculate z-scores for all players and optionally save to rankings table.
 
     Args:
+        source: Projection source. Defaults to 'atc' — ATC is already a
+                consensus blend, so re-blending with individual systems
+                (Steamer/ZiPS/THE BAT X) double-counts and also mixes fresh
+                RoS data with stale preseason rows for non-refreshed sources.
         excluded_ids: If provided, exclude these mlb_ids from the player pool
                       before computing z-scores (for draft recalculation).
         save_to_db: If False, skip writing to the rankings table (ephemeral results).
-        authoritative_sources: If provided and non-empty, drop players who
-                      don't have a row from one of these sources. Used by
-                      in-season refresh to treat ATC RoS DC absence as a
-                      "not playing" signal instead of falling back to stale
-                      preseason Steamer/ZiPS rows.
     """
-    hitters = calculate_hitter_zscores(season, source, excluded_ids, authoritative_sources)
-    pitchers = calculate_pitcher_zscores(season, source, excluded_ids, authoritative_sources)
+    hitters = calculate_hitter_zscores(season, source, excluded_ids)
+    pitchers = calculate_pitcher_zscores(season, source, excluded_ids)
 
     # ── Merge two-way players ──
     # A true two-way player (e.g. Ohtani) appears in BOTH the hitters and
@@ -1050,10 +870,9 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
 
     if save_to_db:
         conn = get_connection()
-        # Remove rankings for players no longer in the blend (e.g. filtered
-        # out by authoritative_sources or no longer in any projection source).
-        # UPSERTing only updates rows we touch; without this, stale preseason
-        # rankings linger for players dropped by ATC/THE BAT X.
+        # Remove rankings for players no longer in the source (e.g. dropped
+        # by ATC during an in-season refresh). UPSERTing only updates rows we
+        # touch; without this, stale rankings linger for dropped players.
         if all_players:
             current_ids = [p["mlb_id"] for p in all_players]
             placeholders = ",".join("?" * len(current_ids))
