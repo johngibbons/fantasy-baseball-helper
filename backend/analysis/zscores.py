@@ -1050,6 +1050,19 @@ def calculate_all_zscores(season: int = 2026, source: str = None,
 
     if save_to_db:
         conn = get_connection()
+        # Remove rankings for players no longer in the blend (e.g. filtered
+        # out by authoritative_sources or no longer in any projection source).
+        # UPSERTing only updates rows we touch; without this, stale preseason
+        # rankings linger for players dropped by ATC/THE BAT X.
+        if all_players:
+            current_ids = [p["mlb_id"] for p in all_players]
+            placeholders = ",".join("?" * len(current_ids))
+            deleted = conn.execute(
+                f"DELETE FROM rankings WHERE season = ? AND mlb_id NOT IN ({placeholders})",
+                (season, *current_ids),
+            ).rowcount
+            if deleted:
+                logger.info(f"Deleted {deleted} stale rankings rows for season {season}")
         for p in all_players:
             conn.execute(
                 """INSERT INTO rankings
