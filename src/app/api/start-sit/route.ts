@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { ESPNApi } from '@/lib/espn-api'
 import { getMatchupDateRange, getMatchupEndDateForDate, toLocalDateStr } from '@/lib/matchup-schedule'
+import { getTeamGamesInRange } from '@/lib/mlb-schedule'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
 
@@ -151,8 +152,22 @@ export async function POST(request: NextRequest) {
     const todayStr = toLocalDateStr(today)
 
     // Use hardcoded league schedule (same as matchup page)
-    const { endDate, daysRemaining } = getMatchupDateRange(matchupPeriod, today)
+    const { endDate } = getMatchupDateRange(matchupPeriod, today)
     const endDateStr = endDate
+
+    // Days remaining = dates from today through endDate that still have unstarted
+    // games. Today is included in the morning before first pitch; it falls off
+    // once games go live or final.
+    const rangeStart = todayStr <= endDateStr ? todayStr : endDateStr
+    let daysRemaining: number
+    try {
+      const schedule = await getTeamGamesInRange(rangeStart, endDateStr)
+      daysRemaining = schedule.datesWithUnstartedGames.length
+    } catch (e) {
+      console.warn('Failed to fetch MLB schedule for days_remaining; falling back to date math:', e)
+      const { daysRemaining: fallback } = getMatchupDateRange(matchupPeriod, today)
+      daysRemaining = fallback
+    }
 
     // Streaming targets tomorrow (waiver claims process overnight)
     const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
