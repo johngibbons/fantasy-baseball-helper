@@ -24,7 +24,7 @@ export interface ProbablePitcherEntry {
 export async function getTeamGamesInRange(
   startDate: string,
   endDate: string,
-): Promise<TeamGamesRemaining> {
+): Promise<{ teamGames: TeamGamesRemaining; datesWithUnstartedGames: string[] }> {
   const url = `${MLB_API_BASE}/schedule?sportId=1&startDate=${startDate}&endDate=${endDate}`
   const response = await fetch(url)
   if (!response.ok) {
@@ -33,10 +33,16 @@ export async function getTeamGamesInRange(
 
   const data = await response.json()
   const teamGames: Record<string, number> = {}
+  const dateSet = new Set<string>()
 
   for (const dateEntry of data.dates || []) {
+    const date = dateEntry.date as string
     for (const game of dateEntry.games || []) {
-      if (game.status?.abstractGameCode === 'F' || game.gameType !== 'R') continue
+      if (game.gameType !== 'R') continue
+      // Only count games that haven't started yet — Live ('L') and Final ('F')
+      // games are already represented in actuals, so projecting them again would
+      // double-count.
+      if (game.status?.abstractGameCode !== 'P') continue
       const homeId = game.teams?.home?.team?.id
       const awayId = game.teams?.away?.team?.id
       if (homeId) {
@@ -47,10 +53,12 @@ export async function getTeamGamesInRange(
         const abbrev = MLB_TEAM_ABBREVS[awayId] || `T${awayId}`
         teamGames[abbrev] = (teamGames[abbrev] || 0) + 1
       }
+      dateSet.add(date)
     }
   }
 
-  return teamGames
+  const datesWithUnstartedGames = [...dateSet].sort()
+  return { teamGames, datesWithUnstartedGames }
 }
 
 export async function getProbablePitchers(

@@ -129,24 +129,22 @@ export async function POST(request: NextRequest) {
 
     // Compute matchup date range from ESPN league settings
     const today = new Date()
-    const { startDate, endDate, daysRemaining } = getMatchupDateRange(matchupPeriod, today)
+    const { startDate, endDate } = getMatchupDateRange(matchupPeriod, today)
+    const todayStr = toLocalDateStr(today)
+    const rangeStart = todayStr <= endDate ? todayStr : endDate
 
-    // Build remaining dates list for MLB schedule queries (local timezone-safe)
-    const remainingDates: string[] = []
-    const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
-    while (toLocalDateStr(cursor) <= endDate) {
-      remainingDates.push(toLocalDateStr(cursor))
-      cursor.setDate(cursor.getDate() + 1)
-    }
-    console.log(`Matchup ${matchupPeriod}: ${startDate} to ${endDate}, ${daysRemaining} days remaining`)
-
-    // Fetch MLB data in parallel
-    const rangeStart = remainingDates.length > 0 ? remainingDates[0] : endDate
-    const [teamGamesRemaining, remainingSeasonGames, gameIdToDate] = await Promise.all([
+    // Fetch MLB data in parallel.
+    // getTeamGamesInRange returns only games that haven't started yet ('P' status),
+    // so today is included if its games are still scheduled, and excluded once
+    // games are live/final (their stats are already in actuals).
+    const [scheduleResult, remainingSeasonGames, gameIdToDate] = await Promise.all([
       getTeamGamesInRange(rangeStart, endDate),
       getRemainingSeasonGames(season),
       ESPNApi.getGameIdToDateMap(rangeStart, endDate),
     ])
+    const teamGamesRemaining = scheduleResult.teamGames
+    const remainingDates = scheduleResult.datesWithUnstartedGames
+    console.log(`Matchup ${matchupPeriod}: ${startDate} to ${endDate}, ${remainingDates.length} days remaining (${remainingDates.join(', ')})`)
 
     // Build ESPN PP data per pitcher name.
     // ESPN's starterStatusByProGame on each roster entry tells us which
