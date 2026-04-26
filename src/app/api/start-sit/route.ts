@@ -155,14 +155,16 @@ export async function POST(request: NextRequest) {
     const { endDate } = getMatchupDateRange(matchupPeriod, today)
     const endDateStr = endDate
 
-    // Days remaining = dates from today through endDate that still have unstarted
-    // games. Today is included in the morning before first pitch; it falls off
-    // once games go live or final.
+    // Days remaining = dates from today (local) through endDate that have a
+    // regular-season game. Today stays in the count until the local clock
+    // rolls past midnight; ESPN's actuals lag by ~a day, so dropping today
+    // when its games go live would leave a gap where neither projections nor
+    // actuals reflect today's stats.
     const rangeStart = todayStr <= endDateStr ? todayStr : endDateStr
     let daysRemaining: number
     try {
       const schedule = await getTeamGamesInRange(rangeStart, endDateStr)
-      daysRemaining = schedule.datesWithUnstartedGames.length
+      daysRemaining = schedule.datesWithGames.length
     } catch (e) {
       console.warn('Failed to fetch MLB schedule for days_remaining; falling back to date math:', e)
       const { daysRemaining: fallback } = getMatchupDateRange(matchupPeriod, today)

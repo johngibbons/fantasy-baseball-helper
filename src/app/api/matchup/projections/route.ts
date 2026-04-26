@@ -134,16 +134,17 @@ export async function POST(request: NextRequest) {
     const rangeStart = todayStr <= endDate ? todayStr : endDate
 
     // Fetch MLB data in parallel.
-    // getTeamGamesInRange returns only games that haven't started yet ('P' status),
-    // so today is included if its games are still scheduled, and excluded once
-    // games are live/final (their stats are already in actuals).
+    // remainingDates = every date from today (local) through end of matchup that
+    // has a regular-season game. ESPN's actuals lag by ~a day, so we keep today
+    // in the projection until local midnight rolls over rather than dropping it
+    // when games go live.
     const [scheduleResult, remainingSeasonGames, gameIdToDate] = await Promise.all([
       getTeamGamesInRange(rangeStart, endDate),
       getRemainingSeasonGames(season),
       ESPNApi.getGameIdToDateMap(rangeStart, endDate),
     ])
     const teamGamesRemaining = scheduleResult.teamGames
-    const remainingDates = scheduleResult.datesWithUnstartedGames
+    const remainingDates = scheduleResult.datesWithGames
     console.log(`Matchup ${matchupPeriod}: ${startDate} to ${endDate}, ${remainingDates.length} days remaining (${remainingDates.join(', ')})`)
 
     // Build ESPN PP data per pitcher name.

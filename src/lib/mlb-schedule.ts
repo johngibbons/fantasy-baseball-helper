@@ -24,7 +24,7 @@ export interface ProbablePitcherEntry {
 export async function getTeamGamesInRange(
   startDate: string,
   endDate: string,
-): Promise<{ teamGames: TeamGamesRemaining; datesWithUnstartedGames: string[] }> {
+): Promise<{ teamGames: TeamGamesRemaining; datesWithGames: string[] }> {
   const url = `${MLB_API_BASE}/schedule?sportId=1&startDate=${startDate}&endDate=${endDate}`
   const response = await fetch(url)
   if (!response.ok) {
@@ -39,10 +39,12 @@ export async function getTeamGamesInRange(
     const date = dateEntry.date as string
     for (const game of dateEntry.games || []) {
       if (game.gameType !== 'R') continue
-      // Only count games that haven't started yet — Live ('L') and Final ('F')
-      // games are already represented in actuals, so projecting them again would
-      // double-count.
-      if (game.status?.abstractGameCode !== 'P') continue
+      // Count every regular-season game from startDate onward regardless of
+      // status. ESPN's matchup actuals lag by ~a day, so projections need to
+      // keep covering today's games until the local clock rolls past midnight
+      // (callers pass today's local date as startDate, so the cutover is
+      // automatic). Filtering live/final games here would create a window
+      // where neither projections nor actuals reflect today's stats.
       const homeId = game.teams?.home?.team?.id
       const awayId = game.teams?.away?.team?.id
       if (homeId) {
@@ -57,8 +59,8 @@ export async function getTeamGamesInRange(
     }
   }
 
-  const datesWithUnstartedGames = [...dateSet].sort()
-  return { teamGames, datesWithUnstartedGames }
+  const datesWithGames = [...dateSet].sort()
+  return { teamGames, datesWithGames }
 }
 
 export async function getProbablePitchers(
