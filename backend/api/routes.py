@@ -999,3 +999,42 @@ def start_sit_preview(req: StartSitPreviewRequest):
         end_date=req.end_date,
         all_rostered_names=req.all_rostered_names,
     )
+
+
+# ── Performance (projection vs. actual) ──
+
+
+class PerformanceRequest(BaseModel):
+    season: int = 2026
+    player_type: str  # 'hitter' or 'pitcher'
+    season_elapsed_fraction: float
+
+
+@router.post("/performance")
+def get_performance(req: PerformanceRequest):
+    """Per-player projection vs. season-to-date actuals with volume + rate deltas."""
+    from backend.analysis.performance import compute_performance
+
+    if req.player_type not in ("hitter", "pitcher"):
+        raise HTTPException(status_code=400, detail="player_type must be 'hitter' or 'pitcher'")
+
+    rows = compute_performance(req.season, req.player_type, req.season_elapsed_fraction)
+    return {"rows": rows}
+
+
+class PerformanceRefreshRequest(BaseModel):
+    season: int = 2026
+    player_type: str = "all"  # 'all', 'hitter', or 'pitcher'
+
+
+@router.post("/performance/refresh")
+def refresh_performance(req: PerformanceRefreshRequest):
+    """Re-sync season-to-date stats from the MLB Stats API into the local DB."""
+    import asyncio
+    from backend.data.sync import sync_stats
+
+    if req.player_type not in ("all", "hitter", "pitcher"):
+        raise HTTPException(status_code=400, detail="player_type must be 'all', 'hitter', or 'pitcher'")
+
+    asyncio.run(sync_stats(req.season, req.player_type))
+    return {"ok": True, "season": req.season, "player_type": req.player_type}

@@ -12,6 +12,7 @@ const navItems = [
   { href: '/trades', label: 'Trades' },
   { href: '/start-sit', label: 'Start/Sit' },
   { href: '/matchup', label: 'Matchup' },
+  { href: '/performance', label: 'Performance' },
   { href: '/players', label: 'Player Search' },
   { href: '/leagues', label: 'Leagues' },
   { href: '/settings', label: 'Settings' },
