@@ -298,7 +298,7 @@ function PerformanceTable({
       </table>
       {sorted.length > showLimit && (
         <div className="px-2 py-2 text-xs text-gray-500 text-center">
-          Showing {showLimit} of {sorted.length}. Use position filter or "Show all" to expand.
+          Showing {showLimit} of {sorted.length}. Use position filter or &ldquo;Show all&rdquo; to expand.
         </div>
       )}
     </div>
@@ -651,7 +651,7 @@ export default function PerformancePage() {
             <div className="mt-4 text-xs text-gray-500 leading-relaxed">
               <strong className="text-gray-400">Volume Δ</strong> = actual − (full-season projection × {elapsedPct}% season elapsed). Captures injury/missed time + slumps.{' '}
               <strong className="text-gray-400">Rate Δ</strong> = actual per-PA (hitters) / per-IP (pitchers, K/9) − projected. Captures pure quality.
-              For OBP / ERA / WHIP, only the rate Δ is shown (volume framing isn't meaningful for rate stats).
+              For OBP / ERA / WHIP, only the rate Δ is shown (volume framing isn&apos;t meaningful for rate stats).
               Hover any number for actual vs. expected values.
             </div>
           </>
