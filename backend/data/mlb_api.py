@@ -101,6 +101,12 @@ async def get_batting_stats(mlb_id: int, season: int = 2025) -> Optional[dict]:
     singles = hits - doubles - triples - home_runs
     total_bases = singles + (2 * doubles) + (3 * triples) + (4 * home_runs)
 
+    def _safe_float(val, default=0.0):
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return default
+
     return {
         "mlb_id": mlb_id,
         "season": season,
@@ -119,10 +125,10 @@ async def get_batting_stats(mlb_id: int, season: int = 2025) -> Optional[dict]:
         "strikeouts": s.get("strikeOuts", 0),
         "hit_by_pitch": s.get("hitByPitch", 0),
         "sac_flies": s.get("sacFlies", 0),
-        "batting_average": float(s.get("avg", "0") or 0),
-        "obp": float(s.get("obp", "0") or 0),
-        "slg": float(s.get("slg", "0") or 0),
-        "ops": float(s.get("ops", "0") or 0),
+        "batting_average": _safe_float(s.get("avg", 0), 0.0),
+        "obp": _safe_float(s.get("obp", 0), 0.0),
+        "slg": _safe_float(s.get("slg", 0), 0.0),
+        "ops": _safe_float(s.get("ops", 0), 0.0),
         "total_bases": total_bases,
     }
 
@@ -153,6 +159,12 @@ async def get_pitching_stats(mlb_id: int, season: int = 2025) -> Optional[dict]:
     except (ValueError, TypeError):
         ip = 0.0
 
+    def _safe_float(val, default=0.0):
+        try:
+            return float(val)
+        except (ValueError, TypeError):
+            return default
+
     return {
         "mlb_id": mlb_id,
         "season": season,
@@ -160,8 +172,8 @@ async def get_pitching_stats(mlb_id: int, season: int = 2025) -> Optional[dict]:
         "games_started": s.get("gamesStarted", 0),
         "wins": s.get("wins", 0),
         "losses": s.get("losses", 0),
-        "era": float(s.get("era", "0") or 0),
-        "whip": float(s.get("whip", "0") or 0),
+        "era": _safe_float(s.get("era", 0), 0.0),
+        "whip": _safe_float(s.get("whip", 0), 0.0),
         "innings_pitched": ip,
         "hits_allowed": s.get("hits", 0),
         "runs_allowed": s.get("runs", 0),

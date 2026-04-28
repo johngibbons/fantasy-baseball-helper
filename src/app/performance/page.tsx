@@ -395,18 +395,50 @@ export default function PerformancePage() {
 
   const handleRefreshActuals = async () => {
     setRefreshing(true)
-    setRefreshStatus(null)
+    setRefreshStatus('Starting...')
     try {
       const resp = await fetch('/api/performance/refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ season: 2026, player_type: 'all' }),
+        body: JSON.stringify({ season: 2026 }),
       })
       if (!resp.ok) {
         const t = await resp.text()
         throw new Error(t || `Error ${resp.status}`)
       }
-      setRefreshStatus(`Refreshed at ${new Date().toLocaleTimeString()}`)
+      const startData = await resp.json()
+      if (startData.started === false && startData.reason === 'already_running') {
+        setRefreshStatus('Already running...')
+      }
+
+      // Poll status until done.
+      let last: any = null
+      while (true) {
+        await new Promise((r) => setTimeout(r, 2000))
+        const sResp = await fetch('/api/performance/refresh-status', { cache: 'no-store' })
+        if (!sResp.ok) {
+          throw new Error(`Status check failed: ${sResp.status}`)
+        }
+        const s = await sResp.json()
+        last = s
+        if (s.status === 'running') {
+          const pct = s.total ? Math.round((s.done / s.total) * 100) : 0
+          setRefreshStatus(`Refreshing... ${s.done}/${s.total} (${pct}%)`)
+          continue
+        }
+        if (s.status === 'completed') {
+          setRefreshStatus(
+            `Refreshed at ${new Date().toLocaleTimeString()} — ${s.done} updated, ${s.errors} errors`,
+          )
+          break
+        }
+        if (s.status === 'failed') {
+          throw new Error(s.error_message || 'Refresh failed')
+        }
+        // Idle (rare race) — assume done.
+        break
+      }
+
       await handleFetch()
     } catch (err: any) {
       setRefreshStatus(`Failed: ${err.message}`)

@@ -6,7 +6,7 @@ import logging
 import unicodedata
 
 logger = logging.getLogger(__name__)
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Query, HTTPException
 from pydantic import BaseModel
 from typing import Any, Optional
 from backend.analysis.rankings import (
@@ -1024,17 +1024,32 @@ def get_performance(req: PerformanceRequest):
 
 class PerformanceRefreshRequest(BaseModel):
     season: int = 2026
-    player_type: str = "all"  # 'all', 'hitter', or 'pitcher'
 
 
 @router.post("/performance/refresh")
-def refresh_performance(req: PerformanceRefreshRequest):
-    """Re-sync season-to-date stats from the MLB Stats API into the local DB."""
+def refresh_performance(req: PerformanceRefreshRequest, background_tasks: BackgroundTasks):
+    """Kick off a background refresh of season-to-date actuals (only for ranked
+    players). Returns immediately; poll /performance/refresh/status for progress."""
     import asyncio
-    from backend.data.sync import sync_stats
+    from backend.analysis.performance import (
+        refresh_actuals_for_rankings,
+        get_refresh_state,
+    )
 
-    if req.player_type not in ("all", "hitter", "pitcher"):
-        raise HTTPException(status_code=400, detail="player_type must be 'all', 'hitter', or 'pitcher'")
+    state = get_refresh_state()
+    if state["status"] == "running":
+        return {"started": False, "reason": "already_running", **state}
 
-    asyncio.run(sync_stats(req.season, req.player_type))
-    return {"ok": True, "season": req.season, "player_type": req.player_type}
+    def _runner(season: int):
+        asyncio.run(refresh_actuals_for_rankings(season))
+
+    background_tasks.add_task(_runner, req.season)
+    return {"started": True, "season": req.season}
+
+
+@router.get("/performance/refresh/status")
+def performance_refresh_status():
+    """Return the current background-refresh state."""
+    from backend.analysis.performance import get_refresh_state
+
+    return get_refresh_state()
