@@ -7,6 +7,8 @@ Volume framing: actual vs. (full-season projection × season-elapsed fraction).
 Rate framing:   per-PA / per-IP rate of actual vs. per-PA / per-IP rate of projection.
 """
 
+from __future__ import annotations
+
 import asyncio
 import logging
 import time
