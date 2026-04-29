@@ -231,6 +231,14 @@ function PerformanceTable({
       })
       return arr
     }
+    if (sortCat === 'total') {
+      arr.sort((a, b) => {
+        const va = computeDeltaTotal(a, framing, isPitcher)
+        const vb = computeDeltaTotal(b, framing, isPitcher)
+        return sortDir === 'asc' ? va - vb : vb - va
+      })
+      return arr
+    }
     arr.sort((a, b) => {
       const ca = a.categories[sortCat]
       const cb = b.categories[sortCat]
@@ -268,6 +276,13 @@ function PerformanceTable({
             <th className="px-2 py-2 text-right font-medium whitespace-nowrap">
               {isPitcher ? 'IP' : 'PA'} (act/exp)
             </th>
+            <th
+              className="px-2 py-2 text-right font-medium cursor-pointer hover:text-white whitespace-nowrap"
+              onClick={() => onSortChange('total')}
+              title={`Sort by aggregate Δ across ${framing === 'volume' ? 'counting' : 'all'} cats`}
+            >
+              ΔTotal{arrow('total')}
+            </th>
             {cats.map((cat) => (
               <th
                 key={cat}
@@ -283,7 +298,7 @@ function PerformanceTable({
         <tbody>
           {visible.length === 0 && (
             <tr>
-              <td colSpan={6 + cats.length} className="px-2 py-6 text-center text-gray-500">
+              <td colSpan={7 + cats.length} className="px-2 py-6 text-center text-gray-500">
                 No players match your filters.
               </td>
             </tr>
@@ -297,6 +312,8 @@ function PerformanceTable({
             const posClass = posColors[pos] || 'text-gray-400'
             const paAct = isPitcher ? row.actual_ip ?? 0 : row.actual_pa ?? 0
             const paExp = isPitcher ? (row.expected_ip_to_date ?? 0) : (row.expected_pa_to_date ?? 0)
+            const totalZ = computeDeltaTotal(row, framing, isPitcher)
+            const totalBreakdownStr = totalBreakdown(row, framing, isPitcher)
             return (
               <tr key={row.mlb_id} className={`border-b border-white/[0.04] ${rowBg}`}>
                 <td className="px-2 py-1.5 text-gray-600">{i + 1}</td>
@@ -316,6 +333,12 @@ function PerformanceTable({
                 <td className="px-2 py-1.5 text-right text-gray-400 whitespace-nowrap">
                   <span className="text-gray-300">{Number(paAct).toFixed(isPitcher ? 1 : 0)}</span>
                   <span className="text-gray-600"> / {Number(paExp).toFixed(isPitcher ? 1 : 0)}</span>
+                </td>
+                <td
+                  className={`px-2 py-1.5 text-right whitespace-nowrap ${totalColorClass(totalZ)}`}
+                  title={totalBreakdownStr}
+                >
+                  {fmtTotal(totalZ)}
                 </td>
                 {cats.map((cat) => {
                   const c = row.categories[cat]
