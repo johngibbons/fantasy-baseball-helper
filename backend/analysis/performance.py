@@ -54,6 +54,28 @@ def _delta(actual, expected):
     return actual - expected
 
 
+def _compute_population_zscores(values: list[float | None]) -> list[float | None]:
+    """Convert a list of values to population z-scores.
+
+    None values pass through as None and are excluded from the
+    mean/stddev calculation. If fewer than 2 non-null values exist,
+    or if stddev is 0 (all values identical), every non-null entry
+    maps to 0.0.
+
+    Uses population stddev (divide by N), not sample stddev (N-1) —
+    the ranked player pool *is* the population, not a sample of one.
+    """
+    non_null = [v for v in values if v is not None]
+    if len(non_null) < 2:
+        return [None if v is None else 0.0 for v in values]
+    mean = sum(non_null) / len(non_null)
+    var = sum((v - mean) ** 2 for v in non_null) / len(non_null)
+    stddev = var ** 0.5
+    if stddev == 0:
+        return [None if v is None else 0.0 for v in values]
+    return [None if v is None else (v - mean) / stddev for v in values]
+
+
 def compute_hitter_performance(season: int, season_elapsed_fraction: float) -> list[dict]:
     """Return one row per ranked hitter for the given season."""
     conn = get_connection()
