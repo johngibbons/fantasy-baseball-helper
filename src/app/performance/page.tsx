@@ -389,10 +389,10 @@ export default function PerformancePage() {
   const [framing, setFraming] = useState<'volume' | 'rate'>('volume')
   const [posFilterH, setPosFilterH] = useState('All')
   const [posFilterP, setPosFilterP] = useState('All')
-  const [sortCatH, setSortCatH] = useState<string>('r')
-  const [sortDirH, setSortDirH] = useState<'asc' | 'desc'>('asc')
-  const [sortCatP, setSortCatP] = useState<string>('era')
-  const [sortDirP, setSortDirP] = useState<'asc' | 'desc'>('desc')  // most over-performing ERA = lowest delta
+  const [sortCatH, setSortCatH] = useState<string>('total')
+  const [sortDirH, setSortDirH] = useState<'asc' | 'desc'>('desc')  // top outperformers first
+  const [sortCatP, setSortCatP] = useState<string>('total')
+  const [sortDirP, setSortDirP] = useState<'asc' | 'desc'>('desc')
   const [showAll, setShowAll] = useState(false)
 
   // Load leagues + restore settings
