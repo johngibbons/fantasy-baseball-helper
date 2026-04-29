@@ -334,14 +334,23 @@ def compute_pitcher_performance(season: int, season_elapsed_fraction: float) -> 
     return out
 
 
+_HITTER_CATS_FOR_PERFORMANCE = ["r", "tb", "rbi", "sb", "obp"]
+_PITCHER_CATS_FOR_PERFORMANCE = ["k", "qs", "era", "whip", "svhd"]
+
+
 def compute_performance(
     season: int,
     player_type: Literal["hitter", "pitcher"],
     season_elapsed_fraction: float,
 ) -> list[dict]:
     if player_type == "hitter":
-        return compute_hitter_performance(season, season_elapsed_fraction)
-    return compute_pitcher_performance(season, season_elapsed_fraction)
+        rows = compute_hitter_performance(season, season_elapsed_fraction)
+        cats = _HITTER_CATS_FOR_PERFORMANCE
+    else:
+        rows = compute_pitcher_performance(season, season_elapsed_fraction)
+        cats = _PITCHER_CATS_FOR_PERFORMANCE
+    _attach_delta_zscores(rows, cats)
+    return rows
 
 
 # ── Focused, concurrent refresh of season-to-date actuals ──
