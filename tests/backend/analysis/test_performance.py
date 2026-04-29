@@ -94,6 +94,17 @@ class TestAttachDeltaZscores:
         assert rows[0]["categories"]["whip"]["delta_rate_z"] == pytest.approx(-1.0)
         assert rows[1]["categories"]["whip"]["delta_rate_z"] == pytest.approx(1.0)
 
+    def test_inverted_category_propagates_none_in_mixed_population(self):
+        rows = [
+            {"categories": {"era": {"delta_volume": None, "delta_rate": 0.5}}},
+            {"categories": {"era": {"delta_volume": None, "delta_rate": None}}},
+            {"categories": {"era": {"delta_volume": None, "delta_rate": -0.5}}},
+        ]
+        _attach_delta_zscores(rows, ["era"])
+        assert rows[0]["categories"]["era"]["delta_rate_z"] == pytest.approx(-1.0)
+        assert rows[1]["categories"]["era"]["delta_rate_z"] is None
+        assert rows[2]["categories"]["era"]["delta_rate_z"] == pytest.approx(1.0)
+
     def test_non_inverted_category_not_flipped(self):
         # K: higher is better. Pre-flip z for [10, -10] is [1, -1] — no change.
         rows = [
