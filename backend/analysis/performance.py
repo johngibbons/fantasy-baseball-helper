@@ -334,7 +334,9 @@ def compute_pitcher_performance(season: int, season_elapsed_fraction: float) -> 
     return out
 
 
+# Full 5-cat list for z-score attachment — includes OBP (rate-only), unlike HITTER_COUNTING_CATS.
 _HITTER_CATS_FOR_PERFORMANCE = ["r", "tb", "rbi", "sb", "obp"]
+# Full 5-cat list for z-score attachment — includes ERA/WHIP (inverted), unlike PITCHER_COUNTING_CATS.
 _PITCHER_CATS_FOR_PERFORMANCE = ["k", "qs", "era", "whip", "svhd"]
 
 
