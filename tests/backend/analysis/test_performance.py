@@ -10,7 +10,9 @@ class TestComputePopulationZscores:
         result = _compute_population_zscores([1.0, 2.0, 3.0, 4.0, 5.0])
         std = 2.0 ** 0.5
         assert result[0] == pytest.approx(-2 / std)
+        assert result[1] == pytest.approx(-1 / std)
         assert result[2] == pytest.approx(0.0)
+        assert result[3] == pytest.approx(1 / std)
         assert result[4] == pytest.approx(2 / std)
 
     def test_none_passes_through_and_excluded_from_population(self):
