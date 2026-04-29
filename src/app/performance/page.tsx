@@ -66,8 +66,13 @@ const PITCHER_CATS = ['k', 'qs', 'era', 'whip', 'svhd'] as const
 
 // Categories that contribute to volume framing's ΔTotal (counting cats only —
 // rate stats have no meaningful volume dimension so they're excluded).
-const HITTER_VOLUME_CATS: readonly string[] = ['r', 'tb', 'rbi', 'sb']
-const PITCHER_VOLUME_CATS: readonly string[] = ['k', 'qs', 'svhd']
+const HITTER_VOLUME_CATS = ['r', 'tb', 'rbi', 'sb'] as const
+const PITCHER_VOLUME_CATS = ['k', 'qs', 'svhd'] as const
+
+const CAT_LABEL: Record<string, string> = {
+  r: 'R', tb: 'TB', rbi: 'RBI', sb: 'SB', obp: 'OBP',
+  k: 'K', qs: 'QS', era: 'ERA', whip: 'WHIP', svhd: 'SVHD',
+}
 
 function totalCatsFor(framing: 'volume' | 'rate', isPitcher: boolean): readonly string[] {
   if (framing === 'volume') return isPitcher ? PITCHER_VOLUME_CATS : HITTER_VOLUME_CATS
@@ -106,11 +111,6 @@ function totalBreakdown(row: PerfRow, framing: 'volume' | 'rate', isPitcher: boo
     const s = z > 0 ? '+' : ''
     return `${CAT_LABEL[cat]}: ${s}${z.toFixed(1)}σ`
   }).join(' · ')
-}
-
-const CAT_LABEL: Record<string, string> = {
-  r: 'R', tb: 'TB', rbi: 'RBI', sb: 'SB', obp: 'OBP',
-  k: 'K', qs: 'QS', era: 'ERA', whip: 'WHIP', svhd: 'SVHD',
 }
 
 // Categories where lower is better (ERA, WHIP)
