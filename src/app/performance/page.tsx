@@ -25,6 +25,8 @@ interface CategoryStat {
   proj_rate: number | null
   actual_rate: number | null
   delta_rate: number | null
+  delta_volume_z: number | null
+  delta_rate_z: number | null
 }
 
 interface PerfRow {
@@ -61,6 +63,50 @@ interface PerfResponse {
 
 const HITTER_CATS = ['r', 'tb', 'rbi', 'sb', 'obp'] as const
 const PITCHER_CATS = ['k', 'qs', 'era', 'whip', 'svhd'] as const
+
+// Categories that contribute to volume framing's ΔTotal (counting cats only —
+// rate stats have no meaningful volume dimension so they're excluded).
+const HITTER_VOLUME_CATS: readonly string[] = ['r', 'tb', 'rbi', 'sb']
+const PITCHER_VOLUME_CATS: readonly string[] = ['k', 'qs', 'svhd']
+
+function totalCatsFor(framing: 'volume' | 'rate', isPitcher: boolean): readonly string[] {
+  if (framing === 'volume') return isPitcher ? PITCHER_VOLUME_CATS : HITTER_VOLUME_CATS
+  return isPitcher ? PITCHER_CATS : HITTER_CATS
+}
+
+function computeDeltaTotal(row: PerfRow, framing: 'volume' | 'rate', isPitcher: boolean): number {
+  const cats = totalCatsFor(framing, isPitcher)
+  let sum = 0
+  for (const cat of cats) {
+    const c = row.categories[cat]
+    const z = framing === 'volume' ? c?.delta_volume_z : c?.delta_rate_z
+    sum += z ?? 0
+  }
+  return sum
+}
+
+function totalColorClass(z: number): string {
+  const abs = Math.abs(z)
+  if (abs < 0.1) return 'text-gray-500'
+  if (z > 0) return abs > 3 ? 'text-emerald-300 font-semibold' : 'text-emerald-400'
+  return abs > 3 ? 'text-red-300 font-semibold' : 'text-red-400'
+}
+
+function fmtTotal(z: number): string {
+  const sign = z > 0 ? '+' : ''
+  return `${sign}${z.toFixed(1)}σ`
+}
+
+function totalBreakdown(row: PerfRow, framing: 'volume' | 'rate', isPitcher: boolean): string {
+  const cats = totalCatsFor(framing, isPitcher)
+  return cats.map((cat) => {
+    const c = row.categories[cat]
+    const z = framing === 'volume' ? c?.delta_volume_z : c?.delta_rate_z
+    if (z === null || z === undefined) return `${CAT_LABEL[cat]}: —`
+    const s = z > 0 ? '+' : ''
+    return `${CAT_LABEL[cat]}: ${s}${z.toFixed(1)}σ`
+  }).join(' · ')
+}
 
 const CAT_LABEL: Record<string, string> = {
   r: 'R', tb: 'TB', rbi: 'RBI', sb: 'SB', obp: 'OBP',
