@@ -76,6 +76,32 @@ def _compute_population_zscores(values: list[float | None]) -> list[float | None
     return [None if v is None else (v - mean) / stddev for v in values]
 
 
+# Categories where lower is better — sign-flip the z-score so that
+# positive z always means "performed better than expected" everywhere.
+_INVERTED_FOR_PERFORMANCE = {"era", "whip"}
+
+
+def _attach_delta_zscores(rows: list[dict], cats: list[str]) -> None:
+    """Mutate each row to add delta_volume_z and delta_rate_z under
+    each categories[cat] dict, computed against the population of all
+    rows for that cat.
+
+    For inverted categories (ERA, WHIP), z-scores are sign-flipped so
+    positive means "better than expected" for every category.
+    """
+    for cat in cats:
+        for delta_field, z_field in (
+            ("delta_volume", "delta_volume_z"),
+            ("delta_rate",   "delta_rate_z"),
+        ):
+            values = [row["categories"][cat].get(delta_field) for row in rows]
+            zs = _compute_population_zscores(values)
+            if cat in _INVERTED_FOR_PERFORMANCE:
+                zs = [None if z is None else -z for z in zs]
+            for row, z in zip(rows, zs):
+                row["categories"][cat][z_field] = z
+
+
 def compute_hitter_performance(season: int, season_elapsed_fraction: float) -> list[dict]:
     """Return one row per ranked hitter for the given season."""
     conn = get_connection()
