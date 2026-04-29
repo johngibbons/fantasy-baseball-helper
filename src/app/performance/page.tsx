@@ -249,7 +249,7 @@ function PerformanceTable({
       return sortDir === 'asc' ? av - bv : bv - av
     })
     return arr
-  }, [filtered, sortCat, sortDir, framing])
+  }, [filtered, sortCat, sortDir, framing, isPitcher])
 
   const visible = sorted.slice(0, showLimit)
 
@@ -541,7 +541,7 @@ export default function PerformancePage() {
       setSortDirH(sortDirH === 'asc' ? 'desc' : 'asc')
     } else {
       setSortCatH(cat)
-      setSortDirH('asc')  // default ascending = most negative delta first (under-performers)
+      setSortDirH(cat === 'total' ? 'desc' : 'asc')  // 'total': desc = top performers first; others: asc = most negative delta first (under-performers)
     }
   }
   const onSortPitcher = (cat: string) => {
@@ -550,7 +550,8 @@ export default function PerformancePage() {
     } else {
       setSortCatP(cat)
       // For ERA/WHIP, ascending = best (lowest delta). For counting stats, ascending = worst.
-      setSortDirP(INVERTED.has(cat) ? 'asc' : 'asc')
+      // For 'total', descending = top performers first (the column's intent).
+      setSortDirP(cat === 'total' ? 'desc' : 'asc')
     }
   }
 
