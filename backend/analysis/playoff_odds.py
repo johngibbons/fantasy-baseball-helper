@@ -141,7 +141,6 @@ def simulate_one_season(
     final = {tid: list(rec) for tid, rec in current_records.items()}
 
     # Group periods so we project once per (team, period) pair (caching).
-    periods_seen: set[int] = set()
     period_projections: dict[tuple[int, int], dict[str, float]] = {}
 
     for period_id, home_id, away_id in remaining_schedule:
@@ -165,6 +164,5 @@ def simulate_one_season(
         final[away_id][0] += a_l
         final[away_id][1] += a_w
         final[away_id][2] += a_t
-        periods_seen.add(period_id)
 
     return {tid: tuple(rec) for tid, rec in final.items()}
