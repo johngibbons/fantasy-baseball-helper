@@ -81,3 +81,36 @@ def project_team_period(
         totals.add_player(p, weight=weight)
 
     return totals.category_values()
+
+
+def simulate_head_to_head(
+    team_a_cats: dict[str, float],
+    team_b_cats: dict[str, float],
+    rng: np.random.Generator,
+) -> tuple[int, int, int]:
+    """Simulate one matchup. Returns team_a's (wins, losses, ties) over 10 cats.
+
+    For each category, draw a normal noise term scaled by CATEGORY_SIGMA from
+    matchup.py and add to each team's projected value. Compare and tally W/L/T.
+    """
+    wins = losses = ties = 0
+    for cat in ALL_CATS:
+        sigma = CATEGORY_SIGMA[cat]
+        a_draw = team_a_cats[cat] + rng.normal(0.0, sigma)
+        b_draw = team_b_cats[cat] + rng.normal(0.0, sigma)
+        if cat in INVERTED_CATS:
+            # Lower wins
+            if a_draw < b_draw:
+                wins += 1
+            elif a_draw > b_draw:
+                losses += 1
+            else:
+                ties += 1
+        else:
+            if a_draw > b_draw:
+                wins += 1
+            elif a_draw < b_draw:
+                losses += 1
+            else:
+                ties += 1
+    return wins, losses, ties
