@@ -1,7 +1,8 @@
 // jest.polyfills.js
 // Polyfill Web Fetch API globals required by Next.js 15 at module-load time.
-// Must run via setupFiles (before test framework) so Next.js server code can be
-// imported without crashing on Node 16 which lacks these globals natively.
+// Loaded at the top of jest.config.js (before require('next/jest')) so the
+// polyfill is in place before Next.js code is evaluated. Node 18+ has these
+// globals natively; this only matters when running under Node 16.
 'use strict'
 
 if (typeof globalThis.Request === 'undefined') {

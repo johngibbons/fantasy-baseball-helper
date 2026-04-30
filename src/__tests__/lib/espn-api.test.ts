@@ -278,30 +278,30 @@ describe('ESPN API', () => {
       expect(result).toBe(false)
     })
   })
-})
 
-describe('ESPNApi.getFullSchedule', () => {
-  it('returns every matchup across every period', async () => {
-    const fakeResponse = {
-      schedule: [
-        { matchupPeriodId: 1, home: { teamId: 1 }, away: { teamId: 2 } },
-        { matchupPeriodId: 1, home: { teamId: 3 }, away: { teamId: 4 } },
-        { matchupPeriodId: 2, home: { teamId: 1 }, away: { teamId: 3 } },
-      ],
-    }
-    global.fetch = jest.fn().mockResolvedValue({
-      ok: true,
-      json: async () => fakeResponse,
-    }) as any
+  describe('getFullSchedule', () => {
+    it('returns every matchup across every period', async () => {
+      const fakeResponse = {
+        schedule: [
+          { matchupPeriodId: 1, home: { teamId: 1 }, away: { teamId: 2 } },
+          { matchupPeriodId: 1, home: { teamId: 3 }, away: { teamId: 4 } },
+          { matchupPeriodId: 2, home: { teamId: 1 }, away: { teamId: 3 } },
+        ],
+      }
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => fakeResponse,
+      })
 
-    const result = await ESPNApi.getFullSchedule('77166', '2026', {
-      swid: 'S', espn_s2: 'E',
+      const result = await ESPNApi.getFullSchedule('77166', '2026', {
+        swid: 'S', espn_s2: 'E',
+      })
+
+      expect(result).toHaveLength(3)
+      expect(result[0].matchupPeriodId).toBe(1)
+      expect(result[2].matchupPeriodId).toBe(2)
+      expect(result[2].home.teamId).toBe(1)
+      expect(result[2].away.teamId).toBe(3)
     })
-
-    expect(result).toHaveLength(3)
-    expect(result[0].matchupPeriodId).toBe(1)
-    expect(result[2].matchupPeriodId).toBe(2)
-    expect(result[2].home.teamId).toBe(1)
-    expect(result[2].away.teamId).toBe(3)
   })
 })

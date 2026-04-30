@@ -345,6 +345,11 @@ export class ESPNApi {
     return { schedule }
   }
 
+  /**
+   * Fetch the complete season schedule — all matchup pairings for every
+   * scoring period — without filtering to a single period. Used by the
+   * playoff-odds simulator to build the remaining schedule.
+   */
   static async getFullSchedule(
     leagueId: string,
     season: string,

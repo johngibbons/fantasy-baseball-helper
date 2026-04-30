@@ -1,3 +1,4 @@
+require('./jest.polyfills.js') // must precede require('next/jest') — Next 15 references Web Fetch globals at module-load time
 const nextJest = require('next/jest')
 
 const createJestConfig = nextJest({
@@ -5,7 +6,6 @@ const createJestConfig = nextJest({
 })
 
 const customJestConfig = {
-  setupFiles: ['<rootDir>/jest.polyfills.js'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jest-environment-jsdom',
   testPathIgnorePatterns: [
