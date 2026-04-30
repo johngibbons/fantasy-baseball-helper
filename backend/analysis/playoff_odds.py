@@ -114,3 +114,57 @@ def simulate_head_to_head(
             else:
                 ties += 1
     return wins, losses, ties
+
+
+def simulate_one_season(
+    rosters: dict[int, list[PlayerProjection]],
+    current_records: dict[int, tuple[int, int, int]],
+    remaining_schedule: list[tuple[int, int, int]],
+    period_weights: dict[int, float],
+    rng: np.random.Generator,
+    il_by_team: Optional[dict[int, dict[int, bool]]] = None,
+) -> dict[int, tuple[int, int, int]]:
+    """Run one full simulation of the rest of the regular season.
+
+    Args:
+        rosters: team_id → list of PlayerProjection.
+        current_records: team_id → (wins, losses, ties) at start of sim.
+        remaining_schedule: list of (matchup_period_id, home_team_id, away_team_id).
+        period_weights: matchup_period_id → fraction-of-RoS this period covers.
+        rng: numpy Generator for noise draws.
+        il_by_team: team_id → {mlb_id: True} for IL players. Optional.
+
+    Returns:
+        team_id → final cumulative (wins, losses, ties).
+    """
+    il_by_team = il_by_team or {}
+    final = {tid: list(rec) for tid, rec in current_records.items()}
+
+    # Group periods so we project once per (team, period) pair (caching).
+    periods_seen: set[int] = set()
+    period_projections: dict[tuple[int, int], dict[str, float]] = {}
+
+    for period_id, home_id, away_id in remaining_schedule:
+        weight = period_weights[period_id]
+        # Project each team for this period (cache to avoid recomputation)
+        for team_id in (home_id, away_id):
+            key = (team_id, period_id)
+            if key not in period_projections:
+                period_projections[key] = project_team_period(
+                    roster=rosters[team_id],
+                    period_weight=weight,
+                    il_mlb_ids=il_by_team.get(team_id),
+                )
+        a_cats = period_projections[(home_id, period_id)]
+        b_cats = period_projections[(away_id, period_id)]
+        a_w, a_l, a_t = simulate_head_to_head(a_cats, b_cats, rng)
+        # Home gets a_w/a_l/a_t; away is the inverse (a_l wins, a_w losses, a_t ties)
+        final[home_id][0] += a_w
+        final[home_id][1] += a_l
+        final[home_id][2] += a_t
+        final[away_id][0] += a_l
+        final[away_id][1] += a_w
+        final[away_id][2] += a_t
+        periods_seen.add(period_id)
+
+    return {tid: tuple(rec) for tid, rec in final.items()}

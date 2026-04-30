@@ -109,3 +109,56 @@ class TestSimulateHeadToHead:
         # ~50/50. Average around 2 + 4 = 6.
         avg = wins / 200
         assert 5.0 <= avg <= 7.0
+
+
+from backend.analysis.playoff_odds import simulate_one_season
+
+
+class TestSimulateOneSeason:
+    def _make_rosters(self) -> dict[int, list[PlayerProjection]]:
+        # Two teams of identical strength
+        return {
+            1: [_hitter(i, f"T1_H{i}") for i in range(1, 11)] + [_sp(i, f"T1_P{i}") for i in range(20, 25)],
+            2: [_hitter(i + 100, f"T2_H{i}") for i in range(1, 11)] + [_sp(i + 100, f"T2_P{i}") for i in range(20, 25)],
+        }
+
+    def test_two_team_two_period_balanced(self):
+        rosters = self._make_rosters()
+        current = {1: (0, 0, 0), 2: (0, 0, 0)}
+        schedule = [(1, 1, 2), (2, 1, 2)]  # 2 periods, both same matchup
+        period_weights = {1: 0.5, 2: 0.5}
+        rng = np.random.default_rng(seed=123)
+
+        result = simulate_one_season(
+            rosters=rosters,
+            current_records=current,
+            remaining_schedule=schedule,
+            period_weights=period_weights,
+            rng=rng,
+        )
+
+        # Each team played 2 matchups × 10 cats = 20 cat-decisions
+        for team_id in (1, 2):
+            w, l, t = result[team_id]
+            assert w + l + t == 20
+
+    def test_current_records_carry_forward(self):
+        rosters = self._make_rosters()
+        current = {1: (50, 30, 0), 2: (10, 70, 0)}  # team 1 has huge lead
+        schedule = [(1, 1, 2)]
+        period_weights = {1: 1.0}
+        rng = np.random.default_rng(seed=42)
+
+        result = simulate_one_season(
+            rosters=rosters,
+            current_records=current,
+            remaining_schedule=schedule,
+            period_weights=period_weights,
+            rng=rng,
+        )
+
+        w1, l1, t1 = result[1]
+        # Team 1 should still have far more wins than team 2 after 1 period
+        w2, _, _ = result[2]
+        assert w1 > w2
+        assert w1 >= 50  # carried forward at minimum
