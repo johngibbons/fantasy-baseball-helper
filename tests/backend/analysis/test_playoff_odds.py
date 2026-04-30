@@ -207,3 +207,66 @@ class TestComputePlayoffOdds:
         # Each should be ~50%; allow ±10% sampling tolerance
         assert abs(team1["playoff_odds"] - 0.5) < 0.15
         assert abs(team1["playoff_odds"] + team2["playoff_odds"] - 1.0) < 0.05
+
+
+from unittest.mock import patch
+from backend.analysis.playoff_odds import compute_playoff_odds_from_request
+
+
+class TestComputePlayoffOddsFromRequest:
+    def test_resolves_names_and_returns_unmatched(self):
+        # Mock the projection loader and name resolver
+        fake_projections = {
+            1001: PlayerProjection(mlb_id=1001, name="A", position="OF",
+                                   player_type="hitter", pa=600, r=90, tb=270,
+                                   rbi=80, sb=10, obp=0.330,
+                                   eligible_positions="OF/UTIL"),
+            1002: PlayerProjection(mlb_id=1002, name="B", position="SP",
+                                   player_type="pitcher", ip=180, k=200, qs=18,
+                                   era=3.50, whip=1.15,
+                                   eligible_positions="SP/P"),
+        }
+        with patch("backend.analysis.playoff_odds.resolve_espn_names_to_mlbid") as resolve, \
+             patch("backend.analysis.playoff_odds._load_projections") as load_proj:
+            resolve.return_value = {"a": 1001, "b": 1002}  # "missing" not in map
+            load_proj.return_value = fake_projections
+
+            payload = {
+                "season": 2026,
+                "teams": [
+                    {
+                        "team_id": 1, "team_name": "T1",
+                        "roster": [
+                            {"name": "A", "position": "OF", "player_type": "hitter",
+                             "lineup_slot_id": 5, "eligible_positions": "OF/UTIL"},
+                            {"name": "Missing", "position": "1B",
+                             "player_type": "hitter", "lineup_slot_id": 1,
+                             "eligible_positions": "1B/UTIL"},
+                        ],
+                        "current_wins": 10, "current_losses": 5, "current_ties": 0,
+                    },
+                    {
+                        "team_id": 2, "team_name": "T2",
+                        "roster": [
+                            {"name": "B", "position": "SP", "player_type": "pitcher",
+                             "lineup_slot_id": 14, "eligible_positions": "SP/P"},
+                        ],
+                        "current_wins": 5, "current_losses": 10, "current_ties": 0,
+                    },
+                ],
+                "remaining_schedule": [
+                    {"matchup_period_id": 1, "home_team_id": 1, "away_team_id": 2},
+                ],
+                "period_weights": {1: 1.0},
+                "playoff_slots": 1,
+                "n_trials": 50,
+                "seed": 0,
+            }
+
+            result = compute_playoff_odds_from_request(payload)
+
+            assert result["matched_player_count"] == 2
+            assert "Missing" in result["unmatched_player_names"]
+            assert len(result["teams"]) == 2
+            for t in result["teams"]:
+                assert 0.0 <= t["playoff_odds"] <= 1.0

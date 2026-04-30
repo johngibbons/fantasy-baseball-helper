@@ -15,6 +15,7 @@ import numpy as np
 from backend.analysis.matchup import (
     CATEGORY_SIGMA,
     optimize_daily_lineup,
+    _load_projections,
 )
 from backend.analysis.waivers import (
     ALL_CATS,
@@ -22,6 +23,7 @@ from backend.analysis.waivers import (
     INVERTED_CATS,
     PlayerProjection,
     TeamTotals,
+    resolve_espn_names_to_mlbid,
 )
 
 IL_LINEUP_SLOT_MIN = 17  # ESPN lineupSlotId 17+ are IL slots
@@ -239,3 +241,97 @@ def compute_playoff_odds(
         })
     out.sort(key=lambda r: -r["playoff_odds"])
     return out
+
+
+def _normalize_name(name: str) -> str:
+    """Match the normalization used by resolve_espn_names_to_mlbid."""
+    import unicodedata
+    return "".join(
+        c for c in unicodedata.normalize("NFD", name)
+        if unicodedata.category(c) != "Mn"
+    ).lower()
+
+
+def compute_playoff_odds_from_request(payload: dict) -> dict:
+    """Resolve names → mlb_ids, load projections, run sim, return response dict."""
+    season = payload["season"]
+    teams = payload["teams"]
+
+    # Flatten all roster players for name resolution
+    all_roster_dicts: list[dict] = []
+    for t in teams:
+        for p in t["roster"]:
+            all_roster_dicts.append({
+                "name": p["name"],
+                "player_type": p.get("player_type", "hitter"),
+            })
+
+    name_to_id = resolve_espn_names_to_mlbid(all_roster_dicts, season=season)
+    matched_ids = list(set(name_to_id.values()))
+    projections = _load_projections(matched_ids, season=season)
+
+    # Build per-team PlayerProjection lists; track IL and unmatched
+    rosters: dict[int, list[PlayerProjection]] = {}
+    il_by_team: dict[int, dict[int, bool]] = {}
+    current_records: dict[int, tuple[int, int, int]] = {}
+    team_names: dict[int, str] = {}
+    unmatched_names: set[str] = set()
+    matched_count = 0
+
+    for t in teams:
+        tid = t["team_id"]
+        team_names[tid] = t["team_name"]
+        current_records[tid] = (
+            t.get("current_wins", 0),
+            t.get("current_losses", 0),
+            t.get("current_ties", 0),
+        )
+        rosters[tid] = []
+        il_by_team[tid] = {}
+        for p in t["roster"]:
+            mlb_id = name_to_id.get(_normalize_name(p["name"]))
+            if mlb_id is None or mlb_id not in projections:
+                unmatched_names.add(p["name"])
+                continue
+            proj = projections[mlb_id]
+            # Override position with ESPN-derived eligible_positions for lineup opt
+            proj_with_elig = PlayerProjection(
+                mlb_id=proj.mlb_id, name=proj.name, position=proj.position,
+                player_type=proj.player_type,
+                pa=proj.pa, r=proj.r, tb=proj.tb, rbi=proj.rbi, sb=proj.sb,
+                obp=proj.obp, ip=proj.ip, k=proj.k, qs=proj.qs, era=proj.era,
+                whip=proj.whip, svhd=proj.svhd,
+                eligible_positions=p.get("eligible_positions") or proj.eligible_positions or proj.position,
+                overall_rank=proj.overall_rank,
+            )
+            rosters[tid].append(proj_with_elig)
+            matched_count += 1
+            if p.get("lineup_slot_id", 0) >= IL_LINEUP_SLOT_MIN:
+                il_by_team[tid][mlb_id] = True
+
+    # Build remaining_schedule as tuples
+    schedule = [
+        (m["matchup_period_id"], m["home_team_id"], m["away_team_id"])
+        for m in payload["remaining_schedule"]
+    ]
+    # period_weights keys may be strings via JSON
+    period_weights = {int(k): float(v) for k, v in payload["period_weights"].items()}
+
+    teams_out = compute_playoff_odds(
+        rosters=rosters,
+        current_records=current_records,
+        remaining_schedule=schedule,
+        period_weights=period_weights,
+        playoff_slots=payload.get("playoff_slots", 6),
+        n_trials=payload.get("n_trials", 5000),
+        seed=payload.get("seed"),
+        il_by_team=il_by_team,
+        team_names=team_names,
+    )
+
+    return {
+        "teams": teams_out,
+        "n_trials": payload.get("n_trials", 5000),
+        "matched_player_count": matched_count,
+        "unmatched_player_names": sorted(unmatched_names),
+    }
