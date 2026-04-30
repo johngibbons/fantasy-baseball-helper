@@ -345,6 +345,30 @@ export class ESPNApi {
     return { schedule }
   }
 
+  static async getFullSchedule(
+    leagueId: string,
+    season: string,
+    settings: ESPNLeagueSettings,
+  ): Promise<Array<{
+    matchupPeriodId: number
+    home: { teamId: number }
+    away: { teamId: number }
+  }>> {
+    const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/${season}/segments/0/leagues/${leagueId}?view=mMatchupScore`
+
+    const response = await fetch(url, { headers: this.getHeaders(settings) })
+    if (!response.ok) {
+      throw new Error(`ESPN API error: ${response.status} - ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    return (data.schedule || []).map((m: any) => ({
+      matchupPeriodId: m.matchupPeriodId,
+      home: { teamId: m.home.teamId },
+      away: { teamId: m.away.teamId },
+    }))
+  }
+
   /**
    * Map ESPN game event IDs to dates using the public MLB scoreboard API.
    * This resolves the IDs found in starterStatusByProGame to actual dates.
