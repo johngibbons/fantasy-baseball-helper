@@ -162,3 +162,48 @@ class TestSimulateOneSeason:
         w2, _, _ = result[2]
         assert w1 > w2
         assert w1 >= 50  # carried forward at minimum
+
+
+from backend.analysis.playoff_odds import compute_playoff_odds
+
+
+class TestComputePlayoffOdds:
+    def test_dominant_team_has_high_odds(self):
+        # Team 1 has a huge lead; team 2 has none
+        rosters = {
+            1: [_hitter(i, f"T1_H{i}", r=120, tb=350, rbi=110) for i in range(1, 11)] + [_sp(i, f"T1_P{i}", k=240, qs=22, era=2.50, whip=1.00) for i in range(20, 25)],
+            2: [_hitter(i + 100, f"T2_H{i}", r=50, tb=150, rbi=50) for i in range(1, 11)] + [_sp(i + 100, f"T2_P{i}", k=120, qs=10, era=4.50, whip=1.40) for i in range(20, 25)],
+        }
+        result = compute_playoff_odds(
+            rosters=rosters,
+            current_records={1: (50, 0, 0), 2: (0, 50, 0)},
+            remaining_schedule=[(1, 1, 2), (2, 1, 2)],
+            period_weights={1: 0.5, 2: 0.5},
+            playoff_slots=1,  # only the top team makes playoffs
+            n_trials=200,
+            seed=42,
+        )
+        team1 = next(t for t in result if t["team_id"] == 1)
+        team2 = next(t for t in result if t["team_id"] == 2)
+        assert team1["playoff_odds"] >= 0.95
+        assert team2["playoff_odds"] <= 0.05
+
+    def test_balanced_two_team_one_slot_is_fifty_fifty(self):
+        rosters = {
+            1: [_hitter(i, f"T1_H{i}") for i in range(1, 11)] + [_sp(i, f"T1_P{i}") for i in range(20, 25)],
+            2: [_hitter(i + 100, f"T2_H{i}") for i in range(1, 11)] + [_sp(i + 100, f"T2_P{i}") for i in range(20, 25)],
+        }
+        result = compute_playoff_odds(
+            rosters=rosters,
+            current_records={1: (10, 10, 0), 2: (10, 10, 0)},
+            remaining_schedule=[(1, 1, 2), (2, 1, 2), (3, 1, 2)],
+            period_weights={1: 1/3, 2: 1/3, 3: 1/3},
+            playoff_slots=1,
+            n_trials=400,
+            seed=7,
+        )
+        team1 = next(t for t in result if t["team_id"] == 1)
+        team2 = next(t for t in result if t["team_id"] == 2)
+        # Each should be ~50%; allow ±10% sampling tolerance
+        assert abs(team1["playoff_odds"] - 0.5) < 0.15
+        assert abs(team1["playoff_odds"] + team2["playoff_odds"] - 1.0) < 0.05

@@ -166,3 +166,76 @@ def simulate_one_season(
         final[away_id][2] += a_t
 
     return {tid: tuple(rec) for tid, rec in final.items()}
+
+
+def compute_playoff_odds(
+    rosters: dict[int, list[PlayerProjection]],
+    current_records: dict[int, tuple[int, int, int]],
+    remaining_schedule: list[tuple[int, int, int]],
+    period_weights: dict[int, float],
+    playoff_slots: int = 6,
+    n_trials: int = 5000,
+    seed: Optional[int] = None,
+    il_by_team: Optional[dict[int, dict[int, bool]]] = None,
+    team_names: Optional[dict[int, str]] = None,
+) -> list[dict]:
+    """Run Monte Carlo and return per-team playoff odds.
+
+    Tiebreaker for top-K cut: total wins, then ties (more ties = tied teams
+    treated as ahead of fewer-ties), then random. Approximates ESPN cat-format
+    tiebreakers, which compare head-to-head record then total points-for.
+    """
+    team_ids = list(rosters.keys())
+    team_names = team_names or {tid: f"Team {tid}" for tid in team_ids}
+
+    playoff_count = {tid: 0 for tid in team_ids}
+    sum_wins = {tid: 0.0 for tid in team_ids}
+    sum_losses = {tid: 0.0 for tid in team_ids}
+    sum_ties = {tid: 0.0 for tid in team_ids}
+    sum_rank = {tid: 0.0 for tid in team_ids}
+
+    rng = np.random.default_rng(seed)
+
+    for _ in range(n_trials):
+        finals = simulate_one_season(
+            rosters=rosters,
+            current_records=current_records,
+            remaining_schedule=remaining_schedule,
+            period_weights=period_weights,
+            rng=rng,
+            il_by_team=il_by_team,
+        )
+        # Rank teams: more wins is better, more ties as secondary, random tiebreak.
+        # Use a stable shuffle then sort to break exact ties uniformly.
+        shuffled = list(team_ids)
+        rng.shuffle(shuffled)
+        ranked = sorted(
+            shuffled,
+            key=lambda tid: (-finals[tid][0], -finals[tid][2]),
+        )
+        for rank, tid in enumerate(ranked, start=1):
+            sum_rank[tid] += rank
+            if rank <= playoff_slots:
+                playoff_count[tid] += 1
+            w, l, t = finals[tid]
+            sum_wins[tid] += w
+            sum_losses[tid] += l
+            sum_ties[tid] += t
+
+    out: list[dict] = []
+    for tid in team_ids:
+        cur_w, cur_l, cur_t = current_records[tid]
+        out.append({
+            "team_id": tid,
+            "team_name": team_names[tid],
+            "current_wins": cur_w,
+            "current_losses": cur_l,
+            "current_ties": cur_t,
+            "playoff_odds": playoff_count[tid] / n_trials,
+            "avg_final_wins": sum_wins[tid] / n_trials,
+            "avg_final_losses": sum_losses[tid] / n_trials,
+            "avg_final_ties": sum_ties[tid] / n_trials,
+            "avg_final_rank": sum_rank[tid] / n_trials,
+        })
+    out.sort(key=lambda r: -r["playoff_odds"])
+    return out
