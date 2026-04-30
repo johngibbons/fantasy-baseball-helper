@@ -25,6 +25,8 @@ from backend.analysis.zscores import (
     calculate_pitcher_zscores,
     calculate_all_zscores,
 )
+from backend.analysis.playoff_odds import compute_playoff_odds_from_request
+from backend.api.playoff_odds_models import PlayoffOddsRequest, PlayoffOddsResponse
 from backend.database import get_connection
 
 router = APIRouter()
@@ -999,6 +1001,17 @@ def start_sit_preview(req: StartSitPreviewRequest):
         end_date=req.end_date,
         all_rostered_names=req.all_rostered_names,
     )
+
+
+# ── Playoff Odds Simulator ──
+
+
+@router.post("/playoff-odds", response_model=PlayoffOddsResponse)
+def playoff_odds(req: PlayoffOddsRequest) -> PlayoffOddsResponse:
+    """Run Monte Carlo simulation of remaining season → playoff odds per team."""
+    payload = req.model_dump()
+    result = compute_playoff_odds_from_request(payload)
+    return PlayoffOddsResponse(**result)
 
 
 # ── Performance (projection vs. actual) ──
