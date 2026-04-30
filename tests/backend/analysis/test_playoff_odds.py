@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import pytest
-from backend.analysis.waivers import PlayerProjection
+from backend.analysis.waivers import HITTER_BENCH_WEIGHT, PlayerProjection
 from backend.analysis.playoff_odds import project_team_period
 
 
@@ -43,7 +43,7 @@ class TestProjectTeamPeriod:
         # All hitters identical with r=90 → expected R = 5*90 + 2*90*0.25
         roster = [_hitter(i, f"H{i}") for i in range(1, 8)]  # 7 hitters
         result = project_team_period(roster, period_weight=1.0)
-        expected_r = 5 * 90 + 2 * 90 * 0.25
+        expected_r = 5 * 90 + 2 * 90 * HITTER_BENCH_WEIGHT
         assert result["R"] == pytest.approx(expected_r, rel=1e-6)
 
     def test_pitcher_rate_stats_use_ip_weighted_average(self):

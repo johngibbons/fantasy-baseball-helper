@@ -8,8 +8,6 @@ probability of finishing in the top K (playoff slots).
 
 from __future__ import annotations
 
-import logging
-from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
@@ -26,10 +24,10 @@ from backend.analysis.waivers import (
     TeamTotals,
 )
 
-logger = logging.getLogger(__name__)
-
 IL_LINEUP_SLOT_MIN = 17  # ESPN lineupSlotId 17+ are IL slots
-BENCH_LINEUP_SLOT = 16
+# Bench contribution for pitchers — kept as separate SP/RP knobs to mirror
+# roster-optimizer.ts (PITCHER_BENCH_CONTRIBUTION + RP_BENCH_CONTRIBUTION).
+# Equal today; future calibration may diverge them.
 PITCHER_BENCH_WEIGHT_SP = 0.95
 PITCHER_BENCH_WEIGHT_RP = 0.95
 
