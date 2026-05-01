@@ -39,17 +39,40 @@ export async function POST(request: NextRequest) {
     }
     const espnSettings = { swid: credentials.swid, espn_s2: credentials.espn_s2 }
 
-    const [leagueData, teamsAndFaab, rosters, fullSchedule] = await Promise.all([
+    const fetches = await Promise.allSettled([
       ESPNApi.getLeague(league.externalId, season, espnSettings),
       ESPNApi.getLeagueTeamsAndFaab(league.externalId, season, espnSettings),
       ESPNApi.getRosters(league.externalId, season, espnSettings),
       ESPNApi.getFullSchedule(league.externalId, season, espnSettings),
+      ESPNApi.getMatchupHistory(league.externalId, season, espnSettings),
     ])
+
+    // Required fetches (the first four) — bail if any failed
+    const [leagueRes, teamsRes, rostersRes, fullScheduleRes, historyRes] = fetches
+    if (leagueRes.status !== 'fulfilled' || teamsRes.status !== 'fulfilled'
+        || rostersRes.status !== 'fulfilled' || fullScheduleRes.status !== 'fulfilled') {
+      const failed = [leagueRes, teamsRes, rostersRes, fullScheduleRes]
+        .find(r => r.status === 'rejected') as PromiseRejectedResult | undefined
+      throw failed?.reason ?? new Error('Failed to fetch ESPN league data')
+    }
+    const leagueData = leagueRes.value
+    const teamsAndFaab = teamsRes.value
+    const rosters = rostersRes.value
+    const fullSchedule = fullScheduleRes.value
+
+    // Optional fetch — degrade gracefully if it fails
+    let observedHistory: Awaited<ReturnType<typeof ESPNApi.getMatchupHistory>> = []
+    let historyFetchOk = true
+    if (historyRes.status === 'fulfilled') {
+      observedHistory = historyRes.value
+    } else {
+      historyFetchOk = false
+      console.warn('Playoff-odds: matchup history fetch failed, proceeding without shrinkage:', historyRes.reason)
+    }
 
     const currentMatchupPeriod = leagueData.status?.currentMatchupPeriod
       || leagueData.currentMatchupPeriod
       || 1
-    // Pull regular-season length from settings (matchupPeriodCount).
     const finalRegularSeasonPeriod =
       (leagueData as any).settings?.scheduleSettings?.matchupPeriodCount
       ?? settingsBlob?.scheduleSettings?.matchupPeriodCount
@@ -63,6 +86,7 @@ export async function POST(request: NextRequest) {
       rosters,
       fullSchedule,
       matchupSchedule: MATCHUP_SCHEDULE,
+      observedHistory,
       playoffSlots,
       nTrials,
       seed,
@@ -84,11 +108,18 @@ export async function POST(request: NextRequest) {
     const result = await backendResponse.json()
     return NextResponse.json({
       ...result,
+      // If our TS-side fetch failed, override the backend's shrinkage_applied=true
+      // anyway. If it succeeded but backend reports false (e.g. zero observations),
+      // pass that through.
+      shrinkage_applied: historyFetchOk && (result.shrinkage_applied ?? false),
       meta: {
         current_matchup_period: currentMatchupPeriod,
         final_regular_season_period: finalRegularSeasonPeriod,
         playoff_slots: playoffSlots,
         n_trials: nTrials,
+        shrinkage_applied: historyFetchOk && (result.shrinkage_applied ?? false),
+        completed_periods_observed: result.completed_periods_observed ?? 0,
+        history_fetch_ok: historyFetchOk,
       },
     })
   } catch (error: any) {
