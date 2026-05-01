@@ -228,7 +228,7 @@ class TestComputePlayoffOddsFromRequest:
         }
         with patch("backend.analysis.playoff_odds.resolve_espn_names_to_mlbid") as resolve, \
              patch("backend.analysis.playoff_odds._load_projections") as load_proj:
-            resolve.return_value = {"a": 1001, "b": 1002}  # "missing" not in map
+            resolve.return_value = {"A": 1001, "B": 1002}  # "Missing" not in map
             load_proj.return_value = fake_projections
 
             payload = {

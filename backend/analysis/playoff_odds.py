@@ -243,15 +243,6 @@ def compute_playoff_odds(
     return out
 
 
-def _normalize_name(name: str) -> str:
-    """Match the normalization used by resolve_espn_names_to_mlbid."""
-    import unicodedata
-    return "".join(
-        c for c in unicodedata.normalize("NFD", name)
-        if unicodedata.category(c) != "Mn"
-    ).lower()
-
-
 def compute_playoff_odds_from_request(payload: dict) -> dict:
     """Resolve names → mlb_ids, load projections, run sim, return response dict."""
     season = payload["season"]
@@ -289,7 +280,7 @@ def compute_playoff_odds_from_request(payload: dict) -> dict:
         rosters[tid] = []
         il_by_team[tid] = {}
         for p in t["roster"]:
-            mlb_id = name_to_id.get(_normalize_name(p["name"]))
+            mlb_id = name_to_id.get(p["name"])
             if mlb_id is None or mlb_id not in projections:
                 unmatched_names.add(p["name"])
                 continue
