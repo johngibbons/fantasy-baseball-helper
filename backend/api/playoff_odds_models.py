@@ -32,6 +32,14 @@ class MatchupPair(BaseModel):
     away_team_id: int
 
 
+class ObservedPeriodPayload(BaseModel):
+    """One completed matchup period's category totals for one team."""
+    team_id: int
+    matchup_period_id: int
+    period_days: int
+    cats: dict[str, float]
+
+
 class PlayoffOddsRequest(BaseModel):
     season: int
     teams: list[TeamPayload]
@@ -42,6 +50,7 @@ class PlayoffOddsRequest(BaseModel):
     playoff_slots: int = 6
     n_trials: int = 5000
     seed: Optional[int] = None
+    observed_history: list[ObservedPeriodPayload] = []
 
 
 class TeamOdds(BaseModel):
@@ -55,6 +64,7 @@ class TeamOdds(BaseModel):
     avg_final_losses: float
     avg_final_ties: float
     avg_final_rank: float
+    shrinkage_weight: dict[str, float] = {}
 
 
 class PlayoffOddsResponse(BaseModel):
@@ -62,3 +72,5 @@ class PlayoffOddsResponse(BaseModel):
     n_trials: int
     matched_player_count: int
     unmatched_player_names: list[str]
+    shrinkage_applied: bool = True
+    completed_periods_observed: int = 0
