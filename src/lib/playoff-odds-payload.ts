@@ -72,7 +72,8 @@ export function buildPlayoffOddsPayload(args: BuildArgs) {
     const entries = args.rosters[t.id] || []
     return {
       team_id: t.id,
-      team_name: [t.location, t.nickname].filter(Boolean).join(' ').trim()
+      team_name: (t as any).name?.trim()
+                || [t.location, t.nickname].filter(Boolean).join(' ').trim()
                 || `Team ${t.id}`,
       current_wins: t.record?.overall?.wins ?? 0,
       current_losses: t.record?.overall?.losses ?? 0,

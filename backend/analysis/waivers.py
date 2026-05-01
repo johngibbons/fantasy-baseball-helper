@@ -235,10 +235,18 @@ def resolve_espn_names_to_mlbid(
     resolved: dict[str, int] = {}
     unmatched = 0
     for name, hint_type in name_type_hints.items():
-        key = name.lower()
-        candidates = name_candidates.get(key)
-        if not candidates:
-            candidates = stripped_candidates.get(_strip_accents(name))
+        # Merge exact-lowercase + accent-stripped matches so a duplicate-name
+        # query like ESPN's "Jose Ramirez" finds the accented "José Ramírez"
+        # alongside any unranked non-accented namesakes; _pick_best then
+        # prefers the ranked + type-matching candidate.
+        exact = name_candidates.get(name.lower(), [])
+        stripped = stripped_candidates.get(_strip_accents(name), [])
+        seen_ids: set[int] = set()
+        candidates: list[tuple[int, str, bool]] = []
+        for c in (*exact, *stripped):
+            if c[0] not in seen_ids:
+                seen_ids.add(c[0])
+                candidates.append(c)
         if candidates:
             resolved[name] = _pick_best(candidates, hint_type)
         else:
