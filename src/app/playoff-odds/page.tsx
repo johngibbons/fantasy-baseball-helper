@@ -69,92 +69,104 @@ export default function PlayoffOddsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-2">Playoff Odds</h1>
-      <p className="text-gray-600 mb-4">
-        Monte Carlo simulation of the remaining regular season. Top{' '}
-        {data?.meta?.playoff_slots ?? 6} teams make the playoffs.
-      </p>
+    <main className="min-h-screen bg-[#0d1117] text-gray-300">
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        <h1 className="text-xl font-bold text-white mb-2">Playoff Odds</h1>
+        <p className="text-sm text-gray-400 mb-5">
+          Monte Carlo simulation of the remaining regular season. Top{' '}
+          {data?.meta?.playoff_slots ?? 6} teams make the playoffs.
+        </p>
 
-      <div className="flex items-center gap-3 mb-6">
-        <label className="text-sm">Trials:</label>
-        <input
-          type="number"
-          value={nTrials}
-          onChange={e => setNTrials(parseInt(e.target.value) || 1000)}
-          min={100}
-          max={50000}
-          step={500}
-          className="border rounded px-2 py-1 w-24"
-        />
-        <button
-          onClick={run}
-          disabled={loading}
-          className="bg-blue-600 text-white px-4 py-1 rounded disabled:opacity-50"
-        >
-          {loading ? 'Simulating\u2026' : 'Run simulation'}
-        </button>
-      </div>
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <label className="text-sm text-gray-400">Trials:</label>
+          <input
+            type="number"
+            value={nTrials}
+            onChange={e => setNTrials(parseInt(e.target.value) || 1000)}
+            min={100}
+            max={50000}
+            step={500}
+            className="bg-[#0d1117] border border-white/10 rounded px-2 py-1.5 text-sm text-white w-24"
+          />
+          <button
+            onClick={run}
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-1.5 rounded-md text-sm font-medium transition-colors"
+          >
+            {loading ? 'Simulating\u2026' : 'Run simulation'}
+          </button>
+        </div>
 
-      {error && <div className="text-red-600 mb-4">{error}</div>}
-
-      {data && (
-        <>
-          <div className="text-sm text-gray-500 mb-3">
-            {data.n_trials} trials &middot; {data.matched_player_count} players matched
-            {data.unmatched_player_names.length > 0 &&
-              ` \u00b7 ${data.unmatched_player_names.length} unmatched`}
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-4 text-red-400 text-sm">
+            {error}
           </div>
-          <table className="w-full text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="text-left px-3 py-2">#</th>
-                <th className="text-left px-3 py-2">Team</th>
-                <th className="text-right px-3 py-2">Current</th>
-                <th className="text-right px-3 py-2">Proj. Final</th>
-                <th className="text-right px-3 py-2">Avg Rank</th>
-                <th className="text-right px-3 py-2">Playoff %</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.teams.map((t, i) => {
-                const isMe = t.team_id === myTeamId
-                const inPlayoffs = i < (data.meta?.playoff_slots ?? 6)
-                return (
-                  <tr
-                    key={t.team_id}
-                    className={`border-b ${isMe ? 'bg-yellow-50 font-semibold' : ''}`}
-                  >
-                    <td className="px-3 py-2">{i + 1}</td>
-                    <td className="px-3 py-2">
-                      {t.team_name}
-                      {isMe && ' (you)'}
-                    </td>
-                    <td className="text-right px-3 py-2">
-                      {t.current_wins}-{t.current_losses}-{t.current_ties}
-                    </td>
-                    <td className="text-right px-3 py-2">
-                      {t.avg_final_wins.toFixed(1)}-
-                      {t.avg_final_losses.toFixed(1)}-
-                      {t.avg_final_ties.toFixed(1)}
-                    </td>
-                    <td className="text-right px-3 py-2">
-                      {t.avg_final_rank.toFixed(2)}
-                    </td>
-                    <td
-                      className={`text-right px-3 py-2 ${
-                        inPlayoffs ? 'text-green-600' : 'text-gray-500'
-                      }`}
-                    >
-                      {(t.playoff_odds * 100).toFixed(1)}%
-                    </td>
+        )}
+
+        {data && (
+          <>
+            <div className="text-xs text-gray-500 mb-3">
+              {data.n_trials} trials &middot; {data.matched_player_count} players matched
+              {data.unmatched_player_names.length > 0 &&
+                ` \u00b7 ${data.unmatched_player_names.length} unmatched`}
+            </div>
+            <div className="bg-[#1e293b] rounded-lg overflow-hidden border border-white/[0.06]">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/[0.06] text-xs text-gray-500 uppercase tracking-wide">
+                    <th className="text-left px-3 py-2 w-8">#</th>
+                    <th className="text-left px-3 py-2">Team</th>
+                    <th className="text-right px-3 py-2">Current</th>
+                    <th className="text-right px-3 py-2">Proj. Final</th>
+                    <th className="text-right px-3 py-2">Avg Rank</th>
+                    <th className="text-right px-3 py-2">Playoff %</th>
                   </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </>
-      )}
-    </div>
+                </thead>
+                <tbody>
+                  {data.teams.map((t, i) => {
+                    const isMe = t.team_id === myTeamId
+                    const inPlayoffs = i < (data.meta?.playoff_slots ?? 6)
+                    return (
+                      <tr
+                        key={t.team_id}
+                        className={`border-b border-white/[0.04] hover:bg-white/[0.02] ${
+                          isMe ? 'bg-purple-500/10' : ''
+                        }`}
+                      >
+                        <td className="px-3 py-2 text-gray-500 font-mono">{i + 1}</td>
+                        <td className="px-3 py-2">
+                          <span className={isMe ? 'text-purple-300 font-semibold' : 'text-white'}>
+                            {t.team_name}
+                          </span>
+                          {isMe && <span className="text-purple-400 text-xs ml-1.5">(you)</span>}
+                        </td>
+                        <td className="text-right px-3 py-2 text-gray-300 font-mono">
+                          {t.current_wins}-{t.current_losses}-{t.current_ties}
+                        </td>
+                        <td className="text-right px-3 py-2 text-gray-400 font-mono">
+                          {t.avg_final_wins.toFixed(1)}-
+                          {t.avg_final_losses.toFixed(1)}-
+                          {t.avg_final_ties.toFixed(1)}
+                        </td>
+                        <td className="text-right px-3 py-2 text-gray-400 font-mono">
+                          {t.avg_final_rank.toFixed(2)}
+                        </td>
+                        <td
+                          className={`text-right px-3 py-2 font-mono font-bold ${
+                            inPlayoffs ? 'text-emerald-400' : 'text-gray-500'
+                          }`}
+                        >
+                          {(t.playoff_odds * 100).toFixed(1)}%
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </div>
+    </main>
   )
 }
