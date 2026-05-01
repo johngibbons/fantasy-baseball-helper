@@ -4,6 +4,13 @@
 
 import type { ESPNTeam, ESPNRosterEntry } from '@/lib/espn-api'
 
+export interface ObservedPeriodPayload {
+  team_id: number
+  matchup_period_id: number
+  period_days: number
+  cats: Record<string, number>
+}
+
 const ESPN_POSITION_MAP: Record<number, string> = {
   1: 'SP', 2: 'C', 3: '1B', 4: '2B', 5: '3B', 6: 'SS',
   7: 'LF', 8: 'CF', 9: 'RF', 10: 'DH', 11: 'RP',
@@ -52,6 +59,7 @@ interface BuildArgs {
     away: { teamId: number }
   }>
   matchupSchedule: Record<number, [string, string]>
+  observedHistory?: ObservedPeriodPayload[]
   playoffSlots: number
   nTrials: number
   seed?: number
@@ -99,6 +107,20 @@ export function buildPlayoffOddsPayload(args: BuildArgs) {
     }
   })
 
+  // Filter observed history to fully-completed prior periods only
+  const completedHistory = (args.observedHistory || []).filter(
+    o => o.matchup_period_id < args.currentMatchupPeriod,
+  )
+
+  // Build period_days_by_id from matchupSchedule for the remaining periods
+  const period_days_by_id: Record<number, number> = {}
+  for (const id of periodIds) {
+    const range = args.matchupSchedule[id]
+    if (range) {
+      period_days_by_id[id] = daysBetweenInclusive(range[0], range[1])
+    }
+  }
+
   return {
     season: args.season,
     teams: teamsOut,
@@ -110,6 +132,10 @@ export function buildPlayoffOddsPayload(args: BuildArgs) {
     period_weights: Object.fromEntries(
       Object.entries(period_weights).map(([k, v]) => [String(k), v]),
     ),
+    period_days_by_id: Object.fromEntries(
+      Object.entries(period_days_by_id).map(([k, v]) => [String(k), v]),
+    ),
+    observed_history: completedHistory,
     playoff_slots: args.playoffSlots,
     n_trials: args.nTrials,
     seed: args.seed,
