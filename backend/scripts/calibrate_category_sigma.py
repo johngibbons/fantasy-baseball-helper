@@ -20,6 +20,7 @@ from pathlib import Path
 from backend.analysis.sigma_calibration import (
     CountStatObservation,
     compute_category_sigma,
+    compute_between_team_sigma,
 )
 from backend.data.espn_history import (
     ESPN_STAT_ID_TO_CAT,
@@ -94,10 +95,12 @@ def write_fixture(
     fixture_path: Path,
     records: list[MatchupRecord],
     computed_sigma: dict[str, float],
+    computed_between_sigma: dict[str, float],
 ) -> None:
-    """Persist raw records + computed σ for regression testing."""
+    """Persist raw records + computed σ values for regression testing."""
     payload = {
         "computed_sigma": computed_sigma,
+        "computed_between_sigma": computed_between_sigma,
         "records": [
             {
                 "team_id": r.team_id,
@@ -159,11 +162,24 @@ def main() -> int:
         print(f'    "{cat}": {sigma[cat]:.4f},')
     print("}")
 
+    between_sigma = compute_between_team_sigma(
+        team_rates_per_day=rates,
+        cat_keys=CAT_KEYS,
+        cat_kinds=CAT_KINDS,
+    )
+
+    print()
+    print("Calibrated CATEGORY_BETWEEN_SIGMA (paste into backend/analysis/matchup.py):")
+    print("CATEGORY_BETWEEN_SIGMA: dict[str, float] = {")
+    for cat in CAT_KEYS:
+        print(f'    "{cat}": {between_sigma[cat]:.4f},')
+    print("}")
+
     fixture_path = args.fixture or (
         Path(__file__).resolve().parent.parent
         / "data" / "fixtures" / f"sigma_calibration_{args.season}.json"
     )
-    write_fixture(fixture_path, filtered, sigma)
+    write_fixture(fixture_path, filtered, sigma, between_sigma)
     print(f"\nFixture written: {fixture_path}")
     return 0
 
