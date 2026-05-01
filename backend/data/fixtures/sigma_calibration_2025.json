@@ -1,0 +1,3246 @@
+{
+  "computed_sigma": {
+    "ERA": 1.157013151134096,
+    "K": 14.661178436970186,
+    "OBP": 0.027940883454354533,
+    "QS": 1.871089163794552,
+    "R": 5.76336483913745,
+    "RBI": 6.893872668361785,
+    "SB": 2.8250776574348277,
+    "SVHD": 1.678570687949024,
+    "TB": 14.95171845346813,
+    "WHIP": 0.1743906365728666
+  },
+  "records": [
+    {
+      "cats": {
+        "ERA": 3.9955157,
+        "K": 85.0,
+        "OBP": 0.29347826,
+        "QS": 3.0,
+        "R": 32.0,
+        "RBI": 49.0,
+        "SB": 6.0,
+        "SVHD": 4.0,
+        "TB": 104.0,
+        "WHIP": 1.22421525
+      },
+      "matchup_period_id": 2,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 4.14418605,
+        "K": 71.0,
+        "OBP": 0.32170543,
+        "QS": 3.0,
+        "R": 36.0,
+        "RBI": 26.0,
+        "SB": 14.0,
+        "SVHD": 3.0,
+        "TB": 100.0,
+        "WHIP": 1.0744186
+      },
+      "matchup_period_id": 2,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 2.32535885,
+        "K": 67.0,
+        "OBP": 0.31135531,
+        "QS": 3.0,
+        "R": 39.0,
+        "RBI": 48.0,
+        "SB": 6.0,
+        "SVHD": 5.0,
+        "TB": 122.0,
+        "WHIP": 1.03349282
+      },
+      "matchup_period_id": 2,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 3.68181818,
+        "K": 85.0,
+        "OBP": 0.31226766,
+        "QS": 4.0,
+        "R": 36.0,
+        "RBI": 27.0,
+        "SB": 11.0,
+        "SVHD": 4.0,
+        "TB": 79.0,
+        "WHIP": 1.16666667
+      },
+      "matchup_period_id": 2,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 3.6,
+        "K": 59.0,
+        "OBP": 0.33215548,
+        "QS": 1.0,
+        "R": 39.0,
+        "RBI": 35.0,
+        "SB": 5.0,
+        "SVHD": 6.0,
+        "TB": 101.0,
+        "WHIP": 1.22
+      },
+      "matchup_period_id": 2,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 3.32307692,
+        "K": 82.0,
+        "OBP": 0.33992095,
+        "QS": 3.0,
+        "R": 32.0,
+        "RBI": 29.0,
+        "SB": 8.0,
+        "SVHD": 1.0,
+        "TB": 107.0,
+        "WHIP": 1.16923077
+      },
+      "matchup_period_id": 2,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 3.90566038,
+        "K": 59.0,
+        "OBP": 0.31836735,
+        "QS": 4.0,
+        "R": 34.0,
+        "RBI": 34.0,
+        "SB": 6.0,
+        "SVHD": 5.0,
+        "TB": 103.0,
+        "WHIP": 1.0754717
+      },
+      "matchup_period_id": 2,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 5.08695652,
+        "K": 61.0,
+        "OBP": 0.35231317,
+        "QS": 6.0,
+        "R": 46.0,
+        "RBI": 46.0,
+        "SB": 10.0,
+        "SVHD": 8.0,
+        "TB": 116.0,
+        "WHIP": 1.50724638
+      },
+      "matchup_period_id": 2,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 4.22727273,
+        "K": 71.0,
+        "OBP": 0.33584906,
+        "QS": 3.0,
+        "R": 35.0,
+        "RBI": 27.0,
+        "SB": 4.0,
+        "SVHD": 3.0,
+        "TB": 88.0,
+        "WHIP": 1.16666667
+      },
+      "matchup_period_id": 2,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 2.85211268,
+        "K": 31.0,
+        "OBP": 0.31274131,
+        "QS": 5.0,
+        "R": 32.0,
+        "RBI": 16.0,
+        "SB": 7.0,
+        "SVHD": 6.0,
+        "TB": 72.0,
+        "WHIP": 1.24647887
+      },
+      "matchup_period_id": 2,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 1.56315789,
+        "K": 57.0,
+        "OBP": 0.3030303,
+        "QS": 6.0,
+        "R": 33.0,
+        "RBI": 30.0,
+        "SB": 8.0,
+        "SVHD": 6.0,
+        "TB": 102.0,
+        "WHIP": 0.80526316
+      },
+      "matchup_period_id": 3,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 3.73271889,
+        "K": 70.0,
+        "OBP": 0.33828996,
+        "QS": 3.0,
+        "R": 32.0,
+        "RBI": 31.0,
+        "SB": 9.0,
+        "SVHD": 6.0,
+        "TB": 104.0,
+        "WHIP": 1.34101382
+      },
+      "matchup_period_id": 3,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 1.89949749,
+        "K": 57.0,
+        "OBP": 0.33469388,
+        "QS": 5.0,
+        "R": 29.0,
+        "RBI": 37.0,
+        "SB": 11.0,
+        "SVHD": 6.0,
+        "TB": 106.0,
+        "WHIP": 1.19095477
+      },
+      "matchup_period_id": 3,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 1.86206897,
+        "K": 69.0,
+        "OBP": 0.32258065,
+        "QS": 6.0,
+        "R": 30.0,
+        "RBI": 25.0,
+        "SB": 6.0,
+        "SVHD": 5.0,
+        "TB": 77.0,
+        "WHIP": 0.87931034
+      },
+      "matchup_period_id": 3,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 3.4137931,
+        "K": 84.0,
+        "OBP": 0.3083004,
+        "QS": 6.0,
+        "R": 28.0,
+        "RBI": 15.0,
+        "SB": 2.0,
+        "SVHD": 5.0,
+        "TB": 66.0,
+        "WHIP": 1.24137931
+      },
+      "matchup_period_id": 3,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 3.62686567,
+        "K": 77.0,
+        "OBP": 0.30769231,
+        "QS": 3.0,
+        "R": 30.0,
+        "RBI": 29.0,
+        "SB": 2.0,
+        "SVHD": 2.0,
+        "TB": 92.0,
+        "WHIP": 1.26865672
+      },
+      "matchup_period_id": 3,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 5.42647059,
+        "K": 59.0,
+        "OBP": 0.26200873,
+        "QS": 3.0,
+        "R": 18.0,
+        "RBI": 18.0,
+        "SB": 6.0,
+        "SVHD": 3.0,
+        "TB": 62.0,
+        "WHIP": 1.23529412
+      },
+      "matchup_period_id": 3,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 4.25274725,
+        "K": 99.0,
+        "OBP": 0.33984375,
+        "QS": 4.0,
+        "R": 26.0,
+        "RBI": 35.0,
+        "SB": 12.0,
+        "SVHD": 5.0,
+        "TB": 85.0,
+        "WHIP": 1.36263736
+      },
+      "matchup_period_id": 3,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 1.49246231,
+        "K": 69.0,
+        "OBP": 0.32713755,
+        "QS": 5.0,
+        "R": 31.0,
+        "RBI": 33.0,
+        "SB": 2.0,
+        "SVHD": 7.0,
+        "TB": 98.0,
+        "WHIP": 0.96482412
+      },
+      "matchup_period_id": 3,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 5.45901639,
+        "K": 56.0,
+        "OBP": 0.35531136,
+        "QS": 2.0,
+        "R": 40.0,
+        "RBI": 34.0,
+        "SB": 5.0,
+        "SVHD": 7.0,
+        "TB": 104.0,
+        "WHIP": 1.32786885
+      },
+      "matchup_period_id": 3,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 4.90909091,
+        "K": 65.0,
+        "OBP": 0.2877193,
+        "QS": 4.0,
+        "R": 32.0,
+        "RBI": 43.0,
+        "SB": 7.0,
+        "SVHD": 8.0,
+        "TB": 101.0,
+        "WHIP": 1.17112299
+      },
+      "matchup_period_id": 4,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 5.0,
+        "K": 74.0,
+        "OBP": 0.28252788,
+        "QS": 5.0,
+        "R": 34.0,
+        "RBI": 30.0,
+        "SB": 6.0,
+        "SVHD": 5.0,
+        "TB": 93.0,
+        "WHIP": 1.36111111
+      },
+      "matchup_period_id": 4,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 2.68720379,
+        "K": 69.0,
+        "OBP": 0.33948339,
+        "QS": 5.0,
+        "R": 30.0,
+        "RBI": 37.0,
+        "SB": 3.0,
+        "SVHD": 9.0,
+        "TB": 110.0,
+        "WHIP": 1.23696682
+      },
+      "matchup_period_id": 4,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 2.66860465,
+        "K": 64.0,
+        "OBP": 0.36042403,
+        "QS": 3.0,
+        "R": 45.0,
+        "RBI": 39.0,
+        "SB": 6.0,
+        "SVHD": 8.0,
+        "TB": 139.0,
+        "WHIP": 1.16860465
+      },
+      "matchup_period_id": 4,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 4.07718121,
+        "K": 94.0,
+        "OBP": 0.40070922,
+        "QS": 6.0,
+        "R": 45.0,
+        "RBI": 47.0,
+        "SB": 15.0,
+        "SVHD": 7.0,
+        "TB": 113.0,
+        "WHIP": 1.25838926
+      },
+      "matchup_period_id": 4,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 3.72413793,
+        "K": 65.0,
+        "OBP": 0.29657795,
+        "QS": 5.0,
+        "R": 33.0,
+        "RBI": 35.0,
+        "SB": 4.0,
+        "SVHD": 8.0,
+        "TB": 111.0,
+        "WHIP": 1.22844828
+      },
+      "matchup_period_id": 4,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 5.30357143,
+        "K": 37.0,
+        "OBP": 0.33828996,
+        "QS": 3.0,
+        "R": 35.0,
+        "RBI": 35.0,
+        "SB": 9.0,
+        "SVHD": 0.0,
+        "TB": 96.0,
+        "WHIP": 1.58928571
+      },
+      "matchup_period_id": 4,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 2.66447368,
+        "K": 51.0,
+        "OBP": 0.31679389,
+        "QS": 4.0,
+        "R": 34.0,
+        "RBI": 30.0,
+        "SB": 4.0,
+        "SVHD": 4.0,
+        "TB": 109.0,
+        "WHIP": 0.88815789
+      },
+      "matchup_period_id": 4,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 5.71153846,
+        "K": 67.0,
+        "OBP": 0.32624113,
+        "QS": 3.0,
+        "R": 34.0,
+        "RBI": 40.0,
+        "SB": 11.0,
+        "SVHD": 6.0,
+        "TB": 112.0,
+        "WHIP": 1.44230769
+      },
+      "matchup_period_id": 4,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 1.56069364,
+        "K": 69.0,
+        "OBP": 0.32835821,
+        "QS": 4.0,
+        "R": 32.0,
+        "RBI": 21.0,
+        "SB": 11.0,
+        "SVHD": 4.0,
+        "TB": 80.0,
+        "WHIP": 1.02312139
+      },
+      "matchup_period_id": 4,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 3.27745665,
+        "K": 54.0,
+        "OBP": 0.3495935,
+        "QS": 4.0,
+        "R": 28.0,
+        "RBI": 31.0,
+        "SB": 3.0,
+        "SVHD": 5.0,
+        "TB": 92.0,
+        "WHIP": 1.26589595
+      },
+      "matchup_period_id": 5,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 5.32568807,
+        "K": 79.0,
+        "OBP": 0.33455882,
+        "QS": 5.0,
+        "R": 33.0,
+        "RBI": 28.0,
+        "SB": 7.0,
+        "SVHD": 3.0,
+        "TB": 105.0,
+        "WHIP": 1.5
+      },
+      "matchup_period_id": 5,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 2.42857143,
+        "K": 59.0,
+        "OBP": 0.33823529,
+        "QS": 6.0,
+        "R": 38.0,
+        "RBI": 30.0,
+        "SB": 3.0,
+        "SVHD": 4.0,
+        "TB": 93.0,
+        "WHIP": 0.95238095
+      },
+      "matchup_period_id": 5,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 4.09478673,
+        "K": 59.0,
+        "OBP": 0.3297491,
+        "QS": 4.0,
+        "R": 32.0,
+        "RBI": 32.0,
+        "SB": 10.0,
+        "SVHD": 5.0,
+        "TB": 80.0,
+        "WHIP": 1.1943128
+      },
+      "matchup_period_id": 5,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 4.33018868,
+        "K": 62.0,
+        "OBP": 0.25925926,
+        "QS": 4.0,
+        "R": 20.0,
+        "RBI": 20.0,
+        "SB": 0.0,
+        "SVHD": 2.0,
+        "TB": 75.0,
+        "WHIP": 1.41509434
+      },
+      "matchup_period_id": 5,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 3.0375,
+        "K": 43.0,
+        "OBP": 0.36121673,
+        "QS": 3.0,
+        "R": 25.0,
+        "RBI": 25.0,
+        "SB": 4.0,
+        "SVHD": 7.0,
+        "TB": 84.0,
+        "WHIP": 1.3125
+      },
+      "matchup_period_id": 5,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 2.82722513,
+        "K": 57.0,
+        "OBP": 0.31277533,
+        "QS": 7.0,
+        "R": 17.0,
+        "RBI": 31.0,
+        "SB": 8.0,
+        "SVHD": 4.0,
+        "TB": 74.0,
+        "WHIP": 1.11518325
+      },
+      "matchup_period_id": 5,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 2.9,
+        "K": 101.0,
+        "OBP": 0.38924051,
+        "QS": 6.0,
+        "R": 40.0,
+        "RBI": 32.0,
+        "SB": 10.0,
+        "SVHD": 6.0,
+        "TB": 136.0,
+        "WHIP": 1.13333333
+      },
+      "matchup_period_id": 5,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 3.01239669,
+        "K": 69.0,
+        "OBP": 0.34552846,
+        "QS": 8.0,
+        "R": 36.0,
+        "RBI": 24.0,
+        "SB": 7.0,
+        "SVHD": 4.0,
+        "TB": 91.0,
+        "WHIP": 1.12809917
+      },
+      "matchup_period_id": 5,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 3.29268293,
+        "K": 79.0,
+        "OBP": 0.33461538,
+        "QS": 7.0,
+        "R": 31.0,
+        "RBI": 39.0,
+        "SB": 5.0,
+        "SVHD": 2.0,
+        "TB": 104.0,
+        "WHIP": 1.17073171
+      },
+      "matchup_period_id": 5,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 4.68493151,
+        "K": 73.0,
+        "OBP": 0.34351145,
+        "QS": 5.0,
+        "R": 35.0,
+        "RBI": 28.0,
+        "SB": 7.0,
+        "SVHD": 4.0,
+        "TB": 94.0,
+        "WHIP": 1.39726027
+      },
+      "matchup_period_id": 6,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 4.19133574,
+        "K": 90.0,
+        "OBP": 0.31707317,
+        "QS": 7.0,
+        "R": 36.0,
+        "RBI": 30.0,
+        "SB": 9.0,
+        "SVHD": 8.0,
+        "TB": 90.0,
+        "WHIP": 1.13718412
+      },
+      "matchup_period_id": 6,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 2.95890411,
+        "K": 40.0,
+        "OBP": 0.37164751,
+        "QS": 3.0,
+        "R": 31.0,
+        "RBI": 31.0,
+        "SB": 3.0,
+        "SVHD": 4.0,
+        "TB": 106.0,
+        "WHIP": 1.00684932
+      },
+      "matchup_period_id": 6,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 3.66331658,
+        "K": 57.0,
+        "OBP": 0.36842105,
+        "QS": 4.0,
+        "R": 39.0,
+        "RBI": 47.0,
+        "SB": 3.0,
+        "SVHD": 3.0,
+        "TB": 124.0,
+        "WHIP": 1.20603015
+      },
+      "matchup_period_id": 6,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 5.0310559,
+        "K": 49.0,
+        "OBP": 0.32720588,
+        "QS": 3.0,
+        "R": 32.0,
+        "RBI": 36.0,
+        "SB": 5.0,
+        "SVHD": 7.0,
+        "TB": 101.0,
+        "WHIP": 1.37888199
+      },
+      "matchup_period_id": 6,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 3.68181818,
+        "K": 45.0,
+        "OBP": 0.307393,
+        "QS": 2.0,
+        "R": 28.0,
+        "RBI": 28.0,
+        "SB": 4.0,
+        "SVHD": 3.0,
+        "TB": 102.0,
+        "WHIP": 1.22727273
+      },
+      "matchup_period_id": 6,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 2.73568282,
+        "K": 68.0,
+        "OBP": 0.34732824,
+        "QS": 4.0,
+        "R": 37.0,
+        "RBI": 36.0,
+        "SB": 14.0,
+        "SVHD": 2.0,
+        "TB": 90.0,
+        "WHIP": 1.26872247
+      },
+      "matchup_period_id": 6,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 3.55609756,
+        "K": 67.0,
+        "OBP": 0.38113208,
+        "QS": 4.0,
+        "R": 42.0,
+        "RBI": 27.0,
+        "SB": 5.0,
+        "SVHD": 6.0,
+        "TB": 115.0,
+        "WHIP": 1.36097561
+      },
+      "matchup_period_id": 6,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 5.78571429,
+        "K": 70.0,
+        "OBP": 0.32520325,
+        "QS": 5.0,
+        "R": 32.0,
+        "RBI": 30.0,
+        "SB": 3.0,
+        "SVHD": 4.0,
+        "TB": 99.0,
+        "WHIP": 1.61428571
+      },
+      "matchup_period_id": 6,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 3.72803347,
+        "K": 75.0,
+        "OBP": 0.35074627,
+        "QS": 6.0,
+        "R": 32.0,
+        "RBI": 43.0,
+        "SB": 5.0,
+        "SVHD": 7.0,
+        "TB": 127.0,
+        "WHIP": 1.15481172
+      },
+      "matchup_period_id": 6,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 3.26842105,
+        "K": 69.0,
+        "OBP": 0.38,
+        "QS": 4.0,
+        "R": 35.0,
+        "RBI": 25.0,
+        "SB": 5.0,
+        "SVHD": 3.0,
+        "TB": 81.0,
+        "WHIP": 1.07368421
+      },
+      "matchup_period_id": 7,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 3.10047847,
+        "K": 78.0,
+        "OBP": 0.30742049,
+        "QS": 6.0,
+        "R": 33.0,
+        "RBI": 32.0,
+        "SB": 6.0,
+        "SVHD": 5.0,
+        "TB": 83.0,
+        "WHIP": 1.3062201
+      },
+      "matchup_period_id": 7,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 2.55789474,
+        "K": 94.0,
+        "OBP": 0.36363636,
+        "QS": 9.0,
+        "R": 38.0,
+        "RBI": 36.0,
+        "SB": 3.0,
+        "SVHD": 3.0,
+        "TB": 117.0,
+        "WHIP": 1.09473684
+      },
+      "matchup_period_id": 7,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 4.625,
+        "K": 68.0,
+        "OBP": 0.30976431,
+        "QS": 3.0,
+        "R": 34.0,
+        "RBI": 27.0,
+        "SB": 6.0,
+        "SVHD": 6.0,
+        "TB": 96.0,
+        "WHIP": 1.34722222
+      },
+      "matchup_period_id": 7,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 3.375,
+        "K": 75.0,
+        "OBP": 0.38596491,
+        "QS": 5.0,
+        "R": 40.0,
+        "RBI": 44.0,
+        "SB": 9.0,
+        "SVHD": 5.0,
+        "TB": 134.0,
+        "WHIP": 1.30434783
+      },
+      "matchup_period_id": 7,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 3.81521739,
+        "K": 51.0,
+        "OBP": 0.33333333,
+        "QS": 4.0,
+        "R": 30.0,
+        "RBI": 32.0,
+        "SB": 5.0,
+        "SVHD": 2.0,
+        "TB": 102.0,
+        "WHIP": 1.27173913
+      },
+      "matchup_period_id": 7,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 3.72413793,
+        "K": 75.0,
+        "OBP": 0.28782288,
+        "QS": 5.0,
+        "R": 29.0,
+        "RBI": 37.0,
+        "SB": 6.0,
+        "SVHD": 4.0,
+        "TB": 100.0,
+        "WHIP": 1.18226601
+      },
+      "matchup_period_id": 7,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 4.95,
+        "K": 79.0,
+        "OBP": 0.33333333,
+        "QS": 6.0,
+        "R": 36.0,
+        "RBI": 38.0,
+        "SB": 1.0,
+        "SVHD": 2.0,
+        "TB": 102.0,
+        "WHIP": 1.35
+      },
+      "matchup_period_id": 7,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 4.08487085,
+        "K": 78.0,
+        "OBP": 0.35125448,
+        "QS": 6.0,
+        "R": 39.0,
+        "RBI": 28.0,
+        "SB": 4.0,
+        "SVHD": 5.0,
+        "TB": 106.0,
+        "WHIP": 1.12915129
+      },
+      "matchup_period_id": 7,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 3.55609756,
+        "K": 70.0,
+        "OBP": 0.32411067,
+        "QS": 6.0,
+        "R": 34.0,
+        "RBI": 20.0,
+        "SB": 12.0,
+        "SVHD": 5.0,
+        "TB": 87.0,
+        "WHIP": 1.05365854
+      },
+      "matchup_period_id": 7,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 3.3440367,
+        "K": 79.0,
+        "OBP": 0.37121212,
+        "QS": 6.0,
+        "R": 36.0,
+        "RBI": 34.0,
+        "SB": 7.0,
+        "SVHD": 5.0,
+        "TB": 114.0,
+        "WHIP": 1.00458716
+      },
+      "matchup_period_id": 8,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 3.22018349,
+        "K": 65.0,
+        "OBP": 0.31939163,
+        "QS": 5.0,
+        "R": 33.0,
+        "RBI": 37.0,
+        "SB": 9.0,
+        "SVHD": 6.0,
+        "TB": 120.0,
+        "WHIP": 1.08715596
+      },
+      "matchup_period_id": 8,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 2.60406091,
+        "K": 65.0,
+        "OBP": 0.30645161,
+        "QS": 4.0,
+        "R": 28.0,
+        "RBI": 21.0,
+        "SB": 10.0,
+        "SVHD": 6.0,
+        "TB": 81.0,
+        "WHIP": 1.20304569
+      },
+      "matchup_period_id": 8,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 3.77205882,
+        "K": 40.0,
+        "OBP": 0.34745763,
+        "QS": 4.0,
+        "R": 26.0,
+        "RBI": 22.0,
+        "SB": 6.0,
+        "SVHD": 6.0,
+        "TB": 75.0,
+        "WHIP": 1.16911765
+      },
+      "matchup_period_id": 8,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 6.31343284,
+        "K": 63.0,
+        "OBP": 0.35,
+        "QS": 2.0,
+        "R": 34.0,
+        "RBI": 35.0,
+        "SB": 4.0,
+        "SVHD": 1.0,
+        "TB": 113.0,
+        "WHIP": 1.64179104
+      },
+      "matchup_period_id": 8,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 3.82758621,
+        "K": 80.0,
+        "OBP": 0.38113208,
+        "QS": 6.0,
+        "R": 41.0,
+        "RBI": 35.0,
+        "SB": 5.0,
+        "SVHD": 2.0,
+        "TB": 119.0,
+        "WHIP": 1.32183908
+      },
+      "matchup_period_id": 8,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 3.63461538,
+        "K": 71.0,
+        "OBP": 0.32720588,
+        "QS": 7.0,
+        "R": 39.0,
+        "RBI": 37.0,
+        "SB": 10.0,
+        "SVHD": 7.0,
+        "TB": 122.0,
+        "WHIP": 1.09615385
+      },
+      "matchup_period_id": 8,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 2.84210526,
+        "K": 81.0,
+        "OBP": 0.28996283,
+        "QS": 6.0,
+        "R": 29.0,
+        "RBI": 28.0,
+        "SB": 6.0,
+        "SVHD": 5.0,
+        "TB": 80.0,
+        "WHIP": 1.15789474
+      },
+      "matchup_period_id": 8,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 2.29343629,
+        "K": 82.0,
+        "OBP": 0.27067669,
+        "QS": 10.0,
+        "R": 26.0,
+        "RBI": 31.0,
+        "SB": 1.0,
+        "SVHD": 3.0,
+        "TB": 105.0,
+        "WHIP": 1.06563707
+      },
+      "matchup_period_id": 8,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 2.953125,
+        "K": 82.0,
+        "OBP": 0.31075697,
+        "QS": 7.0,
+        "R": 23.0,
+        "RBI": 32.0,
+        "SB": 7.0,
+        "SVHD": 1.0,
+        "TB": 91.0,
+        "WHIP": 1.015625
+      },
+      "matchup_period_id": 8,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 3.31578947,
+        "K": 34.0,
+        "OBP": 0.31858407,
+        "QS": 1.0,
+        "R": 30.0,
+        "RBI": 27.0,
+        "SB": 14.0,
+        "SVHD": 2.0,
+        "TB": 89.0,
+        "WHIP": 1.28947368
+      },
+      "matchup_period_id": 9,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 3.70050761,
+        "K": 68.0,
+        "OBP": 0.38257576,
+        "QS": 4.0,
+        "R": 41.0,
+        "RBI": 42.0,
+        "SB": 2.0,
+        "SVHD": 7.0,
+        "TB": 117.0,
+        "WHIP": 1.05076142
+      },
+      "matchup_period_id": 9,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 3.20338983,
+        "K": 72.0,
+        "OBP": 0.34262948,
+        "QS": 7.0,
+        "R": 32.0,
+        "RBI": 26.0,
+        "SB": 5.0,
+        "SVHD": 7.0,
+        "TB": 97.0,
+        "WHIP": 1.1059322
+      },
+      "matchup_period_id": 9,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 3.63673469,
+        "K": 76.0,
+        "OBP": 0.29098361,
+        "QS": 6.0,
+        "R": 25.0,
+        "RBI": 23.0,
+        "SB": 11.0,
+        "SVHD": 3.0,
+        "TB": 86.0,
+        "WHIP": 1.40816327
+      },
+      "matchup_period_id": 9,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 5.36538462,
+        "K": 54.0,
+        "OBP": 0.33807829,
+        "QS": 4.0,
+        "R": 32.0,
+        "RBI": 27.0,
+        "SB": 2.0,
+        "SVHD": 3.0,
+        "TB": 105.0,
+        "WHIP": 1.28846154
+      },
+      "matchup_period_id": 9,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 2.2173913,
+        "K": 58.0,
+        "OBP": 0.30078125,
+        "QS": 6.0,
+        "R": 36.0,
+        "RBI": 34.0,
+        "SB": 5.0,
+        "SVHD": 5.0,
+        "TB": 100.0,
+        "WHIP": 1.08695652
+      },
+      "matchup_period_id": 9,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 4.45263158,
+        "K": 81.0,
+        "OBP": 0.30141844,
+        "QS": 6.0,
+        "R": 31.0,
+        "RBI": 26.0,
+        "SB": 5.0,
+        "SVHD": 5.0,
+        "TB": 109.0,
+        "WHIP": 1.35789474
+      },
+      "matchup_period_id": 9,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 2.52439024,
+        "K": 83.0,
+        "OBP": 0.27338129,
+        "QS": 9.0,
+        "R": 26.0,
+        "RBI": 23.0,
+        "SB": 6.0,
+        "SVHD": 5.0,
+        "TB": 90.0,
+        "WHIP": 1.02439024
+      },
+      "matchup_period_id": 9,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 3.01456311,
+        "K": 67.0,
+        "OBP": 0.33447099,
+        "QS": 7.0,
+        "R": 39.0,
+        "RBI": 35.0,
+        "SB": 5.0,
+        "SVHD": 5.0,
+        "TB": 108.0,
+        "WHIP": 1.31067961
+      },
+      "matchup_period_id": 9,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 2.77232143,
+        "K": 78.0,
+        "OBP": 0.35496183,
+        "QS": 6.0,
+        "R": 39.0,
+        "RBI": 44.0,
+        "SB": 6.0,
+        "SVHD": 2.0,
+        "TB": 123.0,
+        "WHIP": 1.13839286
+      },
+      "matchup_period_id": 9,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 3.92116183,
+        "K": 90.0,
+        "OBP": 0.33840304,
+        "QS": 6.0,
+        "R": 44.0,
+        "RBI": 36.0,
+        "SB": 8.0,
+        "SVHD": 4.0,
+        "TB": 117.0,
+        "WHIP": 1.19502075
+      },
+      "matchup_period_id": 10,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 3.50526316,
+        "K": 89.0,
+        "OBP": 0.32142857,
+        "QS": 7.0,
+        "R": 31.0,
+        "RBI": 23.0,
+        "SB": 10.0,
+        "SVHD": 5.0,
+        "TB": 84.0,
+        "WHIP": 1.04210526
+      },
+      "matchup_period_id": 10,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 3.19211823,
+        "K": 64.0,
+        "OBP": 0.32388664,
+        "QS": 7.0,
+        "R": 31.0,
+        "RBI": 33.0,
+        "SB": 8.0,
+        "SVHD": 7.0,
+        "TB": 109.0,
+        "WHIP": 1.21182266
+      },
+      "matchup_period_id": 10,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 1.82706767,
+        "K": 47.0,
+        "OBP": 0.33490566,
+        "QS": 3.0,
+        "R": 19.0,
+        "RBI": 15.0,
+        "SB": 10.0,
+        "SVHD": 3.0,
+        "TB": 77.0,
+        "WHIP": 0.90225564
+      },
+      "matchup_period_id": 10,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 5.81386861,
+        "K": 79.0,
+        "OBP": 0.31034483,
+        "QS": 4.0,
+        "R": 28.0,
+        "RBI": 35.0,
+        "SB": 14.0,
+        "SVHD": 6.0,
+        "TB": 104.0,
+        "WHIP": 1.52189781
+      },
+      "matchup_period_id": 10,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 3.564,
+        "K": 85.0,
+        "OBP": 0.30627306,
+        "QS": 6.0,
+        "R": 28.0,
+        "RBI": 26.0,
+        "SB": 6.0,
+        "SVHD": 4.0,
+        "TB": 85.0,
+        "WHIP": 1.296
+      },
+      "matchup_period_id": 10,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 2.59615385,
+        "K": 52.0,
+        "OBP": 0.36111111,
+        "QS": 4.0,
+        "R": 30.0,
+        "RBI": 35.0,
+        "SB": 4.0,
+        "SVHD": 6.0,
+        "TB": 92.0,
+        "WHIP": 0.86538462
+      },
+      "matchup_period_id": 10,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 6.525,
+        "K": 40.0,
+        "OBP": 0.36567164,
+        "QS": 1.0,
+        "R": 28.0,
+        "RBI": 35.0,
+        "SB": 4.0,
+        "SVHD": 6.0,
+        "TB": 107.0,
+        "WHIP": 1.625
+      },
+      "matchup_period_id": 10,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 2.37362637,
+        "K": 66.0,
+        "OBP": 0.33333333,
+        "QS": 6.0,
+        "R": 37.0,
+        "RBI": 21.0,
+        "SB": 2.0,
+        "SVHD": 6.0,
+        "TB": 104.0,
+        "WHIP": 1.07142857
+      },
+      "matchup_period_id": 10,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 3.13692946,
+        "K": 79.0,
+        "OBP": 0.38866397,
+        "QS": 5.0,
+        "R": 41.0,
+        "RBI": 32.0,
+        "SB": 2.0,
+        "SVHD": 8.0,
+        "TB": 103.0,
+        "WHIP": 1.15767635
+      },
+      "matchup_period_id": 10,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 4.5483871,
+        "K": 74.0,
+        "OBP": 0.30677291,
+        "QS": 7.0,
+        "R": 28.0,
+        "RBI": 28.0,
+        "SB": 6.0,
+        "SVHD": 5.0,
+        "TB": 101.0,
+        "WHIP": 1.19354839
+      },
+      "matchup_period_id": 11,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 3.61417323,
+        "K": 85.0,
+        "OBP": 0.36397059,
+        "QS": 7.0,
+        "R": 40.0,
+        "RBI": 34.0,
+        "SB": 7.0,
+        "SVHD": 7.0,
+        "TB": 114.0,
+        "WHIP": 1.0511811
+      },
+      "matchup_period_id": 11,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 2.1038961,
+        "K": 70.0,
+        "OBP": 0.28378378,
+        "QS": 8.0,
+        "R": 23.0,
+        "RBI": 21.0,
+        "SB": 5.0,
+        "SVHD": 4.0,
+        "TB": 67.0,
+        "WHIP": 0.84415584
+      },
+      "matchup_period_id": 11,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 4.89767442,
+        "K": 71.0,
+        "OBP": 0.37588652,
+        "QS": 4.0,
+        "R": 39.0,
+        "RBI": 38.0,
+        "SB": 12.0,
+        "SVHD": 3.0,
+        "TB": 129.0,
+        "WHIP": 1.33953488
+      },
+      "matchup_period_id": 11,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 5.0310559,
+        "K": 48.0,
+        "OBP": 0.2764977,
+        "QS": 4.0,
+        "R": 20.0,
+        "RBI": 20.0,
+        "SB": 2.0,
+        "SVHD": 1.0,
+        "TB": 68.0,
+        "WHIP": 1.34161491
+      },
+      "matchup_period_id": 11,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 3.23353293,
+        "K": 62.0,
+        "OBP": 0.40875912,
+        "QS": 4.0,
+        "R": 47.0,
+        "RBI": 43.0,
+        "SB": 6.0,
+        "SVHD": 3.0,
+        "TB": 130.0,
+        "WHIP": 1.13173653
+      },
+      "matchup_period_id": 11,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 3.40654206,
+        "K": 72.0,
+        "OBP": 0.34482759,
+        "QS": 6.0,
+        "R": 33.0,
+        "RBI": 41.0,
+        "SB": 4.0,
+        "SVHD": 5.0,
+        "TB": 111.0,
+        "WHIP": 1.23364486
+      },
+      "matchup_period_id": 11,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 4.36244541,
+        "K": 81.0,
+        "OBP": 0.28985507,
+        "QS": 6.0,
+        "R": 28.0,
+        "RBI": 29.0,
+        "SB": 6.0,
+        "SVHD": 7.0,
+        "TB": 96.0,
+        "WHIP": 1.23144105
+      },
+      "matchup_period_id": 11,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 2.84210526,
+        "K": 39.0,
+        "OBP": 0.33070866,
+        "QS": 2.0,
+        "R": 29.0,
+        "RBI": 34.0,
+        "SB": 5.0,
+        "SVHD": 4.0,
+        "TB": 86.0,
+        "WHIP": 1.18421053
+      },
+      "matchup_period_id": 11,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 4.14473684,
+        "K": 65.0,
+        "OBP": 0.32631579,
+        "QS": 6.0,
+        "R": 37.0,
+        "RBI": 29.0,
+        "SB": 8.0,
+        "SVHD": 7.0,
+        "TB": 107.0,
+        "WHIP": 1.35526316
+      },
+      "matchup_period_id": 11,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 3.06818182,
+        "K": 89.0,
+        "OBP": 0.36885246,
+        "QS": 9.0,
+        "R": 42.0,
+        "RBI": 37.0,
+        "SB": 4.0,
+        "SVHD": 4.0,
+        "TB": 122.0,
+        "WHIP": 1.13636364
+      },
+      "matchup_period_id": 12,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 5.16334661,
+        "K": 96.0,
+        "OBP": 0.34671533,
+        "QS": 3.0,
+        "R": 31.0,
+        "RBI": 21.0,
+        "SB": 8.0,
+        "SVHD": 5.0,
+        "TB": 85.0,
+        "WHIP": 1.45816733
+      },
+      "matchup_period_id": 12,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 4.85393258,
+        "K": 65.0,
+        "OBP": 0.32851986,
+        "QS": 3.0,
+        "R": 32.0,
+        "RBI": 30.0,
+        "SB": 5.0,
+        "SVHD": 1.0,
+        "TB": 105.0,
+        "WHIP": 1.43258427
+      },
+      "matchup_period_id": 12,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 3.09251101,
+        "K": 69.0,
+        "OBP": 0.38721805,
+        "QS": 6.0,
+        "R": 43.0,
+        "RBI": 34.0,
+        "SB": 4.0,
+        "SVHD": 2.0,
+        "TB": 132.0,
+        "WHIP": 1.11013216
+      },
+      "matchup_period_id": 12,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 2.78475336,
+        "K": 76.0,
+        "OBP": 0.33579336,
+        "QS": 6.0,
+        "R": 33.0,
+        "RBI": 27.0,
+        "SB": 4.0,
+        "SVHD": 5.0,
+        "TB": 87.0,
+        "WHIP": 1.13004484
+      },
+      "matchup_period_id": 12,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 3.68674699,
+        "K": 75.0,
+        "OBP": 0.332,
+        "QS": 6.0,
+        "R": 34.0,
+        "RBI": 32.0,
+        "SB": 6.0,
+        "SVHD": 4.0,
+        "TB": 89.0,
+        "WHIP": 1.15662651
+      },
+      "matchup_period_id": 12,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 4.39285714,
+        "K": 81.0,
+        "OBP": 0.34362934,
+        "QS": 6.0,
+        "R": 32.0,
+        "RBI": 30.0,
+        "SB": 5.0,
+        "SVHD": 5.0,
+        "TB": 101.0,
+        "WHIP": 1.30952381
+      },
+      "matchup_period_id": 12,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 3.23353293,
+        "K": 42.0,
+        "OBP": 0.26960784,
+        "QS": 5.0,
+        "R": 22.0,
+        "RBI": 26.0,
+        "SB": 2.0,
+        "SVHD": 3.0,
+        "TB": 70.0,
+        "WHIP": 1.07784431
+      },
+      "matchup_period_id": 12,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 2.96858639,
+        "K": 52.0,
+        "OBP": 0.32014388,
+        "QS": 4.0,
+        "R": 31.0,
+        "RBI": 38.0,
+        "SB": 4.0,
+        "SVHD": 6.0,
+        "TB": 100.0,
+        "WHIP": 1.13089005
+      },
+      "matchup_period_id": 12,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 5.88625592,
+        "K": 73.0,
+        "OBP": 0.34020619,
+        "QS": 3.0,
+        "R": 45.0,
+        "RBI": 34.0,
+        "SB": 3.0,
+        "SVHD": 5.0,
+        "TB": 103.0,
+        "WHIP": 1.53554502
+      },
+      "matchup_period_id": 12,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 3.39069767,
+        "K": 71.0,
+        "OBP": 0.31598513,
+        "QS": 5.0,
+        "R": 29.0,
+        "RBI": 26.0,
+        "SB": 3.0,
+        "SVHD": 5.0,
+        "TB": 101.0,
+        "WHIP": 1.2
+      },
+      "matchup_period_id": 13,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 2.81467181,
+        "K": 77.0,
+        "OBP": 0.34909091,
+        "QS": 7.0,
+        "R": 38.0,
+        "RBI": 31.0,
+        "SB": 2.0,
+        "SVHD": 3.0,
+        "TB": 121.0,
+        "WHIP": 1.11196911
+      },
+      "matchup_period_id": 13,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 3.89690722,
+        "K": 85.0,
+        "OBP": 0.35740072,
+        "QS": 8.0,
+        "R": 36.0,
+        "RBI": 28.0,
+        "SB": 2.0,
+        "SVHD": 5.0,
+        "TB": 94.0,
+        "WHIP": 1.25773196
+      },
+      "matchup_period_id": 13,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 4.80508475,
+        "K": 83.0,
+        "OBP": 0.3161512,
+        "QS": 6.0,
+        "R": 43.0,
+        "RBI": 35.0,
+        "SB": 5.0,
+        "SVHD": 6.0,
+        "TB": 114.0,
+        "WHIP": 1.16949153
+      },
+      "matchup_period_id": 13,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 3.83108108,
+        "K": 97.0,
+        "OBP": 0.39147287,
+        "QS": 8.0,
+        "R": 53.0,
+        "RBI": 42.0,
+        "SB": 6.0,
+        "SVHD": 2.0,
+        "TB": 128.0,
+        "WHIP": 1.20608108
+      },
+      "matchup_period_id": 13,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 4.61710037,
+        "K": 90.0,
+        "OBP": 0.37358491,
+        "QS": 4.0,
+        "R": 28.0,
+        "RBI": 38.0,
+        "SB": 3.0,
+        "SVHD": 6.0,
+        "TB": 110.0,
+        "WHIP": 1.34944238
+      },
+      "matchup_period_id": 13,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 4.80288462,
+        "K": 70.0,
+        "OBP": 0.34306569,
+        "QS": 3.0,
+        "R": 38.0,
+        "RBI": 38.0,
+        "SB": 6.0,
+        "SVHD": 2.0,
+        "TB": 114.0,
+        "WHIP": 1.41346154
+      },
+      "matchup_period_id": 13,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 3.85714286,
+        "K": 63.0,
+        "OBP": 0.36947791,
+        "QS": 7.0,
+        "R": 35.0,
+        "RBI": 41.0,
+        "SB": 3.0,
+        "SVHD": 4.0,
+        "TB": 130.0,
+        "WHIP": 1.11734694
+      },
+      "matchup_period_id": 13,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 5.59285714,
+        "K": 39.0,
+        "OBP": 0.31627907,
+        "QS": 4.0,
+        "R": 27.0,
+        "RBI": 19.0,
+        "SB": 4.0,
+        "SVHD": 0.0,
+        "TB": 73.0,
+        "WHIP": 1.28571429
+      },
+      "matchup_period_id": 13,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 6.18072289,
+        "K": 55.0,
+        "OBP": 0.34117647,
+        "QS": 2.0,
+        "R": 38.0,
+        "RBI": 44.0,
+        "SB": 4.0,
+        "SVHD": 6.0,
+        "TB": 112.0,
+        "WHIP": 1.44578313
+      },
+      "matchup_period_id": 13,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 6.10041841,
+        "K": 78.0,
+        "OBP": 0.34251969,
+        "QS": 3.0,
+        "R": 42.0,
+        "RBI": 28.0,
+        "SB": 4.0,
+        "SVHD": 3.0,
+        "TB": 103.0,
+        "WHIP": 1.40585774
+      },
+      "matchup_period_id": 14,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 5.54794521,
+        "K": 78.0,
+        "OBP": 0.27586207,
+        "QS": 4.0,
+        "R": 18.0,
+        "RBI": 25.0,
+        "SB": 3.0,
+        "SVHD": 6.0,
+        "TB": 84.0,
+        "WHIP": 1.32876712
+      },
+      "matchup_period_id": 14,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 3.51301115,
+        "K": 93.0,
+        "OBP": 0.36742424,
+        "QS": 6.0,
+        "R": 41.0,
+        "RBI": 34.0,
+        "SB": 4.0,
+        "SVHD": 3.0,
+        "TB": 119.0,
+        "WHIP": 1.11524164
+      },
+      "matchup_period_id": 14,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 3.81521739,
+        "K": 59.0,
+        "OBP": 0.32258065,
+        "QS": 6.0,
+        "R": 38.0,
+        "RBI": 44.0,
+        "SB": 2.0,
+        "SVHD": 3.0,
+        "TB": 118.0,
+        "WHIP": 1.28804348
+      },
+      "matchup_period_id": 14,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 2.80188679,
+        "K": 46.0,
+        "OBP": 0.30656934,
+        "QS": 1.0,
+        "R": 35.0,
+        "RBI": 29.0,
+        "SB": 6.0,
+        "SVHD": 7.0,
+        "TB": 89.0,
+        "WHIP": 1.33018868
+      },
+      "matchup_period_id": 14,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 2.58510638,
+        "K": 60.0,
+        "OBP": 0.32384342,
+        "QS": 4.0,
+        "R": 33.0,
+        "RBI": 33.0,
+        "SB": 7.0,
+        "SVHD": 7.0,
+        "TB": 94.0,
+        "WHIP": 1.10106383
+      },
+      "matchup_period_id": 14,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 4.59574468,
+        "K": 85.0,
+        "OBP": 0.36501901,
+        "QS": 5.0,
+        "R": 41.0,
+        "RBI": 40.0,
+        "SB": 5.0,
+        "SVHD": 2.0,
+        "TB": 122.0,
+        "WHIP": 1.42978723
+      },
+      "matchup_period_id": 14,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 2.29968454,
+        "K": 123.0,
+        "OBP": 0.34552846,
+        "QS": 10.0,
+        "R": 32.0,
+        "RBI": 29.0,
+        "SB": 7.0,
+        "SVHD": 2.0,
+        "TB": 111.0,
+        "WHIP": 1.02208202
+      },
+      "matchup_period_id": 14,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 5.7357513,
+        "K": 66.0,
+        "OBP": 0.34158416,
+        "QS": 3.0,
+        "R": 19.0,
+        "RBI": 16.0,
+        "SB": 3.0,
+        "SVHD": 3.0,
+        "TB": 67.0,
+        "WHIP": 1.33678756
+      },
+      "matchup_period_id": 14,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 2.80693069,
+        "K": 65.0,
+        "OBP": 0.35080645,
+        "QS": 6.0,
+        "R": 34.0,
+        "RBI": 37.0,
+        "SB": 2.0,
+        "SVHD": 3.0,
+        "TB": 106.0,
+        "WHIP": 0.95049505
+      },
+      "matchup_period_id": 14,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 3.4567474,
+        "K": 106.0,
+        "OBP": 0.30943396,
+        "QS": 5.0,
+        "R": 35.0,
+        "RBI": 35.0,
+        "SB": 5.0,
+        "SVHD": 1.0,
+        "TB": 103.0,
+        "WHIP": 1.21453287
+      },
+      "matchup_period_id": 15,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 3.375,
+        "K": 109.0,
+        "OBP": 0.37918216,
+        "QS": 9.0,
+        "R": 39.0,
+        "RBI": 35.0,
+        "SB": 2.0,
+        "SVHD": 4.0,
+        "TB": 120.0,
+        "WHIP": 0.975
+      },
+      "matchup_period_id": 15,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 3.234375,
+        "K": 81.0,
+        "OBP": 0.28793774,
+        "QS": 4.0,
+        "R": 25.0,
+        "RBI": 40.0,
+        "SB": 2.0,
+        "SVHD": 5.0,
+        "TB": 105.0,
+        "WHIP": 1.171875
+      },
+      "matchup_period_id": 15,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 3.54098361,
+        "K": 38.0,
+        "OBP": 0.32958801,
+        "QS": 2.0,
+        "R": 26.0,
+        "RBI": 31.0,
+        "SB": 2.0,
+        "SVHD": 4.0,
+        "TB": 100.0,
+        "WHIP": 1.20491803
+      },
+      "matchup_period_id": 15,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 4.39819005,
+        "K": 66.0,
+        "OBP": 0.36690647,
+        "QS": 5.0,
+        "R": 40.0,
+        "RBI": 48.0,
+        "SB": 4.0,
+        "SVHD": 3.0,
+        "TB": 128.0,
+        "WHIP": 1.16742081
+      },
+      "matchup_period_id": 15,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 3.35820896,
+        "K": 70.0,
+        "OBP": 0.35714286,
+        "QS": 6.0,
+        "R": 33.0,
+        "RBI": 32.0,
+        "SB": 8.0,
+        "SVHD": 7.0,
+        "TB": 108.0,
+        "WHIP": 0.98507463
+      },
+      "matchup_period_id": 15,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 3.89189189,
+        "K": 62.0,
+        "OBP": 0.3180212,
+        "QS": 5.0,
+        "R": 32.0,
+        "RBI": 37.0,
+        "SB": 9.0,
+        "SVHD": 2.0,
+        "TB": 104.0,
+        "WHIP": 1.2027027
+      },
+      "matchup_period_id": 15,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 2.25,
+        "K": 60.0,
+        "OBP": 0.34599156,
+        "QS": 4.0,
+        "R": 28.0,
+        "RBI": 30.0,
+        "SB": 4.0,
+        "SVHD": 3.0,
+        "TB": 89.0,
+        "WHIP": 1.0
+      },
+      "matchup_period_id": 15,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 4.8,
+        "K": 67.0,
+        "OBP": 0.31557377,
+        "QS": 4.0,
+        "R": 35.0,
+        "RBI": 34.0,
+        "SB": 8.0,
+        "SVHD": 3.0,
+        "TB": 92.0,
+        "WHIP": 1.36666667
+      },
+      "matchup_period_id": 15,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 4.81304348,
+        "K": 69.0,
+        "OBP": 0.34558824,
+        "QS": 6.0,
+        "R": 30.0,
+        "RBI": 40.0,
+        "SB": 4.0,
+        "SVHD": 4.0,
+        "TB": 123.0,
+        "WHIP": 1.36956522
+      },
+      "matchup_period_id": 15,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 2.81927711,
+        "K": 76.0,
+        "OBP": 0.35,
+        "QS": 7.0,
+        "R": 30.0,
+        "RBI": 36.0,
+        "SB": 6.0,
+        "SVHD": 5.0,
+        "TB": 96.0,
+        "WHIP": 1.08433735
+      },
+      "matchup_period_id": 17,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 2.68085106,
+        "K": 98.0,
+        "OBP": 0.32592593,
+        "QS": 10.0,
+        "R": 35.0,
+        "RBI": 27.0,
+        "SB": 5.0,
+        "SVHD": 4.0,
+        "TB": 101.0,
+        "WHIP": 1.04255319
+      },
+      "matchup_period_id": 17,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 1.62931034,
+        "K": 37.0,
+        "OBP": 0.34615385,
+        "QS": 4.0,
+        "R": 35.0,
+        "RBI": 40.0,
+        "SB": 3.0,
+        "SVHD": 4.0,
+        "TB": 122.0,
+        "WHIP": 1.03448276
+      },
+      "matchup_period_id": 17,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 4.76470588,
+        "K": 52.0,
+        "OBP": 0.352,
+        "QS": 3.0,
+        "R": 36.0,
+        "RBI": 36.0,
+        "SB": 5.0,
+        "SVHD": 0.0,
+        "TB": 117.0,
+        "WHIP": 1.28342246
+      },
+      "matchup_period_id": 17,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 3.41501976,
+        "K": 97.0,
+        "OBP": 0.33082707,
+        "QS": 6.0,
+        "R": 35.0,
+        "RBI": 36.0,
+        "SB": 4.0,
+        "SVHD": 6.0,
+        "TB": 129.0,
+        "WHIP": 1.11462451
+      },
+      "matchup_period_id": 17,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 5.77729258,
+        "K": 66.0,
+        "OBP": 0.3358209,
+        "QS": 1.0,
+        "R": 35.0,
+        "RBI": 33.0,
+        "SB": 4.0,
+        "SVHD": 3.0,
+        "TB": 105.0,
+        "WHIP": 1.51965066
+      },
+      "matchup_period_id": 17,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 3.26953125,
+        "K": 91.0,
+        "OBP": 0.35460993,
+        "QS": 8.0,
+        "R": 46.0,
+        "RBI": 49.0,
+        "SB": 5.0,
+        "SVHD": 4.0,
+        "TB": 139.0,
+        "WHIP": 1.11328125
+      },
+      "matchup_period_id": 17,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 3.56603774,
+        "K": 86.0,
+        "OBP": 0.29310345,
+        "QS": 5.0,
+        "R": 24.0,
+        "RBI": 20.0,
+        "SB": 10.0,
+        "SVHD": 7.0,
+        "TB": 66.0,
+        "WHIP": 1.18867925
+      },
+      "matchup_period_id": 17,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 4.0212766,
+        "K": 39.0,
+        "OBP": 0.37769784,
+        "QS": 2.0,
+        "R": 37.0,
+        "RBI": 41.0,
+        "SB": 7.0,
+        "SVHD": 1.0,
+        "TB": 125.0,
+        "WHIP": 1.25531915
+      },
+      "matchup_period_id": 17,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 3.72857143,
+        "K": 67.0,
+        "OBP": 0.31724138,
+        "QS": 1.0,
+        "R": 36.0,
+        "RBI": 31.0,
+        "SB": 10.0,
+        "SVHD": 4.0,
+        "TB": 117.0,
+        "WHIP": 1.25714286
+      },
+      "matchup_period_id": 17,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 3.27272727,
+        "K": 70.0,
+        "OBP": 0.28740157,
+        "QS": 5.0,
+        "R": 22.0,
+        "RBI": 38.0,
+        "SB": 9.0,
+        "SVHD": 3.0,
+        "TB": 105.0,
+        "WHIP": 1.3030303
+      },
+      "matchup_period_id": 18,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 2.86725664,
+        "K": 33.0,
+        "OBP": 0.33609959,
+        "QS": 2.0,
+        "R": 27.0,
+        "RBI": 26.0,
+        "SB": 3.0,
+        "SVHD": 5.0,
+        "TB": 88.0,
+        "WHIP": 1.38053097
+      },
+      "matchup_period_id": 18,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 5.0738255,
+        "K": 52.0,
+        "OBP": 0.27131783,
+        "QS": 2.0,
+        "R": 32.0,
+        "RBI": 26.0,
+        "SB": 6.0,
+        "SVHD": 4.0,
+        "TB": 94.0,
+        "WHIP": 1.51006711
+      },
+      "matchup_period_id": 18,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 2.68656716,
+        "K": 60.0,
+        "OBP": 0.32352941,
+        "QS": 6.0,
+        "R": 29.0,
+        "RBI": 28.0,
+        "SB": 1.0,
+        "SVHD": 5.0,
+        "TB": 93.0,
+        "WHIP": 0.98507463
+      },
+      "matchup_period_id": 18,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 4.79439252,
+        "K": 69.0,
+        "OBP": 0.29323308,
+        "QS": 3.0,
+        "R": 34.0,
+        "RBI": 35.0,
+        "SB": 8.0,
+        "SVHD": 4.0,
+        "TB": 104.0,
+        "WHIP": 1.14953271
+      },
+      "matchup_period_id": 18,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 3.08053691,
+        "K": 56.0,
+        "OBP": 0.28695652,
+        "QS": 2.0,
+        "R": 28.0,
+        "RBI": 28.0,
+        "SB": 3.0,
+        "SVHD": 4.0,
+        "TB": 79.0,
+        "WHIP": 1.10738255
+      },
+      "matchup_period_id": 18,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 2.93023256,
+        "K": 74.0,
+        "OBP": 0.29779412,
+        "QS": 4.0,
+        "R": 37.0,
+        "RBI": 36.0,
+        "SB": 2.0,
+        "SVHD": 4.0,
+        "TB": 101.0,
+        "WHIP": 1.03488372
+      },
+      "matchup_period_id": 18,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 4.85611511,
+        "K": 78.0,
+        "OBP": 0.37992832,
+        "QS": 4.0,
+        "R": 43.0,
+        "RBI": 36.0,
+        "SB": 7.0,
+        "SVHD": 2.0,
+        "TB": 113.0,
+        "WHIP": 1.29496403
+      },
+      "matchup_period_id": 18,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 4.41176471,
+        "K": 60.0,
+        "OBP": 0.34322034,
+        "QS": 4.0,
+        "R": 28.0,
+        "RBI": 20.0,
+        "SB": 6.0,
+        "SVHD": 5.0,
+        "TB": 71.0,
+        "WHIP": 1.07843137
+      },
+      "matchup_period_id": 18,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 5.21848739,
+        "K": 91.0,
+        "OBP": 0.33333333,
+        "QS": 4.0,
+        "R": 32.0,
+        "RBI": 35.0,
+        "SB": 6.0,
+        "SVHD": 3.0,
+        "TB": 102.0,
+        "WHIP": 1.41176471
+      },
+      "matchup_period_id": 18,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 0.96428571,
+        "K": 27.0,
+        "OBP": 0.34033613,
+        "QS": 2.0,
+        "R": 34.0,
+        "RBI": 42.0,
+        "SB": 3.0,
+        "SVHD": 5.0,
+        "TB": 102.0,
+        "WHIP": 0.67857143
+      },
+      "matchup_period_id": 19,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 6.29237288,
+        "K": 87.0,
+        "OBP": 0.38970588,
+        "QS": 4.0,
+        "R": 38.0,
+        "RBI": 41.0,
+        "SB": 1.0,
+        "SVHD": 5.0,
+        "TB": 114.0,
+        "WHIP": 1.58898305
+      },
+      "matchup_period_id": 19,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 3.41263941,
+        "K": 85.0,
+        "OBP": 0.31086142,
+        "QS": 4.0,
+        "R": 32.0,
+        "RBI": 32.0,
+        "SB": 5.0,
+        "SVHD": 2.0,
+        "TB": 87.0,
+        "WHIP": 1.46096654
+      },
+      "matchup_period_id": 19,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 4.0754717,
+        "K": 99.0,
+        "OBP": 0.32,
+        "QS": 8.0,
+        "R": 31.0,
+        "RBI": 34.0,
+        "SB": 12.0,
+        "SVHD": 6.0,
+        "TB": 104.0,
+        "WHIP": 1.09433962
+      },
+      "matchup_period_id": 19,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 3.7125,
+        "K": 77.0,
+        "OBP": 0.28880866,
+        "QS": 5.0,
+        "R": 37.0,
+        "RBI": 36.0,
+        "SB": 7.0,
+        "SVHD": 5.0,
+        "TB": 99.0,
+        "WHIP": 1.3875
+      },
+      "matchup_period_id": 19,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 4.18309859,
+        "K": 69.0,
+        "OBP": 0.34482759,
+        "QS": 4.0,
+        "R": 44.0,
+        "RBI": 24.0,
+        "SB": 4.0,
+        "SVHD": 3.0,
+        "TB": 89.0,
+        "WHIP": 1.28169014
+      },
+      "matchup_period_id": 19,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 4.65517241,
+        "K": 44.0,
+        "OBP": 0.34893617,
+        "QS": 1.0,
+        "R": 33.0,
+        "RBI": 16.0,
+        "SB": 4.0,
+        "SVHD": 5.0,
+        "TB": 75.0,
+        "WHIP": 1.44827586
+      },
+      "matchup_period_id": 19,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 3.27272727,
+        "K": 29.0,
+        "OBP": 0.32246377,
+        "QS": 2.0,
+        "R": 31.0,
+        "RBI": 39.0,
+        "SB": 6.0,
+        "SVHD": 2.0,
+        "TB": 112.0,
+        "WHIP": 1.3030303
+      },
+      "matchup_period_id": 19,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 5.89655172,
+        "K": 33.0,
+        "OBP": 0.32786885,
+        "QS": 0.0,
+        "R": 32.0,
+        "RBI": 23.0,
+        "SB": 6.0,
+        "SVHD": 7.0,
+        "TB": 100.0,
+        "WHIP": 1.37931034
+      },
+      "matchup_period_id": 19,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 3.53571429,
+        "K": 41.0,
+        "OBP": 0.33333333,
+        "QS": 4.0,
+        "R": 35.0,
+        "RBI": 38.0,
+        "SB": 6.0,
+        "SVHD": 4.0,
+        "TB": 105.0,
+        "WHIP": 1.08928571
+      },
+      "matchup_period_id": 19,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 4.39100346,
+        "K": 100.0,
+        "OBP": 0.33699634,
+        "QS": 4.0,
+        "R": 43.0,
+        "RBI": 23.0,
+        "SB": 6.0,
+        "SVHD": 7.0,
+        "TB": 93.0,
+        "WHIP": 1.33910035
+      },
+      "matchup_period_id": 20,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 1.74820144,
+        "K": 78.0,
+        "OBP": 0.34979424,
+        "QS": 9.0,
+        "R": 30.0,
+        "RBI": 37.0,
+        "SB": 6.0,
+        "SVHD": 6.0,
+        "TB": 92.0,
+        "WHIP": 1.00359712
+      },
+      "matchup_period_id": 20,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 3.86915888,
+        "K": 77.0,
+        "OBP": 0.37686567,
+        "QS": 10.0,
+        "R": 43.0,
+        "RBI": 50.0,
+        "SB": 8.0,
+        "SVHD": 5.0,
+        "TB": 128.0,
+        "WHIP": 1.02803738
+      },
+      "matchup_period_id": 20,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 4.60750853,
+        "K": 89.0,
+        "OBP": 0.32931727,
+        "QS": 6.0,
+        "R": 29.0,
+        "RBI": 27.0,
+        "SB": 7.0,
+        "SVHD": 3.0,
+        "TB": 97.0,
+        "WHIP": 1.24914676
+      },
+      "matchup_period_id": 20,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 3.66101695,
+        "K": 45.0,
+        "OBP": 0.34241245,
+        "QS": 2.0,
+        "R": 51.0,
+        "RBI": 45.0,
+        "SB": 8.0,
+        "SVHD": 3.0,
+        "TB": 129.0,
+        "WHIP": 1.16949153
+      },
+      "matchup_period_id": 20,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 3.78343949,
+        "K": 53.0,
+        "OBP": 0.37642586,
+        "QS": 5.0,
+        "R": 34.0,
+        "RBI": 42.0,
+        "SB": 6.0,
+        "SVHD": 2.0,
+        "TB": 118.0,
+        "WHIP": 1.07006369
+      },
+      "matchup_period_id": 20,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 2.72727273,
+        "K": 26.0,
+        "OBP": 0.29387755,
+        "QS": 2.0,
+        "R": 29.0,
+        "RBI": 23.0,
+        "SB": 5.0,
+        "SVHD": 1.0,
+        "TB": 86.0,
+        "WHIP": 1.09090909
+      },
+      "matchup_period_id": 20,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 5.4,
+        "K": 50.0,
+        "OBP": 0.30733945,
+        "QS": 1.0,
+        "R": 34.0,
+        "RBI": 28.0,
+        "SB": 8.0,
+        "SVHD": 5.0,
+        "TB": 82.0,
+        "WHIP": 1.11428571
+      },
+      "matchup_period_id": 20,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 5.83783784,
+        "K": 28.0,
+        "OBP": 0.3253012,
+        "QS": 2.0,
+        "R": 37.0,
+        "RBI": 33.0,
+        "SB": 12.0,
+        "SVHD": 0.0,
+        "TB": 103.0,
+        "WHIP": 1.33783784
+      },
+      "matchup_period_id": 20,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 9.0,
+        "K": 22.0,
+        "OBP": 0.33191489,
+        "QS": 0.0,
+        "R": 22.0,
+        "RBI": 24.0,
+        "SB": 4.0,
+        "SVHD": 4.0,
+        "TB": 97.0,
+        "WHIP": 1.96153846
+      },
+      "matchup_period_id": 20,
+      "period_days": 7,
+      "team_id": 5
+    },
+    {
+      "cats": {
+        "ERA": 5.74468085,
+        "K": 102.0,
+        "OBP": 0.33928571,
+        "QS": 4.0,
+        "R": 35.0,
+        "RBI": 39.0,
+        "SB": 4.0,
+        "SVHD": 3.0,
+        "TB": 110.0,
+        "WHIP": 1.32978723
+      },
+      "matchup_period_id": 21,
+      "period_days": 7,
+      "team_id": 1
+    },
+    {
+      "cats": {
+        "ERA": 2.58785942,
+        "K": 108.0,
+        "OBP": 0.39,
+        "QS": 10.0,
+        "R": 38.0,
+        "RBI": 23.0,
+        "SB": 7.0,
+        "SVHD": 9.0,
+        "TB": 120.0,
+        "WHIP": 1.1884984
+      },
+      "matchup_period_id": 21,
+      "period_days": 7,
+      "team_id": 7
+    },
+    {
+      "cats": {
+        "ERA": 3.51680672,
+        "K": 87.0,
+        "OBP": 0.30545455,
+        "QS": 6.0,
+        "R": 26.0,
+        "RBI": 39.0,
+        "SB": 4.0,
+        "SVHD": 4.0,
+        "TB": 96.0,
+        "WHIP": 1.28571429
+      },
+      "matchup_period_id": 21,
+      "period_days": 7,
+      "team_id": 6
+    },
+    {
+      "cats": {
+        "ERA": 3.45112782,
+        "K": 47.0,
+        "OBP": 0.2962963,
+        "QS": 3.0,
+        "R": 37.0,
+        "RBI": 34.0,
+        "SB": 4.0,
+        "SVHD": 3.0,
+        "TB": 101.0,
+        "WHIP": 1.21804511
+      },
+      "matchup_period_id": 21,
+      "period_days": 7,
+      "team_id": 4
+    },
+    {
+      "cats": {
+        "ERA": 3.13392857,
+        "K": 79.0,
+        "OBP": 0.35763889,
+        "QS": 7.0,
+        "R": 39.0,
+        "RBI": 31.0,
+        "SB": 4.0,
+        "SVHD": 3.0,
+        "TB": 114.0,
+        "WHIP": 1.19196429
+      },
+      "matchup_period_id": 21,
+      "period_days": 7,
+      "team_id": 10
+    },
+    {
+      "cats": {
+        "ERA": 5.09016393,
+        "K": 39.0,
+        "OBP": 0.33333333,
+        "QS": 2.0,
+        "R": 33.0,
+        "RBI": 28.0,
+        "SB": 10.0,
+        "SVHD": 5.0,
+        "TB": 95.0,
+        "WHIP": 1.27868852
+      },
+      "matchup_period_id": 21,
+      "period_days": 7,
+      "team_id": 3
+    },
+    {
+      "cats": {
+        "ERA": 5.92682927,
+        "K": 26.0,
+        "OBP": 0.34496124,
+        "QS": 1.0,
+        "R": 36.0,
+        "RBI": 30.0,
+        "SB": 5.0,
+        "SVHD": 4.0,
+        "TB": 88.0,
+        "WHIP": 1.6097561
+      },
+      "matchup_period_id": 21,
+      "period_days": 7,
+      "team_id": 8
+    },
+    {
+      "cats": {
+        "ERA": 3.46153846,
+        "K": 37.0,
+        "OBP": 0.31958763,
+        "QS": 3.0,
+        "R": 24.0,
+        "RBI": 23.0,
+        "SB": 2.0,
+        "SVHD": 3.0,
+        "TB": 68.0,
+        "WHIP": 0.8974359
+      },
+      "matchup_period_id": 21,
+      "period_days": 7,
+      "team_id": 2
+    },
+    {
+      "cats": {
+        "ERA": 3.375,
+        "K": 42.0,
+        "OBP": 0.28820961,
+        "QS": 5.0,
+        "R": 27.0,
+        "RBI": 32.0,
+        "SB": 10.0,
+        "SVHD": 3.0,
+        "TB": 100.0,
+        "WHIP": 0.9375
+      },
+      "matchup_period_id": 21,
+      "period_days": 7,
+      "team_id": 9
+    },
+    {
+      "cats": {
+        "ERA": 3.31967213,
+        "K": 49.0,
+        "OBP": 0.32627119,
+        "QS": 3.0,
+        "R": 32.0,
+        "RBI": 30.0,
+        "SB": 7.0,
+        "SVHD": 4.0,
+        "TB": 88.0,
+        "WHIP": 1.05737705
+      },
+      "matchup_period_id": 21,
+      "period_days": 7,
+      "team_id": 5
+    }
+  ]
+}
