@@ -47,6 +47,7 @@ class PlayoffOddsRequest(BaseModel):
     # Per-period weight (period_days / sum_remaining_days). Same length and order
     # as remaining_schedule's distinct period IDs (smallest first).
     period_weights: dict[int, float]
+    period_days_by_id: dict[int, int] = {}  # period_id → days; falls back to TYPICAL_PERIOD_DAYS
     playoff_slots: int = 6
     n_trials: int = 5000
     seed: Optional[int] = None

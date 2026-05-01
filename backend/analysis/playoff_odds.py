@@ -15,6 +15,7 @@ import numpy as np
 
 from backend.analysis.matchup import (
     CATEGORY_SIGMA,
+    CATEGORY_BETWEEN_SIGMA,
     optimize_daily_lineup,
     _load_projections,
 )
@@ -38,6 +39,11 @@ IL_LINEUP_SLOT_MIN = 17  # ESPN lineupSlotId 17+ are IL slots
 # Equal today; future calibration may diverge them.
 PITCHER_BENCH_WEIGHT_SP = 0.95
 PITCHER_BENCH_WEIGHT_RP = 0.95
+
+CAT_KINDS: dict[str, str] = {
+    "R": "count", "TB": "count", "RBI": "count", "SB": "count", "OBP": "rate",
+    "K": "count", "QS": "count", "ERA": "rate", "WHIP": "rate", "SVHD": "count",
+}
 
 
 @dataclass
@@ -152,29 +158,19 @@ def simulate_one_season(
     period_weights: dict[int, float],
     rng: np.random.Generator,
     il_by_team: Optional[dict[int, dict[int, bool]]] = None,
+    shrinkage_by_team: Optional[dict[int, "ShrinkageContext"]] = None,
+    period_days_by_id: Optional[dict[int, int]] = None,
 ) -> dict[int, tuple[int, int, int]]:
-    """Run one full simulation of the rest of the regular season.
-
-    Args:
-        rosters: team_id → list of PlayerProjection.
-        current_records: team_id → (wins, losses, ties) at start of sim.
-        remaining_schedule: list of (matchup_period_id, home_team_id, away_team_id).
-        period_weights: matchup_period_id → fraction-of-RoS this period covers.
-        rng: numpy Generator for noise draws.
-        il_by_team: team_id → {mlb_id: True} for IL players. Optional.
-
-    Returns:
-        team_id → final cumulative (wins, losses, ties).
-    """
     il_by_team = il_by_team or {}
+    shrinkage_by_team = shrinkage_by_team or {}
+    period_days_by_id = period_days_by_id or {}
     final = {tid: list(rec) for tid, rec in current_records.items()}
 
-    # Group periods so we project once per (team, period) pair (caching).
     period_projections: dict[tuple[int, int], dict[str, float]] = {}
 
     for period_id, home_id, away_id in remaining_schedule:
         weight = period_weights[period_id]
-        # Project each team for this period (cache to avoid recomputation)
+        days = period_days_by_id.get(period_id, TYPICAL_PERIOD_DAYS)
         for team_id in (home_id, away_id):
             key = (team_id, period_id)
             if key not in period_projections:
@@ -182,11 +178,12 @@ def simulate_one_season(
                     roster=rosters[team_id],
                     period_weight=weight,
                     il_mlb_ids=il_by_team.get(team_id),
+                    shrinkage_ctx=shrinkage_by_team.get(team_id),
+                    current_period_days=days,
                 )
         a_cats = period_projections[(home_id, period_id)]
         b_cats = period_projections[(away_id, period_id)]
         a_w, a_l, a_t = simulate_head_to_head(a_cats, b_cats, rng)
-        # Home gets a_w/a_l/a_t; away is the inverse (a_l wins, a_w losses, a_t ties)
         final[home_id][0] += a_w
         final[home_id][1] += a_l
         final[home_id][2] += a_t
@@ -207,6 +204,8 @@ def compute_playoff_odds(
     seed: Optional[int] = None,
     il_by_team: Optional[dict[int, dict[int, bool]]] = None,
     team_names: Optional[dict[int, str]] = None,
+    shrinkage_by_team: Optional[dict[int, "ShrinkageContext"]] = None,
+    period_days_by_id: Optional[dict[int, int]] = None,
 ) -> list[dict]:
     """Run Monte Carlo and return per-team playoff odds.
 
@@ -216,6 +215,7 @@ def compute_playoff_odds(
     """
     team_ids = list(rosters.keys())
     team_names = team_names or {tid: f"Team {tid}" for tid in team_ids}
+    shrinkage_by_team = shrinkage_by_team or {}
 
     playoff_count = {tid: 0 for tid in team_ids}
     sum_wins = {tid: 0.0 for tid in team_ids}
@@ -233,6 +233,8 @@ def compute_playoff_odds(
             period_weights=period_weights,
             rng=rng,
             il_by_team=il_by_team,
+            shrinkage_by_team=shrinkage_by_team,
+            period_days_by_id=period_days_by_id,
         )
         # Rank teams: more wins is better, more ties as secondary, random tiebreak.
         # Use a stable shuffle then sort to break exact ties uniformly.
@@ -254,6 +256,8 @@ def compute_playoff_odds(
     out: list[dict] = []
     for tid in team_ids:
         cur_w, cur_l, cur_t = current_records[tid]
+        ctx = shrinkage_by_team.get(tid)
+        weights = dict(ctx.last_weights) if ctx and ctx.last_weights else {}
         out.append({
             "team_id": tid,
             "team_name": team_names[tid],
@@ -265,6 +269,7 @@ def compute_playoff_odds(
             "avg_final_losses": sum_losses[tid] / n_trials,
             "avg_final_ties": sum_ties[tid] / n_trials,
             "avg_final_rank": sum_rank[tid] / n_trials,
+            "shrinkage_weight": weights,
         })
     out.sort(key=lambda r: -r["playoff_odds"])
     return out
@@ -274,6 +279,7 @@ def compute_playoff_odds_from_request(payload: dict) -> dict:
     """Resolve names → mlb_ids, load projections, run sim, return response dict."""
     season = payload["season"]
     teams = payload["teams"]
+    observed_history = payload.get("observed_history", []) or []
 
     # Flatten all roster players for name resolution
     all_roster_dicts: list[dict] = []
@@ -334,6 +340,35 @@ def compute_playoff_odds_from_request(payload: dict) -> dict:
     ]
     # period_weights keys may be strings via JSON
     period_weights = {int(k): float(v) for k, v in payload["period_weights"].items()}
+    period_days_by_id = {
+        int(k): int(v) for k, v in (payload.get("period_days_by_id") or {}).items()
+    }
+
+    # Build per-team ShrinkageContext from observed_history
+    obs_by_team: dict[int, list[ObservedPeriod]] = {tid: [] for tid in rosters}
+    for o in observed_history:
+        tid = o["team_id"]
+        if tid not in obs_by_team:
+            continue
+        obs_by_team[tid].append(ObservedPeriod(
+            matchup_period_id=o["matchup_period_id"],
+            period_days=o["period_days"],
+            cats=dict(o["cats"]),
+        ))
+
+    shrinkage_applied = any(len(v) > 0 for v in obs_by_team.values())
+    shrinkage_by_team: dict[int, ShrinkageContext] = {}
+    for tid, obs in obs_by_team.items():
+        shrinkage_by_team[tid] = ShrinkageContext(
+            observations=obs,
+            sigma_within=dict(CATEGORY_SIGMA),
+            sigma_between=dict(CATEGORY_BETWEEN_SIGMA),
+            cat_kinds=dict(CAT_KINDS),
+        )
+
+    completed_periods_observed = max(
+        (len(v) for v in obs_by_team.values()), default=0,
+    )
 
     teams_out = compute_playoff_odds(
         rosters=rosters,
@@ -345,6 +380,8 @@ def compute_playoff_odds_from_request(payload: dict) -> dict:
         seed=payload.get("seed"),
         il_by_team=il_by_team,
         team_names=team_names,
+        shrinkage_by_team=shrinkage_by_team,
+        period_days_by_id=period_days_by_id,
     )
 
     return {
@@ -352,4 +389,6 @@ def compute_playoff_odds_from_request(payload: dict) -> dict:
         "n_trials": payload.get("n_trials", 5000),
         "matched_player_count": matched_count,
         "unmatched_player_names": sorted(unmatched_names),
+        "shrinkage_applied": shrinkage_applied,
+        "completed_periods_observed": completed_periods_observed,
     }

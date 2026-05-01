@@ -338,3 +338,152 @@ class TestComputePlayoffOddsFromRequest:
             assert len(result["teams"]) == 2
             for t in result["teams"]:
                 assert 0.0 <= t["playoff_odds"] <= 1.0
+
+
+class TestComputePlayoffOddsFromRequestWithShrinkage:
+    def test_shrinkage_pulls_overprojected_team_down(self):
+        # Mock projections: team 1 has stud projections, team 2 has weak projections.
+        # observed_history makes team 1 actually look weak, team 2 actually look stud.
+        # With shrinkage active, team 1's huge ATC advantage should be eroded — we
+        # demonstrate this by comparing two runs (no-history vs with-history) of the
+        # SAME engine call, showing shrinkage moves the playoff odds substantially.
+        from unittest.mock import patch
+        fake_projections = {
+            1001: PlayerProjection(
+                mlb_id=1001, name="A", position="OF", player_type="hitter",
+                pa=600, r=200, tb=400, rbi=200, sb=20, obp=0.420,
+                eligible_positions="OF/UTIL",
+            ),
+            1002: PlayerProjection(
+                mlb_id=1002, name="B", position="OF", player_type="hitter",
+                pa=600, r=20, tb=80, rbi=20, sb=2, obp=0.250,
+                eligible_positions="OF/UTIL",
+            ),
+            1003: PlayerProjection(
+                mlb_id=1003, name="C", position="SP", player_type="pitcher",
+                ip=180, k=200, qs=18, era=2.50, whip=1.00,
+                eligible_positions="SP/P",
+            ),
+            1004: PlayerProjection(
+                mlb_id=1004, name="D", position="SP", player_type="pitcher",
+                ip=180, k=80, qs=8, era=5.00, whip=1.50,
+                eligible_positions="SP/P",
+            ),
+        }
+        with patch("backend.analysis.playoff_odds.resolve_espn_names_to_mlbid") as resolve, \
+             patch("backend.analysis.playoff_odds._load_projections") as load_proj:
+            # Mock returns name → mlb_id with original casing (matches recent
+            # commit 1119971 — lookup is by original ESPN string).
+            resolve.return_value = {"A": 1001, "B": 1002, "C": 1003, "D": 1004}
+            load_proj.return_value = fake_projections
+
+            base_payload = {
+                "season": 2026,
+                "teams": [
+                    {
+                        "team_id": 1, "team_name": "T1",
+                        "roster": [
+                            {"name": "A", "position": "OF", "player_type": "hitter",
+                             "lineup_slot_id": 5, "eligible_positions": "OF/UTIL"},
+                            {"name": "C", "position": "SP", "player_type": "pitcher",
+                             "lineup_slot_id": 14, "eligible_positions": "SP/P"},
+                        ],
+                        "current_wins": 0, "current_losses": 0, "current_ties": 0,
+                    },
+                    {
+                        "team_id": 2, "team_name": "T2",
+                        "roster": [
+                            {"name": "B", "position": "OF", "player_type": "hitter",
+                             "lineup_slot_id": 5, "eligible_positions": "OF/UTIL"},
+                            {"name": "D", "position": "SP", "player_type": "pitcher",
+                             "lineup_slot_id": 14, "eligible_positions": "SP/P"},
+                        ],
+                        "current_wins": 0, "current_losses": 0, "current_ties": 0,
+                    },
+                ],
+                "remaining_schedule": [
+                    {"matchup_period_id": p, "home_team_id": 1, "away_team_id": 2}
+                    for p in range(1, 5)
+                ],
+                "period_weights": {1: 0.25, 2: 0.25, 3: 0.25, 4: 0.25},
+                "period_days_by_id": {1: 7, 2: 7, 3: 7, 4: 7},
+                "playoff_slots": 1,
+                "n_trials": 400,
+                "seed": 0,
+            }
+
+            # Without observation history → team 1 dominates ATC-wise
+            result_no_shrink = compute_playoff_odds_from_request({
+                **base_payload, "observed_history": []
+            })
+            t1_no_shrink = next(t for t in result_no_shrink["teams"] if t["team_id"] == 1)
+
+            # With observation history flipping observed strengths
+            result_shrunk = compute_playoff_odds_from_request({
+                **base_payload,
+                "observed_history": [
+                    *({"team_id": 1, "matchup_period_id": p, "period_days": 7,
+                       "cats": {"R": 30, "TB": 80, "RBI": 30, "SB": 2, "OBP": 0.250,
+                                "K": 60, "QS": 4, "ERA": 5.50, "WHIP": 1.55, "SVHD": 4}}
+                      for p in range(1, 6)),
+                    *({"team_id": 2, "matchup_period_id": p, "period_days": 7,
+                       "cats": {"R": 110, "TB": 280, "RBI": 110, "SB": 12, "OBP": 0.380,
+                                "K": 120, "QS": 12, "ERA": 2.80, "WHIP": 1.05, "SVHD": 8}}
+                      for p in range(1, 6)),
+                ],
+            })
+            t1_shrunk = next(t for t in result_shrunk["teams"] if t["team_id"] == 1)
+
+            # Shrinkage must move team 1's odds substantially DOWN.
+            assert t1_no_shrink["playoff_odds"] - t1_shrunk["playoff_odds"] > 0.20, (
+                f"Expected shrinkage to drop team 1 by ≥0.20 but got "
+                f"{t1_no_shrink['playoff_odds']} → {t1_shrunk['playoff_odds']}"
+            )
+            assert result_shrunk["shrinkage_applied"] is True
+            assert result_shrunk["completed_periods_observed"] == 5
+            assert result_no_shrink["shrinkage_applied"] is False
+            assert result_no_shrink["completed_periods_observed"] == 0
+            assert "R" in t1_shrunk["shrinkage_weight"]
+            assert t1_shrunk["shrinkage_weight"]["R"] > 0.0
+
+    def test_no_observed_history_keeps_projection_unchanged(self):
+        from unittest.mock import patch
+        fake_projections = {
+            1001: PlayerProjection(
+                mlb_id=1001, name="A", position="OF", player_type="hitter",
+                pa=600, r=90, tb=270, rbi=80, sb=10, obp=0.330,
+                eligible_positions="OF/UTIL",
+            ),
+        }
+        with patch("backend.analysis.playoff_odds.resolve_espn_names_to_mlbid") as resolve, \
+             patch("backend.analysis.playoff_odds._load_projections") as load_proj:
+            resolve.return_value = {"A": 1001}
+            load_proj.return_value = fake_projections
+
+            payload = {
+                "season": 2026,
+                "teams": [
+                    {"team_id": 1, "team_name": "T1",
+                     "roster": [{"name": "A", "position": "OF", "player_type": "hitter",
+                                 "lineup_slot_id": 5, "eligible_positions": "OF/UTIL"}],
+                     "current_wins": 0, "current_losses": 0, "current_ties": 0},
+                    {"team_id": 2, "team_name": "T2",
+                     "roster": [{"name": "A", "position": "OF", "player_type": "hitter",
+                                 "lineup_slot_id": 5, "eligible_positions": "OF/UTIL"}],
+                     "current_wins": 0, "current_losses": 0, "current_ties": 0},
+                ],
+                "remaining_schedule": [
+                    {"matchup_period_id": 1, "home_team_id": 1, "away_team_id": 2},
+                ],
+                "period_weights": {1: 1.0},
+                "period_days_by_id": {1: 7},
+                "playoff_slots": 1,
+                "n_trials": 50,
+                "seed": 1,
+                "observed_history": [],
+            }
+            result = compute_playoff_odds_from_request(payload)
+            assert result["shrinkage_applied"] is False
+            assert result["completed_periods_observed"] == 0
+            for t in result["teams"]:
+                assert all(w == 0.0 for w in t["shrinkage_weight"].values())
