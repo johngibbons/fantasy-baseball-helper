@@ -63,3 +63,35 @@ def compute_category_sigma(
         residuals_by_cat[obs.cat].append(obs.observed - expected)
 
     return {cat: _stddev(residuals_by_cat[cat]) for cat in cat_keys}
+
+
+TYPICAL_PERIOD_DAYS = 7
+
+
+def compute_between_team_sigma(
+    team_rates_per_day: dict[int, dict[str, float]],
+    cat_keys: list[str],
+    cat_kinds: dict[str, str],
+    typical_period_days: int = TYPICAL_PERIOD_DAYS,
+) -> dict[str, float]:
+    """σ_between per category — spread across teams of typical-period production.
+
+    For count stats: stddev across teams of (per_day_rate × typical_period_days),
+    yielding units that match the count-stat CATEGORY_SIGMA (per-typical-period).
+    For rate stats: stddev across teams of season_rate, in rate units.
+
+    Returns 0.0 for cats with fewer than 2 teams (no variance signal).
+    """
+    out: dict[str, float] = {}
+    team_ids = list(team_rates_per_day.keys())
+    for cat in cat_keys:
+        kind = cat_kinds.get(cat, "count")
+        if kind == "count":
+            values = [
+                team_rates_per_day[tid].get(cat, 0.0) * typical_period_days
+                for tid in team_ids
+            ]
+        else:  # rate
+            values = [team_rates_per_day[tid].get(cat, 0.0) for tid in team_ids]
+        out[cat] = _stddev(values)
+    return out

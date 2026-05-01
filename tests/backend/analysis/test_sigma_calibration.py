@@ -97,6 +97,65 @@ class TestComputeCategorySigma:
         assert result["TB"] / result["R"] < 4.0
 
 
+class TestComputeBetweenTeamSigma:
+    def test_count_stat_uses_per_typical_period_units(self):
+        # Three teams with per-day R rates of 9, 10, 11.
+        # In typical 7-day periods: 63, 70, 77.
+        # Sample stddev of (63, 70, 77) — Python sample variance = 49 → σ = 7.0
+        team_rates = {
+            1: {"R": 9.0},
+            2: {"R": 10.0},
+            3: {"R": 11.0},
+        }
+        from backend.analysis.sigma_calibration import compute_between_team_sigma
+        result = compute_between_team_sigma(
+            team_rates_per_day=team_rates,
+            cat_keys=["R"],
+            cat_kinds={"R": "count"},
+        )
+        assert result["R"] == pytest.approx(7.0, rel=1e-6)
+
+    def test_rate_stat_uses_season_rate_directly(self):
+        team_rates = {
+            1: {"OBP": 0.300},
+            2: {"OBP": 0.330},
+            3: {"OBP": 0.360},
+        }
+        from backend.analysis.sigma_calibration import compute_between_team_sigma
+        result = compute_between_team_sigma(
+            team_rates_per_day=team_rates,
+            cat_keys=["OBP"],
+            cat_kinds={"OBP": "rate"},
+        )
+        # Sample stddev of (0.300, 0.330, 0.360) = 0.030
+        assert result["OBP"] == pytest.approx(0.030, rel=1e-6)
+
+    def test_single_team_returns_zero(self):
+        from backend.analysis.sigma_calibration import compute_between_team_sigma
+        result = compute_between_team_sigma(
+            team_rates_per_day={1: {"R": 10.0}},
+            cat_keys=["R"],
+            cat_kinds={"R": "count"},
+        )
+        assert result["R"] == 0.0
+
+    def test_handles_multiple_cats(self):
+        team_rates = {
+            1: {"R": 9.0, "OBP": 0.300},
+            2: {"R": 11.0, "OBP": 0.360},
+        }
+        from backend.analysis.sigma_calibration import compute_between_team_sigma
+        result = compute_between_team_sigma(
+            team_rates_per_day=team_rates,
+            cat_keys=["R", "OBP"],
+            cat_kinds={"R": "count", "OBP": "rate"},
+        )
+        # R: 63, 77 → sample stddev of (63, 77): mean=70, var = (49+49)/(2-1) = 98, σ = sqrt(98) ≈ 9.899
+        assert result["R"] == pytest.approx(math.sqrt(98.0), rel=1e-6)
+        # OBP: sample stddev of (0.300, 0.360) = sqrt((0.0009+0.0009)/1) = sqrt(0.0018) ≈ 0.04243
+        assert result["OBP"] == pytest.approx(math.sqrt(0.0018), rel=1e-6)
+
+
 import json
 from pathlib import Path
 
