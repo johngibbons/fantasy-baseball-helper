@@ -304,4 +304,75 @@ describe('ESPN API', () => {
       expect(result[2].away.teamId).toBe(3)
     })
   })
+
+  describe('ESPNApi.getMatchupHistory', () => {
+    it('returns one record per team per completed period', async () => {
+      const fakeResponse = {
+        schedule: [
+          {
+            matchupPeriodId: 1,
+            home: {
+              teamId: 1,
+              cumulativeScore: { scoreByStat: { '20': { score: 70 }, '8': { score: 200 } } },
+              pointsByScoringPeriod: { '1': 10, '2': 15, '3': 12, '4': 8, '5': 11, '6': 7, '7': 9 },
+            },
+            away: {
+              teamId: 2,
+              cumulativeScore: { scoreByStat: { '20': { score: 60 }, '8': { score: 180 } } },
+              pointsByScoringPeriod: { '1': 8, '2': 9, '3': 10, '4': 7, '5': 11, '6': 8, '7': 7 },
+            },
+          },
+          {
+            matchupPeriodId: 2,
+            home: {
+              teamId: 1,
+              // No cumulativeScore.scoreByStat → in-progress, skip
+              pointsByScoringPeriod: {},
+            },
+            away: {
+              teamId: 2,
+              pointsByScoringPeriod: {},
+            },
+          },
+        ],
+      }
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => fakeResponse,
+      }) as any
+
+      const result = await ESPNApi.getMatchupHistory('77166', '2026', {
+        swid: 'S', espn_s2: 'E',
+      })
+
+      expect(result).toHaveLength(2)
+      const t1 = result.find(r => r.team_id === 1 && r.matchup_period_id === 1)!
+      expect(t1.period_days).toBe(7)
+      expect(t1.cats.R).toBe(70)
+      expect(t1.cats.TB).toBe(200)
+      const t2 = result.find(r => r.team_id === 2)!
+      expect(t2.cats.R).toBe(60)
+    })
+
+    it('skips matchups missing scoreByStat', async () => {
+      const fakeResponse = {
+        schedule: [
+          {
+            matchupPeriodId: 5,
+            home: { teamId: 1, pointsByScoringPeriod: {} },
+            away: { teamId: 2, pointsByScoringPeriod: {} },
+          },
+        ],
+      }
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: async () => fakeResponse,
+      }) as any
+
+      const result = await ESPNApi.getMatchupHistory('77166', '2026', {
+        swid: 'S', espn_s2: 'E',
+      })
+      expect(result).toHaveLength(0)
+    })
+  })
 })

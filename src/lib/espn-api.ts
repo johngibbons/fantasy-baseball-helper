@@ -375,6 +375,68 @@ export class ESPNApi {
   }
 
   /**
+   * Fetch all completed matchup periods' category totals per team. Used for
+   * empirical Bayes shrinkage in the playoff odds simulator. Skips any matchup
+   * that lacks `cumulativeScore.scoreByStat` (future or in-progress).
+   */
+  static async getMatchupHistory(
+    leagueId: string,
+    season: string,
+    settings: ESPNLeagueSettings,
+  ): Promise<Array<{
+    team_id: number
+    matchup_period_id: number
+    period_days: number
+    cats: Record<string, number>
+  }>> {
+    const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/${season}/segments/0/leagues/${leagueId}?view=mMatchup&scoringPeriodId=7`
+
+    const response = await fetch(url, { headers: this.getHeaders(settings) })
+    if (!response.ok) {
+      throw new Error(`ESPN API error: ${response.status} - ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    const ESPN_STAT_ID_TO_CAT: Record<string, string> = {
+      '20': 'R', '8': 'TB', '21': 'RBI', '23': 'SB', '17': 'OBP',
+      '48': 'K', '63': 'QS', '47': 'ERA', '41': 'WHIP', '83': 'SVHD',
+    }
+
+    const out: Array<{
+      team_id: number
+      matchup_period_id: number
+      period_days: number
+      cats: Record<string, number>
+    }> = []
+
+    for (const m of data.schedule || []) {
+      const periodId = m.matchupPeriodId
+      if (periodId == null) continue
+      for (const sideKey of ['home', 'away'] as const) {
+        const side = m[sideKey]
+        if (!side) continue
+        const scoreByStat = side.cumulativeScore?.scoreByStat
+        if (!scoreByStat) continue
+        const cats: Record<string, number> = {}
+        for (const [statId, catName] of Object.entries(ESPN_STAT_ID_TO_CAT)) {
+          const obj = scoreByStat[statId]
+          if (obj && typeof obj.score === 'number') {
+            cats[catName] = obj.score
+          }
+        }
+        const periodDays = Object.keys(side.pointsByScoringPeriod || {}).length
+        out.push({
+          team_id: side.teamId,
+          matchup_period_id: periodId,
+          period_days: periodDays,
+          cats,
+        })
+      }
+    }
+    return out
+  }
+
+  /**
    * Map ESPN game event IDs to dates using the public MLB scoreboard API.
    * This resolves the IDs found in starterStatusByProGame to actual dates.
    * No auth required — this is a public ESPN endpoint.
