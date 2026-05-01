@@ -8,6 +8,7 @@ probability of finishing in the top K (playoff slots).
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
@@ -16,6 +17,11 @@ from backend.analysis.matchup import (
     CATEGORY_SIGMA,
     optimize_daily_lineup,
     _load_projections,
+)
+from backend.analysis.shrinkage import (
+    ObservedPeriod,
+    TYPICAL_PERIOD_DAYS,
+    apply_shrinkage_to_period,
 )
 from backend.analysis.waivers import (
     ALL_CATS,
@@ -34,6 +40,20 @@ PITCHER_BENCH_WEIGHT_SP = 0.95
 PITCHER_BENCH_WEIGHT_RP = 0.95
 
 
+@dataclass
+class ShrinkageContext:
+    """Per-team shrinkage inputs, built once per simulation request."""
+    observations: list[ObservedPeriod]
+    sigma_within: dict[str, float]
+    sigma_between: dict[str, float]
+    cat_kinds: dict[str, str]
+    last_weights: dict[str, float] = None  # populated on the most recent apply call
+
+    def __post_init__(self):
+        if self.last_weights is None:
+            self.last_weights = {}
+
+
 def _bench_weight(player: PlayerProjection) -> float:
     """Bench contribution weight matching roster-optimizer.ts."""
     if player.player_type == "hitter":
@@ -46,24 +66,18 @@ def project_team_period(
     roster: list[PlayerProjection],
     period_weight: float,
     il_mlb_ids: Optional[dict[int, bool]] = None,
+    shrinkage_ctx: Optional["ShrinkageContext"] = None,
+    current_period_days: int = TYPICAL_PERIOD_DAYS,
 ) -> dict[str, float]:
     """Project a team's category totals for one matchup period.
 
-    Args:
-        roster: All non-IL players on the team for this period.
-        period_weight: Fraction of full RoS this period represents (e.g. 7/91).
-        il_mlb_ids: Mapping of mlb_id → True for IL players. IL players
-            contribute 0. Pass None or empty dict for no IL.
-
-    Returns:
-        Dict with the 10 H2H category keys (R, TB, RBI, SB, OBP, K, QS,
-        ERA, WHIP, SVHD).
+    When `shrinkage_ctx` is provided, the per-cat result is replaced by the
+    empirical-Bayes-shrunk value blending observed history with the projection.
     """
     il = il_mlb_ids or {}
     active = [p for p in roster if not il.get(p.mlb_id, False)]
 
     # Run greedy lineup optimizer on the active roster to identify starters.
-    # `optimize_daily_lineup` accepts a list of dicts; convert.
     as_dicts = [
         {
             "mlb_id": p.mlb_id,
@@ -82,7 +96,20 @@ def project_team_period(
         weight = period_weight if p.mlb_id in starter_ids else period_weight * _bench_weight(p)
         totals.add_player(p, weight=weight)
 
-    return totals.category_values()
+    projected = totals.category_values()
+    if shrinkage_ctx is None:
+        return projected
+
+    shrunk, weights = apply_shrinkage_to_period(
+        projected_period_cats=projected,
+        observations=shrinkage_ctx.observations,
+        current_period_days=current_period_days,
+        sigma_within=shrinkage_ctx.sigma_within,
+        sigma_between=shrinkage_ctx.sigma_between,
+        cat_kinds=shrinkage_ctx.cat_kinds,
+    )
+    shrinkage_ctx.last_weights = weights
+    return shrunk
 
 
 def simulate_head_to_head(

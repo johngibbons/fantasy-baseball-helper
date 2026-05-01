@@ -209,6 +209,74 @@ class TestComputePlayoffOdds:
         assert abs(team1["playoff_odds"] + team2["playoff_odds"] - 1.0) < 0.05
 
 
+from backend.analysis.playoff_odds import ShrinkageContext
+from backend.analysis.shrinkage import ObservedPeriod
+
+
+# Match cat kinds the simulator will be using
+SHRINK_CAT_KINDS = {
+    "R": "count", "TB": "count", "RBI": "count", "SB": "count", "OBP": "rate",
+    "K": "count", "QS": "count", "ERA": "rate", "WHIP": "rate", "SVHD": "count",
+}
+
+
+class TestProjectTeamPeriodWithShrinkage:
+    def test_shrinkage_ctx_none_gives_identical_output_to_today(self):
+        roster = [_hitter(i, f"H{i}") for i in range(1, 8)]
+        baseline = project_team_period(roster, period_weight=1.0)
+        with_none = project_team_period(roster, period_weight=1.0, shrinkage_ctx=None)
+        assert baseline == with_none
+
+    def test_shrinkage_ctx_pulls_count_cat_toward_observed(self):
+        # 7 hitters projecting 90 R each → 5 starters * 90 + 2 bench * 90 * 0.25 = 495 R per "full RoS"
+        # period_weight=1.0 → 495 R for the period.
+        # observation: 100 R over 7 days → typical period total = 100.
+        # σ_within = σ_between = 100 (huge), W = 1 → w = 0.5
+        # shrunk = 0.5 * 100 + 0.5 * 495 = 297.5
+        roster = [_hitter(i, f"H{i}") for i in range(1, 8)]
+        ctx = ShrinkageContext(
+            observations=[ObservedPeriod(matchup_period_id=1, period_days=7, cats={"R": 100.0})],
+            sigma_within={"R": 100.0},
+            sigma_between={"R": 100.0},
+            cat_kinds=SHRINK_CAT_KINDS,
+        )
+        result = project_team_period(roster, period_weight=1.0, shrinkage_ctx=ctx)
+        assert result["R"] == pytest.approx(297.5)
+
+    def test_shrinkage_ctx_period_days_uses_period_weight_basis(self):
+        # 1 hitter (90 R per RoS); period_weight=1.0 → 90 R for the period
+        # σ_w = σ_b = 1, W=1 → w = 0.5; observed_typical = 0
+        # current_period_days defaults to TYPICAL_PERIOD_DAYS = 7 if not passed
+        # projected_typical = 90 / 7 * 7 = 90; shrunk_typical = 0.5*0 + 0.5*90 = 45
+        # output back-converted to 7-day period = 45
+        roster = [_hitter(1, "A")]
+        ctx = ShrinkageContext(
+            observations=[ObservedPeriod(matchup_period_id=1, period_days=7, cats={"R": 0.0})],
+            sigma_within={"R": 1.0},
+            sigma_between={"R": 1.0},
+            cat_kinds=SHRINK_CAT_KINDS,
+        )
+        result = project_team_period(
+            roster, period_weight=1.0, shrinkage_ctx=ctx, current_period_days=7,
+        )
+        assert result["R"] == pytest.approx(45.0)
+
+    def test_observations_with_no_data_for_a_cat_keep_projection(self):
+        roster = [_hitter(1, "A")]
+        ctx = ShrinkageContext(
+            observations=[ObservedPeriod(matchup_period_id=1, period_days=7, cats={"TB": 50.0})],
+            sigma_within={"R": 5.0, "TB": 15.0},
+            sigma_between={"R": 5.0, "TB": 15.0},
+            cat_kinds=SHRINK_CAT_KINDS,
+        )
+        result_no_shrink = project_team_period(roster, period_weight=1.0)
+        result_with_ctx = project_team_period(
+            roster, period_weight=1.0, shrinkage_ctx=ctx, current_period_days=7,
+        )
+        # R: no observation → unchanged
+        assert result_with_ctx["R"] == pytest.approx(result_no_shrink["R"])
+
+
 from unittest.mock import patch
 from backend.analysis.playoff_odds import compute_playoff_odds_from_request
 
