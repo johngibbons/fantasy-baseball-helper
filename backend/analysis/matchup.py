@@ -59,6 +59,23 @@ CATEGORY_SIGMA: dict[str, float] = {
 }
 
 
+# σ_between: spread of teams' typical-period totals around the league mean.
+# Calibrated from 2025 historical league fixture. Used by empirical Bayes
+# shrinkage in the playoff odds simulator.
+CATEGORY_BETWEEN_SIGMA: dict[str, float] = {
+    "R":     2.58118,
+    "TB":    6.90866,
+    "RBI":   2.73608,
+    "SB":    0.96181,
+    "OBP":   0.01043,
+    "K":    12.27056,
+    "QS":    0.98708,
+    "ERA":   0.19278,
+    "WHIP":  0.03557,
+    "SVHD":  0.91842,
+}
+
+
 # ── Per-game projection ─────────────────────────────────────────────────────
 
 

@@ -184,9 +184,11 @@ class TestCalibrationFixtureRegression:
     def test_fixture_exists_and_has_expected_shape(self):
         fixture = self._load_fixture()
         assert "computed_sigma" in fixture
+        assert "computed_between_sigma" in fixture
         assert "records" in fixture
         assert set(fixture["computed_sigma"].keys()) == set(CAT_KEYS)
-        assert len(fixture["records"]) > 100  # ~190 expected after filtering
+        assert set(fixture["computed_between_sigma"].keys()) == set(CAT_KEYS)
+        assert len(fixture["records"]) > 100
 
     def test_recomputing_sigma_from_fixture_records_matches_stored_sigma(self):
         """Math regression: reconstructing σ from fixture records should reproduce the stored values."""
@@ -227,5 +229,41 @@ class TestCalibrationFixtureRegression:
             ), (
                 f"matchup.py CATEGORY_SIGMA['{cat}'] = {CATEGORY_SIGMA[cat]} "
                 f"but fixture has {fixture['computed_sigma'][cat]}. "
+                f"Re-run backend/scripts/calibrate_category_sigma.py and update."
+            )
+
+    def test_recomputing_between_sigma_from_fixture_records_matches_stored(self):
+        fixture = self._load_fixture()
+        records = [
+            MatchupRecord(
+                team_id=r["team_id"],
+                matchup_period_id=r["matchup_period_id"],
+                period_days=r["period_days"],
+                cats=r["cats"],
+            )
+            for r in fixture["records"]
+        ]
+        rates = compute_team_rates_per_day(records)
+        from backend.analysis.sigma_calibration import compute_between_team_sigma
+        recomputed = compute_between_team_sigma(
+            team_rates_per_day=rates,
+            cat_keys=CAT_KEYS,
+            cat_kinds=CAT_KINDS,
+        )
+        for cat in CAT_KEYS:
+            stored = fixture["computed_between_sigma"][cat]
+            assert recomputed[cat] == pytest.approx(stored, rel=1e-6), (
+                f"Drift in σ_between_{cat}: stored={stored}, recomputed={recomputed[cat]}"
+            )
+
+    def test_matchup_between_sigma_constants_match_fixture(self):
+        from backend.analysis.matchup import CATEGORY_BETWEEN_SIGMA
+        fixture = self._load_fixture()
+        for cat in CAT_KEYS:
+            assert CATEGORY_BETWEEN_SIGMA[cat] == pytest.approx(
+                fixture["computed_between_sigma"][cat], rel=1e-3
+            ), (
+                f"matchup.py CATEGORY_BETWEEN_SIGMA['{cat}'] = {CATEGORY_BETWEEN_SIGMA[cat]} "
+                f"but fixture has {fixture['computed_between_sigma'][cat]}. "
                 f"Re-run backend/scripts/calibrate_category_sigma.py and update."
             )
