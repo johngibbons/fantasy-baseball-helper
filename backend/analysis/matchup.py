@@ -46,16 +46,16 @@ POSITION_TO_SLOTS: dict[str, list[str]] = {
 #   - matchup.py::compute_win_probability  (per-cat win-prob sigmoid)
 #   - playoff_odds.py::simulate_head_to_head (Monte Carlo noise term)
 CATEGORY_SIGMA: dict[str, float] = {
-    "R":    5.7634,
-    "TB":  14.9517,
-    "RBI":  6.8939,
-    "SB":   2.8251,
-    "OBP":  0.0279,
-    "K":   14.6612,
-    "QS":   1.8711,
-    "ERA":  1.1570,
-    "WHIP": 0.1744,
-    "SVHD": 1.6786,
+    "R":     5.76336,
+    "TB":   14.95172,
+    "RBI":   6.89387,
+    "SB":    2.82508,
+    "OBP":   0.02794,
+    "K":    14.66118,
+    "QS":    1.87109,
+    "ERA":   1.15701,
+    "WHIP":  0.17439,
+    "SVHD":  1.67857,
 }
 
 

@@ -95,3 +95,78 @@ class TestComputeCategorySigma:
         # σ_TB should be ~3x σ_R (15 vs 5)
         assert result["TB"] / result["R"] > 2.0
         assert result["TB"] / result["R"] < 4.0
+
+
+import json
+from pathlib import Path
+
+from backend.scripts.calibrate_category_sigma import (
+    CAT_KEYS,
+    CAT_KINDS,
+    compute_team_rates_per_day,
+    records_to_observations,
+)
+from backend.data.espn_history import MatchupRecord
+
+
+FIXTURE_PATH = (
+    Path(__file__).resolve().parent.parent.parent.parent
+    / "backend" / "data" / "fixtures" / "sigma_calibration_2025.json"
+)
+
+
+class TestCalibrationFixtureRegression:
+    """Pin the 2025 σ calibration to the committed fixture data."""
+
+    def _load_fixture(self) -> dict:
+        with FIXTURE_PATH.open() as f:
+            return json.load(f)
+
+    def test_fixture_exists_and_has_expected_shape(self):
+        fixture = self._load_fixture()
+        assert "computed_sigma" in fixture
+        assert "records" in fixture
+        assert set(fixture["computed_sigma"].keys()) == set(CAT_KEYS)
+        assert len(fixture["records"]) > 100  # ~190 expected after filtering
+
+    def test_recomputing_sigma_from_fixture_records_matches_stored_sigma(self):
+        """Math regression: reconstructing σ from fixture records should reproduce the stored values."""
+        fixture = self._load_fixture()
+        records = [
+            MatchupRecord(
+                team_id=r["team_id"],
+                matchup_period_id=r["matchup_period_id"],
+                period_days=r["period_days"],
+                cats=r["cats"],
+            )
+            for r in fixture["records"]
+        ]
+        rates = compute_team_rates_per_day(records)
+        observations = records_to_observations(records)
+
+        from backend.analysis.sigma_calibration import compute_category_sigma
+        recomputed = compute_category_sigma(
+            observations=observations,
+            team_rates_per_day=rates,
+            cat_keys=CAT_KEYS,
+            cat_kinds=CAT_KINDS,
+        )
+
+        for cat in CAT_KEYS:
+            stored = fixture["computed_sigma"][cat]
+            assert recomputed[cat] == pytest.approx(stored, rel=1e-6), (
+                f"Drift in σ_{cat}: stored={stored}, recomputed={recomputed[cat]}"
+            )
+
+    def test_matchup_constants_match_fixture(self):
+        """The CATEGORY_SIGMA constants in matchup.py should match the fixture."""
+        from backend.analysis.matchup import CATEGORY_SIGMA
+        fixture = self._load_fixture()
+        for cat in CAT_KEYS:
+            assert CATEGORY_SIGMA[cat] == pytest.approx(
+                fixture["computed_sigma"][cat], rel=1e-3
+            ), (
+                f"matchup.py CATEGORY_SIGMA['{cat}'] = {CATEGORY_SIGMA[cat]} "
+                f"but fixture has {fixture['computed_sigma'][cat]}. "
+                f"Re-run backend/scripts/calibrate_category_sigma.py and update."
+            )
