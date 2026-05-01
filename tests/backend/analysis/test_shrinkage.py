@@ -108,3 +108,106 @@ class TestComputeObservedPeriodRate:
         mean, n = compute_observed_period_rate([], "OBP")
         assert mean == 0.0
         assert n == 0
+
+
+from backend.analysis.shrinkage import apply_shrinkage_to_period
+
+
+SIGMA_WITHIN = {"R": 5.0, "TB": 15.0, "ERA": 1.0, "OBP": 0.025}
+SIGMA_BETWEEN = {"R": 5.0, "TB": 15.0, "ERA": 1.0, "OBP": 0.025}
+CAT_KINDS = {"R": "count", "TB": "count", "ERA": "rate", "OBP": "rate"}
+
+
+class TestApplyShrinkageToPeriod:
+    def test_zero_history_returns_projection_unchanged(self):
+        projected = {"R": 70.0, "TB": 200.0, "ERA": 3.50, "OBP": 0.330}
+        out, weights = apply_shrinkage_to_period(
+            projected_period_cats=projected,
+            observations=[],
+            current_period_days=7,
+            sigma_within=SIGMA_WITHIN,
+            sigma_between=SIGMA_BETWEEN,
+            cat_kinds=CAT_KINDS,
+        )
+        assert out == projected
+        for cat in projected:
+            assert weights[cat] == 0.0
+
+    def test_count_stat_shrinks_toward_observed(self):
+        # σ_w = σ_b = 5, W = 1 → w = 25 / (25 + 25) = 0.5
+        # observed mean per typical period = 100 (well above projected 70)
+        observations = [
+            _obs(1, 7, R=100.0),
+        ]
+        out, weights = apply_shrinkage_to_period(
+            projected_period_cats={"R": 70.0},
+            observations=observations,
+            current_period_days=7,
+            sigma_within={"R": 5.0},
+            sigma_between={"R": 5.0},
+            cat_kinds={"R": "count"},
+        )
+        # shrunk_typical = 0.5 * 100 + 0.5 * 70 = 85; period_days=7 so output = 85
+        assert out["R"] == pytest.approx(85.0)
+        assert weights["R"] == pytest.approx(0.5)
+
+    def test_count_stat_period_days_rescaling_for_long_periods(self):
+        # 14-day period: projected = 140, observed = 100/typical. With w=0.5:
+        # shrunk_typical = 0.5*100 + 0.5*(140 / 14 * 7) = 0.5*100 + 0.5*70 = 85
+        # back to 14-day period: 85 / 7 * 14 = 170
+        observations = [_obs(1, 7, R=100.0)]
+        out, _ = apply_shrinkage_to_period(
+            projected_period_cats={"R": 140.0},
+            observations=observations,
+            current_period_days=14,
+            sigma_within={"R": 5.0},
+            sigma_between={"R": 5.0},
+            cat_kinds={"R": "count"},
+        )
+        assert out["R"] == pytest.approx(170.0)
+
+    def test_rate_stat_shrinks_directly(self):
+        # σ_w = σ_b = 1.0, W=1 → w = 0.5; obs ERA = 4.50, projected = 3.50 → shrunk = 4.00
+        observations = [_obs(1, 7, ERA=4.50)]
+        out, weights = apply_shrinkage_to_period(
+            projected_period_cats={"ERA": 3.50},
+            observations=observations,
+            current_period_days=7,
+            sigma_within={"ERA": 1.0},
+            sigma_between={"ERA": 1.0},
+            cat_kinds={"ERA": "rate"},
+        )
+        assert out["ERA"] == pytest.approx(4.00)
+        assert weights["ERA"] == pytest.approx(0.5)
+
+    def test_missing_cat_in_history_falls_back_to_projection(self):
+        # Two periods of TB but no R — R shrinkage uses W=0
+        observations = [_obs(1, 7, TB=200.0), _obs(2, 7, TB=210.0)]
+        out, weights = apply_shrinkage_to_period(
+            projected_period_cats={"R": 70.0, "TB": 250.0},
+            observations=observations,
+            current_period_days=7,
+            sigma_within={"R": 5.0, "TB": 15.0},
+            sigma_between={"R": 5.0, "TB": 15.0},
+            cat_kinds={"R": "count", "TB": "count"},
+        )
+        # R: no observations → projection unchanged
+        assert out["R"] == pytest.approx(70.0)
+        assert weights["R"] == 0.0
+        # TB: 2 obs, w = (225*2)/(225*2 + 225) = 450/675 = 2/3
+        # observed_typical = 410/14*7 = 205; shrunk = 2/3*205 + 1/3*250 = 220
+        assert out["TB"] == pytest.approx(220.0)
+        assert weights["TB"] == pytest.approx(2.0/3.0)
+
+    def test_zero_between_sigma_for_one_cat_skips_shrinkage(self):
+        observations = [_obs(1, 7, R=100.0)]
+        out, weights = apply_shrinkage_to_period(
+            projected_period_cats={"R": 70.0},
+            observations=observations,
+            current_period_days=7,
+            sigma_within={"R": 5.0},
+            sigma_between={"R": 0.0},  # calibration empty
+            cat_kinds={"R": "count"},
+        )
+        assert out["R"] == pytest.approx(70.0)
+        assert weights["R"] == 0.0

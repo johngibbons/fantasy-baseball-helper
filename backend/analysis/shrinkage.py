@@ -81,3 +81,54 @@ def compute_observed_period_rate(
     if not relevant:
         return 0.0, 0
     return sum(o.cats[cat] for o in relevant) / len(relevant), len(relevant)
+
+
+def apply_shrinkage_to_period(
+    projected_period_cats: dict[str, float],
+    observations: list[ObservedPeriod],
+    current_period_days: int,
+    sigma_within: dict[str, float],
+    sigma_between: dict[str, float],
+    cat_kinds: dict[str, str],
+) -> tuple[dict[str, float], dict[str, float]]:
+    """Return shrunk per-cat dict for one period plus the per-cat weights applied.
+
+    For count stats:
+        observed_typical = (Σ obs / Σ days) × TYPICAL_PERIOD_DAYS
+        projected_typical = projected_period_total / current_period_days × TYPICAL_PERIOD_DAYS
+        shrunk_typical = w · observed_typical + (1−w) · projected_typical
+        shrunk_period = shrunk_typical / TYPICAL_PERIOD_DAYS × current_period_days
+
+    For rate stats:
+        observed = unweighted mean across periods
+        shrunk = w · observed + (1−w) · projected_rate
+        (no period-length scaling)
+    """
+    out: dict[str, float] = {}
+    weights: dict[str, float] = {}
+    for cat, projected in projected_period_cats.items():
+        kind = cat_kinds.get(cat, "count")
+        sw = sigma_within.get(cat, 0.0)
+        sb = sigma_between.get(cat, 0.0)
+        if kind == "count":
+            observed_typical, n = compute_observed_typical_period_count(observations, cat)
+            w = compute_shrinkage_weight(W=n, sigma_within=sw, sigma_between=sb)
+            if w == 0.0:
+                out[cat] = projected
+            else:
+                projected_typical = (
+                    projected / current_period_days * TYPICAL_PERIOD_DAYS
+                    if current_period_days > 0 else projected
+                )
+                shrunk_typical = w * observed_typical + (1 - w) * projected_typical
+                out[cat] = (
+                    shrunk_typical / TYPICAL_PERIOD_DAYS * current_period_days
+                    if current_period_days > 0 else shrunk_typical
+                )
+            weights[cat] = w
+        else:  # rate
+            observed_rate, n = compute_observed_period_rate(observations, cat)
+            w = compute_shrinkage_weight(W=n, sigma_within=sw, sigma_between=sb)
+            out[cat] = w * observed_rate + (1 - w) * projected if w > 0.0 else projected
+            weights[cat] = w
+    return out, weights
