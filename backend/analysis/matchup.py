@@ -38,10 +38,24 @@ POSITION_TO_SLOTS: dict[str, list[str]] = {
     "SP": ["SP", "P"], "RP": ["RP", "P"], "P": ["SP", "RP", "P"],
 }
 
-# Weekly variance sigma values per category (for win probability sigmoid)
+# Weekly variance sigma values per category. Calibrated against the 2025
+# season of ESPN league 77166 (10 teams, 21 H2H matchup periods, filtered
+# to 5–9 day periods). See backend/scripts/calibrate_category_sigma.py and
+# backend/data/fixtures/sigma_calibration_2025.json for provenance.
+# Used by:
+#   - matchup.py::compute_win_probability  (per-cat win-prob sigmoid)
+#   - playoff_odds.py::simulate_head_to_head (Monte Carlo noise term)
 CATEGORY_SIGMA: dict[str, float] = {
-    "R": 5.0, "TB": 10.0, "RBI": 5.0, "SB": 2.0, "OBP": 0.015,
-    "K": 8.0, "QS": 1.5, "ERA": 1.0, "WHIP": 0.15, "SVHD": 2.0,
+    "R":    5.7634,
+    "TB":  14.9517,
+    "RBI":  6.8939,
+    "SB":   2.8251,
+    "OBP":  0.0279,
+    "K":   14.6612,
+    "QS":   1.8711,
+    "ERA":  1.1570,
+    "WHIP": 0.1744,
+    "SVHD": 1.6786,
 }
 
 
