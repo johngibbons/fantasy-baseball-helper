@@ -48,9 +48,10 @@ export function getMatchupDateRange(
   if (schedule) {
     const [startDate, endDate] = schedule
 
-    // Count remaining days: tomorrow through end of matchup (string comparison, timezone-safe)
+    // Count remaining days: today through end of matchup (inclusive, since ESPN
+    // stats typically don't reflect today's games until overnight processing)
     let daysRemaining = 0
-    const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
+    const cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate())
     while (toLocalDateStr(cursor) <= endDate) {
       daysRemaining++
       cursor.setDate(cursor.getDate() + 1)
