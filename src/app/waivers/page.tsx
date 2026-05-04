@@ -73,6 +73,18 @@ const slotColors: Record<string, string> = {
   BE: 'text-gray-600', IL: 'text-red-600',
 }
 
+/** First listed position, used for color lookup when eligibility is "2B/SS"-style. */
+function primaryPos(p: string): string {
+  return (p || '').split('/')[0] || ''
+}
+
+/** True if the player is eligible at the requested position. */
+function isEligibleAt(p: string, pos: string): boolean {
+  const parts = (p || '').split('/').filter(Boolean)
+  if (pos === 'OF') return parts.some((x) => ['OF', 'LF', 'CF', 'RF'].includes(x))
+  return parts.includes(pos)
+}
+
 function impactColor(v: number): string {
   if (v > 0.05) return 'text-emerald-300 bg-emerald-500/20'
   if (v > 0.01) return 'text-emerald-400'
@@ -268,11 +280,7 @@ export default function WaiversPage() {
   const filteredRecs = useMemo(() => {
     if (!results) return []
     if (posFilter === 'All') return results.recommendations
-    return results.recommendations.filter((r) => {
-      const pos = r.add_player.position
-      if (posFilter === 'OF') return ['OF', 'LF', 'CF', 'RF'].includes(pos)
-      return pos === posFilter
-    })
+    return results.recommendations.filter((r) => isEligibleAt(r.add_player.position, posFilter))
   }, [results, posFilter])
 
   return (
@@ -445,7 +453,7 @@ export default function WaiversPage() {
                         ) : (
                           <span className={slot === 'IL' ? 'text-gray-600 line-through' : 'text-gray-300'}>{p.name}</span>
                         )}
-                        <span className={`text-[10px] ${posColors[p.position] || 'text-gray-500'}`}>{p.position}</span>
+                        <span className={`text-[10px] ${posColors[primaryPos(p.position)] || 'text-gray-500'}`}>{p.position}</span>
                         {isStreamSlot && (
                           <span className="text-[9px] font-bold text-orange-400 bg-orange-500/10 px-1 rounded">STREAM</span>
                         )}
@@ -527,7 +535,7 @@ export default function WaiversPage() {
                       <td className="px-3 py-2 text-gray-500 font-mono">{rec.rank}</td>
                       <td className="px-3 py-2">
                         <Link href={`/player/${rec.add_player.id}`} className="text-white font-medium hover:underline hover:text-blue-300">{rec.add_player.name}</Link>
-                        <span className={`ml-1.5 text-xs ${posColors[rec.add_player.position] || 'text-gray-400'}`}>
+                        <span className={`ml-1.5 text-xs ${posColors[primaryPos(rec.add_player.position)] || 'text-gray-400'}`}>
                           {rec.add_player.position}
                         </span>
                       </td>
@@ -535,7 +543,7 @@ export default function WaiversPage() {
                         {rec.drop_player?.name ? (
                           <>
                             <Link href={`/player/${rec.drop_player.id}`} className="text-gray-400 hover:underline hover:text-white">{rec.drop_player.name}</Link>
-                            <span className={`ml-1.5 text-xs ${posColors[rec.drop_player.position] || 'text-gray-400'}`}>
+                            <span className={`ml-1.5 text-xs ${posColors[primaryPos(rec.drop_player.position)] || 'text-gray-400'}`}>
                               {rec.drop_player.position}
                             </span>
                           </>

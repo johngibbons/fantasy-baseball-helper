@@ -608,10 +608,10 @@ def compute_waiver_recommendations(
             recommendations.append(WaiverRecommendation(
                 add_player_id=fa_id,
                 add_player_name=fa_proj.name,
-                add_player_position=fa_proj.position,
+                add_player_position=fa_proj.eligible_positions or fa_proj.position,
                 drop_player_id=drop_id,
                 drop_player_name=drop_proj.name if drop_proj else None,
-                drop_player_position=drop_proj.position if drop_proj else None,
+                drop_player_position=(drop_proj.eligible_positions or drop_proj.position) if drop_proj else None,
                 delta_expected_wins=round(entry["delta"], 4),
                 suggested_faab_bid=0,
                 category_impact=entry["cat_impact"],
@@ -628,7 +628,7 @@ def compute_waiver_recommendations(
             stream_slot_payload = {
                 "id": stream_slot_id,
                 "name": sp.name,
-                "position": sp.position,
+                "position": sp.eligible_positions or sp.position,
             }
 
     return {

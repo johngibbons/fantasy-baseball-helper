@@ -4,11 +4,32 @@ import { ESPNApi, ESPNRosterEntry } from '@/lib/espn-api'
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000'
 
-// ESPN defaultPositionId to readable name
+// ESPN defaultPositionId to readable name (single primary position)
 const posMap: Record<number, string> = {
   1: 'SP', 2: 'C', 3: '1B', 4: '2B', 5: '3B',
   6: 'SS', 7: 'LF', 8: 'CF', 9: 'RF', 10: 'DH',
   11: 'RP',
+}
+
+// ESPN eligibleSlots ID -> position abbreviation (full eligibility list)
+// Mirror of SLOT_TO_POS in fetch_espn_eligibility.py
+const slotToPos: Record<number, string> = {
+  0: 'C', 1: '1B', 2: '2B', 3: '3B', 4: 'SS',
+  5: 'OF', 8: 'OF', 9: 'OF', 10: 'OF',
+  11: 'DH', 14: 'SP', 15: 'RP',
+}
+const POS_ORDER = ['C', '1B', '2B', '3B', 'SS', 'OF', 'SP', 'RP', 'DH']
+
+function eligiblePositionsFromSlots(eligibleSlots: number[] | undefined, fallbackId: number | undefined): string {
+  if (eligibleSlots && eligibleSlots.length > 0) {
+    const seen = new Set<string>()
+    for (const s of eligibleSlots) {
+      const pos = slotToPos[s]
+      if (pos) seen.add(pos)
+    }
+    if (seen.size > 0) return POS_ORDER.filter((p) => seen.has(p)).join('/')
+  }
+  return posMap[fallbackId ?? 0] || 'UTIL'
 }
 
 // ESPN lineupSlotId to display slot name
@@ -83,7 +104,7 @@ export async function POST(request: NextRequest) {
     }))
     const myRosterDisplay = myRosterEntries.map((entry: ESPNRosterEntry) => ({
       name: entry.player?.fullName || `Player ${entry.playerId}`,
-      position: posMap[entry.player?.defaultPositionId ?? 0] || 'UTIL',
+      position: eligiblePositionsFromSlots(entry.player?.eligibleSlots, entry.player?.defaultPositionId),
       slot: slotMap[entry.lineupSlotId] || 'BE',
       lineup_slot_id: entry.lineupSlotId,
     }))
