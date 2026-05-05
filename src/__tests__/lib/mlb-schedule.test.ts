@@ -56,6 +56,43 @@ describe('getTeamGamesInRange', () => {
     expect(result.datesWithGames).toEqual(['2026-04-25', '2026-04-26'])
   })
 
+  it('returns per-date schedule mapping each date to teams playing', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        dates: [
+          {
+            date: '2026-04-25',
+            games: [
+              {
+                gameType: 'R', status: { abstractGameCode: 'P' },
+                teams: { home: { team: { id: 111 } }, away: { team: { id: 147 } } },
+              },
+            ],
+          },
+          {
+            date: '2026-04-27',
+            games: [
+              {
+                gameType: 'R', status: { abstractGameCode: 'P' },
+                teams: { home: { team: { id: 147 } }, away: { team: { id: 111 } } },
+              },
+            ],
+          },
+        ],
+      }),
+    })
+
+    const result = await getTeamGamesInRange('2026-04-25', '2026-04-27')
+
+    // 04-26 is an off-day for both teams — it should not appear in the schedule
+    expect(result.scheduleByDate).toEqual({
+      '2026-04-25': expect.arrayContaining(['NYY', 'BOS']),
+      '2026-04-27': expect.arrayContaining(['NYY', 'BOS']),
+    })
+    expect(result.scheduleByDate['2026-04-26']).toBeUndefined()
+  })
+
   it('skips spring training and other non-regular-season games', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,

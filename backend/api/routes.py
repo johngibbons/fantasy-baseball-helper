@@ -761,6 +761,7 @@ class MatchupRequest(BaseModel):
     probable_pitcher_ids: dict[str, list[int]] = {}  # deprecated, kept for compat
     probable_pitcher_names_by_date: dict[str, list[str]] = {}  # date → names probable that date
     espn_pp_starts_by_name: dict[str, int] = {}  # pitcher name → PP start count
+    team_schedule_by_date: dict[str, list[str]] = {}  # date → team abbrevs playing
     remaining_season_games: dict[str, int] = {}
     days_remaining: int = 0
     remaining_dates: list[str] = []
@@ -823,6 +824,7 @@ def matchup_projections(req: MatchupRequest):
         remaining_season_games=req.remaining_season_games,
         days_remaining=req.days_remaining,
         remaining_dates=req.remaining_dates,
+        team_schedule_by_date=req.team_schedule_by_date,
         season=req.season,
     )
     result["name_to_mlb_id"] = name_to_id

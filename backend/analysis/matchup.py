@@ -278,6 +278,7 @@ def compute_matchup_projections(
     remaining_season_games: dict[str, int],
     days_remaining: int,
     remaining_dates: list[str],
+    team_schedule_by_date: dict[str, list[str]],
     season: int = 2026,
     espn_pp_starts_by_name: dict[str, int] | None = None,
 ) -> dict:
@@ -293,6 +294,8 @@ def compute_matchup_projections(
         remaining_season_games: MLB team abbreviation → remaining regular season games.
         days_remaining: Number of days left in matchup period.
         remaining_dates: List of remaining date strings (YYYY-MM-DD).
+        team_schedule_by_date: date → list of team abbrevs playing that date.
+            Hitters/RPs only contribute on dates their team plays.
         season: Season year.
 
     Returns:
@@ -407,6 +410,7 @@ def compute_matchup_projections(
         for date in remaining_dates:
             date_probable_ids = set(probable_pitcher_ids.get(date, []))
             date_has_probables = len(date_probable_ids) > 0
+            teams_today = set(team_schedule_by_date.get(date, []))
 
             # Filter to players who have a game today
             available_today = []
@@ -416,14 +420,7 @@ def compute_matchup_projections(
                     continue
                 proj = projections[mid]
                 team_abbrev = detail.get("mlb_team", "")
-                # NOTE: team_games_remaining is a total for the remaining matchup period,
-                # not per-date. This means a player is considered "available" on any
-                # remaining date if their team has games left this week, even if
-                # the team doesn't play on this specific date. This slightly
-                # overestimates contribution but is acceptable for v1.
-                team_has_game = team_games_remaining.get(team_abbrev, 0) > 0
-
-                if not team_has_game:
+                if team_abbrev not in teams_today:
                     continue
 
                 is_sp = proj.player_type == "pitcher" and (proj.position == "SP" or (proj.position == "P" and proj.ip >= 80))

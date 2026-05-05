@@ -199,6 +199,7 @@ class TestMatchupProjectionProbableStarts:
         team_games_remaining = {"NYY": 3}
         remaining_season_games = {"NYY": 150}
         remaining_dates = ["2026-04-25", "2026-04-26", "2026-04-27"]
+        team_schedule_by_date = {d: ["NYY"] for d in remaining_dates}
 
         # With probable pitcher IDs: each SP probable on exactly one date
         probable_ids = {
@@ -215,6 +216,7 @@ class TestMatchupProjectionProbableStarts:
             remaining_season_games=remaining_season_games,
             days_remaining=len(remaining_dates),
             remaining_dates=remaining_dates,
+            team_schedule_by_date=team_schedule_by_date,
         )
 
         # Without probable pitcher IDs (legacy buggy behavior): all SPs fall back to 0.2
@@ -227,6 +229,7 @@ class TestMatchupProjectionProbableStarts:
             remaining_season_games=remaining_season_games,
             days_remaining=len(remaining_dates),
             remaining_dates=remaining_dates,
+            team_schedule_by_date=team_schedule_by_date,
         )
 
         k_with = with_probables["categories"]["K"]["opponent_projected_final"]
@@ -238,3 +241,63 @@ class TestMatchupProjectionProbableStarts:
         assert k_without == pytest.approx(12.6, abs=1.0)
         # The fix should produce materially more K than the fallback
         assert k_with > k_without * 1.5
+
+
+class TestPerDateTeamSchedule:
+    """Hitter contribution should respect each team's actual game-day schedule
+    (i.e., zero credit on off-days), not just whether the team has any games
+    remaining in the matchup period."""
+
+    def test_hitter_off_day_excluded_from_total(self, monkeypatch):
+        # 1 hitter, 100 R over 80 RoS games = 1.25 R/game
+        hitter = PlayerProjection(
+            mlb_id=501, name="Test Hitter", position="OF", player_type="hitter",
+            pa=600, r=100, tb=0, rbi=0, sb=0, obp=0.300,
+            ip=0.0, k=0, qs=0, era=0.0, whip=0.0, svhd=0,
+        )
+
+        def mock_load(ids, season):
+            return {501: hitter} if 501 in ids else {}
+        monkeypatch.setattr("backend.analysis.matchup._load_projections", mock_load)
+
+        my_roster = [{
+            "mlb_id": 501,
+            "name": "Test Hitter",
+            "position": "OF",
+            "player_type": "hitter",
+            "lineup_slot_id": 5,
+            "mlb_team": "NYY",
+            "injury_status": "ACTIVE",
+            "eligible_positions": "OF",
+        }]
+
+        actuals = {"my": {}, "opponent": {}}
+        # Team plays 2 of 3 remaining dates (off-day on 04-26)
+        team_games_remaining = {"NYY": 2}
+        remaining_season_games = {"NYY": 80}
+        remaining_dates = ["2026-04-25", "2026-04-26", "2026-04-27"]
+        team_schedule_by_date = {
+            "2026-04-25": ["NYY"],
+            "2026-04-26": [],          # NYY off-day
+            "2026-04-27": ["NYY"],
+        }
+
+        result = compute_matchup_projections(
+            my_roster=my_roster,
+            opponent_roster=[],
+            actuals=actuals,
+            team_games_remaining=team_games_remaining,
+            probable_pitcher_ids={},
+            remaining_season_games=remaining_season_games,
+            days_remaining=len(remaining_dates),
+            remaining_dates=remaining_dates,
+            team_schedule_by_date=team_schedule_by_date,
+        )
+
+        # Expected: 1.25 R/game × 2 game-days = 2.5
+        # Buggy (counts all 3 dates): 1.25 × 3 = 3.75
+        my_r = result["categories"]["R"]["my_projected_final"]
+        assert my_r == pytest.approx(2.5, abs=0.05), (
+            f"Expected 2.5 R (2 game-days × 1.25/game), got {my_r}. "
+            "Off-day on 2026-04-26 should not contribute."
+        )

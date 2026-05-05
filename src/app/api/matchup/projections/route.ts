@@ -145,6 +145,7 @@ export async function POST(request: NextRequest) {
     ])
     const teamGamesRemaining = scheduleResult.teamGames
     const remainingDates = scheduleResult.datesWithGames
+    const teamScheduleByDate = scheduleResult.scheduleByDate
     console.log(`Matchup ${matchupPeriod}: ${startDate} to ${endDate}, ${remainingDates.length} days remaining (${remainingDates.join(', ')})`)
 
     // Build ESPN PP data per pitcher name.
@@ -227,6 +228,7 @@ export async function POST(request: NextRequest) {
         team_games_remaining: teamGamesRemaining,
         espn_pp_starts_by_name: espnPPStartsByName,
         probable_pitcher_names_by_date: probablePitcherNamesByDate,
+        team_schedule_by_date: teamScheduleByDate,
         remaining_season_games: remainingSeasonGames,
         days_remaining: remainingDates.length,
         remaining_dates: remainingDates,
