@@ -85,3 +85,111 @@ class TestSustainabilityFilter:
         # Without xwOBA gap, only 2 checks possible — need both to pass
         # barrel_pct OR hard_hit_pct ✓, sprint_speed ✓ -> 2 of 2 -> pass
         assert sustainability_filter_passes(statcast, player_type="hitter") is True
+
+
+from unittest.mock import patch
+from backend.analysis.waivers import PlayerProjection
+
+
+def _proj(mlb_id, name, ptype, **kw):
+    defaults = dict(pa=600, r=80, tb=240, rbi=70, sb=10, obp=0.330,
+                    ip=0.0, k=0, qs=0, era=0.0, whip=0.0, svhd=0,
+                    eligible_positions="OF", overall_rank=100)
+    defaults.update(kw)
+    return PlayerProjection(
+        mlb_id=mlb_id, name=name, position="OF", player_type=ptype,
+        **defaults,
+    )
+
+
+def _pitcher_proj(mlb_id, name, **kw):
+    defaults = dict(pa=0, r=0, tb=0, rbi=0, sb=0, obp=0.0,
+                    ip=180.0, k=200, qs=15, era=3.50, whip=1.20, svhd=0,
+                    eligible_positions="SP", overall_rank=100)
+    defaults.update(kw)
+    return PlayerProjection(
+        mlb_id=mlb_id, name=name, position="SP", player_type="pitcher",
+        **defaults,
+    )
+
+
+class TestComputeHotView:
+    def test_returns_recommendation_when_fa_passes_filter(self):
+        from backend.analysis.breakouts import compute_hot_view
+
+        my_roster_ids = [1, 2]
+        my_roster_slots = [
+            {"mlb_id": 1, "lineup_slot_id": 0},
+            {"mlb_id": 2, "lineup_slot_id": 0},
+        ]
+        # Hot FA with strong recent stats; existing weak hitter to drop
+        projections = {
+            1: _proj(1, "Strong", "hitter"),
+            2: _proj(2, "Weak", "hitter", r=40, tb=120, rbi=30, sb=2, obp=0.290),
+            99: _proj(99, "FA", "hitter", r=0, tb=0, rbi=0, sb=0, obp=0.0),
+        }
+        # Other team baseline so my_totals are competitive
+        other_team_slots = [{"mlb_id": 1001, "lineup_slot_id": 0}]
+        projections[1001] = _proj(1001, "OtherTeam", "hitter", r=70, tb=210, rbi=60, sb=8, obp=0.320)
+
+        rolling_stats_by_id = {
+            99: {"games": 12, "pa": 55, "ab": 48, "r": 14, "h": 18, "hr": 5,
+                 "rbi": 16, "sb": 3, "bb": 6, "k": 8, "hbp": 1, "sf": 0,
+                 "total_bases": 36, "obp": 0.450, "slg": 0.750}
+        }
+        statcast_by_id = {
+            99: {"xwoba": 0.400, "woba": 0.430, "barrel_pct": 14.0,
+                 "hard_hit_pct": 50.0, "sprint_speed": 28.5}
+        }
+
+        result = compute_hot_view(
+            my_roster_ids=my_roster_ids,
+            my_roster_slots=my_roster_slots,
+            all_team_roster_slots=[other_team_slots],
+            free_agent_ids=[99],
+            projections=projections,
+            rolling_stats_by_id=rolling_stats_by_id,
+            statcast_by_id=statcast_by_id,
+            games_in_window=12,
+            games_remaining=120,
+            remaining_faab=85.0,
+        )
+
+        recs = result["recommendations"]
+        assert len(recs) >= 1
+        assert recs[0].add_player["id"] == 99
+        assert recs[0].wins_added_if_rate_continues is not None
+        assert recs[0].sustainability_badges  # non-empty dict
+
+    def test_filters_out_unsustainable_fa(self):
+        from backend.analysis.breakouts import compute_hot_view
+
+        my_roster_slots = [{"mlb_id": 1, "lineup_slot_id": 0}]
+        projections = {
+            1: _proj(1, "Mine", "hitter"),
+            99: _proj(99, "BadFA", "hitter"),
+            1001: _proj(1001, "Other", "hitter"),
+        }
+        rolling_stats_by_id = {
+            99: {"games": 10, "pa": 40, "ab": 36, "r": 8, "h": 15, "hr": 3,
+                 "rbi": 10, "sb": 1, "bb": 4, "k": 6, "hbp": 0, "sf": 0,
+                 "total_bases": 28, "obp": 0.475, "slg": 0.778}
+        }
+        # All sustainability checks fail
+        statcast_by_id = {
+            99: {"xwoba": 0.290, "woba": 0.420,    # gap fails
+                 "barrel_pct": 4.0,                  # fails
+                 "hard_hit_pct": 28.0,               # fails
+                 "sprint_speed": 26.0}                # fails
+        }
+
+        result = compute_hot_view(
+            my_roster_ids=[1], my_roster_slots=my_roster_slots,
+            all_team_roster_slots=[[{"mlb_id": 1001, "lineup_slot_id": 0}]],
+            free_agent_ids=[99],
+            projections=projections,
+            rolling_stats_by_id=rolling_stats_by_id,
+            statcast_by_id=statcast_by_id,
+            games_in_window=10, games_remaining=120, remaining_faab=85.0,
+        )
+        assert result["recommendations"] == []
