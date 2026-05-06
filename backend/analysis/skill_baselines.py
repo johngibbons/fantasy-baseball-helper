@@ -201,3 +201,158 @@ def compute_sustainability_score(
     bb_score = 50 + (LEAGUE_AVG_BB_PCT - bb) * 6
     bb_score = max(0.0, min(100.0, bb_score))
     return round((gap_score + whiff_score + csw_score + bb_score) / 4, 1)
+
+
+from backend.database import get_connection  # noqa: E402
+
+# Qualification thresholds
+MIN_PA_HITTER = 50
+MIN_IP_PITCHER = 20.0
+
+
+def _population_stats(values: list[float]) -> tuple[float, float]:
+    """Return (mean, sd) for a list of floats. SD is sample stdev."""
+    import math
+    n = len(values)
+    if n < 2:
+        return (0.0, 0.0)
+    mean = sum(values) / n
+    var = sum((v - mean) ** 2 for v in values) / (n - 1)
+    return (mean, math.sqrt(var))
+
+
+def compute_skill_baselines(season: int) -> None:
+    """Compute and persist per-player skill baselines for the current season.
+
+    Writes to ``statcast_baselines``. Idempotent — re-running overwrites the
+    row for each (mlb_id, season).
+    """
+    conn = get_connection()
+    try:
+        # Load current and prior season Statcast tables
+        cur_bat = {r["mlb_id"]: dict(r) for r in conn.execute(
+            "SELECT * FROM statcast_batting WHERE season = ?", (season,)
+        ).fetchall()}
+        prior_bat = {r["mlb_id"]: dict(r) for r in conn.execute(
+            "SELECT * FROM statcast_batting WHERE season = ?", (season - 1,)
+        ).fetchall()}
+        cur_pit = {r["mlb_id"]: dict(r) for r in conn.execute(
+            "SELECT * FROM statcast_pitching WHERE season = ?", (season,)
+        ).fetchall()}
+        prior_pit = {r["mlb_id"]: dict(r) for r in conn.execute(
+            "SELECT * FROM statcast_pitching WHERE season = ?", (season - 1,)
+        ).fetchall()}
+
+        pa_by_id = {r["mlb_id"]: r["plate_appearances"] for r in conn.execute(
+            "SELECT mlb_id, plate_appearances FROM batting_stats WHERE season = ?", (season,)
+        ).fetchall()}
+        ip_by_id = {r["mlb_id"]: r["innings_pitched"] for r in conn.execute(
+            "SELECT mlb_id, innings_pitched FROM pitching_stats WHERE season = ?", (season,)
+        ).fetchall()}
+
+        # First pass: compute deltas for everyone, accumulate populations for z-score normalization
+        hitter_rows: list[tuple[int, dict, str]] = []
+        pitcher_rows: list[tuple[int, dict, str]] = []
+        hitter_population: dict[str, list[float]] = {k: [] for k in HITTER_WEIGHTS}
+        pitcher_population: dict[str, list[float]] = {
+            "delta_xera": [], "delta_whiff_pct": [],
+            "delta_k_pct": [], "delta_bb_pct": [], "delta_chase_rate": [],
+        }
+
+        for mid, cur in cur_bat.items():
+            prior = prior_bat.get(mid)
+            deltas = compute_metric_deltas(cur, prior, player_type="hitter")
+            for k in HITTER_WEIGHTS:
+                v = deltas.get(k)
+                if v is not None:
+                    hitter_population[k].append(v)
+            hitter_rows.append((mid, {**cur, **deltas}, deltas.get("baseline_source", "league_avg")))
+
+        for mid, cur in cur_pit.items():
+            prior = prior_pit.get(mid)
+            deltas = compute_metric_deltas(cur, prior, player_type="pitcher")
+            for k in pitcher_population:
+                v = deltas.get(k)
+                if v is not None:
+                    pitcher_population[k].append(v)
+            pitcher_rows.append((mid, {**cur, **deltas}, deltas.get("baseline_source", "league_avg")))
+
+        hitter_pop_stats = {k: _population_stats(v) for k, v in hitter_population.items()}
+        pitcher_pop_stats = {k: _population_stats(v) for k, v in pitcher_population.items()}
+
+        for mid, payload, source in hitter_rows:
+            pa = pa_by_id.get(mid, 0) or 0
+            qualifies = 1 if pa >= MIN_PA_HITTER else 0
+            z = compute_skill_change_zscore(payload, hitter_pop_stats, "hitter") if qualifies else None
+            sustain = compute_sustainability_score(payload, "hitter") if qualifies else 0.0
+            conn.execute(
+                """INSERT INTO statcast_baselines
+                   (mlb_id, season, player_type,
+                    delta_xwoba, delta_barrel_pct, delta_hard_hit_pct, delta_sprint_speed,
+                    delta_xera, delta_whiff_pct, delta_k_pct, delta_bb_pct, delta_chase_rate,
+                    skill_change_zscore, sustainability_score, baseline_source, qualifies_pa_ip)
+                   VALUES (?, ?, ?,
+                           ?, ?, ?, ?,
+                           ?, ?, ?, ?, ?,
+                           ?, ?, ?, ?)
+                   ON CONFLICT (mlb_id, season) DO UPDATE SET
+                     player_type = EXCLUDED.player_type,
+                     delta_xwoba = EXCLUDED.delta_xwoba,
+                     delta_barrel_pct = EXCLUDED.delta_barrel_pct,
+                     delta_hard_hit_pct = EXCLUDED.delta_hard_hit_pct,
+                     delta_sprint_speed = EXCLUDED.delta_sprint_speed,
+                     skill_change_zscore = EXCLUDED.skill_change_zscore,
+                     sustainability_score = EXCLUDED.sustainability_score,
+                     baseline_source = EXCLUDED.baseline_source,
+                     qualifies_pa_ip = EXCLUDED.qualifies_pa_ip""",
+                (
+                    mid, season, "hitter",
+                    payload.get("delta_xwoba"), payload.get("delta_barrel_pct"),
+                    payload.get("delta_hard_hit_pct"), payload.get("delta_sprint_speed"),
+                    None, None, None, None, None,
+                    z, sustain, source, qualifies,
+                ),
+            )
+
+        for mid, payload, source in pitcher_rows:
+            ip = ip_by_id.get(mid, 0.0) or 0.0
+            qualifies = 1 if ip >= MIN_IP_PITCHER else 0
+            z = compute_skill_change_zscore(payload, pitcher_pop_stats, "pitcher") if qualifies else None
+            sustain = compute_sustainability_score(payload, "pitcher") if qualifies else 0.0
+            conn.execute(
+                """INSERT INTO statcast_baselines
+                   (mlb_id, season, player_type,
+                    delta_xwoba, delta_barrel_pct, delta_hard_hit_pct, delta_sprint_speed,
+                    delta_xera, delta_whiff_pct, delta_k_pct, delta_bb_pct, delta_chase_rate,
+                    skill_change_zscore, sustainability_score, baseline_source, qualifies_pa_ip)
+                   VALUES (?, ?, ?,
+                           ?, ?, ?, ?,
+                           ?, ?, ?, ?, ?,
+                           ?, ?, ?, ?)
+                   ON CONFLICT (mlb_id, season) DO UPDATE SET
+                     player_type = EXCLUDED.player_type,
+                     delta_xera = EXCLUDED.delta_xera,
+                     delta_whiff_pct = EXCLUDED.delta_whiff_pct,
+                     delta_k_pct = EXCLUDED.delta_k_pct,
+                     delta_bb_pct = EXCLUDED.delta_bb_pct,
+                     delta_chase_rate = EXCLUDED.delta_chase_rate,
+                     skill_change_zscore = EXCLUDED.skill_change_zscore,
+                     sustainability_score = EXCLUDED.sustainability_score,
+                     baseline_source = EXCLUDED.baseline_source,
+                     qualifies_pa_ip = EXCLUDED.qualifies_pa_ip""",
+                (
+                    mid, season, "pitcher",
+                    None, None, None, None,
+                    payload.get("delta_xera"), payload.get("delta_whiff_pct"),
+                    payload.get("delta_k_pct"), payload.get("delta_bb_pct"),
+                    payload.get("delta_chase_rate"),
+                    z, sustain, source, qualifies,
+                ),
+            )
+
+        conn.commit()
+    finally:
+        conn.close()
+    logger.info(
+        f"Skill baselines computed: {len(hitter_rows)} hitters, {len(pitcher_rows)} pitchers"
+    )

@@ -126,3 +126,45 @@ class TestComputeSustainabilityScore:
     def test_returns_zero_when_metrics_missing(self):
         score = compute_sustainability_score({}, player_type="hitter")
         assert score == 0
+
+
+from unittest.mock import patch, MagicMock
+
+
+@patch("backend.analysis.skill_baselines.get_connection")
+def test_compute_skill_baselines_writes_one_row_per_qualifying_player(mock_get_conn):
+    conn = MagicMock()
+    mock_get_conn.return_value = conn
+
+    def execute_side_effect(sql, params=()):
+        cur = MagicMock()
+        if "FROM statcast_batting" in sql and str(2025) in str(params):
+            cur.fetchall.return_value = [
+                {"mlb_id": 100, "xwoba": 0.330, "barrel_pct": 8.0,
+                 "hard_hit_pct": 40.0, "sprint_speed": 27.5, "woba": 0.325}
+            ]
+        elif "FROM statcast_batting" in sql and str(2026) in str(params):
+            cur.fetchall.return_value = [
+                {"mlb_id": 100, "xwoba": 0.380, "barrel_pct": 12.0,
+                 "hard_hit_pct": 45.0, "sprint_speed": 28.0, "woba": 0.385}
+            ]
+        elif "FROM statcast_pitching" in sql:
+            cur.fetchall.return_value = []
+        elif "FROM batting_stats" in sql:
+            cur.fetchall.return_value = [{"mlb_id": 100, "plate_appearances": 80}]
+        elif "FROM pitching_stats" in sql:
+            cur.fetchall.return_value = []
+        else:
+            cur.fetchall.return_value = []
+        return cur
+    conn.execute.side_effect = execute_side_effect
+
+    from backend.analysis.skill_baselines import compute_skill_baselines
+    compute_skill_baselines(season=2026)
+
+    insert_calls = [c for c in conn.execute.call_args_list
+                    if "statcast_baselines" in str(c.args[0]) and "INSERT" in str(c.args[0])]
+    assert len(insert_calls) >= 1
+    inserted_args = insert_calls[0].args[1] if len(insert_calls[0].args) > 1 else ()
+    assert 100 in inserted_args
+    conn.commit.assert_called()
