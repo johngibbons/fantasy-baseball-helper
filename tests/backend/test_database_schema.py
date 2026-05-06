@@ -8,6 +8,7 @@ def _get_columns(table_name: str) -> set[str]:
     conn = get_connection()
     try:
         if _USE_PG:
+            # ? is correct here: _PgConnectionWrapper.execute() converts ? → %s via _convert_placeholders()
             rows = conn.execute(
                 """SELECT column_name FROM information_schema.columns
                    WHERE table_schema = 'analytics' AND table_name = ?""",
@@ -27,7 +28,7 @@ def test_rolling_batting_stats_table_exists():
     init_db()
     cols = _get_columns("rolling_batting_stats")
     assert {"mlb_id", "season", "window_days", "as_of_date",
-            "pa", "r", "tb", "rbi", "sb", "obp"}.issubset(cols)
+            "pa", "r", "total_bases", "rbi", "sb", "obp"}.issubset(cols)
 
 
 def test_rolling_pitching_stats_table_exists():

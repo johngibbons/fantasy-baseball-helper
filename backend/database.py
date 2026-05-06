@@ -325,7 +325,7 @@ def _init_pg():
             k INTEGER DEFAULT 0,
             hbp INTEGER DEFAULT 0,
             sf INTEGER DEFAULT 0,
-            tb INTEGER DEFAULT 0,
+            total_bases INTEGER DEFAULT 0,
             batting_avg REAL DEFAULT 0,
             obp REAL DEFAULT 0,
             slg REAL DEFAULT 0,
@@ -640,7 +640,7 @@ def _init_sqlite():
             k INTEGER DEFAULT 0,
             hbp INTEGER DEFAULT 0,
             sf INTEGER DEFAULT 0,
-            tb INTEGER DEFAULT 0,
+            total_bases INTEGER DEFAULT 0,
             batting_avg REAL DEFAULT 0,
             obp REAL DEFAULT 0,
             slg REAL DEFAULT 0,
@@ -705,7 +705,7 @@ def _init_sqlite():
         CREATE INDEX IF NOT EXISTS idx_players_type ON players(player_type);
         CREATE INDEX IF NOT EXISTS idx_rolling_batting_window ON rolling_batting_stats(season, window_days);
         CREATE INDEX IF NOT EXISTS idx_rolling_pitching_window ON rolling_pitching_stats(season, window_days);
-        CREATE INDEX IF NOT EXISTS idx_baselines_zscore ON statcast_baselines(season, skill_change_zscore);
+        CREATE INDEX IF NOT EXISTS idx_baselines_zscore ON statcast_baselines(season, skill_change_zscore DESC);
 
         CREATE TABLE IF NOT EXISTS league_season_totals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
