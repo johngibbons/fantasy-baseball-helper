@@ -193,3 +193,83 @@ class TestComputeHotView:
             games_in_window=10, games_remaining=120, remaining_faab=85.0,
         )
         assert result["recommendations"] == []
+
+
+class TestComputeStealthView:
+    def test_ranks_by_skill_change_zscore_descending(self):
+        from backend.analysis.breakouts import compute_stealth_view
+
+        baselines = [
+            {"mlb_id": 1, "player_type": "hitter",
+             "skill_change_zscore": 1.2, "qualifies_pa_ip": 1,
+             "delta_xwoba": 0.04, "delta_barrel_pct": 3.0,
+             "delta_hard_hit_pct": 2.0, "delta_sprint_speed": 0.3,
+             "baseline_source": "prior_season"},
+            {"mlb_id": 2, "player_type": "hitter",
+             "skill_change_zscore": 2.5, "qualifies_pa_ip": 1,
+             "delta_xwoba": 0.06, "delta_barrel_pct": 5.5,
+             "delta_hard_hit_pct": 4.0, "delta_sprint_speed": 0.5,
+             "baseline_source": "prior_season"},
+            {"mlb_id": 3, "player_type": "hitter",
+             "skill_change_zscore": 0.5, "qualifies_pa_ip": 1,
+             "delta_xwoba": 0.01, "delta_barrel_pct": 1.0,
+             "delta_hard_hit_pct": 0.5, "delta_sprint_speed": 0.0,
+             "baseline_source": "league_avg"},
+        ]
+        player_meta = {
+            1: {"name": "A", "team": "BOS", "position": "OF"},
+            2: {"name": "B", "team": "LAD", "position": "SS"},
+            3: {"name": "C", "team": "SF", "position": "1B"},
+        }
+        roster_status_by_id = {1: "FA", 2: "FA", 3: "FA"}
+        current_stats = {1: {"ops": 0.700}, 2: {"ops": 0.720}, 3: {"ops": 0.690}}
+        proj_stats = {1: {"ops": 0.780}, 2: {"ops": 0.760}, 3: {"ops": 0.770}}
+
+        result = compute_stealth_view(
+            baselines=baselines, player_meta=player_meta,
+            roster_status_by_id=roster_status_by_id,
+            current_stats=current_stats, proj_stats=proj_stats,
+            scope="FA", position_filter=None, player_type_filter=None,
+        )
+        recs = result["recommendations"]
+        assert [r.add_player["id"] for r in recs] == [2, 1, 3]
+        assert recs[0].skill_change_zscore == pytest.approx(2.5)
+        assert recs[0].headline_delta is not None
+
+    def test_filters_out_unqualified_players(self):
+        from backend.analysis.breakouts import compute_stealth_view
+
+        baselines = [
+            {"mlb_id": 1, "player_type": "hitter",
+             "skill_change_zscore": 3.0, "qualifies_pa_ip": 0,
+             "delta_xwoba": 0.10, "delta_barrel_pct": 8.0,
+             "delta_hard_hit_pct": 6.0, "delta_sprint_speed": 1.0,
+             "baseline_source": "prior_season"},
+        ]
+        result = compute_stealth_view(
+            baselines=baselines,
+            player_meta={1: {"name": "A", "team": "X", "position": "OF"}},
+            roster_status_by_id={1: "FA"},
+            current_stats={1: {}}, proj_stats={1: {}},
+            scope="FA", position_filter=None, player_type_filter=None,
+        )
+        assert result["recommendations"] == []
+
+    def test_scope_filter_excludes_rostered_when_fa_only(self):
+        from backend.analysis.breakouts import compute_stealth_view
+
+        baselines = [
+            {"mlb_id": 1, "player_type": "hitter",
+             "skill_change_zscore": 2.0, "qualifies_pa_ip": 1,
+             "delta_xwoba": 0.05, "delta_barrel_pct": 4.0,
+             "delta_hard_hit_pct": 3.0, "delta_sprint_speed": 0.4,
+             "baseline_source": "prior_season"},
+        ]
+        result = compute_stealth_view(
+            baselines=baselines,
+            player_meta={1: {"name": "A", "team": "X", "position": "OF"}},
+            roster_status_by_id={1: "team_3"},
+            current_stats={1: {}}, proj_stats={1: {}},
+            scope="FA", position_filter=None, player_type_filter=None,
+        )
+        assert result["recommendations"] == []

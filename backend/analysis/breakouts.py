@@ -421,3 +421,129 @@ def compute_hot_view(
         "baseline_category_probs": {cat: round(v, 4) for cat, v in baseline_cat_probs.items()},
         "recommendations": recommendations,
     }
+
+
+def _format_headline_delta(baseline: dict) -> Optional[dict]:
+    """Pick the largest single-metric jump as a headline."""
+    candidates = []
+    for k, label in [
+        ("delta_xwoba", "xwOBA"),
+        ("delta_barrel_pct", "barrel%"),
+        ("delta_hard_hit_pct", "hard-hit%"),
+        ("delta_sprint_speed", "sprint speed"),
+        ("delta_xera", "xERA"),
+        ("delta_whiff_pct", "whiff%"),
+        ("delta_k_pct", "K%"),
+        ("delta_bb_pct", "BB%"),
+        ("delta_chase_rate", "chase%"),
+    ]:
+        v = baseline.get(k)
+        if v is None:
+            continue
+        # Normalize for "magnitude of improvement" — invert xera and bb_pct
+        magnitude = -v if k in ("delta_xera", "delta_bb_pct") else v
+        candidates.append((magnitude, k, label, v))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda t: -t[0])
+    _, key, label, raw_value = candidates[0]
+    sign = "+" if raw_value > 0 else ""
+    return {
+        "metric": key,
+        "label": f"{sign}{round(raw_value, 2)} {label}",
+    }
+
+
+def compute_stealth_view(
+    baselines: list[dict],
+    player_meta: dict[int, dict],
+    roster_status_by_id: dict[int, str],
+    current_stats: dict[int, dict],
+    proj_stats: dict[int, dict],
+    scope: str = "FA",
+    position_filter: Optional[str] = None,
+    player_type_filter: Optional[str] = None,
+    limit: int = 50,
+) -> dict:
+    """Stealth Breakouts: rank players by skill-change z-score.
+
+    Inputs:
+      baselines: rows from ``statcast_baselines`` (dicts).
+      player_meta: mlb_id -> {"name", "team", "position"}.
+      roster_status_by_id: mlb_id -> "FA" | "team_<id>" | "my_team".
+      current_stats / proj_stats: mlb_id -> sparse dict with surface stats
+        for the "current vs projection" footnote.
+      scope: "FA" | "rostered" | "all".
+      position_filter: e.g. "OF", or None for all.
+      player_type_filter: "hitter" | "pitcher" | None.
+    """
+    filtered: list[dict] = []
+    for b in baselines:
+        if not b.get("qualifies_pa_ip"):
+            continue
+        if b.get("skill_change_zscore") is None:
+            continue
+        mid = b["mlb_id"]
+        rs = roster_status_by_id.get(mid, "FA")
+        if scope == "FA" and rs != "FA":
+            continue
+        if scope == "rostered" and rs == "FA":
+            continue
+        if player_type_filter and b.get("player_type") != player_type_filter:
+            continue
+        meta = player_meta.get(mid, {})
+        if position_filter and position_filter != "All":
+            if position_filter not in (meta.get("position") or ""):
+                continue
+        filtered.append(b)
+
+    filtered.sort(key=lambda b: -(b["skill_change_zscore"] or 0))
+    filtered = filtered[:limit]
+
+    recommendations: list[BreakoutRecommendation] = []
+    for i, b in enumerate(filtered):
+        mid = b["mlb_id"]
+        meta = player_meta.get(mid, {})
+        rs = roster_status_by_id.get(mid, "FA")
+        # Build metric_deltas with badges
+        metric_deltas = {}
+        for k in ("delta_xwoba", "delta_barrel_pct", "delta_hard_hit_pct",
+                  "delta_sprint_speed", "delta_xera", "delta_whiff_pct",
+                  "delta_k_pct", "delta_bb_pct", "delta_chase_rate"):
+            v = b.get(k)
+            if v is None:
+                continue
+            inverted = k in ("delta_xera", "delta_bb_pct")
+            sign_value = -v if inverted else v
+            if sign_value > 0.5:
+                badge = "green"
+            elif sign_value > -0.5:
+                badge = "yellow"
+            else:
+                badge = "red"
+            metric_deltas[k] = {"value": round(v, 3), "badge": badge}
+
+        cur = current_stats.get(mid, {})
+        proj = proj_stats.get(mid, {})
+        current_vs_projection = {
+            k: {"current": cur.get(k), "projected": proj.get(k)}
+            for k in cur.keys()
+            if proj.get(k) is not None
+        }
+
+        recommendations.append(BreakoutRecommendation(
+            rank=i + 1,
+            add_player={
+                "id": mid, "name": meta.get("name", ""),
+                "team": meta.get("team", ""),
+                "position": meta.get("position", ""),
+                "roster_status": rs,
+            },
+            skill_change_zscore=round(b["skill_change_zscore"], 3),
+            headline_delta=_format_headline_delta(b),
+            metric_deltas=metric_deltas,
+            current_vs_projection=current_vs_projection,
+            baseline_source=b.get("baseline_source"),
+        ))
+
+    return {"recommendations": recommendations}
