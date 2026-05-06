@@ -17,7 +17,12 @@ from backend.analysis.rankings import (
 )
 from backend.analysis.waivers import (
     compute_waiver_recommendations,
+    load_projections_for_players,
     resolve_espn_names_to_mlbid,
+)
+from backend.analysis.breakouts import (
+    compute_hot_view,
+    compute_stealth_view,
 )
 from backend.analysis.trades import compute_trade_suggestions
 from backend.analysis.zscores import (
@@ -1068,3 +1073,219 @@ def performance_refresh_status():
     from backend.analysis.performance import get_refresh_state
 
     return get_refresh_state()
+
+
+# ── Breakout Recommendations ──
+
+
+class BreakoutRequest(BaseModel):
+    my_roster: list[dict]
+    all_rosters: list[list[dict]]
+    free_agents: list[dict]
+    remaining_faab: float = 100.0
+    season: int = 2026
+    view: str  # "hot" | "stealth"
+    window: int = 14
+    scope: str = "FA"  # "FA" | "rostered" | "all"
+    position: Optional[str] = None
+    player_type: Optional[str] = None
+    games_remaining: int = 130
+
+
+@router.post("/breakouts/recommendations")
+def post_breakouts_recommendations(req: BreakoutRequest):
+    """Compute breakout recommendations.
+
+    For ``view="hot"``: returns ranked free agents whose recent pace
+    extrapolates to expected-wins improvement, filtered for sustainability.
+    For ``view="stealth"``: returns ranked players by composite skill-change
+    z-score from ``statcast_baselines``.
+    """
+    if req.view not in ("hot", "stealth"):
+        raise HTTPException(400, "view must be 'hot' or 'stealth'")
+
+    # Resolve ESPN player names to mlb_ids using the same flow as /api/waivers
+    espn_names_for_resolution = (
+        [{"name": p["name"], "player_type": p.get("player_type")} for p in req.free_agents]
+        + [{"name": p["name"], "player_type": p.get("player_type")} for p in req.my_roster]
+    )
+    for team in req.all_rosters:
+        for p in team:
+            espn_names_for_resolution.append({"name": p["name"], "player_type": p.get("player_type")})
+    name_to_mlbid = resolve_espn_names_to_mlbid(espn_names_for_resolution, season=req.season)
+
+    def _to_mlb_ids(players: list[dict]) -> list[int]:
+        return [name_to_mlbid[p["name"]] for p in players if p["name"] in name_to_mlbid]
+
+    def _to_mlb_slots(players: list[dict]) -> list[dict]:
+        return [
+            {"mlb_id": name_to_mlbid[p["name"]], "lineup_slot_id": p.get("lineup_slot_id", 0)}
+            for p in players if p["name"] in name_to_mlbid
+        ]
+
+    my_roster_ids = _to_mlb_ids(req.my_roster)
+    my_roster_slots = _to_mlb_slots(req.my_roster)
+    all_team_slots = [_to_mlb_slots(team) for team in req.all_rosters]
+    free_agent_ids = _to_mlb_ids(req.free_agents)
+
+    conn = get_connection()
+    try:
+        if req.view == "hot":
+            all_ids = list(set(my_roster_ids + free_agent_ids
+                                + [s["mlb_id"] for slots in all_team_slots for s in slots]))
+            if not all_ids:
+                return {"as_of_date": None, "view": "hot", "window": req.window,
+                        "baseline_expected_wins": 0.0, "baseline_category_probs": {},
+                        "recommendations": []}
+            projections = load_projections_for_players(all_ids, req.season)
+
+            placeholders = ",".join(["?"] * len(all_ids))
+            bat_rolling = {r["mlb_id"]: dict(r) for r in conn.execute(
+                f"""SELECT * FROM rolling_batting_stats
+                    WHERE season = ? AND window_days = ?
+                      AND mlb_id IN ({placeholders})""",
+                (req.season, req.window, *all_ids),
+            ).fetchall()}
+            pit_rolling = {r["mlb_id"]: dict(r) for r in conn.execute(
+                f"""SELECT * FROM rolling_pitching_stats
+                    WHERE season = ? AND window_days = ?
+                      AND mlb_id IN ({placeholders})""",
+                (req.season, req.window, *all_ids),
+            ).fetchall()}
+            rolling_stats_by_id = {**bat_rolling, **pit_rolling}
+
+            bat_sc = {r["mlb_id"]: dict(r) for r in conn.execute(
+                f"""SELECT * FROM statcast_batting WHERE season = ? AND mlb_id IN ({placeholders})""",
+                (req.season, *all_ids),
+            ).fetchall()}
+            pit_sc = {r["mlb_id"]: dict(r) for r in conn.execute(
+                f"""SELECT * FROM statcast_pitching WHERE season = ? AND mlb_id IN ({placeholders})""",
+                (req.season, *all_ids),
+            ).fetchall()}
+            # Add ERA from pitching_stats so xera-vs-era check works
+            for mid in pit_sc:
+                row = conn.execute(
+                    "SELECT era FROM pitching_stats WHERE mlb_id = ? AND season = ?",
+                    (mid, req.season),
+                ).fetchone()
+                if row:
+                    pit_sc[mid]["era"] = row["era"]
+            statcast_by_id = {**bat_sc, **pit_sc}
+
+            games_in_window_estimate = max(
+                (s.get("games", 0) for s in rolling_stats_by_id.values()),
+                default=req.window,
+            )
+            result = compute_hot_view(
+                my_roster_ids=my_roster_ids,
+                my_roster_slots=my_roster_slots,
+                all_team_roster_slots=all_team_slots,
+                free_agent_ids=free_agent_ids,
+                projections=projections,
+                rolling_stats_by_id=rolling_stats_by_id,
+                statcast_by_id=statcast_by_id,
+                games_in_window=games_in_window_estimate,
+                games_remaining=req.games_remaining,
+                remaining_faab=req.remaining_faab,
+            )
+
+            as_of = max(
+                (s.get("as_of_date") for s in rolling_stats_by_id.values() if s.get("as_of_date")),
+                default=None,
+            )
+            return {
+                "as_of_date": as_of,
+                "view": "hot",
+                "window": req.window,
+                "baseline_expected_wins": result["baseline_expected_wins"],
+                "baseline_category_probs": result["baseline_category_probs"],
+                "recommendations": [
+                    {
+                        "rank": r.rank,
+                        "add_player": r.add_player,
+                        "drop_player": r.drop_player,
+                        "wins_added_if_rate_continues": r.wins_added_if_rate_continues,
+                        "suggested_faab_bid": r.suggested_faab_bid,
+                        "window_stats": r.window_stats,
+                        "sustainability_badges": r.sustainability_badges,
+                        "sustainability_score": r.sustainability_score,
+                    }
+                    for r in result["recommendations"]
+                ],
+            }
+
+        # Stealth view
+        baselines = [dict(r) for r in conn.execute(
+            "SELECT * FROM statcast_baselines WHERE season = ?", (req.season,),
+        ).fetchall()]
+
+        candidate_ids = [b["mlb_id"] for b in baselines]
+        player_meta: dict[int, dict] = {}
+        if candidate_ids:
+            ph = ",".join(["?"] * len(candidate_ids))
+            for r in conn.execute(
+                f"SELECT mlb_id, full_name, primary_position, team FROM players WHERE mlb_id IN ({ph})",
+                tuple(candidate_ids),
+            ).fetchall():
+                player_meta[r["mlb_id"]] = {
+                    "name": r["full_name"],
+                    "team": r["team"] or "",
+                    "position": r["primary_position"] or "",
+                }
+
+        roster_status_by_id: dict[int, str] = {pid: "my_team" for pid in my_roster_ids}
+        for i, team in enumerate(all_team_slots):
+            for s in team:
+                roster_status_by_id.setdefault(s["mlb_id"], f"team_{i}")
+
+        current_stats: dict[int, dict] = {}
+        proj_stats: dict[int, dict] = {}
+        if candidate_ids:
+            ph = ",".join(["?"] * len(candidate_ids))
+            for r in conn.execute(
+                f"""SELECT b.mlb_id, b.ops, p.era, p.whip
+                    FROM batting_stats b LEFT JOIN pitching_stats p
+                      ON b.mlb_id = p.mlb_id AND b.season = p.season
+                    WHERE b.season = ? AND b.mlb_id IN ({ph})""",
+                (req.season, *candidate_ids),
+            ).fetchall():
+                current_stats[r["mlb_id"]] = {
+                    "ops": r["ops"], "era": r["era"], "whip": r["whip"],
+                }
+            for r in conn.execute(
+                f"""SELECT mlb_id, proj_obp, proj_era, proj_whip
+                    FROM rankings WHERE season = ? AND mlb_id IN ({ph})""",
+                (req.season, *candidate_ids),
+            ).fetchall():
+                proj_stats[r["mlb_id"]] = {
+                    "ops": r["proj_obp"],  # rough proxy
+                    "era": r["proj_era"], "whip": r["proj_whip"],
+                }
+
+        result = compute_stealth_view(
+            baselines=baselines,
+            player_meta=player_meta,
+            roster_status_by_id=roster_status_by_id,
+            current_stats=current_stats,
+            proj_stats=proj_stats,
+            scope=req.scope,
+            position_filter=req.position,
+            player_type_filter=req.player_type,
+        )
+        return {
+            "view": "stealth",
+            "recommendations": [
+                {
+                    "rank": r.rank,
+                    "player": r.add_player,
+                    "skill_change_zscore": r.skill_change_zscore,
+                    "headline_delta": r.headline_delta,
+                    "metric_deltas": r.metric_deltas,
+                    "current_vs_projection": r.current_vs_projection,
+                    "baseline_source": r.baseline_source,
+                }
+                for r in result["recommendations"]
+            ],
+        }
+    finally:
+        conn.close()
