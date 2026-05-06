@@ -1,0 +1,211 @@
+<h2>Weekly Matchup Page Layout</h2>
+<p class="subtitle">How should the page be structured? All options show actuals + projected finals with category win probabilities.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding: 16px; font-family: monospace; font-size: 11px; background: #1a1a2e; border-radius: 8px;">
+        <!-- Layout A: Scoreboard-style -->
+        <div style="text-align: center; margin-bottom: 12px;">
+          <div style="color: #a78bfa; font-size: 13px; font-weight: bold;">PROJECTED: 6-3-1</div>
+          <div style="color: #6b7280; font-size: 10px;">Week 3 · Mon-Sun · 4 days remaining</div>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; color: #e5e7eb; font-size: 10px;">
+          <tr style="color: #9ca3af;">
+            <td></td><td style="text-align:center">R</td><td style="text-align:center">TB</td><td style="text-align:center">RBI</td><td style="text-align:center">SB</td><td style="text-align:center">OBP</td>
+            <td style="padding-left:8px;text-align:center">K</td><td style="text-align:center">QS</td><td style="text-align:center">ERA</td><td style="text-align:center">WHIP</td><td style="text-align:center">SVH</td>
+          </tr>
+          <tr>
+            <td style="color:#a78bfa;font-weight:bold;">My Team</td>
+            <td style="text-align:center;background:#065f4620;border-radius:4px;">28</td>
+            <td style="text-align:center;background:#065f4620;border-radius:4px;">54</td>
+            <td style="text-align:center;">24</td>
+            <td style="text-align:center;background:#065f4620;border-radius:4px;">6</td>
+            <td style="text-align:center;background:#065f4620;border-radius:4px;">.278</td>
+            <td style="padding-left:8px;text-align:center;background:#065f4620;border-radius:4px;">62</td>
+            <td style="text-align:center;">3</td>
+            <td style="text-align:center;background:#065f4620;border-radius:4px;">3.12</td>
+            <td style="text-align:center;">1.18</td>
+            <td style="text-align:center;background:#065f4620;border-radius:4px;">5</td>
+          </tr>
+          <tr style="color: #6b7280; font-size: 9px;">
+            <td></td>
+            <td style="text-align:center">78%</td><td style="text-align:center">82%</td><td style="text-align:center">51%</td><td style="text-align:center">71%</td><td style="text-align:center">65%</td>
+            <td style="padding-left:8px;text-align:center">88%</td><td style="text-align:center">45%</td><td style="text-align:center">72%</td><td style="text-align:center">48%</td><td style="text-align:center">61%</td>
+          </tr>
+          <tr>
+            <td style="color:#ef4444;font-weight:bold;">Opponent</td>
+            <td style="text-align:center">22</td>
+            <td style="text-align:center">41</td>
+            <td style="text-align:center;background:#7f1d1d30;border-radius:4px;">25</td>
+            <td style="text-align:center">4</td>
+            <td style="text-align:center">.261</td>
+            <td style="padding-left:8px;text-align:center">48</td>
+            <td style="text-align:center;background:#7f1d1d30;border-radius:4px;">4</td>
+            <td style="text-align:center">3.45</td>
+            <td style="text-align:center;background:#7f1d1d30;border-radius:4px;">1.15</td>
+            <td style="text-align:center">3</td>
+          </tr>
+        </table>
+        <div style="margin-top: 10px; border-top: 1px solid #374151; padding-top: 8px; color: #6b7280; font-size: 9px;">
+          ▼ Actuals breakdown · ▼ Roster projections
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A: Compact Scoreboard</h3>
+      <p>ESPN-style head-to-head scoreboard as the hero. Projected finals for both teams in a single table with win probability per category. Expandable sections below for actuals breakdown and roster-level projections.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding: 16px; font-family: monospace; font-size: 11px; background: #1a1a2e; border-radius: 8px;">
+        <!-- Layout B: Split panels -->
+        <div style="text-align: center; margin-bottom: 8px;">
+          <div style="color: #a78bfa; font-size: 13px; font-weight: bold;">PROJECTED: 6-3-1</div>
+          <div style="color: #6b7280; font-size: 10px;">Week 3 · 4 days remaining</div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <div style="flex: 1; background: #111827; border-radius: 6px; padding: 8px; border: 1px solid #1f2937;">
+            <div style="color: #a78bfa; font-weight: bold; font-size: 10px; margin-bottom: 6px;">MY TEAM</div>
+            <div style="display: flex; justify-content: space-between; color: #e5e7eb; font-size: 9px; margin-bottom: 3px;">
+              <span>R</span>
+              <span style="display:flex;align-items:center;gap:4px;">
+                <span style="color:#6b7280">18→</span><span style="color:#34d399;font-weight:bold;">28</span>
+                <span style="color:#34d399;font-size:8px">78%</span>
+              </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; color: #e5e7eb; font-size: 9px; margin-bottom: 3px;">
+              <span>TB</span>
+              <span style="display:flex;align-items:center;gap:4px;">
+                <span style="color:#6b7280">32→</span><span style="color:#34d399;font-weight:bold;">54</span>
+                <span style="color:#34d399;font-size:8px">82%</span>
+              </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; color: #e5e7eb; font-size: 9px; margin-bottom: 3px;">
+              <span>RBI</span>
+              <span style="display:flex;align-items:center;gap:4px;">
+                <span style="color:#6b7280">15→</span><span style="color:#fbbf24;font-weight:bold;">24</span>
+                <span style="color:#fbbf24;font-size:8px">51%</span>
+              </span>
+            </div>
+            <div style="color: #6b7280; font-size: 8px; margin-top: 4px;">... 7 more categories</div>
+          </div>
+          <div style="flex: 1; background: #111827; border-radius: 6px; padding: 8px; border: 1px solid #1f2937;">
+            <div style="color: #ef4444; font-weight: bold; font-size: 10px; margin-bottom: 6px;">OPPONENT</div>
+            <div style="display: flex; justify-content: space-between; color: #e5e7eb; font-size: 9px; margin-bottom: 3px;">
+              <span>R</span>
+              <span style="display:flex;align-items:center;gap:4px;">
+                <span style="color:#6b7280">14→</span><span>22</span>
+              </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; color: #e5e7eb; font-size: 9px; margin-bottom: 3px;">
+              <span>TB</span>
+              <span style="display:flex;align-items:center;gap:4px;">
+                <span style="color:#6b7280">24→</span><span>41</span>
+              </span>
+            </div>
+            <div style="display: flex; justify-content: space-between; color: #e5e7eb; font-size: 9px; margin-bottom: 3px;">
+              <span>RBI</span>
+              <span style="display:flex;align-items:center;gap:4px;">
+                <span style="color:#6b7280">16→</span><span style="color:#ef4444;font-weight:bold;">25</span>
+              </span>
+            </div>
+            <div style="color: #6b7280; font-size: 8px; margin-top: 4px;">... 7 more categories</div>
+          </div>
+        </div>
+        <div style="margin-top: 8px; color: #6b7280; font-size: 9px; border-top: 1px solid #374151; padding-top: 6px;">
+          ▼ Player-by-player projections
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B: Side-by-Side Panels</h3>
+      <p>Two panels showing each team's categories with "actual → projected" format. Each row shows current value, arrow, projected final, and win probability. Makes the "where I am → where I'll be" story very clear per team.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding: 16px; font-family: monospace; font-size: 11px; background: #1a1a2e; border-radius: 8px;">
+        <!-- Layout C: Category rows -->
+        <div style="text-align: center; margin-bottom: 10px;">
+          <div style="color: #a78bfa; font-size: 13px; font-weight: bold;">PROJECTED: 6-3-1</div>
+          <div style="color: #6b7280; font-size: 10px;">Week 3 · 4 days remaining</div>
+        </div>
+        <!-- Category row: R -->
+        <div style="background: #111827; border-radius: 6px; padding: 8px; margin-bottom: 4px; border-left: 3px solid #34d399;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="width: 35%;">
+              <div style="color: #e5e7eb; font-weight: bold;">R</div>
+              <div style="color: #34d399; font-size: 9px;">78% to win</div>
+            </div>
+            <div style="text-align: center; width: 30%;">
+              <div style="display: flex; align-items: baseline; justify-content: center; gap: 4px;">
+                <span style="color: #a78bfa; font-weight: bold; font-size: 14px;">28</span>
+                <span style="color: #6b7280; font-size: 9px;">vs</span>
+                <span style="color: #ef4444; font-size: 14px;">22</span>
+              </div>
+              <div style="color: #6b7280; font-size: 8px;">actual: 18 vs 14</div>
+            </div>
+            <div style="width: 35%; text-align: right;">
+              <div style="background: #1f2937; border-radius: 4px; height: 6px; overflow: hidden;">
+                <div style="background: #34d399; width: 78%; height: 100%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Category row: RBI -->
+        <div style="background: #111827; border-radius: 6px; padding: 8px; margin-bottom: 4px; border-left: 3px solid #fbbf24;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="width: 35%;">
+              <div style="color: #e5e7eb; font-weight: bold;">RBI</div>
+              <div style="color: #fbbf24; font-size: 9px;">51% to win</div>
+            </div>
+            <div style="text-align: center; width: 30%;">
+              <div style="display: flex; align-items: baseline; justify-content: center; gap: 4px;">
+                <span style="color: #a78bfa; font-weight: bold; font-size: 14px;">24</span>
+                <span style="color: #6b7280; font-size: 9px;">vs</span>
+                <span style="color: #ef4444; font-size: 14px;">25</span>
+              </div>
+              <div style="color: #6b7280; font-size: 8px;">actual: 15 vs 16</div>
+            </div>
+            <div style="width: 35%; text-align: right;">
+              <div style="background: #1f2937; border-radius: 4px; height: 6px; overflow: hidden;">
+                <div style="background: #fbbf24; width: 51%; height: 100%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Category row: ERA -->
+        <div style="background: #111827; border-radius: 6px; padding: 8px; margin-bottom: 4px; border-left: 3px solid #ef4444;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="width: 35%;">
+              <div style="color: #e5e7eb; font-weight: bold;">ERA</div>
+              <div style="color: #ef4444; font-size: 9px;">35% to win</div>
+            </div>
+            <div style="text-align: center; width: 30%;">
+              <div style="display: flex; align-items: baseline; justify-content: center; gap: 4px;">
+                <span style="color: #a78bfa; font-weight: bold; font-size: 14px;">3.85</span>
+                <span style="color: #6b7280; font-size: 9px;">vs</span>
+                <span style="color: #ef4444; font-size: 14px;">3.12</span>
+              </div>
+              <div style="color: #6b7280; font-size: 8px;">actual: 4.20 vs 2.88</div>
+            </div>
+            <div style="width: 35%; text-align: right;">
+              <div style="background: #1f2937; border-radius: 4px; height: 6px; overflow: hidden;">
+                <div style="background: #ef4444; width: 35%; height: 100%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="color: #6b7280; font-size: 9px; text-align: center; margin-top: 4px;">... 7 more categories</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C: Category Cards with Progress Bars</h3>
+      <p>Each category gets its own row with a colored border (green=winning, yellow=toss-up, red=losing). Shows projected finals head-to-head, actuals underneath, and a win probability progress bar. Very visual and scannable.</p>
+    </div>
+  </div>
+</div>

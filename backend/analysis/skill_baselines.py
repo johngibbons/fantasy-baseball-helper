@@ -8,7 +8,10 @@ The Hot + Sustainable view filters/sorts using ``sustainability_score``.
 from __future__ import annotations
 
 import logging
+import math
 from typing import Optional
+
+from backend.database import get_connection
 
 logger = logging.getLogger(__name__)
 
@@ -203,8 +206,6 @@ def compute_sustainability_score(
     return round((gap_score + whiff_score + csw_score + bb_score) / 4, 1)
 
 
-from backend.database import get_connection  # noqa: E402
-
 # Qualification thresholds
 MIN_PA_HITTER = 50
 MIN_IP_PITCHER = 20.0
@@ -212,7 +213,6 @@ MIN_IP_PITCHER = 20.0
 
 def _population_stats(values: list[float]) -> tuple[float, float]:
     """Return (mean, sd) for a list of floats. SD is sample stdev."""
-    import math
     n = len(values)
     if n < 2:
         return (0.0, 0.0)
@@ -350,9 +350,9 @@ def compute_skill_baselines(season: int) -> None:
                 ),
             )
 
+        logger.info(
+            f"Skill baselines computed: {len(hitter_rows)} hitters, {len(pitcher_rows)} pitchers"
+        )
         conn.commit()
     finally:
         conn.close()
-    logger.info(
-        f"Skill baselines computed: {len(hitter_rows)} hitters, {len(pitcher_rows)} pitchers"
-    )
