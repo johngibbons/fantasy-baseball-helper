@@ -8,7 +8,6 @@ The Hot + Sustainable view filters/sorts using ``sustainability_score``.
 from __future__ import annotations
 
 import logging
-import math
 from typing import Optional
 
 logger = logging.getLogger(__name__)
