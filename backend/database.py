@@ -307,12 +307,95 @@ def _init_pg():
         );
     """)
 
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS rolling_batting_stats (
+            mlb_id INTEGER NOT NULL,
+            season INTEGER NOT NULL,
+            window_days INTEGER NOT NULL,
+            as_of_date DATE NOT NULL,
+            games INTEGER DEFAULT 0,
+            pa INTEGER DEFAULT 0,
+            ab INTEGER DEFAULT 0,
+            r INTEGER DEFAULT 0,
+            h INTEGER DEFAULT 0,
+            hr INTEGER DEFAULT 0,
+            rbi INTEGER DEFAULT 0,
+            sb INTEGER DEFAULT 0,
+            bb INTEGER DEFAULT 0,
+            k INTEGER DEFAULT 0,
+            hbp INTEGER DEFAULT 0,
+            sf INTEGER DEFAULT 0,
+            tb INTEGER DEFAULT 0,
+            batting_avg REAL DEFAULT 0,
+            obp REAL DEFAULT 0,
+            slg REAL DEFAULT 0,
+            ops REAL DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT NOW(),
+            PRIMARY KEY (mlb_id, season, window_days),
+            FOREIGN KEY (mlb_id) REFERENCES players(mlb_id)
+        );
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS rolling_pitching_stats (
+            mlb_id INTEGER NOT NULL,
+            season INTEGER NOT NULL,
+            window_days INTEGER NOT NULL,
+            as_of_date DATE NOT NULL,
+            games INTEGER DEFAULT 0,
+            games_started INTEGER DEFAULT 0,
+            ip REAL DEFAULT 0,
+            k INTEGER DEFAULT 0,
+            bb INTEGER DEFAULT 0,
+            h_allowed INTEGER DEFAULT 0,
+            er INTEGER DEFAULT 0,
+            hr_allowed INTEGER DEFAULT 0,
+            saves INTEGER DEFAULT 0,
+            holds INTEGER DEFAULT 0,
+            quality_starts INTEGER DEFAULT 0,
+            era REAL DEFAULT 0,
+            whip REAL DEFAULT 0,
+            k_per_9 REAL DEFAULT 0,
+            bb_per_9 REAL DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT NOW(),
+            PRIMARY KEY (mlb_id, season, window_days),
+            FOREIGN KEY (mlb_id) REFERENCES players(mlb_id)
+        );
+    """)
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS statcast_baselines (
+            mlb_id INTEGER NOT NULL,
+            season INTEGER NOT NULL,
+            player_type TEXT CHECK(player_type IN ('hitter', 'pitcher')),
+            delta_xwoba REAL,
+            delta_barrel_pct REAL,
+            delta_hard_hit_pct REAL,
+            delta_sprint_speed REAL,
+            delta_xera REAL,
+            delta_whiff_pct REAL,
+            delta_k_pct REAL,
+            delta_bb_pct REAL,
+            delta_chase_rate REAL,
+            skill_change_zscore REAL,
+            sustainability_score REAL,
+            baseline_source TEXT,
+            qualifies_pa_ip INTEGER DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT NOW(),
+            PRIMARY KEY (mlb_id, season),
+            FOREIGN KEY (mlb_id) REFERENCES players(mlb_id)
+        );
+    """)
+
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_batting_stats_season ON analytics.batting_stats(season);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_pitching_stats_season ON analytics.pitching_stats(season);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_projections_season ON analytics.projections(season);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_rankings_season ON analytics.rankings(season);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_players_position ON analytics.players(primary_position);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_players_type ON analytics.players(player_type);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_rolling_batting_window ON analytics.rolling_batting_stats(season, window_days);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_rolling_pitching_window ON analytics.rolling_pitching_stats(season, window_days);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_baselines_zscore ON analytics.statcast_baselines(season, skill_change_zscore DESC);")
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS league_season_totals (
@@ -540,12 +623,89 @@ def _init_sqlite():
             FOREIGN KEY (mlb_id) REFERENCES players(mlb_id)
         );
 
+        CREATE TABLE IF NOT EXISTS rolling_batting_stats (
+            mlb_id INTEGER NOT NULL,
+            season INTEGER NOT NULL,
+            window_days INTEGER NOT NULL,
+            as_of_date TEXT NOT NULL,
+            games INTEGER DEFAULT 0,
+            pa INTEGER DEFAULT 0,
+            ab INTEGER DEFAULT 0,
+            r INTEGER DEFAULT 0,
+            h INTEGER DEFAULT 0,
+            hr INTEGER DEFAULT 0,
+            rbi INTEGER DEFAULT 0,
+            sb INTEGER DEFAULT 0,
+            bb INTEGER DEFAULT 0,
+            k INTEGER DEFAULT 0,
+            hbp INTEGER DEFAULT 0,
+            sf INTEGER DEFAULT 0,
+            tb INTEGER DEFAULT 0,
+            batting_avg REAL DEFAULT 0,
+            obp REAL DEFAULT 0,
+            slg REAL DEFAULT 0,
+            ops REAL DEFAULT 0,
+            updated_at TEXT DEFAULT (datetime('now')),
+            PRIMARY KEY (mlb_id, season, window_days),
+            FOREIGN KEY (mlb_id) REFERENCES players(mlb_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS rolling_pitching_stats (
+            mlb_id INTEGER NOT NULL,
+            season INTEGER NOT NULL,
+            window_days INTEGER NOT NULL,
+            as_of_date TEXT NOT NULL,
+            games INTEGER DEFAULT 0,
+            games_started INTEGER DEFAULT 0,
+            ip REAL DEFAULT 0,
+            k INTEGER DEFAULT 0,
+            bb INTEGER DEFAULT 0,
+            h_allowed INTEGER DEFAULT 0,
+            er INTEGER DEFAULT 0,
+            hr_allowed INTEGER DEFAULT 0,
+            saves INTEGER DEFAULT 0,
+            holds INTEGER DEFAULT 0,
+            quality_starts INTEGER DEFAULT 0,
+            era REAL DEFAULT 0,
+            whip REAL DEFAULT 0,
+            k_per_9 REAL DEFAULT 0,
+            bb_per_9 REAL DEFAULT 0,
+            updated_at TEXT DEFAULT (datetime('now')),
+            PRIMARY KEY (mlb_id, season, window_days),
+            FOREIGN KEY (mlb_id) REFERENCES players(mlb_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS statcast_baselines (
+            mlb_id INTEGER NOT NULL,
+            season INTEGER NOT NULL,
+            player_type TEXT CHECK(player_type IN ('hitter', 'pitcher')),
+            delta_xwoba REAL,
+            delta_barrel_pct REAL,
+            delta_hard_hit_pct REAL,
+            delta_sprint_speed REAL,
+            delta_xera REAL,
+            delta_whiff_pct REAL,
+            delta_k_pct REAL,
+            delta_bb_pct REAL,
+            delta_chase_rate REAL,
+            skill_change_zscore REAL,
+            sustainability_score REAL,
+            baseline_source TEXT,
+            qualifies_pa_ip INTEGER DEFAULT 0,
+            updated_at TEXT DEFAULT (datetime('now')),
+            PRIMARY KEY (mlb_id, season),
+            FOREIGN KEY (mlb_id) REFERENCES players(mlb_id)
+        );
+
         CREATE INDEX IF NOT EXISTS idx_batting_stats_season ON batting_stats(season);
         CREATE INDEX IF NOT EXISTS idx_pitching_stats_season ON pitching_stats(season);
         CREATE INDEX IF NOT EXISTS idx_projections_season ON projections(season);
         CREATE INDEX IF NOT EXISTS idx_rankings_season ON rankings(season);
         CREATE INDEX IF NOT EXISTS idx_players_position ON players(primary_position);
         CREATE INDEX IF NOT EXISTS idx_players_type ON players(player_type);
+        CREATE INDEX IF NOT EXISTS idx_rolling_batting_window ON rolling_batting_stats(season, window_days);
+        CREATE INDEX IF NOT EXISTS idx_rolling_pitching_window ON rolling_pitching_stats(season, window_days);
+        CREATE INDEX IF NOT EXISTS idx_baselines_zscore ON statcast_baselines(season, skill_change_zscore);
 
         CREATE TABLE IF NOT EXISTS league_season_totals (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
