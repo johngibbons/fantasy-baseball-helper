@@ -222,68 +222,69 @@ def sync_rolling_stats(
     """
     today = today or date.today()
     conn = get_connection()
+    try:
+        for window_days in windows:
+            start_dt = today - timedelta(days=window_days)
+            end_dt = today
 
-    for window_days in windows:
-        start_dt = today - timedelta(days=window_days)
-        end_dt = today
+            bat = _fetch_batting_window(start_dt, end_dt)
+            logger.info(f"Window {window_days}d batting: {len(bat)} players")
+            for mlb_id, row in bat.items():
+                conn.execute(
+                    """INSERT INTO rolling_batting_stats
+                       (mlb_id, season, window_days, as_of_date,
+                        games, pa, ab, r, h, hr, rbi, sb, bb, k, hbp, sf,
+                        total_bases, batting_avg, obp, slg, ops)
+                       VALUES (?, ?, ?, ?,
+                               ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                               ?, ?, ?, ?, ?)
+                       ON CONFLICT (mlb_id, season, window_days) DO UPDATE SET
+                         as_of_date = EXCLUDED.as_of_date,
+                         games = EXCLUDED.games, pa = EXCLUDED.pa, ab = EXCLUDED.ab,
+                         r = EXCLUDED.r, h = EXCLUDED.h, hr = EXCLUDED.hr,
+                         rbi = EXCLUDED.rbi, sb = EXCLUDED.sb, bb = EXCLUDED.bb,
+                         k = EXCLUDED.k, hbp = EXCLUDED.hbp, sf = EXCLUDED.sf,
+                         total_bases = EXCLUDED.total_bases,
+                         batting_avg = EXCLUDED.batting_avg, obp = EXCLUDED.obp,
+                         slg = EXCLUDED.slg, ops = EXCLUDED.ops""",
+                    (
+                        mlb_id, season, window_days, today.isoformat(),
+                        row["games"], row["pa"], row["ab"], row["r"], row["h"],
+                        row["hr"], row["rbi"], row["sb"], row["bb"], row["k"],
+                        row["hbp"], row["sf"], row["total_bases"],
+                        row["batting_avg"], row["obp"], row["slg"], row["ops"],
+                    ),
+                )
 
-        bat = _fetch_batting_window(start_dt, end_dt)
-        logger.info(f"Window {window_days}d batting: {len(bat)} players")
-        for mlb_id, row in bat.items():
-            conn.execute(
-                """INSERT INTO rolling_batting_stats
-                   (mlb_id, season, window_days, as_of_date,
-                    games, pa, ab, r, h, hr, rbi, sb, bb, k, hbp, sf,
-                    total_bases, batting_avg, obp, slg, ops)
-                   VALUES (?, ?, ?, ?,
-                           ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                           ?, ?, ?, ?, ?)
-                   ON CONFLICT (mlb_id, season, window_days) DO UPDATE SET
-                     as_of_date = EXCLUDED.as_of_date,
-                     games = EXCLUDED.games, pa = EXCLUDED.pa, ab = EXCLUDED.ab,
-                     r = EXCLUDED.r, h = EXCLUDED.h, hr = EXCLUDED.hr,
-                     rbi = EXCLUDED.rbi, sb = EXCLUDED.sb, bb = EXCLUDED.bb,
-                     k = EXCLUDED.k, hbp = EXCLUDED.hbp, sf = EXCLUDED.sf,
-                     total_bases = EXCLUDED.total_bases,
-                     batting_avg = EXCLUDED.batting_avg, obp = EXCLUDED.obp,
-                     slg = EXCLUDED.slg, ops = EXCLUDED.ops""",
-                (
-                    mlb_id, season, window_days, today.isoformat(),
-                    row["games"], row["pa"], row["ab"], row["r"], row["h"],
-                    row["hr"], row["rbi"], row["sb"], row["bb"], row["k"],
-                    row["hbp"], row["sf"], row["total_bases"],
-                    row["batting_avg"], row["obp"], row["slg"], row["ops"],
-                ),
-            )
+            pit = _fetch_pitching_window(start_dt, end_dt)
+            logger.info(f"Window {window_days}d pitching: {len(pit)} players")
+            for mlb_id, row in pit.items():
+                conn.execute(
+                    """INSERT INTO rolling_pitching_stats
+                       (mlb_id, season, window_days, as_of_date,
+                        games, games_started, ip, k, bb, h_allowed, er, hr_allowed,
+                        saves, holds, quality_starts, era, whip, k_per_9, bb_per_9)
+                       VALUES (?, ?, ?, ?,
+                               ?, ?, ?, ?, ?, ?, ?, ?,
+                               ?, ?, ?, ?, ?, ?, ?)
+                       ON CONFLICT (mlb_id, season, window_days) DO UPDATE SET
+                         as_of_date = EXCLUDED.as_of_date,
+                         games = EXCLUDED.games, games_started = EXCLUDED.games_started,
+                         ip = EXCLUDED.ip, k = EXCLUDED.k, bb = EXCLUDED.bb,
+                         h_allowed = EXCLUDED.h_allowed, er = EXCLUDED.er,
+                         hr_allowed = EXCLUDED.hr_allowed, saves = EXCLUDED.saves,
+                         holds = EXCLUDED.holds, quality_starts = EXCLUDED.quality_starts,
+                         era = EXCLUDED.era, whip = EXCLUDED.whip,
+                         k_per_9 = EXCLUDED.k_per_9, bb_per_9 = EXCLUDED.bb_per_9""",
+                    (
+                        mlb_id, season, window_days, today.isoformat(),
+                        row["games"], row["games_started"], row["ip"], row["k"],
+                        row["bb"], row["h_allowed"], row["er"], row["hr_allowed"],
+                        row["saves"], row["holds"], row["quality_starts"],
+                        row["era"], row["whip"], row["k_per_9"], row["bb_per_9"],
+                    ),
+                )
 
-        pit = _fetch_pitching_window(start_dt, end_dt)
-        logger.info(f"Window {window_days}d pitching: {len(pit)} players")
-        for mlb_id, row in pit.items():
-            conn.execute(
-                """INSERT INTO rolling_pitching_stats
-                   (mlb_id, season, window_days, as_of_date,
-                    games, games_started, ip, k, bb, h_allowed, er, hr_allowed,
-                    saves, holds, quality_starts, era, whip, k_per_9, bb_per_9)
-                   VALUES (?, ?, ?, ?,
-                           ?, ?, ?, ?, ?, ?, ?, ?,
-                           ?, ?, ?, ?, ?, ?, ?)
-                   ON CONFLICT (mlb_id, season, window_days) DO UPDATE SET
-                     as_of_date = EXCLUDED.as_of_date,
-                     games = EXCLUDED.games, games_started = EXCLUDED.games_started,
-                     ip = EXCLUDED.ip, k = EXCLUDED.k, bb = EXCLUDED.bb,
-                     h_allowed = EXCLUDED.h_allowed, er = EXCLUDED.er,
-                     hr_allowed = EXCLUDED.hr_allowed, saves = EXCLUDED.saves,
-                     holds = EXCLUDED.holds, quality_starts = EXCLUDED.quality_starts,
-                     era = EXCLUDED.era, whip = EXCLUDED.whip,
-                     k_per_9 = EXCLUDED.k_per_9, bb_per_9 = EXCLUDED.bb_per_9""",
-                (
-                    mlb_id, season, window_days, today.isoformat(),
-                    row["games"], row["games_started"], row["ip"], row["k"],
-                    row["bb"], row["h_allowed"], row["er"], row["hr_allowed"],
-                    row["saves"], row["holds"], row["quality_starts"],
-                    row["era"], row["whip"], row["k_per_9"], row["bb_per_9"],
-                ),
-            )
-
-    conn.commit()
-    conn.close()
+        conn.commit()
+    finally:
+        conn.close()
