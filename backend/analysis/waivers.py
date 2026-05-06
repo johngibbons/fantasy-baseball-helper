@@ -678,8 +678,8 @@ def assign_faab_bids(
     (or any attribute on ``WaiverRecommendation``) to use a different metric.
 
     Recommendations with metric value <= 0.01 are assigned a bid of 0.
-    The top recommendation receives up to 40% of the remaining budget;
-    others scale proportionally.
+    The top recommendation receives up to 40% of remaining budget; lower
+    ranks scale by sqrt(fraction) so mid-tier still gets meaningful bids.
     """
     if not recommendations:
         return
@@ -691,17 +691,20 @@ def assign_faab_bids(
     if not positive:
         return
 
-    top_value = max(_val(r) for r in positive)
-    if top_value <= 0:
+    max_value = max(_val(r) for r in positive)
+    if max_value <= 0:
         return
 
-    cap = max(1.0, remaining_faab * 0.4)
+    max_bid = remaining_faab * 0.4
+
     for r in recommendations:
         v = _val(r)
         if v <= 0.01:
             r.suggested_faab_bid = 0
             continue
-        r.suggested_faab_bid = max(1, round(cap * (v / top_value)))
+        fraction = v / max_value
+        bid = max_bid * (fraction ** 0.5)
+        r.suggested_faab_bid = max(0, round(bid))
 
 
 # Keep the underscored alias so existing internal call sites don't break
