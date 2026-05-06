@@ -11,8 +11,12 @@ This module is two layers:
 from __future__ import annotations
 
 import logging
+from datetime import date, timedelta
+from typing import Iterable
 
 import pandas as pd
+
+from backend.database import get_connection
 
 logger = logging.getLogger(__name__)
 
@@ -133,3 +137,153 @@ def aggregate_pitching_window(df: pd.DataFrame) -> dict[int, dict]:
             "bb_per_9": bb_per_9,
         }
     return out
+
+
+def _fetch_batting_window(start_dt: date, end_dt: date) -> dict[int, dict]:
+    """Fetch per-player batting aggregates for the date range from pybaseball.
+
+    Uses ``batting_stats_range`` which scrapes Baseball Reference and returns
+    one row per player aggregated over the date window.
+    """
+    try:
+        from pybaseball import batting_stats_range
+    except ImportError:
+        logger.error("pybaseball not installed; cannot fetch rolling batting stats")
+        return {}
+
+    try:
+        df = batting_stats_range(start_dt.isoformat(), end_dt.isoformat())
+    except Exception as e:
+        logger.error(f"batting_stats_range failed for {start_dt}..{end_dt}: {e}")
+        return {}
+
+    if df is None or df.empty:
+        return {}
+
+    # batting_stats_range returns "mlbID" — rename so aggregate_batting_window finds it
+    if "mlbID" in df.columns:
+        df = df.rename(columns={"mlbID": "mlb_id"})
+    elif "mlb_id" not in df.columns:
+        logger.error("batting_stats_range returned no mlb_id column; got: %s",
+                     list(df.columns))
+        return {}
+
+    # Coerce required columns to numeric, filling missing with 0
+    required = ["G", "PA", "AB", "H", "2B", "3B", "HR", "R", "RBI", "SB",
+                "BB", "SO", "HBP", "SF"]
+    for col in required:
+        if col not in df.columns:
+            df[col] = 0
+
+    return aggregate_batting_window(df)
+
+
+def _fetch_pitching_window(start_dt: date, end_dt: date) -> dict[int, dict]:
+    """Fetch per-player pitching aggregates for the date range."""
+    try:
+        from pybaseball import pitching_stats_range
+    except ImportError:
+        logger.error("pybaseball not installed; cannot fetch rolling pitching stats")
+        return {}
+
+    try:
+        df = pitching_stats_range(start_dt.isoformat(), end_dt.isoformat())
+    except Exception as e:
+        logger.error(f"pitching_stats_range failed for {start_dt}..{end_dt}: {e}")
+        return {}
+
+    if df is None or df.empty:
+        return {}
+
+    if "mlbID" in df.columns:
+        df = df.rename(columns={"mlbID": "mlb_id"})
+    elif "mlb_id" not in df.columns:
+        logger.error("pitching_stats_range returned no mlb_id column; got: %s",
+                     list(df.columns))
+        return {}
+
+    required = ["G", "GS", "IP", "SO", "BB", "H", "ER", "HR", "SV", "HLD", "QS"]
+    for col in required:
+        if col not in df.columns:
+            df[col] = 0
+
+    return aggregate_pitching_window(df)
+
+
+def sync_rolling_stats(
+    season: int,
+    windows: Iterable[int] = DEFAULT_WINDOWS,
+    today: date | None = None,
+) -> None:
+    """Fetch + upsert rolling stats for each window.
+
+    Idempotent — re-running same day overwrites existing rows for that
+    (mlb_id, season, window_days). Sets as_of_date to ``today``.
+    """
+    today = today or date.today()
+    conn = get_connection()
+
+    for window_days in windows:
+        start_dt = today - timedelta(days=window_days)
+        end_dt = today
+
+        bat = _fetch_batting_window(start_dt, end_dt)
+        logger.info(f"Window {window_days}d batting: {len(bat)} players")
+        for mlb_id, row in bat.items():
+            conn.execute(
+                """INSERT INTO rolling_batting_stats
+                   (mlb_id, season, window_days, as_of_date,
+                    games, pa, ab, r, h, hr, rbi, sb, bb, k, hbp, sf,
+                    total_bases, batting_avg, obp, slg, ops)
+                   VALUES (?, ?, ?, ?,
+                           ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                           ?, ?, ?, ?, ?)
+                   ON CONFLICT (mlb_id, season, window_days) DO UPDATE SET
+                     as_of_date = EXCLUDED.as_of_date,
+                     games = EXCLUDED.games, pa = EXCLUDED.pa, ab = EXCLUDED.ab,
+                     r = EXCLUDED.r, h = EXCLUDED.h, hr = EXCLUDED.hr,
+                     rbi = EXCLUDED.rbi, sb = EXCLUDED.sb, bb = EXCLUDED.bb,
+                     k = EXCLUDED.k, hbp = EXCLUDED.hbp, sf = EXCLUDED.sf,
+                     total_bases = EXCLUDED.total_bases,
+                     batting_avg = EXCLUDED.batting_avg, obp = EXCLUDED.obp,
+                     slg = EXCLUDED.slg, ops = EXCLUDED.ops""",
+                (
+                    mlb_id, season, window_days, today.isoformat(),
+                    row["games"], row["pa"], row["ab"], row["r"], row["h"],
+                    row["hr"], row["rbi"], row["sb"], row["bb"], row["k"],
+                    row["hbp"], row["sf"], row["total_bases"],
+                    row["batting_avg"], row["obp"], row["slg"], row["ops"],
+                ),
+            )
+
+        pit = _fetch_pitching_window(start_dt, end_dt)
+        logger.info(f"Window {window_days}d pitching: {len(pit)} players")
+        for mlb_id, row in pit.items():
+            conn.execute(
+                """INSERT INTO rolling_pitching_stats
+                   (mlb_id, season, window_days, as_of_date,
+                    games, games_started, ip, k, bb, h_allowed, er, hr_allowed,
+                    saves, holds, quality_starts, era, whip, k_per_9, bb_per_9)
+                   VALUES (?, ?, ?, ?,
+                           ?, ?, ?, ?, ?, ?, ?, ?,
+                           ?, ?, ?, ?, ?, ?, ?)
+                   ON CONFLICT (mlb_id, season, window_days) DO UPDATE SET
+                     as_of_date = EXCLUDED.as_of_date,
+                     games = EXCLUDED.games, games_started = EXCLUDED.games_started,
+                     ip = EXCLUDED.ip, k = EXCLUDED.k, bb = EXCLUDED.bb,
+                     h_allowed = EXCLUDED.h_allowed, er = EXCLUDED.er,
+                     hr_allowed = EXCLUDED.hr_allowed, saves = EXCLUDED.saves,
+                     holds = EXCLUDED.holds, quality_starts = EXCLUDED.quality_starts,
+                     era = EXCLUDED.era, whip = EXCLUDED.whip,
+                     k_per_9 = EXCLUDED.k_per_9, bb_per_9 = EXCLUDED.bb_per_9""",
+                (
+                    mlb_id, season, window_days, today.isoformat(),
+                    row["games"], row["games_started"], row["ip"], row["k"],
+                    row["bb"], row["h_allowed"], row["er"], row["hr_allowed"],
+                    row["saves"], row["holds"], row["quality_starts"],
+                    row["era"], row["whip"], row["k_per_9"], row["bb_per_9"],
+                ),
+            )
+
+    conn.commit()
+    conn.close()

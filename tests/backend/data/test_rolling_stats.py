@@ -87,3 +87,61 @@ def test_aggregate_pitching_window_sums_and_rates():
     assert row["k_per_9"] == pytest.approx(10.5)
     # BB/9 = 4 * 9 / 18 = 2.0
     assert row["bb_per_9"] == pytest.approx(2.0)
+
+
+from unittest.mock import patch, MagicMock
+from datetime import date
+
+
+@patch("backend.data.rolling_stats._fetch_batting_window")
+@patch("backend.data.rolling_stats._fetch_pitching_window")
+@patch("backend.data.rolling_stats.get_connection")
+def test_sync_rolling_stats_upserts_each_window(
+    mock_get_conn, mock_fetch_pit, mock_fetch_bat
+):
+    # Two windows requested; each fetch returns a single-player aggregate
+    mock_fetch_bat.side_effect = [
+        {100: {"games": 5, "pa": 20, "ab": 18, "h": 7, "hr": 2, "r": 4,
+               "rbi": 5, "sb": 1, "bb": 2, "k": 4, "hbp": 0, "sf": 0,
+               "total_bases": 12, "batting_avg": 0.389, "obp": 0.450,
+               "slg": 0.667, "ops": 1.117}},
+        {100: {"games": 10, "pa": 40, "ab": 36, "h": 13, "hr": 4, "r": 8,
+               "rbi": 10, "sb": 2, "bb": 4, "k": 8, "hbp": 0, "sf": 0,
+               "total_bases": 24, "batting_avg": 0.361, "obp": 0.425,
+               "slg": 0.667, "ops": 1.092}},
+    ]
+    mock_fetch_pit.side_effect = [{}, {}]
+
+    conn = MagicMock()
+    mock_get_conn.return_value = conn
+
+    from backend.data.rolling_stats import sync_rolling_stats
+    sync_rolling_stats(season=2026, windows=(7, 14), today=date(2026, 5, 5))
+
+    # Two batting fetches, two pitching fetches (one per window)
+    assert mock_fetch_bat.call_count == 2
+    assert mock_fetch_pit.call_count == 2
+
+    # Each upsert call uses the rolling_batting_stats table
+    insert_calls = [c for c in conn.execute.call_args_list
+                    if "rolling_batting_stats" in str(c.args[0])]
+    assert len(insert_calls) == 2  # one per window per player
+
+    conn.commit.assert_called()
+
+
+@patch("backend.data.rolling_stats._fetch_batting_window")
+@patch("backend.data.rolling_stats._fetch_pitching_window")
+@patch("backend.data.rolling_stats.get_connection")
+def test_sync_rolling_stats_handles_empty_window(
+    mock_get_conn, mock_fetch_pit, mock_fetch_bat
+):
+    mock_fetch_bat.return_value = {}
+    mock_fetch_pit.return_value = {}
+    conn = MagicMock()
+    mock_get_conn.return_value = conn
+
+    from backend.data.rolling_stats import sync_rolling_stats
+    # Should complete without error even when no data is returned
+    sync_rolling_stats(season=2026, windows=(7,), today=date(2026, 5, 5))
+    conn.commit.assert_called()
