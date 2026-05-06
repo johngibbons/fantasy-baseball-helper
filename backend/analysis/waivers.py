@@ -149,6 +149,7 @@ class WaiverRecommendation:
     suggested_faab_bid: int
     category_impact: dict[str, float]
     category_stat_delta: dict[str, float]
+    wins_added_if_rate_continues: Optional[float] = None
 
 
 # ── Player ID resolution ─────────────────────────────────────────────────────
@@ -666,28 +667,42 @@ def compute_waiver_recommendations(
 # ── FAAB bid recommender ─────────────────────────────────────────────────────
 
 
-def _assign_faab_bids(
+def assign_faab_bids(
     recommendations: list[WaiverRecommendation],
     remaining_faab: float,
+    metric_attr: str = "delta_expected_wins",
 ) -> None:
-    """Assign FAAB bid suggestions proportional to expected wins improvement."""
+    """Assign FAAB bid suggestions proportional to a delta-wins metric.
+
+    By default uses ``delta_expected_wins``. Pass ``metric_attr="wins_added_if_rate_continues"``
+    (or any attribute on ``WaiverRecommendation``) to use a different metric.
+
+    Recommendations with metric value <= 0.01 are assigned a bid of 0.
+    The top recommendation receives up to 40% of the remaining budget;
+    others scale proportionally.
+    """
     if not recommendations:
         return
 
-    positive = [r for r in recommendations if r.delta_expected_wins > 0.01]
+    def _val(r: WaiverRecommendation) -> float:
+        return getattr(r, metric_attr, 0.0) or 0.0
+
+    positive = [r for r in recommendations if _val(r) > 0.01]
     if not positive:
         return
 
-    max_delta = positive[0].delta_expected_wins
-    if max_delta <= 0:
+    top_value = max(_val(r) for r in positive)
+    if top_value <= 0:
         return
 
-    max_bid = remaining_faab * 0.4  # Cap any single bid at 40% of remaining budget
+    cap = max(1.0, remaining_faab * 0.4)
+    for r in recommendations:
+        v = _val(r)
+        if v <= 0.01:
+            r.suggested_faab_bid = 0
+            continue
+        r.suggested_faab_bid = max(1, round(cap * (v / top_value)))
 
-    for r in positive:
-        fraction = r.delta_expected_wins / max_delta
-        # Square root scaling: top players get more, but diminishing
-        bid = max_bid * (fraction ** 0.5)
-        r.suggested_faab_bid = max(0, round(bid))
 
-    # Everyone else stays at $0
+# Keep the underscored alias so existing internal call sites don't break
+_assign_faab_bids = assign_faab_bids

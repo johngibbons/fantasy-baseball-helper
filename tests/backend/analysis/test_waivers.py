@@ -351,3 +351,45 @@ class TestComputeWaiverRecommendationsSameType:
             and r["drop_player"]["position"] in ("SP", "RP", "P")
         ]
         assert len(crosses) >= 1
+
+
+class TestAssignFaabBids:
+    def test_helper_uses_specified_metric_attribute(self):
+        from backend.analysis.waivers import (
+            assign_faab_bids,
+            WaiverRecommendation,
+        )
+
+        recs = [
+            WaiverRecommendation(
+                add_player_id=1, add_player_name="A", add_player_position="OF",
+                drop_player_id=10, drop_player_name="X", drop_player_position="OF",
+                delta_expected_wins=0.50,
+                suggested_faab_bid=0,
+                category_impact={}, category_stat_delta={},
+            ),
+            WaiverRecommendation(
+                add_player_id=2, add_player_name="B", add_player_position="OF",
+                drop_player_id=11, drop_player_name="Y", drop_player_position="OF",
+                delta_expected_wins=0.25,
+                suggested_faab_bid=0,
+                category_impact={}, category_stat_delta={},
+            ),
+        ]
+        # By default the helper reads delta_expected_wins
+        assign_faab_bids(recs, remaining_faab=100.0)
+        assert recs[0].suggested_faab_bid > recs[1].suggested_faab_bid
+
+        # Explicit attribute override
+        recs2 = [WaiverRecommendation(
+            add_player_id=3, add_player_name="C", add_player_position="OF",
+            drop_player_id=12, drop_player_name="Z", drop_player_position="OF",
+            delta_expected_wins=0.0,  # would be filtered out by default
+            suggested_faab_bid=0,
+            category_impact={}, category_stat_delta={},
+            wins_added_if_rate_continues=0.40,
+        )]
+        # Use a non-default attribute as the bid metric
+        assign_faab_bids(recs2, remaining_faab=100.0,
+                         metric_attr="wins_added_if_rate_continues")
+        assert recs2[0].suggested_faab_bid > 0
