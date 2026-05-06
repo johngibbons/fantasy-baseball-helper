@@ -43,7 +43,7 @@ type TabKey = 'projections' | 'hot' | 'stealth'
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'projections', label: 'Projections-Based' },
   { key: 'hot', label: 'Hot + Sustainable' },
-  { key: 'stealth', label: 'Stealth Bombs' },
+  { key: 'stealth', label: 'Stealth Breakouts' },
 ]
 
 function WaiversShell() {
