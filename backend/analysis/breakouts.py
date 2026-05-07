@@ -33,6 +33,10 @@ PITCHER_WHIFF_THRESHOLD_RATIO = 0.95
 PITCHER_CSW_THRESHOLD_RATIO = 0.95
 PITCHER_BB_THRESHOLD_RATIO = 1.20
 
+# Hot-pace dampening
+PRORATION_CAP = 3.0          # Max factor when extrapolating window pace forward.
+HOT_BLEND_ALPHA = 0.3        # Weight on hot pace vs ATC RoS (0=ATC only, 1=pure hot).
+
 
 @dataclass
 class HotPlayer:
@@ -78,12 +82,13 @@ def prorate_window_to_ros(
 ) -> dict:
     """Pro-rate a window's stats to the rest-of-season pace.
 
-    Counting stats scale by ``games_remaining / games_in_window``. Rate stats
-    (OBP, ERA, WHIP, batting_avg, etc.) carry through unchanged.
+    Counting stats scale by ``min(games_remaining / games_in_window, PRORATION_CAP)``
+    so a tiny window can't drive a 10× extrapolation. Rate stats (OBP, ERA,
+    WHIP, batting_avg, etc.) carry through unchanged.
     """
     if games_in_window <= 0 or games_remaining <= 0:
         return {}
-    factor = games_remaining / games_in_window
+    factor = min(games_remaining / games_in_window, PRORATION_CAP)
 
     if player_type == "hitter":
         return {
@@ -254,6 +259,70 @@ def _build_population_dist(statcast_by_id: dict[int, dict],
     return pop
 
 
+def _blend_with_atc(
+    prorated: dict,
+    base_proj: PlayerProjection,
+    alpha: float = HOT_BLEND_ALPHA,
+) -> dict:
+    """Blend prorated hot-pace stats with the ATC RoS projection.
+
+    Counting stats are blended directly: ``alpha * hot + (1-alpha) * atc``.
+    Rate stats (OBP, ERA, WHIP) are PA/IP-weighted so a tiny hot window can't
+    swing the rate (e.g., 5 PA at 1.000 OBP shouldn't override 472 PA at .317).
+    """
+    if not prorated:
+        return prorated
+
+    # If ATC has no meaningful volume, skip blend — there's nothing to blend
+    # against, and a zero ATC would otherwise crater the rate stats.
+    has_atc_volume = (
+        base_proj.pa > 0 if base_proj.player_type == "hitter" else base_proj.ip > 0
+    )
+    if not has_atc_volume:
+        return prorated
+
+    def _blend_count(hot_v: float, atc_v: float) -> float:
+        return alpha * hot_v + (1 - alpha) * atc_v
+
+    def _blend_rate(hot_v: float, hot_vol: float, atc_v: float, atc_vol: float) -> float:
+        w_hot = alpha * hot_vol
+        w_atc = (1 - alpha) * atc_vol
+        denom = w_hot + w_atc
+        if denom <= 0:
+            return atc_v
+        return (w_hot * hot_v + w_atc * atc_v) / denom
+
+    if base_proj.player_type == "hitter":
+        hot_pa = prorated.get("pa", 0)
+        return {
+            "pa": _blend_count(hot_pa, base_proj.pa),
+            "r": _blend_count(prorated.get("r", 0), base_proj.r),
+            "tb": _blend_count(prorated.get("tb", 0), base_proj.tb),
+            "rbi": _blend_count(prorated.get("rbi", 0), base_proj.rbi),
+            "sb": _blend_count(prorated.get("sb", 0), base_proj.sb),
+            "obp": _blend_rate(
+                prorated.get("obp", 0.0), hot_pa,
+                base_proj.obp, base_proj.pa,
+            ),
+        }
+
+    hot_ip = prorated.get("ip", 0.0)
+    return {
+        "ip": _blend_count(hot_ip, base_proj.ip),
+        "k": _blend_count(prorated.get("k", 0), base_proj.k),
+        "qs": _blend_count(prorated.get("qs", 0), base_proj.qs),
+        "svhd": _blend_count(prorated.get("svhd", 0), base_proj.svhd),
+        "era": _blend_rate(
+            prorated.get("era", 0.0), hot_ip,
+            base_proj.era, base_proj.ip,
+        ),
+        "whip": _blend_rate(
+            prorated.get("whip", 0.0), hot_ip,
+            base_proj.whip, base_proj.ip,
+        ),
+    }
+
+
 def _build_proj_from_prorated(
     mlb_id: int,
     name: str,
@@ -283,6 +352,28 @@ def _build_proj_from_prorated(
     )
 
 
+def _build_hot_blended_proj(
+    mlb_id: int,
+    base_proj: PlayerProjection,
+    rolling: dict,
+    games_in_window: int,
+    games_remaining: int,
+) -> Optional[PlayerProjection]:
+    """Compose prorate + blend + build into a single hot-blended projection.
+
+    Returns None if proration produced no usable values.
+    """
+    prorated = prorate_window_to_ros(
+        rolling, base_proj.player_type, games_in_window, games_remaining,
+    )
+    if not prorated:
+        return None
+    blended = _blend_with_atc(prorated, base_proj)
+    return _build_proj_from_prorated(
+        mlb_id, base_proj.name, base_proj, blended, base_proj.player_type,
+    )
+
+
 def compute_hot_view(
     my_roster_ids: list[int],
     my_roster_slots: list[dict],
@@ -297,12 +388,32 @@ def compute_hot_view(
 ) -> dict:
     """Hot + Sustainable view: rank candidates by wins added if their recent
     pace continues, filtered by sustainability checks.
+
+    Symmetric proration: any player (rostered or FA) with rolling-window stats
+    is valued at a blend of their hot pace and ATC RoS. This avoids the bias
+    where a hot FA's prorated counting stats dwarf a rostered player's plain
+    ATC line.
     """
-    # Build my baseline using existing projections (steady-state expectation)
-    my_totals, _ = build_team_totals(my_roster_slots, projections)
+    # Build a hot-blended projection for every player with rolling stats.
+    # Used for BOTH baseline and trial computations so the comparison is fair.
+    hot_projections: dict[int, PlayerProjection] = {}
+    for pid, rolling in rolling_stats_by_id.items():
+        base = projections.get(pid)
+        if base is None:
+            continue
+        blended = _build_hot_blended_proj(
+            pid, base, rolling, games_in_window, games_remaining,
+        )
+        if blended is not None:
+            hot_projections[pid] = blended
+
+    # Effective projections override ATC with hot-blended where available
+    effective_projections = {**projections, **hot_projections}
+
+    my_totals, _ = build_team_totals(my_roster_slots, effective_projections)
     other_team_totals = []
     for slots in all_team_roster_slots:
-        tt, _ = build_team_totals(slots, projections)
+        tt, _ = build_team_totals(slots, effective_projections)
         other_team_totals.append(tt)
 
     my_cat_values = my_totals.category_values()
@@ -334,23 +445,20 @@ def compute_hot_view(
         if not sustainability_filter_passes(statcast, ptype):
             continue
 
-        prorated = prorate_window_to_ros(rolling, ptype, games_in_window, games_remaining)
-        if not prorated:
+        # FA must have a hot-blended projection (skipped above only when
+        # proration produced nothing usable).
+        if fa_id not in hot_projections:
             continue
-
-        hot_proj = _build_proj_from_prorated(fa_id, fa_proj.name, fa_proj, prorated, ptype)
 
         best_drop_id: Optional[int] = None
         best_delta: float = float("-inf")
         for drop_id in droppable_ids:
-            drop_proj = projections.get(drop_id)
+            drop_proj = effective_projections.get(drop_id)
             if drop_proj is None or drop_proj.player_type != ptype:
                 continue
             trial_slots = [s for s in my_roster_slots if s["mlb_id"] != drop_id]
             trial_slots.append({"mlb_id": fa_id, "lineup_slot_id": 0})
-            trial_projections = dict(projections)
-            trial_projections[fa_id] = hot_proj
-            trial_totals, _ = build_team_totals(trial_slots, trial_projections)
+            trial_totals, _ = build_team_totals(trial_slots, effective_projections)
             trial_wins, _ = compute_expected_wins(
                 trial_totals.category_values(), other_cat_values
             )
