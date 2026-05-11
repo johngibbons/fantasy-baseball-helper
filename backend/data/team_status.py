@@ -8,7 +8,6 @@ import concurrent.futures
 import datetime as dt
 import json
 import logging
-import urllib.parse
 import urllib.request
 from typing import Iterable, Optional
 
@@ -30,6 +29,9 @@ CREATE TABLE IF NOT EXISTS analytics.player_status (
   il_eta_date      DATE,
   updated_at       TIMESTAMP DEFAULT NOW()
 );
+"""
+
+_CREATE_INDEX_SQL = """
 CREATE INDEX IF NOT EXISTS idx_player_status_il ON analytics.player_status(is_on_il);
 """
 
@@ -88,6 +90,7 @@ def derive_last_played_date(game_log: list[dict]) -> Optional[dt.date]:
 def ensure_table(conn) -> None:
     """Idempotent table + index creation for analytics.player_status."""
     conn.execute(_CREATE_TABLE_SQL)
+    conn.execute(_CREATE_INDEX_SQL)
     conn.commit()
 
 
@@ -121,7 +124,8 @@ def _fetch_last_played_one(mlb_id: int, season: int, group: str) -> Optional[dt.
     try:
         with urllib.request.urlopen(url, timeout=10) as r:
             d = json.load(r)
-        splits = d.get("stats", [{}])[0].get("splits", [])
+        stats_blocks = d.get("stats") or []
+        splits = (stats_blocks[0].get("splits") if stats_blocks else None) or []
         return derive_last_played_date(splits)
     except Exception as e:
         logger.warning(f"gameLog fetch failed for {mlb_id}: {e}")

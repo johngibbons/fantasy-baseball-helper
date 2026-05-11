@@ -55,7 +55,7 @@ def test_derive_last_played_date_empty_returns_none():
     assert derive_last_played_date([]) is None
 
 
-def test_upsert_player_status_writes_row(tmp_path, monkeypatch):
+def test_upsert_player_status_writes_row():
     # Use a real sqlite for the schema, but mock the postgres-specific bits if any
     from backend.data import team_status
     from unittest.mock import MagicMock
