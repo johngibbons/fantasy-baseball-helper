@@ -683,6 +683,25 @@ def waiver_recommendations(req: WaiverRequest):
         if mid:
             fa_ids.append(mid)
 
+    # Filter out IL players from FA pool (populated by daily team-status sync)
+    il_ids_filtered: list[int] = []
+    if fa_ids:
+        conn = get_connection()
+        try:
+            ph = ",".join(["?"] * len(fa_ids))
+            rows = conn.execute(
+                f"SELECT mlb_id FROM analytics.player_status "
+                f"WHERE is_on_il = TRUE AND mlb_id IN ({ph})",
+                tuple(fa_ids),
+            ).fetchall()
+            il_ids = {r["mlb_id"] for r in rows}
+        finally:
+            conn.close()
+        if il_ids:
+            il_ids_filtered = [mid for mid in fa_ids if mid in il_ids]
+            fa_ids = [mid for mid in fa_ids if mid not in il_ids]
+            logger.info(f"IL filter: removed {len(il_ids_filtered)} IL players from FA pool")
+
     # Log unresolved roster players for debugging
     unresolved_roster = [p.name for p in req.my_roster if not (p.mlb_id or name_to_id.get(p.name))]
     logger.info(
@@ -735,6 +754,7 @@ def waiver_recommendations(req: WaiverRequest):
         "roster_names_sent": [p.name for p in req.my_roster[:5]],
         "my_lineup_slot_ids": my_slot_ids,
         "other_team_slot_samples": other_slot_samples,
+        "il_filtered": il_ids_filtered[:20],
     }
     return result
 
