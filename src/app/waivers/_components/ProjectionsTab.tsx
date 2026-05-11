@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import FormBadge from '@/components/FormBadge'
+import InfoTip from '@/components/InfoTip'
+import { SCORE_COMPONENT_COPY } from '@/lib/waiver-symbol-copy'
 
 interface Props {
   selectedLeague: string
@@ -468,12 +470,20 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                       </span>
                       {rec.score_breakdown && (
                         <div className="text-[10px] text-gray-400 mt-0.5 font-mono">
-                          <span title="Projection contribution (ATC RoS)">📊 {rec.score_breakdown.projection_contribution.toFixed(2)}</span>{' '}
-                          <span title="Recent 30d production (z-score)">🔥 {rec.score_breakdown.production_contribution.toFixed(2)}</span>{' '}
-                          <span title="Underlying skill (xwOBA vs projected)">🎯 {rec.score_breakdown.xwoba_contribution.toFixed(2)}</span>{' '}
-                          <span title="Luck adjustment (overperforming xwOBA)" className={rec.score_breakdown.luck_contribution < -0.001 ? 'text-red-400' : ''}>
-                            🍀 {rec.score_breakdown.luck_contribution.toFixed(2)}
-                          </span>
+                          <InfoTip content={SCORE_COMPONENT_COPY.projection}>
+                            <span>📊 {rec.score_breakdown.projection_contribution.toFixed(2)}</span>
+                          </InfoTip>{' '}
+                          <InfoTip content={SCORE_COMPONENT_COPY.production}>
+                            <span>🔥 {rec.score_breakdown.production_contribution.toFixed(2)}</span>
+                          </InfoTip>{' '}
+                          <InfoTip content={SCORE_COMPONENT_COPY.xwoba}>
+                            <span>🎯 {rec.score_breakdown.xwoba_contribution.toFixed(2)}</span>
+                          </InfoTip>{' '}
+                          <InfoTip content={SCORE_COMPONENT_COPY.luck}>
+                            <span className={rec.score_breakdown.luck_contribution < -0.001 ? 'text-red-400' : ''}>
+                              🍀 {rec.score_breakdown.luck_contribution.toFixed(2)}
+                            </span>
+                          </InfoTip>
                         </div>
                       )}
                     </td>
