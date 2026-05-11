@@ -3,6 +3,8 @@
 import { useEffect } from 'react'
 import { type CategoryGain, type CategoryAnalysis } from '@/lib/draft-optimizer'
 import { type CatDef, HITTING_CATS, PITCHING_CATS, ALL_CATS, posColor } from '@/lib/draft-categories'
+import InfoTip from '@/components/InfoTip'
+import { TIMING_COPY } from '@/lib/waiver-symbol-copy'
 
 // ── Data shape for score detail modal ──
 
@@ -219,10 +221,14 @@ export function ScoreDetailModal({ data, onClose }: {
               ))}
               <span className="text-lg font-bold text-white truncate">{d.fullName}</span>
               {d.badge === 'NOW' && (
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
+                <InfoTip content={TIMING_COPY.NOW}>
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-900/60 text-red-300 border border-red-700/50 leading-none">NOW</span>
+                </InfoTip>
               )}
               {d.badge === 'WAIT' && (
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">WAIT</span>
+                <InfoTip content={TIMING_COPY.WAIT}>
+                  <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-gray-800 text-gray-500 border border-gray-700/50 leading-none">WAIT</span>
+                </InfoTip>
               )}
             </div>
             <div className="flex items-center gap-3 text-xs text-gray-400">
@@ -466,13 +472,17 @@ export function ScoreDetailModal({ data, onClose }: {
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-gray-800/40 rounded-lg p-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider" title="Sum of raw SGP z-scores. Shown in the Value column.">Raw Value (SGP)</span>
+                  <InfoTip content="Sum of raw SGP z-scores. Shown in the Value column.">
+                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Raw Value (SGP)</span>
+                  </InfoTip>
                   <span className={`text-sm font-bold tabular-nums ${d.rawValue >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {d.rawValue > 0 ? '+' : ''}{fmt(d.rawValue)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider" title="Z-scores re-standardized by remaining pool. Used by the Score formula.">Normalized Value</span>
+                  <InfoTip content="Z-scores re-standardized by remaining pool. Used by the Score formula.">
+                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Normalized Value</span>
+                  </InfoTip>
                   <span className={`text-sm font-bold tabular-nums ${d.normalizedValue >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                     {d.normalizedValue > 0 ? '+' : ''}{fmt(d.normalizedValue)}
                   </span>
