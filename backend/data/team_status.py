@@ -1,7 +1,13 @@
-"""Pull current team + IL status from MLB Stats API and write to analytics.player_status.
+"""Pull current team + IL status from MLB Stats API team rosters and write to
+analytics.player_status.
 
 Daily sync calls sync_player_status(season). Pure parsing logic is kept separate
 so it can be unit-tested without network calls.
+
+The team-roster endpoint (/api/v1/teams/{id}/roster?rosterType=fullRoster) is
+authoritative for IL status — it returns a status code per player like 'A' for
+active, 'D10' for 10-day IL, 'D60' for 60-day IL, etc. Iterating 30 teams is
+~30 HTTP calls (vs. ~1500 if we hit /people per player).
 """
 from __future__ import annotations
 import concurrent.futures
@@ -15,7 +21,12 @@ from backend.database import get_connection
 
 logger = logging.getLogger(__name__)
 
-_IL_PREFIXES = ("IL", "60-DAY", "10-DAY", "15-DAY")
+# Status codes that indicate the player is NOT currently available to play.
+# Anything starting with 'D' (D7/D10/D15/D60) or 'IL' (legacy form) is the IL.
+# Other inactive codes (RM=removed, RES=restricted, PL=paternity, BRV=bereavement,
+# SU=suspended, RA=restricted active) are not technically "IL" but we treat them
+# as unavailable for the same downstream purpose: don't recommend them as adds.
+_UNAVAILABLE_PREFIXES = ("D", "IL", "RM", "RES", "PL", "BRV", "SU", "RA")
 
 _BASE = "https://statsapi.mlb.com/api/v1"
 
@@ -49,22 +60,23 @@ ON CONFLICT (mlb_id) DO UPDATE SET
 """
 
 
-def parse_mlb_status_response(response: dict, mlb_id: int) -> Optional[dict]:
-    """Extract status fields from an MLB Stats API /people response.
+def parse_roster_entry(entry: dict, team_abbrev: str) -> Optional[dict]:
+    """Extract status fields from one entry in an MLB Stats API team-roster response.
 
-    Returns None if the player isn't in the response. is_on_il is True when
-    currentRosterStatus starts with any IL prefix.
+    The entry shape: {"person": {"id": ...}, "status": {"code": ..., "description": ...}, ...}.
+    Returns None if mlb_id can't be determined. is_on_il is True for D-prefix codes
+    or legacy IL-prefix codes.
     """
-    people = response.get("people", [])
-    person = next((p for p in people if p.get("id") == mlb_id), None)
-    if not person:
+    person = entry.get("person") or {}
+    mlb_id = person.get("id")
+    if not isinstance(mlb_id, int):
         return None
-    team = (person.get("currentTeam") or {}).get("abbreviation")
-    raw_status = person.get("currentRosterStatus") or "A"
-    is_on_il = any(raw_status.upper().startswith(p) for p in _IL_PREFIXES)
+    status = entry.get("status") or {}
+    raw_status = (status.get("code") or "A").upper()
+    is_on_il = raw_status.startswith(("D", "IL"))
     return {
         "mlb_id": mlb_id,
-        "current_team": team,
+        "current_team": team_abbrev,
         "status_code": raw_status,
         "is_on_il": is_on_il,
         "il_eta_date": None,
@@ -72,7 +84,11 @@ def parse_mlb_status_response(response: dict, mlb_id: int) -> Optional[dict]:
 
 
 def derive_last_played_date(game_log: list[dict]) -> Optional[dt.date]:
-    """Return the most recent game date from an MLB Stats API gameLog response."""
+    """Return the most recent game date from an MLB Stats API gameLog response.
+
+    Currently unused by sync_player_status (team-roster is authoritative for IL),
+    kept as a pure helper for downstream features that need last-played-date.
+    """
     if not game_log:
         return None
     dates = []
@@ -95,64 +111,84 @@ def ensure_table(conn) -> None:
 
 
 def upsert_player_status(conn, record: dict, last_played: Optional[dt.date]) -> None:
-    """Upsert a single player_status row. Postgres ON CONFLICT semantics."""
-    conn.execute(
-        _UPSERT_SQL,
-        (
-            record["mlb_id"],
-            record["current_team"],
-            record["status_code"],
-            record["is_on_il"],
-            last_played,
-            record["il_eta_date"],
-        ),
-    )
+    conn.execute(_UPSERT_SQL, (
+        record["mlb_id"],
+        record["current_team"],
+        record["status_code"],
+        record["is_on_il"],
+        last_played,
+        record["il_eta_date"],
+    ))
 
 
-def _fetch_status_one(mlb_id: int) -> Optional[dict]:
-    url = f"{_BASE}/people/{mlb_id}?hydrate=currentTeam"
+def _fetch_team_id_to_abbrev(season: int) -> dict[int, str]:
+    """Return {team_id: abbreviation} for all 30 MLB teams in the given season."""
+    url = f"{_BASE}/teams?sportId=1&season={season}"
+    with urllib.request.urlopen(url, timeout=10) as r:
+        d = json.load(r)
+    return {
+        t["id"]: t["abbreviation"]
+        for t in d.get("teams", [])
+        if "id" in t and "abbreviation" in t
+    }
+
+
+def _fetch_team_roster(team_id: int, season: int) -> list[dict]:
+    """Fetch a single team's full roster for the given season."""
+    url = f"{_BASE}/teams/{team_id}/roster?rosterType=fullRoster&season={season}"
     try:
-        with urllib.request.urlopen(url, timeout=10) as r:
-            return parse_mlb_status_response(json.load(r), mlb_id)
-    except Exception as e:
-        logger.warning(f"status fetch failed for {mlb_id}: {e}")
-        return None
-
-
-def _fetch_last_played_one(mlb_id: int, season: int, group: str) -> Optional[dt.date]:
-    url = f"{_BASE}/people/{mlb_id}/stats?stats=gameLog&season={season}&group={group}"
-    try:
-        with urllib.request.urlopen(url, timeout=10) as r:
+        with urllib.request.urlopen(url, timeout=15) as r:
             d = json.load(r)
-        stats_blocks = d.get("stats") or []
-        splits = (stats_blocks[0].get("splits") if stats_blocks else None) or []
-        return derive_last_played_date(splits)
+        return d.get("roster") or []
     except Exception as e:
-        logger.warning(f"gameLog fetch failed for {mlb_id}: {e}")
-        return None
+        logger.warning(f"roster fetch failed for team {team_id}: {e}")
+        return []
 
 
-def sync_player_status(season: int, mlb_ids: Iterable[int]) -> int:
-    """Fetch + upsert status for the given MLB ids. Returns number written."""
+def sync_player_status(season: int) -> int:
+    """Fetch all 30 team rosters and upsert {mlb_id, team, IL status} rows.
+
+    Only writes rows for players that already exist in analytics.players
+    (the table has a FK to players). MLB roster entries for players we
+    don't track (rookies / non-fantasy-relevant) are silently dropped.
+
+    Returns the number of rows written.
+    """
     conn = get_connection()
     try:
         ensure_table(conn)
+        team_map = _fetch_team_id_to_abbrev(season)
+        if not team_map:
+            logger.warning("No teams returned from /teams endpoint")
+            return 0
+
+        # FK filter: only upsert players already in analytics.players.
+        rows = conn.execute("SELECT mlb_id FROM analytics.players").fetchall()
+        known_ids: set[int] = {r["mlb_id"] for r in rows}
+
         written = 0
-        # Concurrent fetches for speed (MLB Stats API tolerates ~10 parallel)
+        skipped_unknown = 0
         with concurrent.futures.ThreadPoolExecutor(max_workers=10) as ex:
-            futures = {ex.submit(_fetch_status_one, mid): mid for mid in mlb_ids}
+            futures = {
+                ex.submit(_fetch_team_roster, tid, season): (tid, abbrev)
+                for tid, abbrev in team_map.items()
+            }
             for fut in concurrent.futures.as_completed(futures):
-                rec = fut.result()
-                if not rec:
-                    continue
-                # Derive last_played; try hitting first, fall back to pitching.
-                last_played = _fetch_last_played_one(rec["mlb_id"], season, "hitting")
-                if last_played is None:
-                    last_played = _fetch_last_played_one(rec["mlb_id"], season, "pitching")
-                upsert_player_status(conn, rec, last_played)
-                written += 1
+                tid, abbrev = futures[fut]
+                for entry in fut.result():
+                    rec = parse_roster_entry(entry, abbrev)
+                    if rec is None:
+                        continue
+                    if rec["mlb_id"] not in known_ids:
+                        skipped_unknown += 1
+                        continue
+                    upsert_player_status(conn, rec, last_played=None)
+                    written += 1
         conn.commit()
-        logger.info(f"sync_player_status: wrote {written} rows for season {season}")
+        logger.info(
+            f"sync_player_status: wrote {written} rows for season {season} "
+            f"(skipped {skipped_unknown} not in analytics.players)"
+        )
         return written
     finally:
         conn.close()
