@@ -355,7 +355,7 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-6 gap-y-1 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-8 gap-y-1 text-xs">
               {rosterBySlot.map(({ slot, players }) => (
                 players.map((p, i) => {
                   const isStreamSlot = !!(
@@ -395,11 +395,11 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                           <span className="text-[9px] font-bold text-orange-400 bg-orange-500/10 px-1 rounded shrink-0">STREAM</span>
                         )}
                       </div>
-                      <div className="flex items-center gap-1 w-16 shrink-0 justify-end">
-                        <span className="w-4 flex justify-center">
+                      <div className="flex items-center gap-0.5 w-14 shrink-0 justify-end">
+                        <span className="w-4 flex justify-center shrink-0">
                           {rv ? <FormBadge level={rv.form} /> : null}
                         </span>
-                        <span className={`text-[10px] font-mono tabular-nums w-10 text-right ${rv ? zColor : 'text-gray-700'}`}>
+                        <span className={`text-[10px] font-mono tabular-nums w-9 text-right ${rv ? zColor : 'text-gray-700'}`}>
                           {rv ? (rv.z > 0 ? `+${rv.z.toFixed(2)}` : rv.z.toFixed(2)) : '—'}
                         </span>
                       </div>
