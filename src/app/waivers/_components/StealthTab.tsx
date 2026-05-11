@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import InfoTip from '@/components/InfoTip'
+import { tipForDelta, type DeltaColor } from '@/lib/waiver-symbol-copy'
 
 interface Props {
   selectedLeague: string
@@ -157,15 +159,16 @@ export default function StealthTab({ selectedLeague, selectedTeam, credentialsOk
                   <td className="p-2 text-emerald-400">{r.headline_delta?.label}</td>
                   <td className="p-2">
                     <div className="flex flex-wrap gap-1">
-                      {Object.entries(r.metric_deltas).map(([k, m]) => (
-                        <span
-                          key={k}
-                          className={`px-1.5 py-0.5 rounded text-xs ${badgeColor[m.badge]}`}
-                          title={`${k}: ${m.value}`}
-                        >
-                          {k.replace('delta_', '')}: {m.value > 0 ? '+' : ''}{m.value}
-                        </span>
-                      ))}
+                      {Object.entries(r.metric_deltas).map(([k, m]) => {
+                        const metricKey = k.replace('delta_', '')
+                        return (
+                          <InfoTip key={k} content={tipForDelta(metricKey, m.badge as DeltaColor)}>
+                            <span className={`px-1.5 py-0.5 rounded text-xs ${badgeColor[m.badge]}`}>
+                              {metricKey}: {m.value > 0 ? '+' : ''}{m.value}
+                            </span>
+                          </InfoTip>
+                        )
+                      })}
                     </div>
                   </td>
                   <td className="p-2 text-xs text-gray-500">{r.baseline_source}</td>
