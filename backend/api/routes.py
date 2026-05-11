@@ -686,21 +686,24 @@ def waiver_recommendations(req: WaiverRequest):
     # Filter out IL players from FA pool (populated by daily team-status sync)
     il_ids_filtered: list[int] = []
     if fa_ids:
-        conn = get_connection()
         try:
-            ph = ",".join(["?"] * len(fa_ids))
-            rows = conn.execute(
-                f"SELECT mlb_id FROM analytics.player_status "
-                f"WHERE is_on_il = TRUE AND mlb_id IN ({ph})",
-                tuple(fa_ids),
-            ).fetchall()
-            il_ids = {r["mlb_id"] for r in rows}
-        finally:
-            conn.close()
-        if il_ids:
-            il_ids_filtered = [mid for mid in fa_ids if mid in il_ids]
-            fa_ids = [mid for mid in fa_ids if mid not in il_ids]
-            logger.info(f"IL filter: removed {len(il_ids_filtered)} IL players from FA pool")
+            conn = get_connection()
+            try:
+                ph = ",".join(["?"] * len(fa_ids))
+                rows = conn.execute(
+                    f"SELECT mlb_id FROM player_status "
+                    f"WHERE is_on_il = TRUE AND mlb_id IN ({ph})",
+                    tuple(fa_ids),
+                ).fetchall()
+                il_ids = {r["mlb_id"] for r in rows}
+            finally:
+                conn.close()
+            if il_ids:
+                il_ids_filtered = [mid for mid in fa_ids if mid in il_ids]
+                fa_ids = [mid for mid in fa_ids if mid not in il_ids]
+                logger.info(f"IL filter: removed {len(il_ids_filtered)} IL players from FA pool")
+        except Exception as e:
+            logger.warning(f"IL filter skipped (player_status unavailable): {e}")
 
     # Log unresolved roster players for debugging
     unresolved_roster = [p.name for p in req.my_roster if not (p.mlb_id or name_to_id.get(p.name))]
@@ -786,7 +789,7 @@ def waiver_recommendations(req: WaiverRequest):
                 (req.season, *candidate_ids),
             ).fetchall():
                 statcast[row["mlb_id"]] = dict(row)
-            # Projected wOBA proxy: proj_obp * 0.9
+            # Projected wOBA proxy: proj_obp * PROJ_OBP_TO_WOBA_RATIO
             for row in _conn.execute(
                 f"""SELECT mlb_id, proj_obp
                     FROM rankings
@@ -794,7 +797,7 @@ def waiver_recommendations(req: WaiverRequest):
                 (req.season, *candidate_ids),
             ).fetchall():
                 if row["proj_obp"] is not None:
-                    proj_woba[row["mlb_id"]] = row["proj_obp"] * 0.9
+                    proj_woba[row["mlb_id"]] = row["proj_obp"] * PROJ_OBP_TO_WOBA_RATIO
         finally:
             _conn.close()
 
@@ -804,6 +807,7 @@ def waiver_recommendations(req: WaiverRequest):
         compute_luck_penalty,
         blend_scores,
         compute_form_level,
+        PROJ_OBP_TO_WOBA_RATIO,
     )
 
     production_z = compute_30d_production_z(rolling_30d) if rolling_30d else {}

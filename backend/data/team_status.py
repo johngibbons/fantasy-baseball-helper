@@ -21,13 +21,6 @@ from backend.database import get_connection
 
 logger = logging.getLogger(__name__)
 
-# Status codes that indicate the player is NOT currently available to play.
-# Anything starting with 'D' (D7/D10/D15/D60) or 'IL' (legacy form) is the IL.
-# Other inactive codes (RM=removed, RES=restricted, PL=paternity, BRV=bereavement,
-# SU=suspended, RA=restricted active) are not technically "IL" but we treat them
-# as unavailable for the same downstream purpose: don't recommend them as adds.
-_UNAVAILABLE_PREFIXES = ("D", "IL", "RM", "RES", "PL", "BRV", "SU", "RA")
-
 _BASE = "https://statsapi.mlb.com/api/v1"
 
 _CREATE_TABLE_SQL = """

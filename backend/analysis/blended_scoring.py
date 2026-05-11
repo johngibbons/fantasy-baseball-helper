@@ -9,6 +9,13 @@ import math
 import statistics
 from typing import Optional
 
+# Approximate scaling from ATC's projected OBP to projected wOBA. Real wOBA
+# weights singles ≈ 0.9, walks ≈ 0.7, doubles ≈ 1.25, etc., so the OBP→wOBA
+# ratio depends on a player's true distribution. ~0.9 is the league average
+# observed across recent seasons (FanGraphs leaderboards). Good enough as a
+# proxy until we add a true wOBA projection to the rankings table.
+PROJ_OBP_TO_WOBA_RATIO = 0.9
+
 # Categorical weights (sum doesn't have to equal 1, but should be balanced)
 _CAT_WEIGHTS_HITTER = {
     "r":   1.0,
