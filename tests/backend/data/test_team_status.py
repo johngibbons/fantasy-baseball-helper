@@ -53,3 +53,22 @@ def test_derive_last_played_date_uses_max_game_date():
 def test_derive_last_played_date_empty_returns_none():
     from backend.data.team_status import derive_last_played_date
     assert derive_last_played_date([]) is None
+
+
+def test_upsert_player_status_writes_row(tmp_path, monkeypatch):
+    # Use a real sqlite for the schema, but mock the postgres-specific bits if any
+    from backend.data import team_status
+    from unittest.mock import MagicMock
+    conn = MagicMock()
+    record = {
+        "mlb_id": 693304, "current_team": "PIT", "status_code": "A",
+        "is_on_il": False, "il_eta_date": None,
+    }
+    team_status.upsert_player_status(conn, record, last_played=dt.date(2026, 5, 10))
+    args = conn.execute.call_args.args
+    assert "INSERT" in args[0]
+    assert "ON CONFLICT" in args[0]
+    # Bind values include record fields + last_played
+    assert 693304 in args[1]
+    assert "PIT" in args[1]
+    assert dt.date(2026, 5, 10) in args[1]
