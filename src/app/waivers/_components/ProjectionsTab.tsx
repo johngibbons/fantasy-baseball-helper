@@ -23,6 +23,13 @@ interface Recommendation {
   suggested_faab_bid: number
   category_impact: Record<string, number>
   category_stat_delta: Record<string, number>
+  blended_score?: number
+  score_breakdown?: {
+    projection_contribution: number
+    production_contribution: number
+    xwoba_contribution: number
+    luck_contribution: number
+  }
 }
 
 interface RosterPlayer {
@@ -432,6 +439,16 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                       <span className={`ml-1.5 text-xs ${posColors[primaryPos(rec.add_player.position)] || 'text-gray-400'}`}>
                         {rec.add_player.position}
                       </span>
+                      {rec.score_breakdown && (
+                        <div className="text-[10px] text-gray-400 mt-0.5 font-mono">
+                          <span title="Projection contribution (ATC RoS)">📊 {rec.score_breakdown.projection_contribution.toFixed(2)}</span>{' '}
+                          <span title="Recent 30d production (z-score)">🔥 {rec.score_breakdown.production_contribution.toFixed(2)}</span>{' '}
+                          <span title="Underlying skill (xwOBA vs projected)">🎯 {rec.score_breakdown.xwoba_contribution.toFixed(2)}</span>{' '}
+                          <span title="Luck adjustment (overperforming xwOBA)" className={rec.score_breakdown.luck_contribution < -0.001 ? 'text-red-400' : ''}>
+                            🍀 {rec.score_breakdown.luck_contribution.toFixed(2)}
+                          </span>
+                        </div>
+                      )}
                     </td>
                     <td className="px-3 py-2">
                       {rec.drop_player?.name ? (
