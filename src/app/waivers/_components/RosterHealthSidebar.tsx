@@ -1,10 +1,12 @@
 'use client'
 import { useEffect, useState } from 'react'
+import FormBadge from '@/components/FormBadge'
 
 interface RosterValue {
   mlb_id: number
   name: string
   value_z: number
+  form_level?: 'hot' | 'cool' | 'cold' | 'neutral' | null
 }
 
 interface Props {
@@ -51,8 +53,10 @@ export default function RosterHealthSidebar({ leagueId, teamId }: Props) {
       <h3 className="text-amber-300 font-medium mb-2">⚠️ Worst Rostered (drop candidates)</h3>
       <ul className="space-y-1 mb-4">
         {worst.map((p) => (
-          <li key={p.mlb_id} className="flex justify-between">
-            <span className="text-gray-300">{p.name}</span>
+          <li key={p.mlb_id} className="flex justify-between items-center">
+            <span className="text-gray-300 flex items-center gap-1.5">
+              {p.name} <FormBadge level={p.form_level ?? null} />
+            </span>
             <span className="text-red-400 font-mono">{p.value_z.toFixed(2)}</span>
           </li>
         ))}
@@ -60,8 +64,10 @@ export default function RosterHealthSidebar({ leagueId, teamId }: Props) {
       <h3 className="text-emerald-300 font-medium mb-2">🌟 Top Rostered (do not drop)</h3>
       <ul className="space-y-1">
         {best.map((p) => (
-          <li key={p.mlb_id} className="flex justify-between">
-            <span className="text-gray-300">{p.name}</span>
+          <li key={p.mlb_id} className="flex justify-between items-center">
+            <span className="text-gray-300 flex items-center gap-1.5">
+              {p.name} <FormBadge level={p.form_level ?? null} />
+            </span>
             <span className="text-emerald-400 font-mono">+{p.value_z.toFixed(2)}</span>
           </li>
         ))}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react'
 import Link from 'next/link'
+import FormBadge from '@/components/FormBadge'
 
 interface Props {
   selectedLeague: string
@@ -13,6 +14,7 @@ interface PlayerRef {
   id: number
   name: string
   position: string
+  form_level?: 'hot' | 'cool' | 'cold' | 'neutral' | null
 }
 
 interface Recommendation {
@@ -460,6 +462,9 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                       <Link href={`/player/${rec.add_player.id}`} className="text-white font-medium hover:underline hover:text-blue-300">{rec.add_player.name}</Link>
                       <span className={`ml-1.5 text-xs ${posColors[primaryPos(rec.add_player.position)] || 'text-gray-400'}`}>
                         {rec.add_player.position}
+                      </span>
+                      <span className="ml-1.5">
+                        <FormBadge level={rec.add_player.form_level ?? null} />
                       </span>
                       {rec.score_breakdown && (
                         <div className="text-[10px] text-gray-400 mt-0.5 font-mono">

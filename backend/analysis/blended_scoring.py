@@ -81,6 +81,23 @@ def compute_luck_penalty(woba: Optional[float], xwoba: Optional[float]) -> float
     return max(gap, 0.0)
 
 
+def compute_form_level(season_ops: Optional[float],
+                       window_ops: Optional[float]) -> Optional[str]:
+    """Return a form level string ('hot' | 'cool' | 'neutral' | 'cold') based
+    on the delta between recent window OPS and season OPS. None when either
+    input is missing."""
+    if season_ops is None or window_ops is None:
+        return None
+    d = window_ops - season_ops
+    if d >= 0.080:
+        return "hot"
+    if d >= 0.020:
+        return "cool"
+    if d <= -0.080:
+        return "cold"
+    return "neutral"
+
+
 WEIGHTS = {
     "projection": 0.50,
     "production": 0.30,

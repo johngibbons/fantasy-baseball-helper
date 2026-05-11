@@ -747,6 +747,8 @@ def waiver_recommendations(req: WaiverRequest):
     rolling_30d: dict[int, dict] = {}
     statcast: dict[int, dict] = {}
     proj_woba: dict[int, float] = {}
+    rolling_14d_ops: dict[int, float] = {}
+    season_ops_by_id: dict[int, float] = {}
 
     if candidate_ids:
         _conn = get_connection()
@@ -760,6 +762,22 @@ def waiver_recommendations(req: WaiverRequest):
                 (req.season, *candidate_ids),
             ).fetchall():
                 rolling_30d[row["mlb_id"]] = dict(row)
+            # 14d OPS for form_level (recent form signal)
+            for row in _conn.execute(
+                f"""SELECT mlb_id, ops FROM rolling_batting_stats
+                    WHERE season = ? AND window_days = 14 AND mlb_id IN ({ph})""",
+                (req.season, *candidate_ids),
+            ).fetchall():
+                if row["ops"] is not None:
+                    rolling_14d_ops[row["mlb_id"]] = row["ops"]
+            # Season OPS for form_level baseline
+            for row in _conn.execute(
+                f"""SELECT mlb_id, ops FROM batting_stats
+                    WHERE season = ? AND mlb_id IN ({ph})""",
+                (req.season, *candidate_ids),
+            ).fetchall():
+                if row["ops"] is not None:
+                    season_ops_by_id[row["mlb_id"]] = row["ops"]
             # Statcast xwOBA + wOBA
             for row in _conn.execute(
                 f"""SELECT mlb_id, xwoba, woba
@@ -785,6 +803,7 @@ def waiver_recommendations(req: WaiverRequest):
         compute_xwoba_signal,
         compute_luck_penalty,
         blend_scores,
+        compute_form_level,
     )
 
     production_z = compute_30d_production_z(rolling_30d) if rolling_30d else {}
@@ -800,6 +819,12 @@ def waiver_recommendations(req: WaiverRequest):
         )
         r["blended_score"] = blended["blended"]
         r["score_breakdown"] = blended["breakdown"]
+        # Annotate form_level on add_player for the UI badge
+        if "add_player" in r and r["add_player"]:
+            r["add_player"]["form_level"] = compute_form_level(
+                season_ops_by_id.get(mid),
+                rolling_14d_ops.get(mid),
+            )
 
     # Re-rank by blended score
     recs_list.sort(key=lambda r: -r.get("blended_score", 0.0))
@@ -1082,6 +1107,16 @@ def post_roster_health(req: RosterHealthRequest):
             (req.season, *mlb_ids),
         ).fetchall()}
 
+        # 14d OPS for form_level (recent form vs season baseline)
+        rolling_14d_ops: dict[int, float] = {}
+        for r in conn.execute(
+            f"""SELECT mlb_id, ops FROM rolling_batting_stats
+                WHERE season=? AND window_days=14 AND mlb_id IN ({ph})""",
+            (req.season, *mlb_ids),
+        ).fetchall():
+            if r["ops"] is not None:
+                rolling_14d_ops[r["mlb_id"]] = r["ops"]
+
         # ATC projections from rankings table
         proj = {r["mlb_id"]: dict(r) for r in conn.execute(
             f"SELECT * FROM rankings WHERE season=? AND mlb_id IN ({ph})",
@@ -1135,12 +1170,25 @@ def post_roster_health(req: RosterHealthRequest):
             })
 
         from backend.analysis.roster_health import compute_roster_value_z
+        from backend.analysis.blended_scoring import compute_form_level
         z_by_id = compute_roster_value_z(roster_for_z)
 
         name_by_id = {p["mlb_id"]: p.get("name", "?") for p in roster_with_ids}
+        season_ops_by_id: dict[int, float] = {}
+        for mid, c in current_bat.items():
+            if c.get("ops") is not None:
+                season_ops_by_id[mid] = c["ops"]
+
         result = sorted(
-            [{"mlb_id": mid, "name": name_by_id.get(mid, "?"), "value_z": z}
-             for mid, z in z_by_id.items()],
+            [{
+                "mlb_id": mid,
+                "name": name_by_id.get(mid, "?"),
+                "value_z": z,
+                "form_level": compute_form_level(
+                    season_ops_by_id.get(mid),
+                    rolling_14d_ops.get(mid),
+                ),
+            } for mid, z in z_by_id.items()],
             key=lambda x: x["value_z"],  # ascending = worst first
         )
         return {"roster_value": result}
@@ -1236,21 +1284,11 @@ def post_compare(req: CompareRequest):
             })
 
         # Annotate each player with a form_level derived from (14d OPS − season OPS)
+        from backend.analysis.blended_scoring import compute_form_level
         for p in players:
             s_ops = (p.get("season") or {}).get("ops")
             w_ops = (p.get("last_14d") or {}).get("ops")
-            if s_ops is not None and w_ops is not None:
-                d = w_ops - s_ops
-                if d >= 0.080:
-                    p["form_level"] = "hot"
-                elif d >= 0.020:
-                    p["form_level"] = "cool"
-                elif d <= -0.080:
-                    p["form_level"] = "cold"
-                else:
-                    p["form_level"] = "neutral"
-            else:
-                p["form_level"] = None
+            p["form_level"] = compute_form_level(s_ops, w_ops)
 
         return {"players": players}
     finally:
