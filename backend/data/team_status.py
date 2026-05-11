@@ -34,3 +34,19 @@ def parse_mlb_status_response(response: dict, mlb_id: int) -> Optional[dict]:
         "is_on_il": is_on_il,
         "il_eta_date": None,
     }
+
+
+def derive_last_played_date(game_log: list[dict]) -> Optional[dt.date]:
+    """Return the most recent game date from an MLB Stats API gameLog response."""
+    if not game_log:
+        return None
+    dates = []
+    for entry in game_log:
+        raw = entry.get("date")
+        if not raw:
+            continue
+        try:
+            dates.append(dt.date.fromisoformat(raw))
+        except ValueError:
+            continue
+    return max(dates) if dates else None

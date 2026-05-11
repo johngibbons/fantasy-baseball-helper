@@ -1,3 +1,4 @@
+import datetime as dt
 import pytest
 from backend.data.team_status import parse_mlb_status_response
 
@@ -37,3 +38,18 @@ def test_player_on_il_10_day():
 def test_missing_player_returns_none():
     response = {"people": []}
     assert parse_mlb_status_response(response, mlb_id=999999) is None
+
+def test_derive_last_played_date_uses_max_game_date():
+    # Caller passes a list of game-log entries from MLB Stats API gameLog endpoint
+    game_log = [
+        {"date": "2026-05-01", "stat": {"atBats": 4}},
+        {"date": "2026-05-05", "stat": {"atBats": 3}},
+        {"date": "2026-05-02", "stat": {"atBats": 4}},
+    ]
+    from backend.data.team_status import derive_last_played_date
+    result = derive_last_played_date(game_log)
+    assert result == dt.date(2026, 5, 5)
+
+def test_derive_last_played_date_empty_returns_none():
+    from backend.data.team_status import derive_last_played_date
+    assert derive_last_played_date([]) is None
