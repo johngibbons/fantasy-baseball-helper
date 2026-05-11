@@ -126,6 +126,7 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
   const [refreshStatus, setRefreshStatus] = useState<string | null>(null)
   const [excludeStreamSlot, setExcludeStreamSlot] = useState(true)
   const [includeCrossType, setIncludeCrossType] = useState(false)
+  const [rosterValue, setRosterValue] = useState<Record<number, number>>({})
 
   const handleRefreshProjections = async () => {
     setRefreshing(true)
@@ -175,6 +176,27 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
       const data = await response.json()
       console.log('Waiver diagnostics:', data.diagnostics, 'roster_names_debug:', data.roster_names_debug)
       setResults(data)
+
+      // Optional enrichment: fetch roster-health to flag drop candidates who
+      // are overperforming their projection (value_z > 0). Failures are
+      // non-fatal — the recs table still renders without the warning icon.
+      try {
+        const rhResp = await fetch('/api/waivers/roster-health', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ leagueId: selectedLeague, teamId: selectedTeam, season: '2026' }),
+        })
+        if (rhResp.ok) {
+          const rhData = await rhResp.json()
+          const map: Record<number, number> = {}
+          for (const r of rhData.roster_value || []) {
+            if (r.mlb_id != null) map[r.mlb_id] = r.value_z
+          }
+          setRosterValue(map)
+        }
+      } catch {
+        // Roster health is optional enrichment; ignore failures silently
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to fetch recommendations')
     } finally {
@@ -457,6 +479,14 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                           <span className={`ml-1.5 text-xs ${posColors[primaryPos(rec.drop_player.position)] || 'text-gray-400'}`}>
                             {rec.drop_player.position}
                           </span>
+                          {rosterValue[rec.drop_player.id] !== undefined && rosterValue[rec.drop_player.id] > 0 && (
+                            <span
+                              className="ml-1.5 text-xs text-amber-400 cursor-help"
+                              title={`Roster value z = +${rosterValue[rec.drop_player.id].toFixed(2)}. This player is currently performing ABOVE their projection — dropping them may be premature.`}
+                            >
+                              ⚠️
+                            </span>
+                          )}
                         </>
                       ) : (
                         <span className="text-emerald-600 text-xs italic">No drop needed</span>
