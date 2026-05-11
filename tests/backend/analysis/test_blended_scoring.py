@@ -52,3 +52,26 @@ def test_luck_penalty_zero_when_underperforming():
     from backend.analysis.blended_scoring import compute_luck_penalty
     # Player's wOBA is below their xwOBA -> they're unlucky, no penalty
     assert compute_luck_penalty(woba=0.280, xwoba=0.310) == 0.0
+
+def test_blend_scores_returns_breakdown():
+    from backend.analysis.blended_scoring import blend_scores
+    # Player whose projection delta is decent, production-z is hot, xwoba is
+    # neutral, no luck penalty -> blended should be > projection-only
+    result = blend_scores(
+        projection_delta=0.5,
+        production_z=1.5,
+        xwoba_signal=0.0,
+        luck_penalty=0.0,
+    )
+    # default weights: 0.5, 0.3, 0.15, 0.05
+    expected = 0.5 * 0.5 + 0.3 * 1.5 + 0.15 * 0.0 - 0.05 * 0.0
+    assert result["blended"] == pytest.approx(expected)
+    assert result["breakdown"]["projection_contribution"] == pytest.approx(0.25)
+    assert result["breakdown"]["production_contribution"] == pytest.approx(0.45)
+
+def test_blend_scores_penalty_drags_score_down():
+    from backend.analysis.blended_scoring import blend_scores
+    # Same hot production-z but a player who is +0.08 wOBA over xwOBA
+    no_penalty = blend_scores(0.5, 1.5, 0.0, 0.0)["blended"]
+    with_penalty = blend_scores(0.5, 1.5, 0.0, 0.08)["blended"]
+    assert with_penalty < no_penalty

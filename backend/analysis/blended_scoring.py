@@ -79,3 +79,46 @@ def compute_luck_penalty(woba: Optional[float], xwoba: Optional[float]) -> float
         return 0.0
     gap = woba - xwoba
     return max(gap, 0.0)
+
+
+WEIGHTS = {
+    "projection": 0.50,
+    "production": 0.30,
+    "xwoba":      0.15,
+    "luck":       0.05,
+}
+
+def blend_scores(
+    projection_delta: float,
+    production_z: float,
+    xwoba_signal: float,
+    luck_penalty: float,
+    weights: dict[str, float] | None = None,
+) -> dict:
+    """Combine the four signals into a single blended score with breakdown.
+
+    Returns:
+        {
+            "blended": float,
+            "breakdown": {
+                "projection_contribution": float,
+                "production_contribution": float,
+                "xwoba_contribution": float,
+                "luck_contribution": float,  # negative when penalty > 0
+            }
+        }
+
+    The breakdown is plumbed through to the UI so users can see *why* a
+    recommendation ranks where it does.
+    """
+    w = weights or WEIGHTS
+    contribs = {
+        "projection_contribution": w["projection"] * projection_delta,
+        "production_contribution": w["production"] * production_z,
+        "xwoba_contribution":      w["xwoba"] * xwoba_signal,
+        "luck_contribution":       -w["luck"] * luck_penalty,
+    }
+    return {
+        "blended": sum(contribs.values()),
+        "breakdown": contribs,
+    }
