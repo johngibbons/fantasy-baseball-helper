@@ -121,6 +121,19 @@ def upsert_player_status(conn, record: dict, last_played: Optional[dt.date]) -> 
     ))
 
 
+def propagate_team_to_players(conn) -> int:
+    """Copy current_team from player_status into analytics.players.team so
+    existing queries that join players don't need refactoring."""
+    cur = conn.execute("""
+        UPDATE analytics.players p
+           SET team = ps.current_team
+          FROM analytics.player_status ps
+         WHERE ps.mlb_id = p.mlb_id
+           AND COALESCE(p.team, '') <> COALESCE(ps.current_team, '');
+    """)
+    return cur.rowcount if cur.rowcount is not None else 0
+
+
 def _fetch_team_id_to_abbrev(season: int) -> dict[int, str]:
     """Return {team_id: abbreviation} for all 30 MLB teams in the given season."""
     url = f"{_BASE}/teams?sportId=1&season={season}"

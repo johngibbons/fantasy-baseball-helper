@@ -58,9 +58,17 @@ def main() -> int:
     if not args.skip_status:
         try:
             logger.info("Step 3/4: player team + IL status")
-            from backend.data.team_status import sync_player_status
+            from backend.data.team_status import sync_player_status, propagate_team_to_players
+            from backend.database import get_connection
             written = sync_player_status(season=args.season)
             logger.info(f"  Player status: {written} rows")
+            conn = get_connection()
+            try:
+                changed = propagate_team_to_players(conn)
+                conn.commit()
+                logger.info(f"  Propagated team to players: {changed} rows updated")
+            finally:
+                conn.close()
         except Exception as e:
             logger.error(f"Player status sync failed: {e}", exc_info=True)
             failures += 1
