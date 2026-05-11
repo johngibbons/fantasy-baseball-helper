@@ -747,6 +747,15 @@ def waiver_recommendations(req: WaiverRequest):
     recs_list = result.get("recommendations", [])
     candidate_ids = [r["add_player"]["id"] for r in recs_list if r.get("add_player", {}).get("id")]
 
+    from backend.analysis.blended_scoring import (
+        compute_30d_production_z,
+        compute_xwoba_signal,
+        compute_luck_penalty,
+        blend_scores,
+        compute_form_level,
+        PROJ_OBP_TO_WOBA_RATIO,
+    )
+
     rolling_30d: dict[int, dict] = {}
     statcast: dict[int, dict] = {}
     proj_woba: dict[int, float] = {}
@@ -800,15 +809,6 @@ def waiver_recommendations(req: WaiverRequest):
                     proj_woba[row["mlb_id"]] = row["proj_obp"] * PROJ_OBP_TO_WOBA_RATIO
         finally:
             _conn.close()
-
-    from backend.analysis.blended_scoring import (
-        compute_30d_production_z,
-        compute_xwoba_signal,
-        compute_luck_penalty,
-        blend_scores,
-        compute_form_level,
-        PROJ_OBP_TO_WOBA_RATIO,
-    )
 
     production_z = compute_30d_production_z(rolling_30d) if rolling_30d else {}
 
