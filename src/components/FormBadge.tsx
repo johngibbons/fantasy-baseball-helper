@@ -1,5 +1,8 @@
 'use client'
 
+import InfoTip from '@/components/InfoTip'
+import { FORM_COPY } from '@/lib/waiver-symbol-copy'
+
 interface Props {
   // Either an OPS-style delta (positive = hotter) or already-computed level
   delta?: number | null
@@ -35,11 +38,10 @@ export default function FormBadge({ delta, level, tooltip }: Props) {
     level ?? (delta != null ? levelFromDelta(delta) : null)
   if (!lvl) return null
   return (
-    <span
-      className={`inline-block px-1.5 py-0.5 rounded text-xs ${styles[lvl]}`}
-      title={tooltip ?? `recent form: ${lvl}`}
-    >
-      {labels[lvl]}
-    </span>
+    <InfoTip content={tooltip ?? FORM_COPY[lvl]}>
+      <span className={`inline-block px-1.5 py-0.5 rounded text-xs ${styles[lvl]}`}>
+        {labels[lvl]}
+      </span>
+    </InfoTip>
   )
 }
