@@ -3,7 +3,8 @@
 Run this at 03:00 ET daily, before the 04:00 ET ESPN waiver run, to refresh:
   1. rolling_batting_stats / rolling_pitching_stats (7/14/30 day windows)
   2. statcast_batting / statcast_pitching (current season)
-  3. statcast_baselines (deltas + composites)
+  3. analytics.player_status (current team + IL status from MLB Stats API)
+  4. statcast_baselines (deltas + composites)
 
 Each step is idempotent. Failures in one step don't block the others.
 
@@ -29,6 +30,8 @@ def main() -> int:
     parser.add_argument("--season", type=int, required=True)
     parser.add_argument("--skip-rolling", action="store_true")
     parser.add_argument("--skip-statcast", action="store_true")
+    parser.add_argument("--skip-status", action="store_true",
+                        help="Skip player team + IL status sync")
     parser.add_argument("--skip-baselines", action="store_true")
     args = parser.parse_args()
 
@@ -37,7 +40,7 @@ def main() -> int:
     if not args.skip_rolling:
         try:
             from backend.data.rolling_stats import sync_rolling_stats
-            logger.info("Step 1/3: rolling stats")
+            logger.info("Step 1/4: rolling stats")
             sync_rolling_stats(season=args.season)
         except Exception as e:
             logger.error(f"Rolling stats sync failed: {e}", exc_info=True)
@@ -46,16 +49,26 @@ def main() -> int:
     if not args.skip_statcast:
         try:
             from backend.data.statcast import sync_statcast_data
-            logger.info("Step 2/3: current-season Statcast")
+            logger.info("Step 2/4: current-season Statcast")
             sync_statcast_data(season=args.season)
         except Exception as e:
             logger.error(f"Statcast sync failed: {e}", exc_info=True)
             failures += 1
 
+    if not args.skip_status:
+        try:
+            logger.info("Step 3/4: player team + IL status")
+            from backend.data.team_status import sync_player_status
+            written = sync_player_status(season=args.season)
+            logger.info(f"  Player status: {written} rows")
+        except Exception as e:
+            logger.error(f"Player status sync failed: {e}", exc_info=True)
+            failures += 1
+
     if not args.skip_baselines:
         try:
             from backend.analysis.skill_baselines import compute_skill_baselines
-            logger.info("Step 3/3: skill baselines")
+            logger.info("Step 4/4: skill baselines")
             compute_skill_baselines(season=args.season)
         except Exception as e:
             logger.error(f"Skill baselines compute failed: {e}", exc_info=True)
