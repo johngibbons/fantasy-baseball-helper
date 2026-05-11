@@ -355,7 +355,7 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-4 gap-y-0.5 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-x-6 gap-y-1 text-xs">
               {rosterBySlot.map(({ slot, players }) => (
                 players.map((p, i) => {
                   const isStreamSlot = !!(
@@ -370,33 +370,41 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                     : rv.z < -0.5 ? 'text-red-400'
                     : 'text-gray-500'
                   return (
-                    <div key={`${slot}-${i}`} className="flex items-center gap-1.5 py-0.5">
-                      <span className={`w-6 text-right font-mono font-bold ${slotColors[slot] || 'text-gray-500'}`}>{slot}</span>
-                      {p.mlb_id ? (
-                        <Link
-                          href={`/player/${p.mlb_id}`}
-                          className={`hover:underline ${
-                            slot === 'IL'
-                              ? 'text-gray-600 line-through'
-                              : isStreamSlot
-                                ? 'text-gray-500 hover:text-white'
-                                : 'text-gray-300 hover:text-white'
-                          }`}
-                        >
-                          {p.name}
-                        </Link>
-                      ) : (
-                        <span className={slot === 'IL' ? 'text-gray-600 line-through' : 'text-gray-300'}>{p.name}</span>
-                      )}
-                      <span className={`text-[10px] ${posColors[primaryPos(p.position)] || 'text-gray-500'}`}>{p.position}</span>
-                      {isStreamSlot && (
-                        <span className="text-[9px] font-bold text-orange-400 bg-orange-500/10 px-1 rounded">STREAM</span>
-                      )}
-                      {rv && <FormBadge level={rv.form} />}
-                      {rv && (
-                        <span className={`text-[10px] font-mono ${zColor}`}>
-                          {rv.z > 0 ? `+${rv.z.toFixed(2)}` : rv.z.toFixed(2)}
+                    <div key={`${slot}-${i}`} className="flex items-center gap-2 px-1 py-0.5">
+                      <span className={`w-14 shrink-0 text-[10px] font-mono ${posColors[primaryPos(p.position)] || 'text-gray-500'}`}>
+                        {p.position}
+                      </span>
+                      <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                        {p.mlb_id ? (
+                          <Link
+                            href={`/player/${p.mlb_id}`}
+                            className={`truncate hover:underline ${
+                              slot === 'IL'
+                                ? 'text-gray-600 line-through'
+                                : isStreamSlot
+                                  ? 'text-gray-500 hover:text-white'
+                                  : 'text-gray-300 hover:text-white'
+                            }`}
+                          >
+                            {p.name}
+                          </Link>
+                        ) : (
+                          <span className={`truncate ${slot === 'IL' ? 'text-gray-600 line-through' : 'text-gray-300'}`}>{p.name}</span>
+                        )}
+                        {isStreamSlot && (
+                          <span className="text-[9px] font-bold text-orange-400 bg-orange-500/10 px-1 rounded shrink-0">STREAM</span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 w-16 shrink-0 justify-end">
+                        <span className="w-4 flex justify-center">
+                          {rv ? <FormBadge level={rv.form} /> : null}
                         </span>
+                        <span className={`text-[10px] font-mono tabular-nums w-10 text-right ${rv ? zColor : 'text-gray-700'}`}>
+                          {rv ? (rv.z > 0 ? `+${rv.z.toFixed(2)}` : rv.z.toFixed(2)) : '—'}
+                        </span>
+                      </div>
+                      {slot === 'IL' && (
+                        <span className="text-[9px] font-bold text-red-400 bg-red-500/10 px-1 rounded shrink-0">IL</span>
                       )}
                     </div>
                   )
