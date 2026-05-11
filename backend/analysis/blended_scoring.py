@@ -53,3 +53,29 @@ def compute_30d_production_z(pool: dict[int, dict]) -> dict[int, float]:
             z_by_player[pid] += weight * ((v - mean) / stdev)
 
     return {pid: z / total_weight for pid, z in z_by_player.items()}
+
+
+def compute_xwoba_signal(xwoba: Optional[float],
+                         projected_woba: Optional[float]) -> float:
+    """Underlying-skill signal: xwOBA minus projected wOBA.
+
+    Positive means the player's Statcast-implied skill is above ATC's expectation.
+    Returns 0.0 when either input is missing — better to drop the signal than
+    inject zeros that drag the blended score.
+    """
+    if xwoba is None or projected_woba is None:
+        return 0.0
+    return xwoba - projected_woba
+
+
+def compute_luck_penalty(woba: Optional[float], xwoba: Optional[float]) -> float:
+    """Luck penalty: positive when actual wOBA exceeds xwOBA (overperforming).
+
+    Applied as a subtraction in the blended score, so a high penalty drags
+    the score down. Returns 0 when underperforming (the production-z signal
+    already captures the slump; no need to double-credit).
+    """
+    if woba is None or xwoba is None:
+        return 0.0
+    gap = woba - xwoba
+    return max(gap, 0.0)

@@ -26,3 +26,29 @@ def test_z_score_handles_single_player_pool():
     pool = {1: {"r": 10, "tb": 30, "rbi": 10, "sb": 1, "obp": 0.320, "pa": 100}}
     z = compute_30d_production_z(pool)
     assert z[1] == 0.0  # single player, no variance, z=0
+
+
+def test_xwoba_signal_positive_when_above_projection():
+    from backend.analysis.blended_scoring import compute_xwoba_signal
+    # Player whose xwOBA (.347) is above projected wOBA (.310) -> positive
+    result = compute_xwoba_signal(xwoba=0.347, projected_woba=0.310)
+    assert result > 0
+    assert result == pytest.approx(0.037, abs=1e-3)
+
+def test_xwoba_signal_returns_zero_when_inputs_missing():
+    from backend.analysis.blended_scoring import compute_xwoba_signal
+    assert compute_xwoba_signal(xwoba=None, projected_woba=0.310) == 0.0
+    assert compute_xwoba_signal(xwoba=0.347, projected_woba=None) == 0.0
+
+def test_luck_penalty_positive_when_overperforming():
+    from backend.analysis.blended_scoring import compute_luck_penalty
+    # Player's actual wOBA exceeds their xwOBA -> overperforming -> positive penalty
+    # We'll subtract this from blended score so higher = worse
+    result = compute_luck_penalty(woba=0.380, xwoba=0.300)
+    assert result > 0
+    assert result == pytest.approx(0.08, abs=1e-3)
+
+def test_luck_penalty_zero_when_underperforming():
+    from backend.analysis.blended_scoring import compute_luck_penalty
+    # Player's wOBA is below their xwOBA -> they're unlucky, no penalty
+    assert compute_luck_penalty(woba=0.280, xwoba=0.310) == 0.0
