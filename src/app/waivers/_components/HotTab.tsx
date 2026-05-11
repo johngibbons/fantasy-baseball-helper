@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import InfoTip from '@/components/InfoTip'
+import { tipForSustain, type SustainColor } from '@/lib/waiver-symbol-copy'
 
 interface Props {
   selectedLeague: string
@@ -172,13 +174,11 @@ export default function HotTab({ selectedLeague, selectedTeam, credentialsOk }: 
                   <td className="p-2">
                     <div className="flex flex-wrap gap-1">
                       {Object.entries(r.sustainability_badges).map(([metric, color]) => (
-                        <span
-                          key={metric}
-                          className={`px-1.5 py-0.5 rounded text-xs ${badgeColor[color]}`}
-                          title={`${metric}: ${color}`}
-                        >
-                          {metric.replace('_', ' ')}
-                        </span>
+                        <InfoTip key={metric} content={tipForSustain(metric, color as SustainColor)}>
+                          <span className={`px-1.5 py-0.5 rounded text-xs ${badgeColor[color]}`}>
+                            {metric.replace('_', ' ')}
+                          </span>
+                        </InfoTip>
                       ))}
                     </div>
                   </td>
