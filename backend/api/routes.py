@@ -738,6 +738,75 @@ def waiver_recommendations(req: WaiverRequest):
         exclude_stream_slot=req.exclude_stream_slot,
         same_type_only=not req.include_cross_type,
     )
+
+    # Blend projection delta with in-season production + Statcast signals.
+    # See backend/analysis/blended_scoring.py for the math.
+    recs_list = result.get("recommendations", [])
+    candidate_ids = [r["add_player"]["id"] for r in recs_list if r.get("add_player", {}).get("id")]
+
+    rolling_30d: dict[int, dict] = {}
+    statcast: dict[int, dict] = {}
+    proj_woba: dict[int, float] = {}
+
+    if candidate_ids:
+        _conn = get_connection()
+        try:
+            ph = ",".join(["?"] * len(candidate_ids))
+            # 30d rolling production
+            for row in _conn.execute(
+                f"""SELECT mlb_id, pa, r, total_bases AS tb, rbi, sb, obp
+                    FROM rolling_batting_stats
+                    WHERE season = ? AND window_days = 30 AND mlb_id IN ({ph})""",
+                (req.season, *candidate_ids),
+            ).fetchall():
+                rolling_30d[row["mlb_id"]] = dict(row)
+            # Statcast xwOBA + wOBA
+            for row in _conn.execute(
+                f"""SELECT mlb_id, xwoba, woba
+                    FROM statcast_batting
+                    WHERE season = ? AND mlb_id IN ({ph})""",
+                (req.season, *candidate_ids),
+            ).fetchall():
+                statcast[row["mlb_id"]] = dict(row)
+            # Projected wOBA proxy: proj_obp * 0.9
+            for row in _conn.execute(
+                f"""SELECT mlb_id, proj_obp
+                    FROM rankings
+                    WHERE season = ? AND mlb_id IN ({ph})""",
+                (req.season, *candidate_ids),
+            ).fetchall():
+                if row["proj_obp"] is not None:
+                    proj_woba[row["mlb_id"]] = row["proj_obp"] * 0.9
+        finally:
+            _conn.close()
+
+    from backend.analysis.blended_scoring import (
+        compute_30d_production_z,
+        compute_xwoba_signal,
+        compute_luck_penalty,
+        blend_scores,
+    )
+
+    production_z = compute_30d_production_z(rolling_30d) if rolling_30d else {}
+
+    for r in recs_list:
+        mid = r.get("add_player", {}).get("id")
+        sc = statcast.get(mid, {})
+        blended = blend_scores(
+            projection_delta=r.get("delta_expected_wins", 0.0) or 0.0,
+            production_z=production_z.get(mid, 0.0),
+            xwoba_signal=compute_xwoba_signal(sc.get("xwoba"), proj_woba.get(mid)),
+            luck_penalty=compute_luck_penalty(sc.get("woba"), sc.get("xwoba")),
+        )
+        r["blended_score"] = blended["blended"]
+        r["score_breakdown"] = blended["breakdown"]
+
+    # Re-rank by blended score
+    recs_list.sort(key=lambda r: -r.get("blended_score", 0.0))
+    for i, r in enumerate(recs_list):
+        r["rank"] = i + 1
+    result["recommendations"] = recs_list
+
     # Collect lineup slot distribution for diagnostics
     my_slot_ids = [p.lineup_slot_id for p in req.my_roster]
     other_slot_samples = [
