@@ -1035,6 +1035,119 @@ def refresh_ros_projections(season: int = Query(2026)):
     return {"status": "ok", "results": {"batting_and_pitching": total}}
 
 
+class RosterHealthRequest(BaseModel):
+    my_roster: list[dict]  # [{name, player_type}]
+    season: int = 2026
+
+
+@router.post("/waivers/roster-health")
+def post_roster_health(req: RosterHealthRequest):
+    """Rank a roster by current-vs-projection composite z (worst first)."""
+    conn = get_connection()
+    try:
+        if not req.my_roster:
+            return {"roster_value": []}
+
+        # Resolve names → mlb_ids using the players table
+        names = [p["name"] for p in req.my_roster if p.get("name")]
+        if not names:
+            return {"roster_value": []}
+        placeholders = ",".join(["?"] * len(names))
+        name_to_id: dict[str, int] = {}
+        for r in conn.execute(
+            f"SELECT mlb_id, full_name FROM players WHERE full_name IN ({placeholders})",
+            tuple(names),
+        ).fetchall():
+            name_to_id[r["full_name"]] = r["mlb_id"]
+
+        # Annotate roster with mlb_ids; drop unresolved entries
+        roster_with_ids = []
+        for p in req.my_roster:
+            mid = name_to_id.get(p.get("name", ""))
+            if mid:
+                roster_with_ids.append({**p, "mlb_id": mid})
+        if not roster_with_ids:
+            return {"roster_value": []}
+
+        mlb_ids = [p["mlb_id"] for p in roster_with_ids]
+        ph = ",".join(["?"] * len(mlb_ids))
+
+        # Current-season hitting + pitching
+        current_bat = {r["mlb_id"]: dict(r) for r in conn.execute(
+            f"SELECT * FROM batting_stats WHERE season=? AND mlb_id IN ({ph})",
+            (req.season, *mlb_ids),
+        ).fetchall()}
+        current_pit = {r["mlb_id"]: dict(r) for r in conn.execute(
+            f"SELECT * FROM pitching_stats WHERE season=? AND mlb_id IN ({ph})",
+            (req.season, *mlb_ids),
+        ).fetchall()}
+
+        # ATC projections from rankings table
+        proj = {r["mlb_id"]: dict(r) for r in conn.execute(
+            f"SELECT * FROM rankings WHERE season=? AND mlb_id IN ({ph})",
+            (req.season, *mlb_ids),
+        ).fetchall()}
+
+        # Build the input to compute_roster_value_z
+        roster_for_z = []
+        for p in roster_with_ids:
+            mid = p["mlb_id"]
+            ptype = p.get("player_type", "hitter")
+            c = current_bat.get(mid) if ptype == "hitter" else current_pit.get(mid)
+            pr = proj.get(mid)
+            if not c or not pr:
+                continue
+            if ptype == "hitter":
+                current_stats = {
+                    "pa": c.get("plate_appearances"),
+                    "r": c.get("runs"),
+                    "tb": c.get("total_bases"),
+                    "rbi": c.get("rbi"),
+                    "sb": c.get("stolen_bases"),
+                    "obp": c.get("obp"),
+                }
+            else:
+                current_stats = {
+                    "ip": c.get("innings_pitched"),
+                    "era": c.get("era"),
+                    "whip": c.get("whip"),
+                    "k": c.get("strikeouts"),
+                    "qs": c.get("quality_starts"),
+                    "svhd": (c.get("saves") or 0) + (c.get("holds") or 0),
+                }
+            projected = {
+                "pa": pr.get("proj_pa"),
+                "r": pr.get("proj_r"),
+                "tb": pr.get("proj_tb"),
+                "rbi": pr.get("proj_rbi"),
+                "sb": pr.get("proj_sb"),
+                "obp": pr.get("proj_obp"),
+                "ip": pr.get("proj_ip"),
+                "era": pr.get("proj_era"),
+                "whip": pr.get("proj_whip"),
+                "k": pr.get("proj_k"),
+                "qs": pr.get("proj_qs"),
+                "svhd": pr.get("proj_svhd"),
+            }
+            roster_for_z.append({
+                "mlb_id": mid, "player_type": ptype,
+                "current": current_stats, "projected": projected,
+            })
+
+        from backend.analysis.roster_health import compute_roster_value_z
+        z_by_id = compute_roster_value_z(roster_for_z)
+
+        name_by_id = {p["mlb_id"]: p.get("name", "?") for p in roster_with_ids}
+        result = sorted(
+            [{"mlb_id": mid, "name": name_by_id.get(mid, "?"), "value_z": z}
+             for mid, z in z_by_id.items()],
+            key=lambda x: x["value_z"],  # ascending = worst first
+        )
+        return {"roster_value": result}
+    finally:
+        conn.close()
+
+
 # ── Start/Sit Recommendations ──
 
 
