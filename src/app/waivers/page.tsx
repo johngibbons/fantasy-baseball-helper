@@ -179,7 +179,7 @@ function WaiversShell() {
         })}
       </nav>
 
-      <div className="p-6 flex gap-4">
+      <div className="p-4 sm:p-6 flex flex-col lg:flex-row gap-4">
         <div className="flex-1 min-w-0">
           {tab === 'projections' && (
             <ProjectionsTab
@@ -203,7 +203,7 @@ function WaiversShell() {
             />
           )}
         </div>
-        <div className="w-72 shrink-0">
+        <div className="w-full lg:w-72 lg:shrink-0">
           <RosterHealthSidebar leagueId={selectedLeague} teamId={selectedTeam} />
         </div>
       </div>
