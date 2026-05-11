@@ -517,12 +517,12 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                             {rec.drop_player.position}
                           </span>
                           {rosterValue[rec.drop_player.id] !== undefined && rosterValue[rec.drop_player.id].z > 0 && (
-                            <span
-                              className="ml-1.5 text-xs text-amber-400 cursor-help"
-                              title={`Roster value z = +${rosterValue[rec.drop_player.id].z.toFixed(2)}. This player is currently performing ABOVE their projection — dropping them may be premature.`}
+                            <InfoTip
+                              className="ml-1.5 align-middle"
+                              content={`⚠️ Overperforming projection — roster value z = +${rosterValue[rec.drop_player.id].z.toFixed(2)}. This player is currently producing ABOVE their rest-of-season projection, so dropping them may be premature.`}
                             >
-                              ⚠️
-                            </span>
+                              <span className="text-xs text-amber-400 cursor-help">⚠️</span>
+                            </InfoTip>
                           )}
                         </>
                       ) : (
