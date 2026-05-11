@@ -1,5 +1,7 @@
 'use client'
 
+import FormBadge from '@/components/FormBadge'
+
 interface CompareSeason {
   games?: number | null
   plate_appearances?: number | null
@@ -43,6 +45,7 @@ export interface PlayerCompare {
   last_14d?: CompareWindow
   last_30d?: CompareWindow
   savant?: CompareSavant
+  form_level?: 'hot' | 'cool' | 'cold' | 'neutral' | null
 }
 
 function fmt(n?: number | null, digits = 3): string {
@@ -85,7 +88,10 @@ export default function ComparisonTable({ players }: { players: PlayerCompare[] 
             <th className="text-left p-2 text-gray-400"></th>
             {players.map((p) => (
               <th key={p.mlb_id} className="text-left p-2">
-                <div className="text-white font-medium">{p.name ?? `Player ${p.mlb_id}`}</div>
+                <div className="text-white font-medium flex items-center gap-1.5">
+                  {p.name ?? `Player ${p.mlb_id}`}
+                  <FormBadge level={p.form_level ?? null} />
+                </div>
                 <div className="text-xs text-gray-400">{p.team ?? ''} {p.position ?? ''}</div>
               </th>
             ))}

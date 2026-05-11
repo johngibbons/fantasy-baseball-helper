@@ -1234,6 +1234,24 @@ def post_compare(req: CompareRequest):
                     "sprint_speed": sc.get("sprint_speed"),
                 },
             })
+
+        # Annotate each player with a form_level derived from (14d OPS − season OPS)
+        for p in players:
+            s_ops = (p.get("season") or {}).get("ops")
+            w_ops = (p.get("last_14d") or {}).get("ops")
+            if s_ops is not None and w_ops is not None:
+                d = w_ops - s_ops
+                if d >= 0.080:
+                    p["form_level"] = "hot"
+                elif d >= 0.020:
+                    p["form_level"] = "cool"
+                elif d <= -0.080:
+                    p["form_level"] = "cold"
+                else:
+                    p["form_level"] = "neutral"
+            else:
+                p["form_level"] = None
+
         return {"players": players}
     finally:
         conn.close()
