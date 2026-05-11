@@ -207,8 +207,8 @@ def compute_sustainability_score(
 
 
 # Qualification thresholds
-MIN_PA_HITTER = 50
-MIN_IP_PITCHER = 20.0
+MIN_PA_HITTER = 80
+MIN_IP_PITCHER = 25.0
 
 
 def _population_stats(values: list[float]) -> tuple[float, float]:

@@ -1243,14 +1243,14 @@ def post_breakouts_recommendations(req: BreakoutRequest):
         if candidate_ids:
             ph = ",".join(["?"] * len(candidate_ids))
             for r in conn.execute(
-                f"""SELECT b.mlb_id, b.ops, p.era, p.whip
+                f"""SELECT b.mlb_id, b.obp, p.era, p.whip
                     FROM batting_stats b LEFT JOIN pitching_stats p
                       ON b.mlb_id = p.mlb_id AND b.season = p.season
                     WHERE b.season = ? AND b.mlb_id IN ({ph})""",
                 (req.season, *candidate_ids),
             ).fetchall():
                 current_stats[r["mlb_id"]] = {
-                    "ops": r["ops"], "era": r["era"], "whip": r["whip"],
+                    "obp": r["obp"], "era": r["era"], "whip": r["whip"],
                 }
             for r in conn.execute(
                 f"""SELECT mlb_id, proj_obp, proj_era, proj_whip
@@ -1258,7 +1258,7 @@ def post_breakouts_recommendations(req: BreakoutRequest):
                 (req.season, *candidate_ids),
             ).fetchall():
                 proj_stats[r["mlb_id"]] = {
-                    "ops": r["proj_obp"],  # rough proxy
+                    "obp": r["proj_obp"],
                     "era": r["proj_era"], "whip": r["proj_whip"],
                 }
 

@@ -37,6 +37,24 @@ PITCHER_BB_THRESHOLD_RATIO = 1.20
 PRORATION_CAP = 3.0          # Max factor when extrapolating window pace forward.
 HOT_BLEND_ALPHA = 0.3        # Weight on hot pace vs ATC RoS (0=ATC only, 1=pure hot).
 
+# Per-metric green/red thresholds for stealth-view delta badges. Each entry is
+# the magnitude of (sign-adjusted) improvement required for a green badge;
+# the same magnitude in the negative direction earns a red badge. Without
+# these, every small-magnitude delta (xwOBA tops out near 0.13) was stuck on
+# yellow regardless of how dramatic the underlying skill shift.
+_BADGE_GREEN_THRESHOLD: dict[str, float] = {
+    "delta_xwoba": 0.04,
+    "delta_barrel_pct": 3.0,
+    "delta_hard_hit_pct": 3.0,
+    "delta_sprint_speed": 0.3,
+    "delta_xera": 1.0,
+    "delta_whiff_pct": 3.0,
+    "delta_k_pct": 3.0,
+    "delta_bb_pct": 1.5,
+    "delta_chase_rate": 2.5,
+}
+_BADGE_DEFAULT_THRESHOLD = 0.5
+
 
 @dataclass
 class HotPlayer:
@@ -623,9 +641,10 @@ def compute_stealth_view(
                 continue
             inverted = k in ("delta_xera", "delta_bb_pct")
             sign_value = -v if inverted else v
-            if sign_value > 0.5:
+            thr = _BADGE_GREEN_THRESHOLD.get(k, _BADGE_DEFAULT_THRESHOLD)
+            if sign_value > thr:
                 badge = "green"
-            elif sign_value > -0.5:
+            elif sign_value > -thr:
                 badge = "yellow"
             else:
                 badge = "red"

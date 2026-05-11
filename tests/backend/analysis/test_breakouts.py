@@ -342,8 +342,8 @@ class TestComputeStealthView:
             3: {"name": "C", "team": "SF", "position": "1B"},
         }
         roster_status_by_id = {1: "FA", 2: "FA", 3: "FA"}
-        current_stats = {1: {"ops": 0.700}, 2: {"ops": 0.720}, 3: {"ops": 0.690}}
-        proj_stats = {1: {"ops": 0.780}, 2: {"ops": 0.760}, 3: {"ops": 0.770}}
+        current_stats = {1: {"obp": 0.350}, 2: {"obp": 0.360}, 3: {"obp": 0.345}}
+        proj_stats = {1: {"obp": 0.330}, 2: {"obp": 0.340}, 3: {"obp": 0.335}}
 
         result = compute_stealth_view(
             baselines=baselines, player_meta=player_meta,
