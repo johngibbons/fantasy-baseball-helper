@@ -130,7 +130,9 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
   const [refreshStatus, setRefreshStatus] = useState<string | null>(null)
   const [excludeStreamSlot, setExcludeStreamSlot] = useState(true)
   const [includeCrossType, setIncludeCrossType] = useState(false)
-  const [rosterValue, setRosterValue] = useState<Record<number, number>>({})
+  type FormLevel = 'hot' | 'cool' | 'cold' | 'neutral'
+  type RosterValueEntry = { z: number; form: FormLevel | null }
+  const [rosterValue, setRosterValue] = useState<Record<number, RosterValueEntry>>({})
 
   const handleRefreshProjections = async () => {
     setRefreshing(true)
@@ -192,9 +194,9 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
         })
         if (rhResp.ok) {
           const rhData = await rhResp.json()
-          const map: Record<number, number> = {}
+          const map: Record<number, RosterValueEntry> = {}
           for (const r of rhData.roster_value || []) {
-            if (r.mlb_id != null) map[r.mlb_id] = r.value_z
+            if (r.mlb_id != null) map[r.mlb_id] = { z: r.value_z, form: r.form_level ?? null }
           }
           setRosterValue(map)
         }
@@ -361,6 +363,12 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                     p.mlb_id === results.stream_slot_player.id &&
                     excludeStreamSlot
                   )
+                  const rv = p.mlb_id != null ? rosterValue[p.mlb_id] : undefined
+                  const zColor = rv === undefined
+                    ? 'text-gray-600'
+                    : rv.z > 0.5 ? 'text-emerald-400'
+                    : rv.z < -0.5 ? 'text-red-400'
+                    : 'text-gray-500'
                   return (
                     <div key={`${slot}-${i}`} className="flex items-center gap-1.5 py-0.5">
                       <span className={`w-6 text-right font-mono font-bold ${slotColors[slot] || 'text-gray-500'}`}>{slot}</span>
@@ -383,6 +391,12 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                       <span className={`text-[10px] ${posColors[primaryPos(p.position)] || 'text-gray-500'}`}>{p.position}</span>
                       {isStreamSlot && (
                         <span className="text-[9px] font-bold text-orange-400 bg-orange-500/10 px-1 rounded">STREAM</span>
+                      )}
+                      {rv && <FormBadge level={rv.form} />}
+                      {rv && (
+                        <span className={`text-[10px] font-mono ${zColor}`}>
+                          {rv.z > 0 ? `+${rv.z.toFixed(2)}` : rv.z.toFixed(2)}
+                        </span>
                       )}
                     </div>
                   )
@@ -494,10 +508,10 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                           <span className={`ml-1.5 text-xs ${posColors[primaryPos(rec.drop_player.position)] || 'text-gray-400'}`}>
                             {rec.drop_player.position}
                           </span>
-                          {rosterValue[rec.drop_player.id] !== undefined && rosterValue[rec.drop_player.id] > 0 && (
+                          {rosterValue[rec.drop_player.id] !== undefined && rosterValue[rec.drop_player.id].z > 0 && (
                             <span
                               className="ml-1.5 text-xs text-amber-400 cursor-help"
-                              title={`Roster value z = +${rosterValue[rec.drop_player.id].toFixed(2)}. This player is currently performing ABOVE their projection — dropping them may be premature.`}
+                              title={`Roster value z = +${rosterValue[rec.drop_player.id].z.toFixed(2)}. This player is currently performing ABOVE their projection — dropping them may be premature.`}
                             >
                               ⚠️
                             </span>

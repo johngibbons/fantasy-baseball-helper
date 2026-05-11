@@ -6,7 +6,6 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import ProjectionsTab from './_components/ProjectionsTab'
 import HotTab from './_components/HotTab'
 import StealthTab from './_components/StealthTab'
-import RosterHealthSidebar from './_components/RosterHealthSidebar'
 
 interface League {
   id: string
@@ -179,33 +178,28 @@ function WaiversShell() {
         })}
       </nav>
 
-      <div className="p-4 sm:p-6 flex flex-col lg:flex-row gap-4">
-        <div className="flex-1 min-w-0">
-          {tab === 'projections' && (
-            <ProjectionsTab
-              selectedLeague={selectedLeague}
-              selectedTeam={selectedTeam}
-              credentialsOk={credentialsOk}
-            />
-          )}
-          {tab === 'hot' && (
-            <HotTab
-              selectedLeague={selectedLeague}
-              selectedTeam={selectedTeam}
-              credentialsOk={credentialsOk}
-            />
-          )}
-          {tab === 'stealth' && (
-            <StealthTab
-              selectedLeague={selectedLeague}
-              selectedTeam={selectedTeam}
-              credentialsOk={credentialsOk}
-            />
-          )}
-        </div>
-        <div className="w-full lg:w-72 lg:shrink-0">
-          <RosterHealthSidebar leagueId={selectedLeague} teamId={selectedTeam} />
-        </div>
+      <div className="p-4 sm:p-6">
+        {tab === 'projections' && (
+          <ProjectionsTab
+            selectedLeague={selectedLeague}
+            selectedTeam={selectedTeam}
+            credentialsOk={credentialsOk}
+          />
+        )}
+        {tab === 'hot' && (
+          <HotTab
+            selectedLeague={selectedLeague}
+            selectedTeam={selectedTeam}
+            credentialsOk={credentialsOk}
+          />
+        )}
+        {tab === 'stealth' && (
+          <StealthTab
+            selectedLeague={selectedLeague}
+            selectedTeam={selectedTeam}
+            credentialsOk={credentialsOk}
+          />
+        )}
       </div>
     </div>
   )
