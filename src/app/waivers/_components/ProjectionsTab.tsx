@@ -370,8 +370,8 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                     : rv.z < -0.5 ? 'text-red-400'
                     : 'text-gray-500'
                   return (
-                    <div key={`${slot}-${i}`} className="flex items-center gap-2 px-1 py-0.5">
-                      <span className={`w-14 shrink-0 text-[10px] font-mono ${posColors[primaryPos(p.position)] || 'text-gray-500'}`}>
+                    <div key={`${slot}-${i}`} className="flex items-center gap-1.5 px-1 py-0.5">
+                      <span className={`w-10 shrink-0 text-[10px] font-mono ${posColors[primaryPos(p.position)] || 'text-gray-500'}`}>
                         {p.position}
                       </span>
                       <div className="flex-1 min-w-0 flex items-center gap-1.5">
