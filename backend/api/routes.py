@@ -1148,6 +1148,97 @@ def post_roster_health(req: RosterHealthRequest):
         conn.close()
 
 
+# ── Player Comparison ──
+
+
+class CompareRequest(BaseModel):
+    mlb_ids: list[int]
+    season: int = 2026
+
+
+@router.post("/compare")
+def post_compare(req: CompareRequest):
+    """Return unified stats per player: season + 14d + 30d windows + Savant xstats + IL status + team."""
+    conn = get_connection()
+    try:
+        if not req.mlb_ids:
+            return {"players": []}
+        ph = ",".join(["?"] * len(req.mlb_ids))
+        season = req.season
+
+        # Player meta + status (joins player_status for fresh team + IL)
+        meta = {r["mlb_id"]: dict(r) for r in conn.execute(
+            f"""SELECT p.mlb_id, p.full_name, p.primary_position,
+                       COALESCE(ps.current_team, p.team) AS team,
+                       ps.is_on_il, ps.status_code, ps.last_played_date
+                FROM players p
+                LEFT JOIN player_status ps ON ps.mlb_id = p.mlb_id
+                WHERE p.mlb_id IN ({ph})""",
+            tuple(req.mlb_ids),
+        ).fetchall()}
+
+        # Season hitting stats
+        season_stats = {r["mlb_id"]: dict(r) for r in conn.execute(
+            f"SELECT * FROM batting_stats WHERE season=? AND mlb_id IN ({ph})",
+            (season, *req.mlb_ids),
+        ).fetchall()}
+
+        # Rolling 14d + 30d windows
+        rolling: dict[int, dict[int, dict]] = {}
+        for r in conn.execute(
+            f"""SELECT * FROM rolling_batting_stats
+                WHERE season=? AND mlb_id IN ({ph}) AND window_days IN (14, 30)""",
+            (season, *req.mlb_ids),
+        ).fetchall():
+            rolling.setdefault(r["mlb_id"], {})[r["window_days"]] = dict(r)
+
+        # Statcast xstats
+        statcast = {r["mlb_id"]: dict(r) for r in conn.execute(
+            f"""SELECT mlb_id, xwoba, woba, xba, xslg, sprint_speed
+                FROM statcast_batting WHERE season=? AND mlb_id IN ({ph})""",
+            (season, *req.mlb_ids),
+        ).fetchall()}
+
+        players = []
+        for mid in req.mlb_ids:
+            m = meta.get(mid, {})
+            ss = season_stats.get(mid, {})
+            r14 = rolling.get(mid, {}).get(14, {})
+            r30 = rolling.get(mid, {}).get(30, {})
+            sc = statcast.get(mid, {})
+            woba = sc.get("woba")
+            xwoba = sc.get("xwoba")
+            luck_gap = (woba - xwoba) if (woba is not None and xwoba is not None) else None
+            last_played = m.get("last_played_date")
+            players.append({
+                "mlb_id": mid,
+                "name": m.get("full_name"),
+                "team": m.get("team"),
+                "position": m.get("primary_position"),
+                "is_on_il": m.get("is_on_il", False),
+                "status_code": m.get("status_code"),
+                "last_played": last_played.isoformat() if last_played else None,
+                "season": {k: ss.get(k) for k in (
+                    "games", "plate_appearances", "runs", "home_runs", "rbi",
+                    "stolen_bases", "obp", "slg", "ops"
+                )},
+                "last_14d": {k: r14.get(k) for k in (
+                    "pa", "r", "hr", "rbi", "sb", "obp", "ops"
+                )},
+                "last_30d": {k: r30.get(k) for k in (
+                    "pa", "r", "hr", "rbi", "sb", "obp", "ops"
+                )},
+                "savant": {
+                    "xwoba": xwoba, "woba": woba, "luck_gap": luck_gap,
+                    "xba": sc.get("xba"), "xslg": sc.get("xslg"),
+                    "sprint_speed": sc.get("sprint_speed"),
+                },
+            })
+        return {"players": players}
+    finally:
+        conn.close()
+
+
 # ── Start/Sit Recommendations ──
 
 
