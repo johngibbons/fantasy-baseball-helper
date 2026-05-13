@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
       name: entry.player?.fullName || `Player ${entry.playerId}`,
       lineup_slot_id: entry.lineupSlotId,
       player_type: espnPlayerType(entry.player?.defaultPositionId),
+      eligible_positions: eligiblePositionsFromSlots(entry.player?.eligibleSlots, entry.player?.defaultPositionId),
     }))
     const myRosterDisplay = myRosterEntries.map((entry: ESPNRosterEntry) => ({
       name: entry.player?.fullName || `Player ${entry.playerId}`,
@@ -122,6 +123,7 @@ export async function POST(request: NextRequest) {
           name: entry.player?.fullName || `Player ${entry.playerId}`,
           lineup_slot_id: entry.lineupSlotId,
           player_type: espnPlayerType(entry.player?.defaultPositionId),
+          eligible_positions: eligiblePositionsFromSlots(entry.player?.eligibleSlots, entry.player?.defaultPositionId),
         })),
       }))
 
@@ -130,6 +132,7 @@ export async function POST(request: NextRequest) {
       name: p.fullName,
       lineup_slot_id: 0,
       player_type: espnPlayerType(p.defaultPositionId),
+      eligible_positions: eligiblePositionsFromSlots(p.eligibleSlots, p.defaultPositionId),
     }))
 
     // Call Python backend for recommendations

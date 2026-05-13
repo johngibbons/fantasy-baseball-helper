@@ -631,6 +631,7 @@ class WaiverRosterPlayer(BaseModel):
     name: str
     lineup_slot_id: int = 0
     player_type: Optional[str] = None  # 'hitter' or 'pitcher' from ESPN for disambiguation
+    eligible_positions: Optional[str] = None  # Live ESPN eligibility (e.g. "2B/OF/DH"); overrides stale DB value
 
 
 class WaiverTeamRoster(BaseModel):
@@ -659,7 +660,15 @@ def waiver_recommendations(req: WaiverRequest):
     )
     name_to_id = resolve_espn_names_to_mlbid(all_espn_players, season=req.season)
 
-    # Build resolved ID lists
+    # Build resolved ID lists + collect live ESPN eligibility (mlb_id → "POS/POS").
+    # Overrides stale DB eligible_positions for mid-season call-ups (e.g. rookie
+    # 2B debuts after the preseason eligibility CSV was generated).
+    eligibility_overrides: dict[int, str] = {}
+
+    def _record_eligibility(mid: int, ep: Optional[str]) -> None:
+        if mid and ep:
+            eligibility_overrides[mid] = ep
+
     my_roster_ids = []
     my_roster_slots = []
     for p in req.my_roster:
@@ -667,6 +676,7 @@ def waiver_recommendations(req: WaiverRequest):
         if mid:
             my_roster_ids.append(mid)
             my_roster_slots.append({"mlb_id": mid, "lineup_slot_id": p.lineup_slot_id})
+            _record_eligibility(mid, p.eligible_positions)
 
     other_team_rosters = []
     for team in req.other_team_rosters:
@@ -675,6 +685,7 @@ def waiver_recommendations(req: WaiverRequest):
             mid = p.mlb_id or name_to_id.get(p.name)
             if mid:
                 team_slots.append({"mlb_id": mid, "lineup_slot_id": p.lineup_slot_id})
+                _record_eligibility(mid, p.eligible_positions)
         other_team_rosters.append(team_slots)
 
     fa_ids = []
@@ -682,6 +693,7 @@ def waiver_recommendations(req: WaiverRequest):
         mid = p.mlb_id or name_to_id.get(p.name)
         if mid:
             fa_ids.append(mid)
+            _record_eligibility(mid, p.eligible_positions)
 
     # Filter out IL players from FA pool (populated by daily team-status sync)
     il_ids_filtered: list[int] = []
@@ -740,6 +752,7 @@ def waiver_recommendations(req: WaiverRequest):
         open_roster_slots=req.open_roster_slots,
         exclude_stream_slot=req.exclude_stream_slot,
         same_type_only=not req.include_cross_type,
+        eligibility_overrides=eligibility_overrides,
     )
 
     # Blend projection delta with in-season production + Statcast signals.

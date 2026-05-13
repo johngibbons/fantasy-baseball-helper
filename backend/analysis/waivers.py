@@ -464,6 +464,7 @@ def compute_waiver_recommendations(
     open_roster_slots: int = 0,
     exclude_stream_slot: bool = True,
     same_type_only: bool = True,
+    eligibility_overrides: Optional[dict[int, str]] = None,
 ) -> dict:
     """Compute waiver wire recommendations.
 
@@ -482,6 +483,13 @@ def compute_waiver_recommendations(
     all_ids = list(set(my_roster_ids + other_team_ids + free_agent_ids))
 
     projections = load_projections_for_players(all_ids, season)
+
+    # Apply live ESPN eligibility overrides (handles mid-season call-ups whose
+    # DB eligible_positions hasn't been refreshed via fetch_espn_eligibility.py).
+    if eligibility_overrides:
+        for mid, ep in eligibility_overrides.items():
+            if ep and mid in projections:
+                projections[mid].eligible_positions = ep
 
     # Identify stream slot (may be None)
     stream_slot_id: Optional[int] = None
