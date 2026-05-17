@@ -131,7 +131,7 @@ export default function StealthTab({ selectedLeague, selectedTeam, credentialsOk
       {error && <div className="text-red-400 text-sm">{error}</div>}
 
       {results && (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto overflow-y-clip">
           <table className="min-w-full text-sm">
             <thead className="text-gray-400 border-b border-gray-800">
               <tr>
