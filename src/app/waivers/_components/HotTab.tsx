@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import InfoTip from '@/components/InfoTip'
 import { tipForSustain, type SustainColor } from '@/lib/waiver-symbol-copy'
+import { SortableTh, compareValues, type SortDir } from './_sortable'
 
 interface Props {
   selectedLeague: string
@@ -48,6 +49,34 @@ export default function HotTab({ selectedLeague, selectedTeam, credentialsOk }: 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<HotResults | null>(null)
+  const [sortCol, setSortCol] = useState<string | null>(null)
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  const onSort = (col: string) => {
+    if (sortCol === col) {
+      setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))
+    } else {
+      setSortCol(col)
+      setSortDir(col === 'rank' || col === 'add' || col === 'drop' ? 'asc' : 'desc')
+    }
+  }
+
+  const sortedRecs = useMemo(() => {
+    const recs = results?.recommendations ?? []
+    if (!sortCol) return recs
+    const value = (r: HotRecommendation): number | string | null => {
+      switch (sortCol) {
+        case 'rank': return r.rank
+        case 'add': return r.add_player.name
+        case 'drop': return r.drop_player?.name ?? null
+        case 'wins': return r.wins_added_if_rate_continues
+        case 'badges': return r.sustainability_score
+        case 'bid': return r.suggested_faab_bid
+        default: return null
+      }
+    }
+    return [...recs].sort((a, b) => compareValues(value(a), value(b), sortDir))
+  }, [results, sortCol, sortDir])
 
   async function fetchRecommendations() {
     if (!selectedLeague || !selectedTeam) return
@@ -141,17 +170,17 @@ export default function HotTab({ selectedLeague, selectedTeam, credentialsOk }: 
           <table className="min-w-full text-sm">
             <thead className="text-gray-400 border-b border-gray-800">
               <tr>
-                <th className="text-left p-2">#</th>
-                <th className="text-left p-2">Add</th>
-                <th className="text-left p-2">Drop</th>
-                <th className="text-right p-2">Wins+</th>
+                <SortableTh col="rank" label="#" sortCol={sortCol} sortDir={sortDir} onSort={onSort} className="p-2" />
+                <SortableTh col="add" label="Add" sortCol={sortCol} sortDir={sortDir} onSort={onSort} className="p-2" />
+                <SortableTh col="drop" label="Drop" sortCol={sortCol} sortDir={sortDir} onSort={onSort} className="p-2" />
+                <SortableTh col="wins" label="Wins+" sortCol={sortCol} sortDir={sortDir} onSort={onSort} align="right" className="p-2" />
                 <th className="text-left p-2">Window</th>
-                <th className="text-left p-2">Badges</th>
-                <th className="text-right p-2">Bid</th>
+                <SortableTh col="badges" label="Badges" sortCol={sortCol} sortDir={sortDir} onSort={onSort} className="p-2" />
+                <SortableTh col="bid" label="Bid" sortCol={sortCol} sortDir={sortDir} onSort={onSort} align="right" className="p-2" />
               </tr>
             </thead>
             <tbody>
-              {results.recommendations.map((r) => (
+              {sortedRecs.map((r) => (
                 <tr key={r.rank} className="border-b border-gray-900 hover:bg-gray-900/50">
                   <td className="p-2 text-gray-500">{r.rank}</td>
                   <td className="p-2">
@@ -187,7 +216,7 @@ export default function HotTab({ selectedLeague, selectedTeam, credentialsOk }: 
                   </td>
                 </tr>
               ))}
-              {results.recommendations.length === 0 && (
+              {sortedRecs.length === 0 && (
                 <tr><td colSpan={7} className="p-4 text-center text-gray-500">No qualifying breakouts in this window.</td></tr>
               )}
             </tbody>

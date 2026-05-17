@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import InfoTip from '@/components/InfoTip'
 import { tipForDelta, type DeltaColor } from '@/lib/waiver-symbol-copy'
+import { SortableTh, compareValues, type SortDir } from './_sortable'
 
 interface Props {
   selectedLeague: string
@@ -45,6 +46,32 @@ export default function StealthTab({ selectedLeague, selectedTeam, credentialsOk
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [results, setResults] = useState<StealthResults | null>(null)
+  const [sortCol, setSortCol] = useState<string | null>(null)
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  const onSort = (col: string) => {
+    if (sortCol === col) {
+      setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))
+    } else {
+      setSortCol(col)
+      setSortDir(col === 'rank' || col === 'player' || col === 'baseline' ? 'asc' : 'desc')
+    }
+  }
+
+  const sortedRecs = useMemo(() => {
+    const recs = results?.recommendations ?? []
+    if (!sortCol) return recs
+    const value = (r: StealthRecommendation): number | string | null => {
+      switch (sortCol) {
+        case 'rank': return r.rank
+        case 'player': return r.player.name
+        case 'z': return r.skill_change_zscore
+        case 'baseline': return r.baseline_source
+        default: return null
+      }
+    }
+    return [...recs].sort((a, b) => compareValues(value(a), value(b), sortDir))
+  }, [results, sortCol, sortDir])
 
   async function fetchRecommendations() {
     if (!selectedLeague || !selectedTeam) return
@@ -135,16 +162,16 @@ export default function StealthTab({ selectedLeague, selectedTeam, credentialsOk
           <table className="min-w-full text-sm">
             <thead className="text-gray-400 border-b border-gray-800">
               <tr>
-                <th className="text-left p-2">#</th>
-                <th className="text-left p-2">Player</th>
-                <th className="text-right p-2">Z</th>
+                <SortableTh col="rank" label="#" sortCol={sortCol} sortDir={sortDir} onSort={onSort} className="p-2" />
+                <SortableTh col="player" label="Player" sortCol={sortCol} sortDir={sortDir} onSort={onSort} className="p-2" />
+                <SortableTh col="z" label="Z" sortCol={sortCol} sortDir={sortDir} onSort={onSort} align="right" className="p-2" />
                 <th className="text-left p-2">Headline</th>
                 <th className="text-left p-2">Metric Deltas</th>
-                <th className="text-left p-2">Baseline</th>
+                <SortableTh col="baseline" label="Baseline" sortCol={sortCol} sortDir={sortDir} onSort={onSort} className="p-2" />
               </tr>
             </thead>
             <tbody>
-              {results.recommendations.map((r) => (
+              {sortedRecs.map((r) => (
                 <tr key={r.rank} className="border-b border-gray-900 hover:bg-gray-900/50">
                   <td className="p-2 text-gray-500">{r.rank}</td>
                   <td className="p-2">
@@ -174,7 +201,7 @@ export default function StealthTab({ selectedLeague, selectedTeam, credentialsOk
                   <td className="p-2 text-xs text-gray-500">{r.baseline_source}</td>
                 </tr>
               ))}
-              {results.recommendations.length === 0 && (
+              {sortedRecs.length === 0 && (
                 <tr><td colSpan={6} className="p-4 text-center text-gray-500">No qualifying stealth breakouts.</td></tr>
               )}
             </tbody>

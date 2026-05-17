@@ -5,6 +5,7 @@ import Link from 'next/link'
 import FormBadge from '@/components/FormBadge'
 import InfoTip from '@/components/InfoTip'
 import { SCORE_COMPONENT_COPY } from '@/lib/waiver-symbol-copy'
+import { SortableTh, compareValues, type SortDir } from './_sortable'
 
 interface Props {
   selectedLeague: string
@@ -260,6 +261,34 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
     return results.recommendations.filter((r) => isEligibleAt(r.add_player.position, posFilter))
   }, [results, posFilter])
 
+  const [sortCol, setSortCol] = useState<string | null>(null)
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+
+  const onSort = (col: string) => {
+    if (sortCol === col) {
+      setSortDir((d) => (d === 'desc' ? 'asc' : 'desc'))
+    } else {
+      setSortCol(col)
+      // Text columns default asc; numeric columns default desc.
+      setSortDir(col === 'rank' || col === 'add' || col === 'drop' ? 'asc' : 'desc')
+    }
+  }
+
+  const sortedRecs = useMemo(() => {
+    if (!sortCol) return filteredRecs
+    const value = (r: Recommendation): number | string | null => {
+      switch (sortCol) {
+        case 'rank': return r.rank
+        case 'add': return r.add_player.name
+        case 'drop': return r.drop_player?.name ?? null
+        case 'wins': return r.delta_expected_wins
+        case 'faab': return r.suggested_faab_bid
+        default: return r.category_impact?.[sortCol] ?? 0
+      }
+    }
+    return [...filteredRecs].sort((a, b) => compareValues(value(a), value(b), sortDir))
+  }, [filteredRecs, sortCol, sortDir])
+
   return (
     <div>
       {/* Action bar */}
@@ -462,24 +491,24 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/[0.06] text-xs text-gray-500">
-                  <th className="text-left px-3 py-2 w-8">#</th>
-                  <th className="text-left px-3 py-2">Add</th>
-                  <th className="text-left px-3 py-2">Drop</th>
-                  <th className="text-right px-3 py-2">+Wins</th>
-                  <th className="text-right px-3 py-2">FAAB</th>
+                  <SortableTh col="rank" label="#" sortCol={sortCol} sortDir={sortDir} onSort={onSort} className="px-3 py-2 w-8" />
+                  <SortableTh col="add" label="Add" sortCol={sortCol} sortDir={sortDir} onSort={onSort} className="px-3 py-2" />
+                  <SortableTh col="drop" label="Drop" sortCol={sortCol} sortDir={sortDir} onSort={onSort} className="px-3 py-2" />
+                  <SortableTh col="wins" label="+Wins" sortCol={sortCol} sortDir={sortDir} onSort={onSort} align="right" className="px-3 py-2" />
+                  <SortableTh col="faab" label="FAAB" sortCol={sortCol} sortDir={sortDir} onSort={onSort} align="right" className="px-3 py-2" />
                   {CATS.map((cat) => (
-                    <th key={cat} className="text-right px-2 py-2 w-12">{cat}</th>
+                    <SortableTh key={cat} col={cat} label={cat} sortCol={sortCol} sortDir={sortDir} onSort={onSort} align="right" className="px-2 py-2 w-12" />
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {filteredRecs.length === 0 ? (
+                {sortedRecs.length === 0 ? (
                   <tr>
                     <td colSpan={5 + CATS.length} className="px-3 py-8 text-center text-gray-500">
                       No recommendations{posFilter !== 'All' ? ` for ${posFilter}` : ''}
                     </td>
                   </tr>
-                ) : filteredRecs.map((rec) => (
+                ) : sortedRecs.map((rec) => (
                   <tr key={rec.rank} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
                     <td className="px-3 py-2 text-gray-500 font-mono">{rec.rank}</td>
                     <td className="px-3 py-2">
