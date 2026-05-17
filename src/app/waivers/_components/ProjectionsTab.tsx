@@ -458,7 +458,7 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
           </div>
 
           {/* Recommendations table */}
-          <div className="bg-[#161b22] border border-white/[0.06] rounded-lg overflow-x-auto">
+          <div className="bg-[#161b22] border border-white/[0.06] rounded-lg overflow-x-auto overflow-y-clip">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-white/[0.06] text-xs text-gray-500">
