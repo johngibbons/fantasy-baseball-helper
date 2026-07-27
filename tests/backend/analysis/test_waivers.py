@@ -393,3 +393,78 @@ class TestAssignFaabBids:
         assign_faab_bids(recs2, remaining_faab=100.0,
                          metric_attr="wins_added_if_rate_continues")
         assert recs2[0].suggested_faab_bid > 0
+
+
+class TestTradeCandidates:
+    """Rostered players scored as trade targets alongside free agents."""
+
+    def test_absent_by_default(self):
+        result = _call_engine()
+        assert all(
+            not r["is_trade_target"] for r in result["recommendations"]
+        )
+        add_ids = {r["add_player"]["id"] for r in result["recommendations"]}
+        assert add_ids <= {501, 502}
+
+    def test_trade_candidate_is_scored_and_flagged(self):
+        result = _call_engine(trade_candidate_ids=[301])
+        by_id = {
+            r["add_player"]["id"]: r for r in result["recommendations"]
+        }
+        assert 301 in by_id, "rostered candidate should be evaluated"
+        assert by_id[301]["is_trade_target"] is True
+        # Free agents remain, and stay flagged as claimable
+        assert by_id[501]["is_trade_target"] is False
+
+    def test_trade_targets_get_no_faab_bid(self):
+        result = _call_engine(trade_candidate_ids=[301])
+        for r in result["recommendations"]:
+            if r["is_trade_target"]:
+                assert r["suggested_faab_bid"] == 0
+
+    def test_faab_for_free_agents_unaffected_by_trade_candidates(self):
+        """Trade targets must not absorb budget share from real waiver claims."""
+        base = _call_engine()
+        with_trades = _call_engine(trade_candidate_ids=[301, 302, 303])
+
+        def fa_bids(res):
+            return {
+                r["add_player"]["id"]: r["suggested_faab_bid"]
+                for r in res["recommendations"]
+                if not r["is_trade_target"]
+            }
+
+        assert fa_bids(base) == fa_bids(with_trades)
+
+    def test_players_on_my_roster_are_not_candidates(self):
+        result = _call_engine(trade_candidate_ids=[101, 301])
+        add_ids = {r["add_player"]["id"] for r in result["recommendations"]}
+        assert 101 not in add_ids, "own roster player must not be an add candidate"
+        assert 301 in add_ids
+
+    def test_duplicate_between_pools_scored_once_as_free_agent(self):
+        result = _call_engine(trade_candidate_ids=[501])
+        recs_501 = [
+            r for r in result["recommendations"] if r["add_player"]["id"] == 501
+        ]
+        assert recs_501, "candidate should still be scored"
+        assert all(not r["is_trade_target"] for r in recs_501)
+        # No duplicate (add, drop) pairs emitted for the same player
+        pairs = [
+            (r["add_player"]["id"], (r["drop_player"] or {}).get("id"))
+            for r in recs_501
+        ]
+        assert len(pairs) == len(set(pairs))
+
+    def test_baseline_unchanged_by_trade_candidates(self):
+        """Adding trade targets must not alter my baseline or opponents."""
+        base = _call_engine()
+        with_trades = _call_engine(trade_candidate_ids=[301, 401])
+        assert (
+            base["baseline_expected_wins"]
+            == with_trades["baseline_expected_wins"]
+        )
+        assert (
+            base["baseline_category_probs"]
+            == with_trades["baseline_category_probs"]
+        )

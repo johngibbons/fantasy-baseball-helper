@@ -26,6 +26,7 @@ interface Recommendation {
   drop_player: PlayerRef | null
   delta_expected_wins: number
   suggested_faab_bid: number
+  is_trade_target?: boolean
   category_impact: Record<string, number>
   category_stat_delta: Record<string, number>
   blended_score?: number
@@ -52,10 +53,13 @@ interface WaiverResults {
   remaining_faab: number
   my_roster_count: number
   free_agent_count: number
+  rostered_candidate_count?: number
   other_teams_count: number
   open_roster_slots: number
   my_roster_display: RosterPlayer[]
   stream_slot_player: { id: number; name: string; position: string } | null
+  owner_by_mlb_id?: Record<number, string>
+  candidate_counts?: { free_agents: number; trade_targets: number }
 }
 
 const CATS = ['R', 'TB', 'RBI', 'SB', 'OBP', 'K', 'QS', 'ERA', 'WHIP', 'SVHD']
@@ -131,6 +135,9 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
   const [refreshStatus, setRefreshStatus] = useState<string | null>(null)
   const [excludeStreamSlot, setExcludeStreamSlot] = useState(true)
   const [includeCrossType, setIncludeCrossType] = useState(false)
+  // 'available' = free agents only (waiver claims). 'all' additionally scores
+  // players rostered by other teams, to size up trade targets.
+  const [playerPool, setPlayerPool] = useState<'available' | 'all'>('available')
   type FormLevel = 'hot' | 'cool' | 'cold' | 'neutral'
   type RosterValueEntry = { z: number; form: FormLevel | null }
   const [rosterValue, setRosterValue] = useState<Record<number, RosterValueEntry>>({})
@@ -172,6 +179,7 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
           teamId: selectedTeam,
           excludeStreamSlot,
           includeCrossType,
+          includeRostered: playerPool === 'all',
         }),
       })
 
@@ -237,7 +245,7 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
     if (!results || loading) return
     handleFetchRecommendations()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [excludeStreamSlot, includeCrossType])
+  }, [excludeStreamSlot, includeCrossType, playerPool])
 
   const rosterBySlot = useMemo(() => {
     if (!results?.my_roster_display) return []
@@ -345,8 +353,19 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
               <div className="text-lg font-bold text-white">${results.remaining_faab}</div>
             </div>
             <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-3">
-              <div className="text-xs text-gray-500">Free Agents Analyzed</div>
-              <div className="text-lg font-bold text-white">{results.free_agent_count}</div>
+              <div className="text-xs text-gray-500">
+                {playerPool === 'all' ? 'Players Analyzed' : 'Free Agents Analyzed'}
+              </div>
+              <div className="text-lg font-bold text-white">
+                {playerPool === 'all'
+                  ? results.free_agent_count + (results.rostered_candidate_count ?? 0)
+                  : results.free_agent_count}
+              </div>
+              {playerPool === 'all' && (results.rostered_candidate_count ?? 0) > 0 && (
+                <div className="text-[10px] text-gray-500 mt-0.5">
+                  {results.free_agent_count} FA + {results.rostered_candidate_count} rostered
+                </div>
+              )}
             </div>
             <div className="bg-[#161b22] border border-white/[0.06] rounded-lg p-3">
               <div className="text-xs text-gray-500">Positive Pickups</div>
@@ -443,7 +462,32 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
           </div>
 
           {/* Recommendation filters */}
-          <div className="flex gap-4 mb-2 text-xs">
+          <div className="flex flex-wrap items-center gap-4 mb-2 text-xs">
+            <div className="flex items-center gap-1.5">
+              <span className="text-gray-500">Pool:</span>
+              <div className="inline-flex rounded border border-white/10 overflow-hidden">
+                {([
+                  { key: 'available', label: 'Available only' },
+                  { key: 'all', label: 'All players' },
+                ] as const).map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setPlayerPool(key)}
+                    disabled={loading}
+                    className={`px-2 py-0.5 font-medium transition-colors disabled:opacity-50 ${
+                      playerPool === key
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-[#0d1117] text-gray-400 hover:text-gray-200'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <InfoTip content="Available only: free agents you can claim off waivers. All players: also scores players rostered by other teams, so you can see what acquiring them by trade would do to your expected wins. Trade targets get no FAAB bid and are marked with their current team.">
+                <span className="text-gray-500 cursor-help">ⓘ</span>
+              </InfoTip>
+            </div>
             <label className="flex items-center gap-1.5 cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -519,6 +563,14 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                       <span className="ml-1.5">
                         <FormBadge level={rec.add_player.form_level ?? null} />
                       </span>
+                      {rec.is_trade_target && (
+                        <span
+                          className="ml-1.5 text-[9px] font-bold text-violet-300 bg-violet-500/15 border border-violet-500/30 px-1 py-px rounded align-middle whitespace-nowrap"
+                          title="Rostered by another team — acquire via trade"
+                        >
+                          {results.owner_by_mlb_id?.[rec.add_player.id] ?? 'ROSTERED'}
+                        </span>
+                      )}
                       {rec.score_breakdown && (
                         <div className="text-[10px] text-gray-400 mt-0.5 font-mono">
                           <InfoTip content={SCORE_COMPONENT_COPY.projection}>
@@ -564,7 +616,13 @@ export default function ProjectionsTab({ selectedLeague, selectedTeam, credentia
                       {fmtDelta(rec.delta_expected_wins)}
                     </td>
                     <td className="px-3 py-2 text-right font-mono text-yellow-400">
-                      {rec.suggested_faab_bid > 0 ? `$${rec.suggested_faab_bid}` : '-'}
+                      {rec.is_trade_target ? (
+                        <span className="text-violet-400 text-xs not-italic">trade</span>
+                      ) : rec.suggested_faab_bid > 0 ? (
+                        `$${rec.suggested_faab_bid}`
+                      ) : (
+                        '-'
+                      )}
                     </td>
                     {CATS.map((cat) => {
                       const impact = rec.category_impact[cat] ?? 0

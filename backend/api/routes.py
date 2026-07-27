@@ -642,6 +642,9 @@ class WaiverRequest(BaseModel):
     my_roster: list[WaiverRosterPlayer]
     other_team_rosters: list[WaiverTeamRoster]
     free_agents: list[WaiverRosterPlayer]
+    # Players rostered by other teams, evaluated as trade targets alongside
+    # free agents. Empty = waiver-only mode (the default).
+    rostered_candidates: list[WaiverRosterPlayer] = []
     remaining_faab: float = 100.0
     season: int = 2026
     open_roster_slots: int = 0
@@ -657,6 +660,7 @@ def waiver_recommendations(req: WaiverRequest):
         [{"name": p.name, "player_type": p.player_type} for p in req.my_roster]
         + [{"name": p.name, "player_type": p.player_type} for team in req.other_team_rosters for p in team.players]
         + [{"name": p.name, "player_type": p.player_type} for p in req.free_agents]
+        + [{"name": p.name, "player_type": p.player_type} for p in req.rostered_candidates]
     )
     name_to_id = resolve_espn_names_to_mlbid(all_espn_players, season=req.season)
 
@@ -695,25 +699,36 @@ def waiver_recommendations(req: WaiverRequest):
             fa_ids.append(mid)
             _record_eligibility(mid, p.eligible_positions)
 
-    # Filter out IL players from FA pool (populated by daily team-status sync)
+    trade_ids = []
+    for p in req.rostered_candidates:
+        mid = p.mlb_id or name_to_id.get(p.name)
+        if mid:
+            trade_ids.append(mid)
+            _record_eligibility(mid, p.eligible_positions)
+
+    # Filter out IL players from the candidate pool (populated by daily
+    # team-status sync). Applies to trade targets too: an injured player can't
+    # help the categories this analysis scores.
     il_ids_filtered: list[int] = []
-    if fa_ids:
+    pool_ids = fa_ids + trade_ids
+    if pool_ids:
         try:
             conn = get_connection()
             try:
-                ph = ",".join(["?"] * len(fa_ids))
+                ph = ",".join(["?"] * len(pool_ids))
                 rows = conn.execute(
                     f"SELECT mlb_id FROM player_status "
                     f"WHERE is_on_il = TRUE AND mlb_id IN ({ph})",
-                    tuple(fa_ids),
+                    tuple(pool_ids),
                 ).fetchall()
                 il_ids = {r["mlb_id"] for r in rows}
             finally:
                 conn.close()
             if il_ids:
-                il_ids_filtered = [mid for mid in fa_ids if mid in il_ids]
+                il_ids_filtered = [mid for mid in pool_ids if mid in il_ids]
                 fa_ids = [mid for mid in fa_ids if mid not in il_ids]
-                logger.info(f"IL filter: removed {len(il_ids_filtered)} IL players from FA pool")
+                trade_ids = [mid for mid in trade_ids if mid not in il_ids]
+                logger.info(f"IL filter: removed {len(il_ids_filtered)} IL players from candidate pool")
         except Exception as e:
             logger.warning(f"IL filter skipped (player_status unavailable): {e}")
 
@@ -722,6 +737,7 @@ def waiver_recommendations(req: WaiverRequest):
     logger.info(
         f"Waiver resolution: {len(my_roster_ids)}/{len(req.my_roster)} roster, "
         f"{len(fa_ids)}/{len(req.free_agents)} FAs, "
+        f"{len(trade_ids)}/{len(req.rostered_candidates)} trade targets, "
         f"{len(name_to_id)} total names resolved"
     )
     if unresolved_roster:
@@ -732,11 +748,11 @@ def waiver_recommendations(req: WaiverRequest):
             status_code=400,
             detail=f"No roster players could be resolved. Sample names: {sample_names}",
         )
-    if not fa_ids:
+    if not fa_ids and not trade_ids:
         sample_names = [p.name for p in req.free_agents[:5]]
         raise HTTPException(
             status_code=400,
-            detail=f"No free agents could be resolved. Sample names: {sample_names}",
+            detail=f"No candidates could be resolved. Sample names: {sample_names}",
         )
 
     # Pass name→mlb_id mapping so frontend can link roster players
@@ -753,6 +769,7 @@ def waiver_recommendations(req: WaiverRequest):
         exclude_stream_slot=req.exclude_stream_slot,
         same_type_only=not req.include_cross_type,
         eligibility_overrides=eligibility_overrides,
+        trade_candidate_ids=trade_ids,
     )
 
     # Blend projection delta with in-season production + Statcast signals.
@@ -856,11 +873,19 @@ def waiver_recommendations(req: WaiverRequest):
         for team in req.other_team_rosters[:2]  # first 2 teams
     ]
     result["name_to_mlb_id"] = result_name_to_id
+    # Resolved (post-IL-filter) pool sizes, so the UI can report what was
+    # actually scored rather than what was submitted.
+    result["candidate_counts"] = {
+        "free_agents": len(fa_ids),
+        "trade_targets": len(trade_ids),
+    }
     result["diagnostics"] = {
         "roster_resolved": len(my_roster_ids),
         "roster_total": len(req.my_roster),
         "fa_resolved": len(fa_ids),
         "fa_total": len(req.free_agents),
+        "trade_resolved": len(trade_ids),
+        "trade_total": len(req.rostered_candidates),
         "unresolved_roster": unresolved_roster[:10],
         "roster_names_sent": [p.name for p in req.my_roster[:5]],
         "my_lineup_slot_ids": my_slot_ids,

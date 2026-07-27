@@ -150,6 +150,9 @@ class WaiverRecommendation:
     category_impact: dict[str, float]
     category_stat_delta: dict[str, float]
     wins_added_if_rate_continues: Optional[float] = None
+    # True when the add candidate is rostered by another team (trade target,
+    # not a waiver claim). Trade targets are excluded from FAAB bidding.
+    is_trade_target: bool = False
 
 
 # ── Player ID resolution ─────────────────────────────────────────────────────
@@ -465,11 +468,12 @@ def compute_waiver_recommendations(
     exclude_stream_slot: bool = True,
     same_type_only: bool = True,
     eligibility_overrides: Optional[dict[int, str]] = None,
+    trade_candidate_ids: Optional[list[int]] = None,
 ) -> dict:
     """Compute waiver wire recommendations.
 
-    For each (FA, drop) pair, builds the trial roster and re-optimizes the
-    lineup to determine proper starter/bench assignments.
+    For each (candidate, drop) pair, builds the trial roster and re-optimizes
+    the lineup to determine proper starter/bench assignments.
 
     Args:
         exclude_stream_slot: If True, the user's worst-projected active pitcher
@@ -478,9 +482,27 @@ def compute_waiver_recommendations(
         same_type_only: If True, only hitter-for-hitter and pitcher-for-pitcher
             drops are evaluated. If False, cross-type drops are also considered
             (tracks one best drop per dropped-player type).
+        trade_candidate_ids: Players rostered by other teams to evaluate
+            alongside free agents. Scored identically (what does my roster look
+            like with this player on it), but flagged ``is_trade_target`` and
+            excluded from FAAB bidding since they can't be claimed off waivers.
+            The other team's roster is left intact — this measures the value of
+            acquiring the player, not the net swing of a specific trade.
     """
     other_team_ids = [s["mlb_id"] for team in all_team_roster_slots for s in team]
-    all_ids = list(set(my_roster_ids + other_team_ids + free_agent_ids))
+    trade_ids = list(dict.fromkeys(trade_candidate_ids or []))
+    # A player listed in both pools is claimable, so treat them as a free agent
+    # (keeps their FAAB bid) rather than a trade target.
+    trade_id_set = set(trade_ids) - set(free_agent_ids)
+    _mine = set(my_roster_ids)
+    # Candidate pool: free agents first, then trade targets. Dedup preserves
+    # order so a player in both lists is scored once, and players already on my
+    # roster are never offered as an add.
+    candidate_ids = [
+        pid for pid in dict.fromkeys(list(free_agent_ids) + trade_ids)
+        if pid not in _mine
+    ]
+    all_ids = list(set(my_roster_ids + other_team_ids + candidate_ids))
 
     projections = load_projections_for_players(all_ids, season)
 
@@ -530,10 +552,10 @@ def compute_waiver_recommendations(
             continue
         droppable_ids.append(pid)
 
-    # Evaluate each free agent
+    # Evaluate each candidate (free agents + optional trade targets)
     recommendations: list[WaiverRecommendation] = []
 
-    for fa_id in free_agent_ids:
+    for fa_id in candidate_ids:
         fa_proj = projections.get(fa_id)
         if not fa_proj:
             continue
@@ -625,10 +647,15 @@ def compute_waiver_recommendations(
                 suggested_faab_bid=0,
                 category_impact=entry["cat_impact"],
                 category_stat_delta=entry["stat_delta"],
+                is_trade_target=fa_id in trade_id_set,
             ))
 
     recommendations.sort(key=lambda r: r.delta_expected_wins, reverse=True)
-    _assign_faab_bids(recommendations, remaining_faab)
+    # Trade targets can't be claimed with FAAB, so they're excluded from the
+    # budget split — otherwise they'd absorb bid share from real waiver claims.
+    _assign_faab_bids(
+        [r for r in recommendations if not r.is_trade_target], remaining_faab,
+    )
 
     stream_slot_payload = None
     if stream_slot_id is not None:
@@ -666,6 +693,7 @@ def compute_waiver_recommendations(
                 "suggested_faab_bid": r.suggested_faab_bid,
                 "category_impact": r.category_impact,
                 "category_stat_delta": r.category_stat_delta,
+                "is_trade_target": r.is_trade_target,
             }
             for i, r in enumerate(recommendations)
         ],

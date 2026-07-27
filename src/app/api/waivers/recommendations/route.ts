@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
       season = '2026',
       excludeStreamSlot = true,
       includeCrossType = false,
+      includeRostered = false,
     } = body
 
     if (!leagueId || !teamId) {
@@ -116,16 +117,45 @@ export async function POST(request: NextRequest) {
     const openRosterSlots = Math.max(0, MAX_ROSTER_SIZE - nonIlCount)
 
     // Build other teams' rosters
-    const otherTeamRosters = Object.entries(rosters)
-      .filter(([tid]) => parseInt(tid) !== myTeamId)
-      .map(([, entries]) => ({
-        players: entries.map((entry: ESPNRosterEntry) => ({
-          name: entry.player?.fullName || `Player ${entry.playerId}`,
-          lineup_slot_id: entry.lineupSlotId,
-          player_type: espnPlayerType(entry.player?.defaultPositionId),
-          eligible_positions: eligiblePositionsFromSlots(entry.player?.eligibleSlots, entry.player?.defaultPositionId),
-        })),
-      }))
+    const otherTeamEntries = Object.entries(rosters).filter(
+      ([tid]) => parseInt(tid) !== myTeamId,
+    )
+    const otherTeamRosters = otherTeamEntries.map(([, entries]) => ({
+      players: entries.map((entry: ESPNRosterEntry) => ({
+        name: entry.player?.fullName || `Player ${entry.playerId}`,
+        lineup_slot_id: entry.lineupSlotId,
+        player_type: espnPlayerType(entry.player?.defaultPositionId),
+        eligible_positions: eligiblePositionsFromSlots(entry.player?.eligibleSlots, entry.player?.defaultPositionId),
+      })),
+    }))
+
+    // "All players" mode: also score players rostered by other teams as trade
+    // targets. IL-slotted players are skipped to match the free-agent IL
+    // filter — acquiring an injured player doesn't move current categories.
+    const teamNameById = new Map<number, string>()
+    for (const t of teamsAndFaab.teams || []) {
+      const label = [t.location, t.nickname].filter(Boolean).join(' ').trim()
+      teamNameById.set(t.id, label || t.abbrev || `Team ${t.id}`)
+    }
+
+    const ownerByName: Record<string, string> = {}
+    const rosteredCandidates = includeRostered
+      ? otherTeamEntries.flatMap(([tid, entries]) => {
+          const owner = teamNameById.get(parseInt(tid)) || `Team ${tid}`
+          return entries
+            .filter((entry: ESPNRosterEntry) => entry.lineupSlotId < 17)
+            .map((entry: ESPNRosterEntry) => {
+              const name = entry.player?.fullName || `Player ${entry.playerId}`
+              ownerByName[name] = owner
+              return {
+                name,
+                lineup_slot_id: 0,
+                player_type: espnPlayerType(entry.player?.defaultPositionId),
+                eligible_positions: eligiblePositionsFromSlots(entry.player?.eligibleSlots, entry.player?.defaultPositionId),
+              }
+            })
+        })
+      : []
 
     // Build free agents list
     const faList = freeAgents.map((p) => ({
@@ -143,6 +173,7 @@ export async function POST(request: NextRequest) {
         my_roster: myRoster,
         other_team_rosters: otherTeamRosters,
         free_agents: faList,
+        rostered_candidates: rosteredCandidates,
         remaining_faab: remainingFaab,
         season: parseInt(season),
         open_roster_slots: openRosterSlots,
@@ -174,14 +205,25 @@ export async function POST(request: NextRequest) {
       mlb_id: nameToMlbId[p.name] || null,
     }))
 
+    // Re-key the owner map by mlb_id so the UI can label trade targets. Names
+    // that failed backend resolution simply drop out.
+    const ownerByMlbId: Record<number, string> = {}
+    for (const [name, owner] of Object.entries(ownerByName)) {
+      const mlbId = nameToMlbId[name]
+      if (mlbId) ownerByMlbId[mlbId] = owner
+    }
+
     return NextResponse.json({
       ...recommendations,
       remaining_faab: remainingFaab,
       my_roster_count: myRoster.length,
       free_agent_count: faList.length,
+      rostered_candidate_count: rosteredCandidates.length,
       other_teams_count: otherTeamRosters.length,
       open_roster_slots: openRosterSlots,
       my_roster_display: rosterWithIds,
+      owner_by_mlb_id: ownerByMlbId,
+      include_rostered: includeRostered,
     })
   } catch (error: any) {
     console.error('Waiver recommendations error:', error)
