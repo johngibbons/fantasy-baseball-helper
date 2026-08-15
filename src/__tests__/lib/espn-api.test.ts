@@ -303,6 +303,28 @@ describe('ESPN API', () => {
       expect(result[2].home.teamId).toBe(1)
       expect(result[2].away.teamId).toBe(3)
     })
+
+    it('drops playoff bye entries that have only one side', async () => {
+      const fakeResponse = {
+        schedule: [
+          { matchupPeriodId: 22, home: { teamId: 1 }, away: { teamId: 2 } },
+          { matchupPeriodId: 22, home: { teamId: 3 } },        // bye
+          { matchupPeriodId: 22, away: { teamId: 4 } },        // bye
+        ],
+      }
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => fakeResponse,
+      })
+
+      const result = await ESPNApi.getFullSchedule('77166', '2026', {
+        swid: 'S', espn_s2: 'E',
+      })
+
+      expect(result).toHaveLength(1)
+      expect(result[0].home.teamId).toBe(1)
+      expect(result[0].away.teamId).toBe(2)
+    })
   })
 
   describe('ESPNApi.getMatchupHistory', () => {

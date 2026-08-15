@@ -321,10 +321,12 @@ export class ESPNApi {
     settings: ESPNLeagueSettings,
     matchupPeriodId: number,
   ): Promise<{
+    // In the playoffs a schedule entry can have only one side — a team with a
+    // bye has no `away` — so both sides are optional.
     schedule: Array<{
       matchupPeriodId: number
-      home: { teamId: number; cumulativeScore?: { scoreByStat?: Record<string, { score: number; result: string }> } }
-      away: { teamId: number; cumulativeScore?: { scoreByStat?: Record<string, { score: number; result: string }> } }
+      home?: { teamId: number; cumulativeScore?: { scoreByStat?: Record<string, { score: number; result: string }> } }
+      away?: { teamId: number; cumulativeScore?: { scoreByStat?: Record<string, { score: number; result: string }> } }
     }>
   }> {
     const url = `https://lm-api-reads.fantasy.espn.com/apis/v3/games/flb/seasons/${season}/segments/0/leagues/${leagueId}?view=mMatchupScore&view=mScoreboard`
@@ -367,11 +369,15 @@ export class ESPNApi {
     }
 
     const data = await response.json()
-    return (data.schedule || []).map((m: any) => ({
-      matchupPeriodId: m.matchupPeriodId,
-      home: { teamId: m.home.teamId },
-      away: { teamId: m.away.teamId },
-    }))
+    // Playoff byes produce entries with a single side; they aren't a pairing,
+    // so drop them rather than emitting a half-populated matchup.
+    return (data.schedule || [])
+      .filter((m: any) => m.home?.teamId != null && m.away?.teamId != null)
+      .map((m: any) => ({
+        matchupPeriodId: m.matchupPeriodId,
+        home: { teamId: m.home.teamId },
+        away: { teamId: m.away.teamId },
+      }))
   }
 
   /**

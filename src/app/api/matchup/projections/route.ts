@@ -90,9 +90,10 @@ export async function POST(request: NextRequest) {
 
     const myTeamId = parseInt(teamId)
 
-    // Find my matchup
+    // Find my matchup. Playoff schedule entries can carry a single side (a bye),
+    // so never assume both home and away exist.
     const myMatchup = scoreboard.schedule.find(
-      (m) => m.home.teamId === myTeamId || m.away.teamId === myTeamId
+      (m) => m.home?.teamId === myTeamId || m.away?.teamId === myTeamId
     )
     if (!myMatchup) {
       return NextResponse.json(
@@ -101,9 +102,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const isHome = myMatchup.home.teamId === myTeamId
+    const isHome = myMatchup.home?.teamId === myTeamId
     const mySide = isHome ? myMatchup.home : myMatchup.away
     const theirSide = isHome ? myMatchup.away : myMatchup.home
+    if (!mySide || !theirSide) {
+      return NextResponse.json(
+        { error: 'You have a bye this matchup period — no opponent to project against.' },
+        { status: 404 },
+      )
+    }
 
     // Extract current actuals from scoreboard
     const myStats = mySide.cumulativeScore?.scoreByStat || {}

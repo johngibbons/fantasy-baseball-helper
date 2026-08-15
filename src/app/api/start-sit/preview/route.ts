@@ -59,9 +59,10 @@ export async function POST(request: NextRequest) {
 
     const myTeamId = parseInt(teamId)
 
-    // Find next week's matchup
+    // Find next week's matchup. Playoff schedule entries can carry a single
+    // side (a bye), so never assume both home and away exist.
     const myMatchup = scoreboard.schedule.find(
-      (m) => m.home.teamId === myTeamId || m.away.teamId === myTeamId
+      (m) => m.home?.teamId === myTeamId || m.away?.teamId === myTeamId
     )
 
     if (!myMatchup) {
@@ -71,8 +72,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const isHome = myMatchup.home.teamId === myTeamId
+    const isHome = myMatchup.home?.teamId === myTeamId
     const theirSide = isHome ? myMatchup.away : myMatchup.home
+    if (!theirSide) {
+      return NextResponse.json(
+        { error: 'You have a bye next matchup period — no opponent to preview.' },
+        { status: 404 },
+      )
+    }
 
     // Get opponent team name
     const opponentTeam = teams.find((t) => t.id === theirSide.teamId)
