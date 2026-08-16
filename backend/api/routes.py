@@ -404,6 +404,57 @@ def debug_player(mlb_id: int, season: int = Query(2026)):
     }
 
 
+# ── Board snapshots ──
+
+
+def _snapshot_before_overwrite(season: int, trigger: str) -> None:
+    """Preserve the current board before a refresh replaces it.
+
+    Non-fatal by design, matching the ADP-import blocks elsewhere in this file:
+    a refresh that works is worth more than a snapshot that does. Idempotent
+    per calendar day, so calling it on every refresh is cheap.
+
+    This exists because the 2026 retrospective could not find the board the
+    draft actually used — rankings and projections are overwritten in place,
+    and by mid-season they held rest-of-season values instead.
+    """
+    try:
+        from backend.analysis.snapshots import snapshot_before_refresh
+
+        result = snapshot_before_refresh(season, note=f"before {trigger}")
+        if result and result.get("created"):
+            logger.info(f"Snapshot taken before {trigger}: {result['snapshot_label']}")
+    except Exception as e:
+        logger.warning(f"Snapshot before {trigger} failed (continuing): {e}")
+
+
+@router.get("/snapshots")
+def get_snapshots():
+    """List preserved board snapshots, newest first."""
+    from backend.analysis.snapshots import list_snapshots
+
+    return {"snapshots": list_snapshots()}
+
+
+@router.post("/snapshots")
+def post_snapshot(label: str = Query(...), season: int = Query(2026),
+                  note: str | None = Query(None)):
+    """Take a named snapshot of the current board.
+
+    Run this on draft day with a label like `preseason-2027`; named snapshots
+    are never pruned.
+    """
+    from backend.analysis.snapshots import create_snapshot, is_auto
+
+    if is_auto(label):
+        raise HTTPException(
+            status_code=400,
+            detail="Labels beginning with 'auto-' are reserved for automatic "
+                   "pre-refresh snapshots, which are pruned.",
+        )
+    return create_snapshot(label, season, kind="manual", note=note)
+
+
 # ── Projection refresh ──
 
 
@@ -419,6 +470,8 @@ def refresh_projections(season: int = Query(2026)):
     from backend.data.sync import import_csv_projections
 
     logger = logging.getLogger(__name__)
+
+    _snapshot_before_overwrite(season, "projections/refresh")
 
     try:
         results = fetch_all_fangraphs_projections(season)
@@ -1071,6 +1124,8 @@ def refresh_ros_projections(season: int = Query(2026)):
     """
     import traceback
     from backend.data.projections import fetch_all_fangraphs_projections
+
+    _snapshot_before_overwrite(season, "waivers/refresh-projections")
 
     try:
         results = fetch_all_fangraphs_projections(season)

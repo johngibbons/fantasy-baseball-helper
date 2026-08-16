@@ -129,7 +129,27 @@ def main() -> int:
         action="store_true",
         help="Skip production fetches; resolve ADP only.",
     )
+    parser.add_argument(
+        "--create-label",
+        default=None,
+        help="Take a named snapshot of the current board instead of capturing "
+             "fixtures. Run this on draft day, e.g. --create-label preseason-2027.",
+    )
     args = parser.parse_args()
+
+    if args.create_label:
+        from backend.analysis.snapshots import create_snapshot, is_auto
+
+        if is_auto(args.create_label):
+            raise SystemExit("Labels starting with 'auto-' are reserved for "
+                             "automatic pre-refresh snapshots, which get pruned.")
+        result = create_snapshot(args.create_label, args.season, kind="manual",
+                                 note="draft-day snapshot")
+        if result.get("created"):
+            print(f"Snapshot {args.create_label}: {result['row_counts']}")
+        else:
+            print(f"Snapshot {args.create_label} already exists — left untouched.")
+        return 0
 
     out_dir = args.out or (
         REPO_ROOT / "backend" / "data" / "fixtures" / f"retro_{args.season}"
