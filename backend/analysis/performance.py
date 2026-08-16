@@ -399,15 +399,42 @@ _PITCHER_UPSERT = """
 """
 
 
-async def _fetch_one(sem: asyncio.Semaphore, mlb_id: int, player_type: str, season: int):
+_FETCH_ATTEMPTS = 3
+_FETCH_BACKOFF_SECONDS = 0.5
+
+
+async def _fetch_one(sem: asyncio.Semaphore, mlb_id: int, player_type: str, season: int,
+                     include_quality_starts: bool = False):
+    """Fetch one player's season actuals.
+
+    Returns (mlb_id, player_type, stats, failed). `stats` of None with failed=False
+    means the player genuinely has no stats for the season; failed=True means
+    the request never succeeded. Callers must keep those apart — treating a
+    failed fetch as "no stats" would silently value an injured-but-productive
+    player at zero.
+
+    Retries transient network errors: at this concurrency the MLB API
+    intermittently drops connections, and a single miss would otherwise
+    corrupt that player's row.
+    """
     async with sem:
-        try:
-            if player_type == "hitter":
-                return ("hitter", await get_batting_stats(mlb_id, season))
-            return ("pitcher", await get_pitching_stats(mlb_id, season))
-        except Exception as e:
-            logger.warning(f"Failed to fetch {player_type} stats for {mlb_id}: {e}")
-            return (player_type, None)
+        last_error = None
+        for attempt in range(_FETCH_ATTEMPTS):
+            try:
+                if player_type == "hitter":
+                    return (mlb_id, "hitter",
+                            await get_batting_stats(mlb_id, season), False)
+                return (mlb_id, "pitcher", await get_pitching_stats(
+                    mlb_id, season, include_quality_starts=include_quality_starts), False)
+            except Exception as e:
+                last_error = e
+                if attempt < _FETCH_ATTEMPTS - 1:
+                    await asyncio.sleep(_FETCH_BACKOFF_SECONDS * (2 ** attempt))
+        logger.warning(
+            f"Failed to fetch {player_type} stats for {mlb_id} after "
+            f"{_FETCH_ATTEMPTS} attempts: {last_error!r}"
+        )
+        return (mlb_id, player_type, None, True)
 
 
 async def refresh_actuals_for_rankings(season: int, concurrency: int = 12) -> None:
@@ -434,65 +461,117 @@ async def refresh_actuals_for_rankings(season: int, concurrency: int = 12) -> No
         ).fetchall()
         conn.close()
         targets = [(r["mlb_id"], r["player_type"]) for r in rows]
-        _refresh_state["total"] = len(targets)
-        logger.info(f"Refreshing 2026 actuals for {len(targets)} ranked players (concurrency={concurrency})")
-
-        sem = asyncio.Semaphore(concurrency)
-        tasks = [_fetch_one(sem, mlb_id, ptype, season) for mlb_id, ptype in targets]
-
-        # Process and upsert as results come in (avoids holding 1300 dicts in memory).
-        conn = get_connection()
-        for fut in asyncio.as_completed(tasks):
-            ptype, stats = await fut
-            _refresh_state["done"] += 1
-            if not stats:
-                _refresh_state["errors"] += 1
-                continue
-            try:
-                if ptype == "hitter":
-                    conn.execute(_HITTER_UPSERT, (
-                        stats["mlb_id"], stats["season"], stats["games"],
-                        stats["plate_appearances"], stats["at_bats"],
-                        stats["runs"], stats["hits"], stats["doubles"],
-                        stats["triples"], stats["home_runs"],
-                        stats["rbi"], stats["stolen_bases"], stats["caught_stealing"],
-                        stats["walks"], stats["strikeouts"],
-                        stats["hit_by_pitch"], stats["sac_flies"],
-                        stats["batting_average"], stats["obp"], stats["slg"],
-                        stats["ops"], stats["total_bases"],
-                    ))
-                else:
-                    conn.execute(_PITCHER_UPSERT, (
-                        stats["mlb_id"], stats["season"], stats["games"],
-                        stats["games_started"], stats["wins"], stats["losses"],
-                        stats["era"], stats["whip"], stats["innings_pitched"],
-                        stats["hits_allowed"], stats["runs_allowed"],
-                        stats["earned_runs"], stats["walks_allowed"],
-                        stats["strikeouts"], stats["home_runs_allowed"],
-                        stats["saves"], stats["holds"], stats["quality_starts"],
-                    ))
-            except Exception as e:
-                _refresh_state["errors"] += 1
-                logger.warning(f"Upsert failed for {stats.get('mlb_id')}: {e}")
-
-            if _refresh_state["done"] % 100 == 0:
-                conn.commit()
-                logger.info(
-                    f"  Refresh progress: {_refresh_state['done']}/{len(targets)}"
-                )
-
-        conn.commit()
-        conn.close()
-
-        _refresh_state["status"] = "completed"
-        _refresh_state["finished_at"] = time.time()
-        elapsed = _refresh_state["finished_at"] - _refresh_state["started_at"]
-        logger.info(
-            f"Refresh complete: {_refresh_state['done']} updated, "
-            f"{_refresh_state['errors']} errors in {elapsed:.1f}s"
-        )
+        await _refresh_actuals(targets, season, concurrency, _refresh_state)
     except Exception as e:
         _refresh_state["status"] = "failed"
         _refresh_state["finished_at"] = time.time()
         _refresh_state["error_message"] = str(e)
         logger.exception("Refresh failed")
+
+
+async def refresh_actuals_for_players(
+    targets: list[tuple[int, str]], season: int, concurrency: int = 12,
+    include_quality_starts: bool = False,
+) -> dict:
+    """Refresh actuals for an explicit list of (mlb_id, player_type) targets.
+
+    Used by the season retrospective, whose player universe is the preseason
+    board rather than the current rankings table (which now holds
+    rest-of-season values). Returns its own progress dict instead of touching
+    the module-level one the API polls.
+    """
+    state = {
+        "status": "idle", "started_at": None, "finished_at": None,
+        "season": season, "total": 0, "done": 0, "errors": 0,
+        "error_message": None,
+    }
+    try:
+        await _refresh_actuals(targets, season, concurrency, state,
+                               include_quality_starts=include_quality_starts)
+    except Exception as e:
+        state["status"] = "failed"
+        state["finished_at"] = time.time()
+        state["error_message"] = str(e)
+        logger.exception("Refresh failed")
+    return state
+
+
+async def _refresh_actuals(
+    targets: list[tuple[int, str]], season: int, concurrency: int, state: dict,
+    include_quality_starts: bool = False,
+) -> None:
+    """Fetch and upsert season-to-date actuals for `targets`, tracking progress
+    in `state`."""
+    state.update({
+        "status": "running",
+        "started_at": time.time(),
+        "finished_at": None,
+        "season": season,
+        "total": len(targets),
+        "done": 0,
+        "errors": 0,
+        "error_message": None,
+    })
+    logger.info(
+        f"Refreshing {season} actuals for {len(targets)} players "
+        f"(concurrency={concurrency})"
+    )
+
+    sem = asyncio.Semaphore(concurrency)
+    tasks = [_fetch_one(sem, mlb_id, ptype, season, include_quality_starts)
+             for mlb_id, ptype in targets]
+
+    # Process and upsert as results come in (avoids holding 1300 dicts in memory).
+    conn = get_connection()
+    for fut in asyncio.as_completed(tasks):
+        mlb_id, ptype, stats, failed = await fut
+        state["done"] += 1
+        if failed:
+            state["errors"] += 1
+            state.setdefault("failed_ids", []).append(mlb_id)
+            continue
+        if not stats:
+            # Genuinely no stats for the season — not an error.
+            state["no_stats"] = state.get("no_stats", 0) + 1
+            continue
+        try:
+            if ptype == "hitter":
+                conn.execute(_HITTER_UPSERT, (
+                    stats["mlb_id"], stats["season"], stats["games"],
+                    stats["plate_appearances"], stats["at_bats"],
+                    stats["runs"], stats["hits"], stats["doubles"],
+                    stats["triples"], stats["home_runs"],
+                    stats["rbi"], stats["stolen_bases"], stats["caught_stealing"],
+                    stats["walks"], stats["strikeouts"],
+                    stats["hit_by_pitch"], stats["sac_flies"],
+                    stats["batting_average"], stats["obp"], stats["slg"],
+                    stats["ops"], stats["total_bases"],
+                ))
+            else:
+                conn.execute(_PITCHER_UPSERT, (
+                    stats["mlb_id"], stats["season"], stats["games"],
+                    stats["games_started"], stats["wins"], stats["losses"],
+                    stats["era"], stats["whip"], stats["innings_pitched"],
+                    stats["hits_allowed"], stats["runs_allowed"],
+                    stats["earned_runs"], stats["walks_allowed"],
+                    stats["strikeouts"], stats["home_runs_allowed"],
+                    stats["saves"], stats["holds"], stats["quality_starts"],
+                ))
+        except Exception as e:
+            state["errors"] += 1
+            logger.warning(f"Upsert failed for {stats.get('mlb_id')}: {e}")
+
+        if state["done"] % 100 == 0:
+            conn.commit()
+            logger.info(f"  Refresh progress: {state['done']}/{len(targets)}")
+
+    conn.commit()
+    conn.close()
+
+    state["status"] = "completed"
+    state["finished_at"] = time.time()
+    elapsed = state["finished_at"] - state["started_at"]
+    logger.info(
+        f"Refresh complete: {state['done']} updated, "
+        f"{state['errors']} errors in {elapsed:.1f}s"
+    )

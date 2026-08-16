@@ -10,6 +10,67 @@ BASE_URL = "https://statsapi.mlb.com/api/v1"
 
 PITCHER_POSITIONS = {"P", "SP", "RP", "CP"}
 
+# A quality start is a start of at least 6 innings allowing 3 earned runs or fewer.
+QS_MIN_INNINGS = 6.0
+QS_MAX_EARNED_RUNS = 3
+
+
+def parse_innings_pitched(value) -> float:
+    """Convert MLB's innings notation to a real number.
+
+    MLB writes partial innings as thirds after the decimal point: "6.1" is six
+    and one third, not six and one tenth. Parsing it as a plain float is close
+    enough for a >= 6.0 threshold but wrong for arithmetic, so do it properly.
+    """
+    if value is None:
+        return 0.0
+    try:
+        text = str(value)
+        if "." in text:
+            whole, outs = text.split(".", 1)
+            outs_val = int(outs[0]) if outs[:1].isdigit() else 0
+            return float(whole or 0) + min(outs_val, 2) / 3.0
+        return float(text)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def count_quality_starts(game_log: list[dict]) -> int:
+    """Count quality starts in a pitching game log.
+
+    The MLB Stats API's season-stats endpoint does not expose quality starts,
+    but the league scores the category, so it has to be derived per game.
+    """
+    quality = 0
+    for game in game_log:
+        stat = game.get("stat", {})
+        if not stat.get("gamesStarted"):
+            continue
+        innings = parse_innings_pitched(stat.get("inningsPitched"))
+        try:
+            earned = int(stat.get("earnedRuns", 0) or 0)
+        except (TypeError, ValueError):
+            continue
+        if innings >= QS_MIN_INNINGS and earned <= QS_MAX_EARNED_RUNS:
+            quality += 1
+    return quality
+
+
+async def get_pitching_game_log(mlb_id: int, season: int = 2025) -> list[dict]:
+    """Fetch a pitcher's per-game log for a season."""
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(
+            f"{BASE_URL}/people/{mlb_id}/stats",
+            params={"stats": "gameLog", "season": season, "group": "pitching"},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+    stats_list = data.get("stats", [])
+    if not stats_list:
+        return []
+    return stats_list[0].get("splits", [])
+
 
 async def get_all_teams(season: int = 2025) -> list[dict]:
     """Fetch all MLB teams for a given season."""
@@ -133,8 +194,14 @@ async def get_batting_stats(mlb_id: int, season: int = 2025) -> Optional[dict]:
     }
 
 
-async def get_pitching_stats(mlb_id: int, season: int = 2025) -> Optional[dict]:
-    """Fetch season pitching stats for a player."""
+async def get_pitching_stats(mlb_id: int, season: int = 2025,
+                             include_quality_starts: bool = False) -> Optional[dict]:
+    """Fetch season pitching stats for a player.
+
+    include_quality_starts: also pull the game log and derive QS. Off by
+        default because it doubles the number of API calls; the season
+        retrospective turns it on since QS is one of the ten scored categories.
+    """
     async with httpx.AsyncClient() as client:
         resp = await client.get(
             f"{BASE_URL}/people/{mlb_id}/stats",
@@ -158,6 +225,14 @@ async def get_pitching_stats(mlb_id: int, season: int = 2025) -> Optional[dict]:
         ip = float(ip_str)
     except (ValueError, TypeError):
         ip = 0.0
+
+    quality_starts = 0
+    if include_quality_starts and s.get("gamesStarted"):
+        try:
+            quality_starts = count_quality_starts(
+                await get_pitching_game_log(mlb_id, season))
+        except Exception as e:
+            logger.warning(f"Quality-start derivation failed for {mlb_id}: {e}")
 
     def _safe_float(val, default=0.0):
         try:
@@ -183,7 +258,9 @@ async def get_pitching_stats(mlb_id: int, season: int = 2025) -> Optional[dict]:
         "home_runs_allowed": s.get("homeRuns", 0),
         "saves": s.get("saves", 0),
         "holds": s.get("holds", 0),
-        "quality_starts": 0,  # Not directly available from MLB API
+        # Not exposed by the season-stats endpoint; derived from the game log
+        # when include_quality_starts is set, otherwise left at 0.
+        "quality_starts": quality_starts,
     }
 
 
