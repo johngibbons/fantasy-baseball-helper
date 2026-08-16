@@ -12,55 +12,55 @@
         "delta_top_100": 0.0,
         "inside_noise": null,
         "label": "baseline",
-        "spearman": 0.7504534754436618,
+        "spearman": 0.7504049407448549,
         "top_100_precision": 0.48
       },
       {
         "delta_spearman": 0.00203,
         "delta_spearman_ci": [
-          -0.00383,
-          0.00801
+          -0.00381,
+          0.00799
         ],
         "delta_top_100": -0.01,
         "inside_noise": true,
         "label": "pitcher_normalizer_1.0",
-        "spearman": 0.752479216503178,
+        "spearman": 0.7524368312669449,
         "top_100_precision": 0.47
       },
       {
         "delta_spearman": 0.00035,
         "delta_spearman_ci": [
-          -0.00391,
-          0.00427
+          -0.00392,
+          0.00428
         ],
         "delta_top_100": -0.01,
         "inside_noise": true,
         "label": "pitcher_normalizer_1.1",
-        "spearman": 0.7508016091766788,
+        "spearman": 0.7507573683488462,
         "top_100_precision": 0.47
       },
       {
-        "delta_spearman": -0.00264,
+        "delta_spearman": -0.00265,
         "delta_spearman_ci": [
-          -0.00632,
-          0.00126
+          -0.00633,
+          0.00125
         ],
         "delta_top_100": -0.01,
         "inside_noise": true,
         "label": "pitcher_normalizer_1.4",
-        "spearman": 0.7478094106563741,
+        "spearman": 0.7477583185145806,
         "top_100_precision": 0.47
       },
       {
-        "delta_spearman": -0.00803,
+        "delta_spearman": -0.00805,
         "delta_spearman_ci": [
-          -0.01509,
-          -0.00108
+          -0.01513,
+          -0.0011
         ],
         "delta_top_100": -0.02,
         "inside_noise": false,
         "label": "pitcher_normalizer_1.6",
-        "spearman": 0.7424279350324429,
+        "spearman": 0.7423500690022878,
         "top_100_precision": 0.46
       }
     ],
@@ -69,8 +69,8 @@
   "expost_board": "pace_adjusted",
   "hitters": {
     "baseline_spearman_ci": [
-      0.7072288928630888,
-      0.7776608983626554
+      0.7054711716227272,
+      0.7751553643021758
     ],
     "results": [
       {
@@ -82,80 +82,80 @@
         "delta_top_100": 0.0,
         "inside_noise": null,
         "label": "baseline",
-        "spearman": 0.7438523273379047,
-        "top_100_precision": 0.58
+        "spearman": 0.7414227974247193,
+        "top_100_precision": 0.57
       },
       {
         "delta_spearman": -0.00225,
         "delta_spearman_ci": [
-          -0.0047,
-          -0.00025
+          -0.00471,
+          -0.00021
         ],
         "delta_top_100": 0.0,
         "inside_noise": false,
         "label": "category_weights_scale_0.0",
-        "spearman": 0.7416013181140158,
-        "top_100_precision": 0.58
+        "spearman": 0.7391757519362073,
+        "top_100_precision": 0.57
       },
       {
-        "delta_spearman": -0.00143,
+        "delta_spearman": -0.00144,
         "delta_spearman_ci": [
-          -0.00321,
-          0.0
+          -0.00325,
+          2e-05
         ],
         "delta_top_100": 0.0,
         "inside_noise": true,
         "label": "category_weights_scale_0.5",
-        "spearman": 0.7424205461396689,
-        "top_100_precision": 0.58
+        "spearman": 0.7399800808373451,
+        "top_100_precision": 0.57
       },
       {
-        "delta_spearman": 0.00031,
+        "delta_spearman": 0.00033,
         "delta_spearman_ci": [
           -0.00024,
-          0.0009
+          0.00092
         ],
         "delta_top_100": 0.0,
         "inside_noise": true,
         "label": "category_weights_scale_1.5",
-        "spearman": 0.7441650822150198,
-        "top_100_precision": 0.58
+        "spearman": 0.7417483473069382,
+        "top_100_precision": 0.57
       },
       {
-        "delta_spearman": 0.00597,
+        "delta_spearman": 0.00624,
         "delta_spearman_ci": [
-          -0.0004,
-          0.01297
+          -0.00021,
+          0.01312
         ],
         "delta_top_100": 0.0,
         "inside_noise": true,
         "label": "no_playing_time_discount",
-        "spearman": 0.7498206666085522,
-        "top_100_precision": 0.58
+        "spearman": 0.747657977782327,
+        "top_100_precision": 0.57
       },
       {
-        "delta_spearman": 0.00364,
+        "delta_spearman": 0.00379,
         "delta_spearman_ci": [
-          0.00016,
-          0.00745
+          0.00028,
+          0.00768
         ],
         "delta_top_100": 0.0,
         "inside_noise": false,
         "label": "full_credit_pa_300",
-        "spearman": 0.747491994560028,
-        "top_100_precision": 0.58
+        "spearman": 0.7452138522611631,
+        "top_100_precision": 0.57
       },
       {
-        "delta_spearman": -0.00043,
+        "delta_spearman": -0.00047,
         "delta_spearman_ci": [
           -0.00246,
-          0.0017
+          0.00161
         ],
         "delta_top_100": 0.0,
         "inside_noise": true,
         "label": "full_credit_pa_650",
-        "spearman": 0.7434250221279524,
-        "top_100_precision": 0.58
+        "spearman": 0.7409479980455317,
+        "top_100_precision": 0.57
       },
       {
         "delta_spearman": 0.0,
@@ -166,8 +166,8 @@
         "delta_top_100": 0.0,
         "inside_noise": true,
         "label": "full_credit_ip_sp_100",
-        "spearman": 0.7438523273379047,
-        "top_100_precision": 0.58
+        "spearman": 0.7414227974247193,
+        "top_100_precision": 0.57
       },
       {
         "delta_spearman": 0.0,
@@ -178,8 +178,8 @@
         "delta_top_100": 0.0,
         "inside_noise": true,
         "label": "full_credit_ip_sp_180",
-        "spearman": 0.7438523273379047,
-        "top_100_precision": 0.58
+        "spearman": 0.7414227974247193,
+        "top_100_precision": 0.57
       },
       {
         "delta_spearman": 0.0,
@@ -190,8 +190,8 @@
         "delta_top_100": 0.0,
         "inside_noise": true,
         "label": "streaming_bonus_0.0",
-        "spearman": 0.7438523273379047,
-        "top_100_precision": 0.58
+        "spearman": 0.7414227974247193,
+        "top_100_precision": 0.57
       },
       {
         "delta_spearman": 0.0,
@@ -202,20 +202,20 @@
         "delta_top_100": 0.0,
         "inside_noise": true,
         "label": "streaming_bonus_1.4",
-        "spearman": 0.7438523273379047,
-        "top_100_precision": 0.58
+        "spearman": 0.7414227974247193,
+        "top_100_precision": 0.57
       },
       {
-        "delta_spearman": 0.00059,
+        "delta_spearman": 0.00116,
         "delta_spearman_ci": [
-          -0.00702,
-          0.00914
+          -0.00656,
+          0.01024
         ],
         "delta_top_100": -0.01,
         "inside_noise": true,
         "label": "no_replacement",
-        "spearman": 0.7444458991208781,
-        "top_100_precision": 0.57
+        "spearman": 0.7425779965188979,
+        "top_100_precision": 0.56
       }
     ]
   },

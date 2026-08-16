@@ -2,6 +2,23 @@
 
 This document explains the full pipeline from raw projections to the final draft score you see in the UI.
 
+> **As of March 2026 — this is the draft-day snapshot, not current `main`.**
+>
+> Several numbers below describe the model that actually ran the 2026 draft
+> rather than the one in the code today. That is deliberate: the season
+> retrospective needs a record of what drafted, and this is it. The
+> differences, all landing after the draft:
+>
+> | Section | Documented here (drafted with) | Current code |
+> |---|---|---|
+> | §1.1 projection blending | five-source weighted blend | ATC only, since `8947e0c` (2026-04-24) |
+> | §2 draft score | MCW 21.0 / VONA 0.16 / urgency 0.02 | 7.47 / 0.24 / 0.65, since `4012443` and `60b7744` (2026-04-02) |
+> | §4 bench contribution | pitchers 0.45, hitters 0.20 | 0.95 / 0.95 / 0.25 in `backend/simulation/config.py` |
+> | §7 "coefficients never formally optimized" | true at the time | `optimize_model.py` runs Optuna TPE; see `optimization_results.json` |
+>
+> What the 2026 season showed about the claims in §7 is written up in
+> [RETROSPECTIVE_2026.md](RETROSPECTIVE_2026.md).
+
 ---
 
 ## 1. Player Valuation (the "Value" column)

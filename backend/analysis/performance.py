@@ -1,10 +1,22 @@
 """Projection vs. actual performance analysis.
 
-Joins rankings (preseason projections) with batting_stats / pitching_stats
-(season-to-date actuals) and computes volume + rate deltas per category.
+Joins rankings with batting_stats / pitching_stats (season-to-date actuals)
+and computes volume + rate deltas per category.
 
 Volume framing: actual vs. (full-season projection × season-elapsed fraction).
 Rate framing:   per-PA / per-IP rate of actual vs. per-PA / per-IP rate of projection.
+
+CAVEAT: the rankings table does not hold preseason projections once a
+rest-of-season refresh has run — POST /api/waivers/refresh-projections
+overwrites it with ATC rest-of-season values. From that point the volume
+framing compares season-to-date actuals against a fraction of a
+*remaining*-season projection, which understates every established player.
+Rate framing is unaffected.
+
+From 2027 this can read the `preseason-<season>` snapshot instead (see
+backend/analysis/snapshots.py). For 2026 no such snapshot exists — the board
+was already overwritten before snapshots were introduced — so treat the volume
+numbers on the /performance page as indicative rather than exact.
 """
 
 from __future__ import annotations
@@ -437,9 +449,16 @@ async def _fetch_one(sem: asyncio.Semaphore, mlb_id: int, player_type: str, seas
         return (mlb_id, player_type, None, True)
 
 
-async def refresh_actuals_for_rankings(season: int, concurrency: int = 12) -> None:
+async def refresh_actuals_for_rankings(season: int, concurrency: int = 12,
+                                       include_quality_starts: bool = True) -> None:
     """Concurrently re-pull season-to-date actuals from MLB Stats API for every
     player ranked for `season`, then upsert into batting_stats / pitching_stats.
+
+    include_quality_starts derives QS from each pitcher's game log, because the
+    season-stats endpoint does not expose it. Without this every pitcher's QS
+    is zero and the /performance page shows every starter missing an entire
+    scored category. It costs one extra request per pitcher who has started a
+    game, on a job that is already background and manual.
 
     Updates the module-level _refresh_state dict so callers can poll progress.
     """
@@ -461,7 +480,8 @@ async def refresh_actuals_for_rankings(season: int, concurrency: int = 12) -> No
         ).fetchall()
         conn.close()
         targets = [(r["mlb_id"], r["player_type"]) for r in rows]
-        await _refresh_actuals(targets, season, concurrency, _refresh_state)
+        await _refresh_actuals(targets, season, concurrency, _refresh_state,
+                               include_quality_starts=include_quality_starts)
     except Exception as e:
         _refresh_state["status"] = "failed"
         _refresh_state["finished_at"] = time.time()

@@ -4,59 +4,59 @@
   "hitter_segments": {
     "by_projected_pa": [
       {
-        "mean_error": 0.8702,
+        "mean_error": 0.8755,
         "mean_projected": -11.3157,
-        "mean_realized": -10.4456,
+        "mean_realized": -10.4403,
         "n": 285,
         "segment": "0-199 PA",
-        "spearman": 0.27023838844783227
+        "spearman": 0.25753712098593473
       },
       {
-        "mean_error": 1.4851,
+        "mean_error": 1.4887,
         "mean_projected": -8.371,
-        "mean_realized": -6.8859,
+        "mean_realized": -6.8823,
         "n": 142,
         "segment": "200-399 PA",
-        "spearman": 0.2562324945094923
+        "spearman": 0.2546145766949341
       },
       {
-        "mean_error": -1.4261,
+        "mean_error": -1.4159,
         "mean_projected": -2.7201,
-        "mean_realized": -4.1461,
+        "mean_realized": -4.136,
         "n": 125,
         "segment": "400-549 PA",
-        "spearman": 0.3356666774229686
+        "spearman": 0.3351966291738933
       },
       {
-        "mean_error": -1.7978,
+        "mean_error": -1.7944,
         "mean_projected": 1.495,
-        "mean_realized": -0.3028,
+        "mean_realized": -0.2994,
         "n": 108,
         "segment": "550+ PA",
-        "spearman": 0.3479681612744483
+        "spearman": 0.34931144698942973
       }
     ],
     "by_slot": [
       {
-        "mean_error": 0.5383,
+        "mean_error": 0.5317,
         "mean_projected": -6.6728,
-        "mean_realized": -6.1345,
+        "mean_realized": -6.1411,
         "n": 69,
         "segment": "1B",
         "spearman": 0.7802118584948644
       },
       {
-        "mean_error": 0.4227,
+        "mean_error": 0.4173,
         "mean_projected": -7.2608,
-        "mean_realized": -6.8381,
+        "mean_realized": -6.8435,
         "n": 80,
         "segment": "2B",
-        "spearman": 0.7184912713366709
+        "spearman": 0.7192433967147589
       },
       {
-        "mean_error": -0.0802,
+        "mean_error": -0.0171,
         "mean_projected": -7.0182,
-        "mean_realized": -7.0983,
+        "mean_realized": -7.0353,
         "n": 77,
         "segment": "3B",
         "spearman": 0.8250718522274384
@@ -64,31 +64,31 @@
       {
         "mean_error": 0.0117,
         "mean_projected": -8.4168,
-        "mean_realized": -8.405,
+        "mean_realized": -8.4051,
         "n": 108,
         "segment": "C",
         "spearman": 0.7684242144809075
       },
       {
-        "mean_error": 0.5706,
+        "mean_error": 0.571,
         "mean_projected": -6.787,
-        "mean_realized": -6.2164,
+        "mean_realized": -6.216,
         "n": 75,
         "segment": "CF",
         "spearman": 0.7423904122859196
       },
       {
-        "mean_error": -1.9593,
+        "mean_error": -1.9647,
         "mean_projected": -4.836,
-        "mean_realized": -6.7953,
+        "mean_realized": -6.8007,
         "n": 3,
         "segment": "DH",
         "spearman": 1.0
       },
       {
-        "mean_error": 2.786,
+        "mean_error": 2.778,
         "mean_projected": -1.476,
-        "mean_realized": 1.31,
+        "mean_realized": 1.302,
         "n": 1,
         "segment": "IF",
         "spearman": null
@@ -96,15 +96,15 @@
       {
         "mean_error": 0.146,
         "mean_projected": -6.9833,
-        "mean_realized": -6.8374,
+        "mean_realized": -6.8373,
         "n": 83,
         "segment": "LF",
         "spearman": 0.6363649353661546
       },
       {
-        "mean_error": 2.2666,
+        "mean_error": 2.2682,
         "mean_projected": -10.4972,
-        "mean_realized": -8.2306,
+        "mean_realized": -8.229,
         "n": 17,
         "segment": "OF",
         "spearman": 0.6576288900102047
@@ -118,17 +118,17 @@
         "spearman": 0.8116085816281884
       },
       {
-        "mean_error": 0.0843,
+        "mean_error": 0.0798,
         "mean_projected": -5.7558,
-        "mean_realized": -5.6715,
+        "mean_realized": -5.676,
         "n": 71,
         "segment": "SS",
-        "spearman": 0.7928759146028372
+        "spearman": 0.7935491841775011
       },
       {
-        "mean_error": -4.397,
+        "mean_error": -4.405,
         "mean_projected": 9.336,
-        "mean_realized": 4.939,
+        "mean_realized": 4.931,
         "n": 1,
         "segment": "TWP",
         "spearman": null
@@ -140,87 +140,87 @@
       {
         "bucket": 1,
         "count": 66,
-        "mean_error": -2.0962,
+        "mean_error": -2.0917,
         "mean_projected": 2.7005,
-        "mean_realized": 0.6043
+        "mean_realized": 0.6088
       },
       {
         "bucket": 2,
         "count": 66,
-        "mean_error": -1.6221,
+        "mean_error": -1.62,
         "mean_projected": -0.182,
-        "mean_realized": -1.804
+        "mean_realized": -1.802
       },
       {
         "bucket": 3,
         "count": 66,
-        "mean_error": -1.4111,
+        "mean_error": -1.3965,
         "mean_projected": -2.5461,
-        "mean_realized": -3.9572
+        "mean_realized": -3.9426
       },
       {
         "bucket": 4,
         "count": 66,
-        "mean_error": -0.1762,
+        "mean_error": -0.1735,
         "mean_projected": -5.6241,
-        "mean_realized": -5.8003
+        "mean_realized": -5.7976
       },
       {
         "bucket": 5,
         "count": 66,
-        "mean_error": 1.8149,
+        "mean_error": 1.8204,
         "mean_projected": -8.3685,
-        "mean_realized": -6.5535
+        "mean_realized": -6.548
       },
       {
         "bucket": 6,
         "count": 66,
-        "mean_error": 1.3317,
+        "mean_error": 1.3365,
         "mean_projected": -10.0108,
-        "mean_realized": -8.6791
+        "mean_realized": -8.6742
       },
       {
         "bucket": 7,
         "count": 66,
-        "mean_error": 0.7739,
+        "mean_error": 0.7773,
         "mean_projected": -10.9533,
-        "mean_realized": -10.1794
+        "mean_realized": -10.176
       },
       {
         "bucket": 8,
         "count": 66,
-        "mean_error": 0.8969,
+        "mean_error": 0.8972,
         "mean_projected": -11.3484,
-        "mean_realized": -10.4515
+        "mean_realized": -10.4512
       },
       {
         "bucket": 9,
         "count": 66,
-        "mean_error": 1.5103,
+        "mean_error": 1.5183,
         "mean_projected": -11.5586,
-        "mean_realized": -10.0483
+        "mean_realized": -10.0403
       },
       {
         "bucket": 10,
         "count": 66,
-        "mean_error": 0.2878,
+        "mean_error": 0.2973,
         "mean_projected": -11.6879,
-        "mean_realized": -11.4
+        "mean_realized": -11.3906
       }
     ],
-    "kendall_tau": 0.54698984028226,
+    "kendall_tau": 0.5427925169304558,
     "n": 660,
-    "ols_intercept": -1.5458111884028003,
-    "ols_slope": 0.7590066712078586,
-    "pearson": 0.7551167584873502,
-    "r_squared": 0.5702013189484428,
-    "spearman": 0.7438523273379047,
+    "ols_intercept": -1.5400841377107033,
+    "ols_slope": 0.7590325526893176,
+    "pearson": 0.7552234472362693,
+    "r_squared": 0.5703624552554342,
+    "spearman": 0.7414227974247193,
     "spearman_ci": [
-      0.7072288928630888,
-      0.7776608983626554
+      0.7054711716227272,
+      0.7751553643021758
     ],
     "top_n_precision": {
-      "100": 0.58,
+      "100": 0.57,
       "200": 0.725,
       "25": 0.36,
       "50": 0.48

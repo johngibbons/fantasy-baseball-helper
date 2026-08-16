@@ -25,10 +25,29 @@ Your complete fantasy baseball analytics platform built with modern web technolo
 ## 🛠 Tech Stack
 
 - **Frontend**: Next.js 15, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes, Prisma ORM
-- **Database**: SQLite (development), PostgreSQL-ready
+- **Frontend / league data**: Next.js API Routes, Prisma ORM
+- **Analytics backend**: FastAPI (Python 3.12) under `backend/` — the SGP
+  valuation engine, draft simulator, waiver/trade/matchup analysis, and the
+  season retrospective. Next proxies `/api/v2/*` to it (see `next.config.js`).
+- **Database**: PostgreSQL in production — Prisma owns the `public` schema,
+  the Python backend owns `analytics`. SQLite locally.
 - **State Management**: Zustand, TanStack Query
 - **APIs**: MLB Stats API, ESPN Fantasy API, Yahoo Fantasy API
+
+### Python backend
+
+```bash
+python3.12 -m venv .venv
+.venv/bin/pip install -r backend/requirements-dev.txt
+.venv/bin/python -m pytest            # backend test suite
+.venv/bin/uvicorn backend.api.main:app --reload
+```
+
+Key documents: [SCORING_MODEL.md](SCORING_MODEL.md) for how player values and
+draft scores are computed, [RETROSPECTIVE_2026.md](RETROSPECTIVE_2026.md) for
+what the 2026 season showed about that model, and
+[docs/operations.md](docs/operations.md) for scheduled jobs and the draft-day
+checklist.
 
 ## 🚀 Getting Started
 
