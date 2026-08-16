@@ -1,0 +1,6 @@
+# Development/analysis dependencies — not installed into the runtime image
+# (Dockerfile.backend installs requirements.txt only).
+-r requirements.txt
+
+pytest==8.3.4
+optuna==4.1.0

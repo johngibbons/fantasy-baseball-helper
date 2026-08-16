@@ -1,5 +1,11 @@
 // ── Draft Optimizer: Marginal Category Wins Model for H2H Categories ──
 // Pure math functions, no React dependencies.
+//
+// Coefficients live in draft-model-config.ts and are mirrored by
+// backend/simulation/config.py; parity between the two implementations is
+// asserted from both languages against backend/data/fixtures/draft_scoring_parity.json.
+
+import { DRAFT_MODEL_CONFIG } from './draft-model-config'
 
 // ── Types ──
 
@@ -288,8 +294,7 @@ export function computeMCW(
 export function standingsConfidence(
   totalPicksMade: number
 ): number {
-  const start = 24
-  const end = 108
+  const { CONFIDENCE_START: start, CONFIDENCE_END: end } = DRAFT_MODEL_CONFIG
   return Math.max(0, Math.min(1, (totalPicksMade - start) / (end - start)))
 }
 
@@ -307,11 +312,11 @@ export function standingsConfidence(
 export function computeDesperationBonus(
   playerZscores: Record<string, number>,
   standings: CategoryAnalysis[],
-  threshold: number = 0.35,
-  weight: number = 6.0,
-  cap: number = 0,
-  multiCat: number = 0.25,
-  maxBonus: number = 0
+  threshold: number = DRAFT_MODEL_CONFIG.DESPERATION_THRESHOLD,
+  weight: number = DRAFT_MODEL_CONFIG.DESPERATION_WEIGHT,
+  cap: number = DRAFT_MODEL_CONFIG.DESPERATION_CAP,
+  multiCat: number = DRAFT_MODEL_CONFIG.DESPERATION_MULTI_CAT,
+  maxBonus: number = DRAFT_MODEL_CONFIG.DESPERATION_MAX
 ): number {
   if (weight <= 0) return 0
 
@@ -354,9 +359,9 @@ export function computeDraftScore(
   confidence: number,
   draftProgress: number
 ): number {
-  return mcw * 7.47 * confidence
-    + vona * 0.24
-    + urgency * 0.65
+  return mcw * DRAFT_MODEL_CONFIG.MCW_WEIGHT * confidence
+    + vona * DRAFT_MODEL_CONFIG.VONA_WEIGHT_MCW
+    + urgency * DRAFT_MODEL_CONFIG.URGENCY_WEIGHT_MCW
     + rosterFit * draftProgress
 }
 

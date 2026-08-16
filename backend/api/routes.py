@@ -3,7 +3,6 @@
 import difflib
 import json
 import logging
-import unicodedata
 
 logger = logging.getLogger(__name__)
 from fastapi import APIRouter, BackgroundTasks, Query, HTTPException
@@ -31,6 +30,7 @@ from backend.analysis.zscores import (
     calculate_all_zscores,
 )
 from backend.analysis.playoff_odds import compute_playoff_odds_from_request
+from backend.data.name_matching import normalize_name
 from backend.api.playoff_odds_models import PlayoffOddsRequest, PlayoffOddsResponse
 from backend.database import get_connection
 
@@ -477,17 +477,9 @@ def refresh_projections(season: int = Query(2026)):
 # ── Keeper resolution ──
 
 
-def _normalize_name(name: str) -> str:
-    """Strip accents, lowercase, remove suffixes like Jr./III for matching."""
-    # Decompose unicode and strip combining marks (accents)
-    nfkd = unicodedata.normalize("NFKD", name)
-    ascii_name = "".join(c for c in nfkd if not unicodedata.combining(c))
-    ascii_name = ascii_name.lower().strip()
-    # Remove common suffixes
-    for suffix in [" jr.", " jr", " sr.", " sr", " ii", " iii", " iv"]:
-        if ascii_name.endswith(suffix):
-            ascii_name = ascii_name[: -len(suffix)].strip()
-    return ascii_name
+# Shared with backend/scripts/retro_*.py — lives in backend/data/name_matching.py
+# so scripts can reuse it without importing the API layer.
+_normalize_name = normalize_name
 
 
 class KeeperCandidateIn(BaseModel):

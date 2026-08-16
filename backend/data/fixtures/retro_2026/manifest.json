@@ -1,0 +1,33 @@
+{
+  "app_url": "https://fantasy-baseball-helper-production.up.railway.app",
+  "artifacts": {
+    "adp_draftday_2026.json": {
+      "ambiguous": 28,
+      "coverage": {
+        "adp_cutoff": 250.0,
+        "ambiguous_in_range": 6,
+        "entries_in_range": 232,
+        "unmatched_in_range": 0,
+        "unmatched_in_range_names": []
+      },
+      "entries": 2250,
+      "matched": 2052,
+      "unmatched": 198
+    },
+    "draft_state_2026.json": {
+      "draftOrder": 10,
+      "keeperMlbIds": 40,
+      "myTeamId": 8,
+      "pickLog": 211,
+      "pickTrades": 9,
+      "picks": 250
+    },
+    "rankings_prod_2026-08-15.json": {
+      "rows": 1326
+    }
+  },
+  "as_of": "2026-08-15",
+  "captured_at": "2026-08-16T01:07:27.097642+00:00",
+  "git_sha": "6b14ed4931d11f767d4c07ea16ed4992efb2cacd",
+  "season": 2026
+}

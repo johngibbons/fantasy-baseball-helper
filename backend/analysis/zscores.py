@@ -16,6 +16,7 @@ League categories:
 
 import logging
 from collections import defaultdict
+from dataclasses import dataclass, field
 import numpy as np
 from backend.database import get_connection
 
@@ -75,6 +76,69 @@ H2H_CATEGORY_WEIGHTS = {
     # Pitching — ERA/WHIP softened discount, SVHD boosted
     "K": 1.02, "QS": 0.98, "ERA": 0.95, "WHIP": 0.97, "SVHD": 1.14,
 }
+
+
+# Streaming constraint bonus (SP only) — see _compute_pitcher_pool_zscores.
+STREAM_BONUS = 0.70
+STREAM_ERA_THRESHOLD = 4.00
+STREAM_WHIP_THRESHOLD = 1.25
+
+# Individual pitchers contribute to 4 categories vs 5 for hitters; 5/4 corrects
+# the structural gap before cross-position ranking.
+PITCHER_CATEGORY_NORMALIZER = 5 / 4  # 1.25
+
+
+@dataclass(frozen=True)
+class ValuationConfig:
+    """Tunables of the SGP valuation model, injectable for analysis.
+
+    Every default reproduces the shipped board exactly — `ValuationConfig()` is
+    the production model. The knobs exist so the season retrospective can hold
+    the projection source fixed and vary one assumption at a time
+    (backend/analysis/retro/), and so ex-post valuations can turn off the
+    forward-looking playing-time discount, which is meaningless once the
+    playing time is a known fact rather than a risk.
+
+    sgp_denominators: pin the standings-gap denominators instead of deriving
+        them from league_season_totals. Required whenever two boards must be
+        on the same scale — adding a season to that table silently rescales
+        every valuation in the app.
+    """
+
+    sgp_denominators: dict[str, float] | None = None
+    category_weights: dict[str, float] = field(
+        default_factory=lambda: dict(H2H_CATEGORY_WEIGHTS)
+    )
+    full_credit_pa: float = FULL_CREDIT_PA
+    full_credit_ip_sp: float = FULL_CREDIT_IP_SP
+    full_credit_ip_rp: float = FULL_CREDIT_IP_RP
+    apply_playing_time_discount: bool = True
+    apply_replacement: bool = True
+    streaming_bonus: float = STREAM_BONUS
+    streaming_era_threshold: float = STREAM_ERA_THRESHOLD
+    streaming_whip_threshold: float = STREAM_WHIP_THRESHOLD
+    pitcher_normalizer: float = PITCHER_CATEGORY_NORMALIZER
+
+
+DEFAULT_CONFIG = ValuationConfig()
+
+
+def _resolve_config(config: ValuationConfig | None) -> ValuationConfig:
+    return config if config is not None else DEFAULT_CONFIG
+
+
+def _resolve_denominators(
+    config: ValuationConfig, categories: list[str]
+) -> dict[str, float]:
+    """Use pinned denominators when supplied, else derive from league history."""
+    if config.sgp_denominators is not None:
+        missing = [c for c in categories if c not in config.sgp_denominators]
+        if missing:
+            raise ValueError(
+                f"Pinned sgp_denominators is missing categories: {missing}"
+            )
+        return config.sgp_denominators
+    return _compute_sgp_denominators(categories)
 
 
 def _classify_pitcher(position: str, proj_ip: float, proj_qs: float) -> str:
@@ -329,7 +393,8 @@ def _compute_pitcher_replacement_levels(
 
 
 def calculate_hitter_zscores(season: int = 2026, source: str = "atc",
-                             excluded_ids: set[int] | None = None) -> list[dict]:
+                             excluded_ids: set[int] | None = None,
+                             config: ValuationConfig | None = None) -> list[dict]:
     """Calculate z-scores for all hitters with projections.
 
     Categories: R, TB, RBI, SB, OBP (weighted by PA)
@@ -365,11 +430,26 @@ def calculate_hitter_zscores(season: int = 2026, source: str = "atc",
     if excluded_ids:
         rows = [r for r in rows if r["mlb_id"] not in excluded_ids]
 
+    return compute_hitter_sgp(rows, config=config)
+
+
+def compute_hitter_sgp(rows: list[dict],
+                       config: ValuationConfig | None = None) -> list[dict]:
+    """Pure SGP valuation for a list of hitter projection rows.
+
+    Split out from calculate_hitter_zscores so the math can be tested and
+    re-run with varied assumptions without touching the database. Expects the
+    columns that function selects (proj_pa, proj_runs, proj_total_bases, ...).
+    """
+    config = _resolve_config(config)
+    if not rows:
+        return []
+
     n = len(rows)
     logger.info(f"Calculating SGP values for {n} hitters")
 
-    # Compute SGP denominators from league standings
-    sgp_denoms = _compute_sgp_denominators(["R", "TB", "RBI", "SB", "OBP"])
+    sgp_denoms = _resolve_denominators(config, ["R", "TB", "RBI", "SB", "OBP"])
+    weights = config.category_weights
 
     # Extract arrays
     mlb_ids = [r["mlb_id"] for r in rows]
@@ -409,11 +489,11 @@ def calculate_hitter_zscores(season: int = 2026, source: str = "atc",
 
     # Apply H2H correlation weights — discount correlated clusters (R/TB/RBI),
     # boost independent categories (SB, OBP)
-    sgp_r = sgp_r * H2H_CATEGORY_WEIGHTS["R"]
-    sgp_tb = sgp_tb * H2H_CATEGORY_WEIGHTS["TB"]
-    sgp_rbi = sgp_rbi * H2H_CATEGORY_WEIGHTS["RBI"]
-    sgp_sb = sgp_sb * H2H_CATEGORY_WEIGHTS["SB"]
-    sgp_obp = sgp_obp * H2H_CATEGORY_WEIGHTS["OBP"]
+    sgp_r = sgp_r * weights["R"]
+    sgp_tb = sgp_tb * weights["TB"]
+    sgp_rbi = sgp_rbi * weights["RBI"]
+    sgp_sb = sgp_sb * weights["SB"]
+    sgp_obp = sgp_obp * weights["OBP"]
 
     # Build results with H2H-weighted SGP values (no position adjustment yet)
     results = []
@@ -447,28 +527,33 @@ def calculate_hitter_zscores(season: int = 2026, source: str = "atc",
     # PA-weighted through the marginal approach — discounting them again would
     # double-count the playing time effect.
     _HITTER_COUNTING_CATS = ("zscore_r", "zscore_tb", "zscore_rbi", "zscore_sb")
-    discounted = 0
-    for p in results:
-        confidence = min(1.0, p["proj_pa"] / FULL_CREDIT_PA)
-        if confidence < 1.0:
-            discounted += 1
-            for cat in _HITTER_COUNTING_CATS:
-                p[cat] = round(p[cat] * confidence, 3)
-            # Recompute total from discounted counting stats + unchanged rate stats
-            p["total_zscore"] = round(
-                sum(p[cat] for cat in _HITTER_COUNTING_CATS) + p["zscore_obp"],
-                3,
+    if config.apply_playing_time_discount:
+        discounted = 0
+        for p in results:
+            confidence = min(1.0, p["proj_pa"] / config.full_credit_pa)
+            if confidence < 1.0:
+                discounted += 1
+                for cat in _HITTER_COUNTING_CATS:
+                    p[cat] = round(p[cat] * confidence, 3)
+                # Recompute total from discounted counting stats + unchanged rate stats
+                p["total_zscore"] = round(
+                    sum(p[cat] for cat in _HITTER_COUNTING_CATS) + p["zscore_obp"],
+                    3,
+                )
+        if discounted:
+            logger.info(
+                f"Applied playing time discount to {discounted} hitters "
+                f"(< {config.full_credit_pa} PA)"
             )
-    if discounted:
-        logger.info(f"Applied playing time discount to {discounted} hitters (< {FULL_CREDIT_PA} PA)")
 
     # Apply replacement-level baselines
-    repl = _compute_hitter_replacement_levels(results)
-    for p in results:
-        slot = _best_slot(p.get("eligible_positions"), p["primary_position"], repl)
-        repl_z = repl.get(slot, 0.0)
-        p["replacement_adj"] = round(-repl_z, 3)
-        p["total_zscore"] = round(p["total_zscore"] - repl_z, 3)
+    if config.apply_replacement:
+        repl = _compute_hitter_replacement_levels(results)
+        for p in results:
+            slot = _best_slot(p.get("eligible_positions"), p["primary_position"], repl)
+            repl_z = repl.get(slot, 0.0)
+            p["replacement_adj"] = round(-repl_z, 3)
+            p["total_zscore"] = round(p["total_zscore"] - repl_z, 3)
 
     results.sort(key=lambda x: x["total_zscore"], reverse=True)
     return results
@@ -477,6 +562,7 @@ def calculate_hitter_zscores(season: int = 2026, source: str = "atc",
 def _compute_pitcher_pool_zscores(
     rows: list, pool_label: str, categories: set[str],
     combined_avg_team_ip: float | None = None,
+    config: ValuationConfig | None = None,
 ) -> list[dict]:
     """Compute z-scores for a single pitcher pool (SP or RP).
 
@@ -491,6 +577,7 @@ def _compute_pitcher_pool_zscores(
     Returns:
         List of player dicts with z-scores (excluded categories set to 0.0)
     """
+    config = _resolve_config(config)
     if not rows:
         logger.warning(f"No {pool_label} pitchers in pool")
         return []
@@ -500,7 +587,8 @@ def _compute_pitcher_pool_zscores(
 
     # Compute SGP denominators for this pool's categories
     sgp_cats = [c.upper() for c in categories]
-    sgp_denoms = _compute_sgp_denominators(sgp_cats)
+    sgp_denoms = _resolve_denominators(config, sgp_cats)
+    weights = config.category_weights
 
     # Extract common arrays
     mlb_ids = [r["mlb_id"] for r in rows]
@@ -552,11 +640,11 @@ def _compute_pitcher_pool_zscores(
 
     # Apply H2H correlation weights — discount correlated pair (ERA/WHIP),
     # boost independent categories (K, SVHD)
-    sgp_k = sgp_k * H2H_CATEGORY_WEIGHTS["K"]
-    sgp_qs = sgp_qs * H2H_CATEGORY_WEIGHTS["QS"]
-    sgp_era = sgp_era * H2H_CATEGORY_WEIGHTS["ERA"]
-    sgp_whip = sgp_whip * H2H_CATEGORY_WEIGHTS["WHIP"]
-    sgp_svhd = sgp_svhd * H2H_CATEGORY_WEIGHTS["SVHD"]
+    sgp_k = sgp_k * weights["K"]
+    sgp_qs = sgp_qs * weights["QS"]
+    sgp_era = sgp_era * weights["ERA"]
+    sgp_whip = sgp_whip * weights["WHIP"]
+    sgp_svhd = sgp_svhd * weights["SVHD"]
 
     # Build results with H2H-weighted SGP values
     results = []
@@ -589,22 +677,24 @@ def _compute_pitcher_pool_zscores(
     # discounting them again would double-count the playing time effect.
     _PITCHER_COUNTING_CATS = ("zscore_k", "zscore_qs", "zscore_svhd")
     _PITCHER_RATE_CATS = ("zscore_era", "zscore_whip")
-    full_credit_ip = FULL_CREDIT_IP_SP if pool_label == "SP" else FULL_CREDIT_IP_RP
-    discounted = 0
-    for p in results:
-        confidence = min(1.0, p["proj_ip"] / full_credit_ip)
-        if confidence < 1.0:
-            discounted += 1
-            for cat in _PITCHER_COUNTING_CATS:
-                p[cat] = round(p[cat] * confidence, 3)
-            # Recompute total from discounted counting stats + unchanged rate stats
-            p["total_zscore"] = round(
-                sum(p[cat] for cat in _PITCHER_COUNTING_CATS)
-                + sum(p[cat] for cat in _PITCHER_RATE_CATS),
-                3,
-            )
-    if discounted:
-        logger.info(f"Applied playing time discount to {discounted} {pool_label}s (< {full_credit_ip} IP)")
+    full_credit_ip = (config.full_credit_ip_sp if pool_label == "SP"
+                      else config.full_credit_ip_rp)
+    if config.apply_playing_time_discount:
+        discounted = 0
+        for p in results:
+            confidence = min(1.0, p["proj_ip"] / full_credit_ip)
+            if confidence < 1.0:
+                discounted += 1
+                for cat in _PITCHER_COUNTING_CATS:
+                    p[cat] = round(p[cat] * confidence, 3)
+                # Recompute total from discounted counting stats + unchanged rate stats
+                p["total_zscore"] = round(
+                    sum(p[cat] for cat in _PITCHER_COUNTING_CATS)
+                    + sum(p[cat] for cat in _PITCHER_RATE_CATS),
+                    3,
+                )
+        if discounted:
+            logger.info(f"Applied playing time discount to {discounted} {pool_label}s (< {full_credit_ip} IP)")
 
     # ── Streaming constraint bonus (SP only) ──
     # In leagues with weekly acquisition limits, SPs who are rosterable all
@@ -612,26 +702,26 @@ def _compute_pitcher_pool_zscores(
     # suggest, because they provide every-week production without burning a
     # transaction.  A small bonus nudges them above similarly-valued
     # streaming-tier SPs.
-    if pool_label == "SP":
-        _STREAM_ERA_THRESHOLD = 4.00
-        _STREAM_WHIP_THRESHOLD = 1.25
-        _STREAM_BONUS = 0.70  # ~0.70 SGP bonus, roughly two-thirds of one standings spot
+    if pool_label == "SP" and config.streaming_bonus:
         streamed = 0
         for p in results:
-            if p["proj_era"] <= _STREAM_ERA_THRESHOLD and p["proj_whip"] <= _STREAM_WHIP_THRESHOLD:
-                p["total_zscore"] = round(p["total_zscore"] + _STREAM_BONUS, 3)
+            if (p["proj_era"] <= config.streaming_era_threshold
+                    and p["proj_whip"] <= config.streaming_whip_threshold):
+                p["total_zscore"] = round(p["total_zscore"] + config.streaming_bonus, 3)
                 streamed += 1
         if streamed:
             logger.info(
-                f"Applied streaming hold bonus (+{_STREAM_BONUS}) to {streamed} SPs "
-                f"(ERA <= {_STREAM_ERA_THRESHOLD}, WHIP <= {_STREAM_WHIP_THRESHOLD})"
+                f"Applied streaming hold bonus (+{config.streaming_bonus}) to {streamed} SPs "
+                f"(ERA <= {config.streaming_era_threshold}, "
+                f"WHIP <= {config.streaming_whip_threshold})"
             )
 
     return results
 
 
 def calculate_pitcher_zscores(season: int = 2026, source: str = "atc",
-                              excluded_ids: set[int] | None = None) -> list[dict]:
+                              excluded_ids: set[int] | None = None,
+                              config: ValuationConfig | None = None) -> list[dict]:
     """Calculate z-scores for all pitchers, split into SP and RP pools.
 
     SP categories: K, QS, ERA, WHIP (min 30 IP)
@@ -669,6 +759,21 @@ def calculate_pitcher_zscores(season: int = 2026, source: str = "atc",
     if excluded_ids:
         rows = [r for r in rows if r["mlb_id"] not in excluded_ids]
 
+    return compute_pitcher_sgp(rows, config=config)
+
+
+def compute_pitcher_sgp(rows: list[dict],
+                        config: ValuationConfig | None = None) -> list[dict]:
+    """Pure SGP valuation for a list of pitcher projection rows.
+
+    Splits the rows into SP/RP pools, values each pool against its peers, then
+    applies replacement levels across both (flex P slots). Split out from
+    calculate_pitcher_zscores so the math is testable without a database.
+    """
+    config = _resolve_config(config)
+    if not rows:
+        return []
+
     # Classify into SP/RP pools
     sp_rows = []
     rp_rows = []
@@ -701,25 +806,26 @@ def calculate_pitcher_zscores(season: int = 2026, source: str = "atc",
     # Compute z-scores within each pool using only relevant categories
     sp_results = _compute_pitcher_pool_zscores(
         sp_rows, "SP", {"k", "qs", "era", "whip"},
-        combined_avg_team_ip=combined_avg_team_ip,
+        combined_avg_team_ip=combined_avg_team_ip, config=config,
     )
     rp_results = _compute_pitcher_pool_zscores(
         rp_rows, "RP", {"k", "svhd", "era", "whip"},
-        combined_avg_team_ip=combined_avg_team_ip,
+        combined_avg_team_ip=combined_avg_team_ip, config=config,
     )
 
     # Compute replacement levels across both pools (handles flex P slots)
-    repl = _compute_pitcher_replacement_levels(sp_results, rp_results)
+    if config.apply_replacement:
+        repl = _compute_pitcher_replacement_levels(sp_results, rp_results)
 
-    for p in sp_results:
-        repl_z = repl["SP"]
-        p["replacement_adj"] = round(-repl_z, 3)
-        p["total_zscore"] = round(p["total_zscore"] - repl_z, 3)
+        for p in sp_results:
+            repl_z = repl["SP"]
+            p["replacement_adj"] = round(-repl_z, 3)
+            p["total_zscore"] = round(p["total_zscore"] - repl_z, 3)
 
-    for p in rp_results:
-        repl_z = repl["RP"]
-        p["replacement_adj"] = round(-repl_z, 3)
-        p["total_zscore"] = round(p["total_zscore"] - repl_z, 3)
+        for p in rp_results:
+            repl_z = repl["RP"]
+            p["replacement_adj"] = round(-repl_z, 3)
+            p["total_zscore"] = round(p["total_zscore"] - repl_z, 3)
 
     # Combine and sort
     results = sp_results + rp_results
@@ -729,7 +835,8 @@ def calculate_pitcher_zscores(season: int = 2026, source: str = "atc",
 
 def calculate_all_zscores(season: int = 2026, source: str = "atc",
                           excluded_ids: set[int] | None = None,
-                          save_to_db: bool = True):
+                          save_to_db: bool = True,
+                          config: ValuationConfig | None = None):
     """Calculate z-scores for all players and optionally save to rankings table.
 
     Args:
@@ -740,9 +847,13 @@ def calculate_all_zscores(season: int = 2026, source: str = "atc",
         excluded_ids: If provided, exclude these mlb_ids from the player pool
                       before computing z-scores (for draft recalculation).
         save_to_db: If False, skip writing to the rankings table (ephemeral results).
+        config: Valuation tunables. Defaults to the production model; supply a
+                ValuationConfig to pin SGP denominators or vary one assumption
+                (see backend/analysis/retro/).
     """
-    hitters = calculate_hitter_zscores(season, source, excluded_ids)
-    pitchers = calculate_pitcher_zscores(season, source, excluded_ids)
+    config = _resolve_config(config)
+    hitters = calculate_hitter_zscores(season, source, excluded_ids, config=config)
+    pitchers = calculate_pitcher_zscores(season, source, excluded_ids, config=config)
 
     # ── Merge two-way players ──
     # A true two-way player (e.g. Ohtani) appears in BOTH the hitters and
@@ -839,11 +950,10 @@ def calculate_all_zscores(season: int = 2026, source: str = "atc",
     # reflect equal per-category impact.
     # NOTE: Two-way players are NOT normalized — they already contribute to
     # all 10 categories and live in the hitters list.
-    PITCHER_CATEGORY_NORMALIZER = 5 / 4  # 1.25
     for p in pitchers:
-        p["total_zscore"] = round(p["total_zscore"] * PITCHER_CATEGORY_NORMALIZER, 3)
+        p["total_zscore"] = round(p["total_zscore"] * config.pitcher_normalizer, 3)
     logger.info(
-        f"Applied pitcher category normalization (x{PITCHER_CATEGORY_NORMALIZER:.2f}) "
+        f"Applied pitcher category normalization (x{config.pitcher_normalizer:.2f}) "
         f"to {len(pitchers)} pitchers"
     )
 
