@@ -207,6 +207,52 @@ def count_kept_below_adp(adp: float, keeper_adps_sorted: list[float]) -> int:
     return bisect.bisect_right(keeper_adps_sorted, adp)
 
 
+def player_from_row(row, overall_rank: Optional[int] = None) -> Player:
+    """Build a Player from a rankings-shaped row (dict or sqlite3.Row).
+
+    Shared by load_players and the season retrospective, which values players
+    ex post and holds the results in memory rather than writing them to the
+    rankings table (that table is unique on (mlb_id, season) and belongs to the
+    live app).
+    """
+    def get(key, default=None):
+        try:
+            value = row[key]
+        except (KeyError, IndexError):
+            return default
+        return default if value is None else value
+
+    zscores = {key: (get(key) or 0.0) for key in ALL_CAT_KEYS}
+    espn = get("espn_adp")
+    nfbc = get("fangraphs_adp")
+    return Player(
+        mlb_id=get("mlb_id"),
+        full_name=get("full_name", ""),
+        primary_position=get("primary_position", "") or "",
+        player_type=get("player_type", "hitter"),
+        overall_rank=overall_rank if overall_rank is not None else get("overall_rank", 9999),
+        total_zscore=get("total_zscore", 0.0) or 0.0,
+        espn_adp=espn,
+        eligible_positions=get("eligible_positions"),
+        zscores=zscores,
+        nfbc_adp=nfbc,
+        blended_adp=blend_adp(espn, nfbc),
+    )
+
+
+def load_players_from_rows(rows: list[dict]) -> list[Player]:
+    """Build a player pool from in-memory rows, ranked best-first by total_zscore.
+
+    overall_rank is assigned from that ordering, because several parts of the
+    simulator key off rank (the streaming threshold, for one) and the rows may
+    carry a rank from a different board.
+    """
+    ordered = sorted(rows, key=lambda r: (-float(r.get("total_zscore") or 0.0),
+                                          r.get("mlb_id", 0)))
+    return [player_from_row(row, overall_rank=i)
+            for i, row in enumerate(ordered, start=1)]
+
+
 def load_players(db_path: Optional[str] = None, season: int = 2026) -> list[Player]:
     if db_path is None:
         db_path = str(Path(__file__).parent.parent / "fantasy_baseball.db")
@@ -230,26 +276,7 @@ def load_players(db_path: Optional[str] = None, season: int = 2026) -> list[Play
         (season,),
     )
 
-    players: list[Player] = []
-    for row in cursor.fetchall():
-        zscores = {key: row[key] or 0.0 for key in ALL_CAT_KEYS}
-        espn = row["espn_adp"]
-        nfbc = row["fangraphs_adp"]
-        players.append(
-            Player(
-                mlb_id=row["mlb_id"],
-                full_name=row["full_name"],
-                primary_position=row["primary_position"] or "",
-                player_type=row["player_type"],
-                overall_rank=row["overall_rank"] or 9999,
-                total_zscore=row["total_zscore"] or 0.0,
-                espn_adp=espn,
-                eligible_positions=row["eligible_positions"],
-                zscores=zscores,
-                nfbc_adp=nfbc,
-                blended_adp=blend_adp(espn, nfbc),
-            )
-        )
+    players = [player_from_row(row) for row in cursor.fetchall()]
 
     conn.close()
     return players

@@ -1,0 +1,169 @@
+{
+  "as_of": "2026-08-15",
+  "note": "Category win probabilities implied by each team's actual roster valued on realized production.",
+  "predicted": {
+    "1": {
+      "cat_win_probs": {
+        "zscore_era": 0.6667,
+        "zscore_k": 0.8889,
+        "zscore_obp": 0.1111,
+        "zscore_qs": 0.8889,
+        "zscore_r": 0.1111,
+        "zscore_rbi": 0.5556,
+        "zscore_sb": 0.5556,
+        "zscore_svhd": 0.7778,
+        "zscore_tb": 0.4444,
+        "zscore_whip": 0.4444
+      },
+      "expected_wins": 5.444,
+      "roster_size": 25
+    },
+    "10": {
+      "cat_win_probs": {
+        "zscore_era": 0.0,
+        "zscore_k": 0.0,
+        "zscore_obp": 0.2222,
+        "zscore_qs": 0.0,
+        "zscore_r": 0.5556,
+        "zscore_rbi": 0.7778,
+        "zscore_sb": 0.1111,
+        "zscore_svhd": 0.3333,
+        "zscore_tb": 0.5556,
+        "zscore_whip": 0.0
+      },
+      "expected_wins": 2.556,
+      "roster_size": 25
+    },
+    "2": {
+      "cat_win_probs": {
+        "zscore_era": 1.0,
+        "zscore_k": 0.7778,
+        "zscore_obp": 0.4444,
+        "zscore_qs": 0.7778,
+        "zscore_r": 0.3333,
+        "zscore_rbi": 0.1111,
+        "zscore_sb": 0.8889,
+        "zscore_svhd": 0.8889,
+        "zscore_tb": 0.2222,
+        "zscore_whip": 0.8889
+      },
+      "expected_wins": 6.333,
+      "roster_size": 25
+    },
+    "3": {
+      "cat_win_probs": {
+        "zscore_era": 0.7778,
+        "zscore_k": 1.0,
+        "zscore_obp": 0.7778,
+        "zscore_qs": 1.0,
+        "zscore_r": 0.4444,
+        "zscore_rbi": 0.2222,
+        "zscore_sb": 1.0,
+        "zscore_svhd": 0.0,
+        "zscore_tb": 0.3333,
+        "zscore_whip": 1.0
+      },
+      "expected_wins": 6.556,
+      "roster_size": 25
+    },
+    "4": {
+      "cat_win_probs": {
+        "zscore_era": 0.1111,
+        "zscore_k": 0.5556,
+        "zscore_obp": 0.8889,
+        "zscore_qs": 0.4444,
+        "zscore_r": 0.7778,
+        "zscore_rbi": 0.6667,
+        "zscore_sb": 0.7778,
+        "zscore_svhd": 0.2222,
+        "zscore_tb": 0.8889,
+        "zscore_whip": 0.5556
+      },
+      "expected_wins": 5.889,
+      "roster_size": 25
+    },
+    "5": {
+      "cat_win_probs": {
+        "zscore_era": 0.4444,
+        "zscore_k": 0.1111,
+        "zscore_obp": 0.6667,
+        "zscore_qs": 0.1111,
+        "zscore_r": 1.0,
+        "zscore_rbi": 1.0,
+        "zscore_sb": 0.3333,
+        "zscore_svhd": 1.0,
+        "zscore_tb": 1.0,
+        "zscore_whip": 0.7778
+      },
+      "expected_wins": 6.444,
+      "roster_size": 25
+    },
+    "6": {
+      "cat_win_probs": {
+        "zscore_era": 0.8889,
+        "zscore_k": 0.3333,
+        "zscore_obp": 1.0,
+        "zscore_qs": 0.5556,
+        "zscore_r": 0.8889,
+        "zscore_rbi": 0.3333,
+        "zscore_sb": 0.6667,
+        "zscore_svhd": 0.6667,
+        "zscore_tb": 0.6667,
+        "zscore_whip": 0.3333
+      },
+      "expected_wins": 6.333,
+      "roster_size": 25
+    },
+    "7": {
+      "cat_win_probs": {
+        "zscore_era": 0.5556,
+        "zscore_k": 0.2222,
+        "zscore_obp": 0.3333,
+        "zscore_qs": 0.2222,
+        "zscore_r": 0.6667,
+        "zscore_rbi": 0.8889,
+        "zscore_sb": 0.2222,
+        "zscore_svhd": 0.5556,
+        "zscore_tb": 0.7778,
+        "zscore_whip": 0.2222
+      },
+      "expected_wins": 4.667,
+      "roster_size": 25
+    },
+    "8": {
+      "cat_win_probs": {
+        "zscore_era": 0.2222,
+        "zscore_k": 0.6667,
+        "zscore_obp": 0.5556,
+        "zscore_qs": 0.6667,
+        "zscore_r": 0.2222,
+        "zscore_rbi": 0.4444,
+        "zscore_sb": 0.4444,
+        "zscore_svhd": 0.4444,
+        "zscore_tb": 0.1111,
+        "zscore_whip": 0.1111
+      },
+      "expected_wins": 3.889,
+      "roster_size": 25
+    },
+    "9": {
+      "cat_win_probs": {
+        "zscore_era": 0.3333,
+        "zscore_k": 0.4444,
+        "zscore_obp": 0.0,
+        "zscore_qs": 0.3333,
+        "zscore_r": 0.0,
+        "zscore_rbi": 0.0,
+        "zscore_sb": 0.0,
+        "zscore_svhd": 0.1111,
+        "zscore_tb": 0.0,
+        "zscore_whip": 0.6667
+      },
+      "expected_wins": 1.889,
+      "roster_size": 25
+    }
+  },
+  "preseason_source": "thebatx",
+  "season": 2026,
+  "season_elapsed_fraction": 0.7688
+}
