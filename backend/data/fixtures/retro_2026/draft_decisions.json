@@ -12,7 +12,7 @@
       "pick_index": 70,
       "realized_best_available": "CJ Abrams",
       "realized_regret": 0.0,
-      "realized_value": 8.006,
+      "realized_value": 8.014,
       "round": 8,
       "team_id": 7
     },
@@ -26,7 +26,7 @@
       "name": "Yordan Alvarez",
       "pick_index": 24,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -1.257,
+      "realized_regret": -1.265,
       "realized_value": 6.749,
       "round": 3,
       "team_id": 3
@@ -41,8 +41,8 @@
       "name": "Sal Stewart",
       "pick_index": 175,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -0.344,
-      "realized_value": 5.141,
+      "realized_regret": -0.408,
+      "realized_value": 5.077,
       "round": 18,
       "team_id": 3
     },
@@ -56,7 +56,7 @@
       "name": "Fernando Tatis Jr.",
       "pick_index": 11,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -3.162,
+      "realized_regret": -3.17,
       "realized_value": 4.844,
       "round": 2,
       "team_id": 1
@@ -72,7 +72,7 @@
       "pick_index": 19,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -3.317,
-      "realized_value": 4.689,
+      "realized_value": 4.697,
       "round": 2,
       "team_id": 2
     },
@@ -86,8 +86,8 @@
       "name": "Otto Lopez",
       "pick_index": 180,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -0.957,
-      "realized_value": 4.528,
+      "realized_regret": -0.949,
+      "realized_value": 4.536,
       "round": 19,
       "team_id": 5
     },
@@ -101,7 +101,7 @@
       "name": "Corbin Carroll",
       "pick_index": 12,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -3.88,
+      "realized_regret": -3.888,
       "realized_value": 4.126,
       "round": 2,
       "team_id": 6
@@ -132,7 +132,7 @@
       "pick_index": 13,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -3.956,
-      "realized_value": 4.05,
+      "realized_value": 4.058,
       "round": 2,
       "team_id": 4
     },
@@ -162,7 +162,7 @@
       "pick_index": 27,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -4.083,
-      "realized_value": 3.923,
+      "realized_value": 3.931,
       "round": 3,
       "team_id": 6
     },
@@ -176,7 +176,7 @@
       "name": "Ben Rice",
       "pick_index": 54,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -4.148,
+      "realized_regret": -4.156,
       "realized_value": 3.858,
       "round": 6,
       "team_id": 10
@@ -237,7 +237,7 @@
       "pick_index": 0,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -4.445,
-      "realized_value": 3.561,
+      "realized_value": 3.569,
       "round": 1,
       "team_id": 2
     },
@@ -252,7 +252,7 @@
       "pick_index": 7,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -4.494,
-      "realized_value": 3.512,
+      "realized_value": 3.52,
       "round": 1,
       "team_id": 6
     },
@@ -281,8 +281,8 @@
       "name": "Kevin McGonigle",
       "pick_index": 164,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -2.45,
-      "realized_value": 3.035,
+      "realized_regret": -2.442,
+      "realized_value": 3.043,
       "round": 17,
       "team_id": 3
     },
@@ -296,8 +296,8 @@
       "name": "Dansby Swanson",
       "pick_index": 213,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -2.455,
-      "realized_value": 3.03,
+      "realized_regret": -2.447,
+      "realized_value": 3.038,
       "round": 22,
       "team_id": 8
     }
@@ -305,92 +305,92 @@
   "by_round": [
     {
       "mean_board_value": 5.061,
-      "mean_realized_regret": -6.98,
-      "mean_realized_value": 1.026,
+      "mean_realized_regret": -6.982,
+      "mean_realized_value": 1.032,
       "picks": 6,
       "round": 1
     },
     {
       "mean_board_value": 3.09,
-      "mean_realized_regret": -6.15,
-      "mean_realized_value": 1.857,
+      "mean_realized_regret": -6.168,
+      "mean_realized_value": 1.846,
       "picks": 10,
       "round": 2
     },
     {
       "mean_board_value": 2.162,
-      "mean_realized_regret": -7.387,
-      "mean_realized_value": 0.619,
+      "mean_realized_regret": -7.392,
+      "mean_realized_value": 0.622,
       "picks": 10,
       "round": 3
     },
     {
       "mean_board_value": 1.497,
-      "mean_realized_regret": -9.311,
-      "mean_realized_value": -1.305,
+      "mean_realized_regret": -9.324,
+      "mean_realized_value": -1.31,
       "picks": 9,
       "round": 4
     },
     {
       "mean_board_value": 1.443,
-      "mean_realized_regret": -8.089,
-      "mean_realized_value": -0.083,
+      "mean_realized_regret": -8.104,
+      "mean_realized_value": -0.09,
       "picks": 9,
       "round": 5
     },
     {
       "mean_board_value": 1.307,
-      "mean_realized_regret": -8.021,
-      "mean_realized_value": -0.015,
+      "mean_realized_regret": -8.028,
+      "mean_realized_value": -0.014,
       "picks": 10,
       "round": 6
     },
     {
       "mean_board_value": 0.908,
-      "mean_realized_regret": -9.105,
-      "mean_realized_value": -1.099,
+      "mean_realized_regret": -9.118,
+      "mean_realized_value": -1.104,
       "picks": 8,
       "round": 7
     },
     {
       "mean_board_value": 0.737,
-      "mean_realized_regret": -5.944,
-      "mean_realized_value": -0.206,
+      "mean_realized_regret": -5.949,
+      "mean_realized_value": -0.211,
       "picks": 10,
       "round": 8
     },
     {
       "mean_board_value": -0.168,
-      "mean_realized_regret": -6.205,
-      "mean_realized_value": -0.72,
+      "mean_realized_regret": -6.212,
+      "mean_realized_value": -0.727,
       "picks": 7,
       "round": 9
     },
     {
       "mean_board_value": 0.243,
-      "mean_realized_regret": -6.645,
-      "mean_realized_value": -1.16,
+      "mean_realized_regret": -6.643,
+      "mean_realized_value": -1.158,
       "picks": 9,
       "round": 10
     },
     {
       "mean_board_value": 0.149,
-      "mean_realized_regret": -6.873,
-      "mean_realized_value": -1.388,
+      "mean_realized_regret": -6.872,
+      "mean_realized_value": -1.387,
       "picks": 10,
       "round": 11
     },
     {
       "mean_board_value": -0.604,
-      "mean_realized_regret": -6.296,
-      "mean_realized_value": -0.811,
+      "mean_realized_regret": -6.304,
+      "mean_realized_value": -0.819,
       "picks": 8,
       "round": 12
     },
     {
       "mean_board_value": -0.47,
-      "mean_realized_regret": -7.437,
-      "mean_realized_value": -1.952,
+      "mean_realized_regret": -7.436,
+      "mean_realized_value": -1.951,
       "picks": 9,
       "round": 13
     },
@@ -403,8 +403,8 @@
     },
     {
       "mean_board_value": -1.116,
-      "mean_realized_regret": -9.285,
-      "mean_realized_value": -3.8,
+      "mean_realized_regret": -9.286,
+      "mean_realized_value": -3.801,
       "picks": 9,
       "round": 15
     },
@@ -417,29 +417,29 @@
     },
     {
       "mean_board_value": -1.924,
-      "mean_realized_regret": -6.84,
+      "mean_realized_regret": -6.839,
       "mean_realized_value": -1.354,
       "picks": 8,
       "round": 17
     },
     {
       "mean_board_value": -1.529,
-      "mean_realized_regret": -7.348,
-      "mean_realized_value": -1.863,
+      "mean_realized_regret": -7.363,
+      "mean_realized_value": -1.878,
       "picks": 8,
       "round": 18
     },
     {
       "mean_board_value": -1.648,
-      "mean_realized_regret": -7.826,
-      "mean_realized_value": -2.341,
+      "mean_realized_regret": -7.825,
+      "mean_realized_value": -2.34,
       "picks": 8,
       "round": 19
     },
     {
       "mean_board_value": -1.981,
-      "mean_realized_regret": -7.893,
-      "mean_realized_value": -2.408,
+      "mean_realized_regret": -7.895,
+      "mean_realized_value": -2.41,
       "picks": 8,
       "round": 20
     },
@@ -452,15 +452,15 @@
     },
     {
       "mean_board_value": -1.806,
-      "mean_realized_regret": -9.02,
-      "mean_realized_value": -3.535,
+      "mean_realized_regret": -9.025,
+      "mean_realized_value": -3.54,
       "picks": 9,
       "round": 22
     },
     {
       "mean_board_value": -1.668,
-      "mean_realized_regret": -9.28,
-      "mean_realized_value": -3.796,
+      "mean_realized_regret": -9.287,
+      "mean_realized_value": -3.801,
       "picks": 8,
       "round": 23
     },
@@ -485,9 +485,9 @@
       "manager": null,
       "mean_adp_delta": 45.79,
       "mean_board_regret": -1.933,
-      "mean_realized_regret": -7.158,
+      "mean_realized_regret": -7.163,
       "picks": 21,
-      "realized_value": -20.01,
+      "realized_value": -20.07,
       "team_id": 1
     },
     {
@@ -495,9 +495,9 @@
       "manager": null,
       "mean_adp_delta": 27.95,
       "mean_board_regret": -2.095,
-      "mean_realized_regret": -7.21,
+      "mean_realized_regret": -7.215,
       "picks": 21,
-      "realized_value": -11.01,
+      "realized_value": -11.04,
       "team_id": 2
     },
     {
@@ -505,9 +505,9 @@
       "manager": null,
       "mean_adp_delta": 70.01,
       "mean_board_regret": -3.474,
-      "mean_realized_regret": -6.798,
+      "mean_realized_regret": -6.811,
       "picks": 21,
-      "realized_value": -14.97,
+      "realized_value": -15.2,
       "team_id": 3
     },
     {
@@ -515,9 +515,9 @@
       "manager": null,
       "mean_adp_delta": 26.67,
       "mean_board_regret": -2.102,
-      "mean_realized_regret": -7.86,
+      "mean_realized_regret": -7.863,
       "picks": 21,
-      "realized_value": -34.75,
+      "realized_value": -34.76,
       "team_id": 4
     },
     {
@@ -525,9 +525,9 @@
       "manager": null,
       "mean_adp_delta": 26.13,
       "mean_board_regret": -1.985,
-      "mean_realized_regret": -6.646,
+      "mean_realized_regret": -6.65,
       "picks": 21,
-      "realized_value": -6.74,
+      "realized_value": -6.77,
       "team_id": 5
     },
     {
@@ -537,7 +537,7 @@
       "mean_board_regret": -2.4,
       "mean_realized_regret": -8.189,
       "picks": 21,
-      "realized_value": -41.66,
+      "realized_value": -41.61,
       "team_id": 6
     },
     {
@@ -545,9 +545,9 @@
       "manager": null,
       "mean_adp_delta": 36.51,
       "mean_board_regret": -2.48,
-      "mean_realized_regret": -7.499,
+      "mean_realized_regret": -7.506,
       "picks": 21,
-      "realized_value": -24.64,
+      "realized_value": -24.73,
       "team_id": 7
     },
     {
@@ -555,9 +555,9 @@
       "manager": null,
       "mean_adp_delta": 35.39,
       "mean_board_regret": -1.523,
-      "mean_realized_regret": -7.709,
+      "mean_realized_regret": -7.713,
       "picks": 21,
-      "realized_value": -34.1,
+      "realized_value": -34.14,
       "team_id": 8
     },
     {
@@ -565,9 +565,9 @@
       "manager": null,
       "mean_adp_delta": 54.57,
       "mean_board_regret": -2.905,
-      "mean_realized_regret": -8.954,
+      "mean_realized_regret": -8.959,
       "picks": 21,
-      "realized_value": -60.25,
+      "realized_value": -60.3,
       "team_id": 9
     },
     {
@@ -575,9 +575,9 @@
       "manager": null,
       "mean_adp_delta": 30.38,
       "mean_board_regret": -2.343,
-      "mean_realized_regret": -8.422,
+      "mean_realized_regret": -8.426,
       "picks": 21,
-      "realized_value": -46.56,
+      "realized_value": -46.59,
       "team_id": 10
     }
   ],
@@ -593,7 +593,7 @@
       "pick_index": 0,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -4.445,
-      "realized_value": 3.561,
+      "realized_value": 3.569,
       "round": 1,
       "team_id": 2
     },
@@ -608,7 +608,7 @@
       "pick_index": 1,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -8.517,
-      "realized_value": -0.511,
+      "realized_value": -0.503,
       "round": 1,
       "team_id": 5
     },
@@ -622,7 +622,7 @@
       "name": "Kyle Tucker",
       "pick_index": 5,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -7.709,
+      "realized_regret": -7.717,
       "realized_value": 0.297,
       "round": 1,
       "team_id": 10
@@ -637,7 +637,7 @@
       "name": "Ronald Acu\u00f1a Jr.",
       "pick_index": 6,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -10.286,
+      "realized_regret": -10.294,
       "realized_value": -2.28,
       "round": 1,
       "team_id": 4
@@ -653,7 +653,7 @@
       "pick_index": 7,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -4.494,
-      "realized_value": 3.512,
+      "realized_value": 3.52,
       "round": 1,
       "team_id": 6
     },
@@ -668,7 +668,7 @@
       "pick_index": 9,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -6.427,
-      "realized_value": 1.579,
+      "realized_value": 1.587,
       "round": 1,
       "team_id": 7
     },
@@ -682,7 +682,7 @@
       "name": "Julio Rodr\u00edguez",
       "pick_index": 10,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -6.472,
+      "realized_regret": -6.48,
       "realized_value": 1.534,
       "round": 2,
       "team_id": 7
@@ -697,7 +697,7 @@
       "name": "Fernando Tatis Jr.",
       "pick_index": 11,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -3.162,
+      "realized_regret": -3.17,
       "realized_value": 4.844,
       "round": 2,
       "team_id": 1
@@ -712,7 +712,7 @@
       "name": "Corbin Carroll",
       "pick_index": 12,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -3.88,
+      "realized_regret": -3.888,
       "realized_value": 4.126,
       "round": 2,
       "team_id": 6
@@ -728,7 +728,7 @@
       "pick_index": 13,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -3.956,
-      "realized_value": 4.05,
+      "realized_value": 4.058,
       "round": 2,
       "team_id": 4
     },
@@ -742,8 +742,8 @@
       "name": "Manny Machado",
       "pick_index": 14,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -7.271,
-      "realized_value": 0.735,
+      "realized_regret": -7.343,
+      "realized_value": 0.671,
       "round": 2,
       "team_id": 10
     },
@@ -757,8 +757,8 @@
       "name": "Jazz Chisholm Jr.",
       "pick_index": 15,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -5.795,
-      "realized_value": 2.211,
+      "realized_regret": -5.867,
+      "realized_value": 2.147,
       "round": 2,
       "team_id": 3
     },
@@ -772,7 +772,7 @@
       "name": "William Contreras",
       "pick_index": 16,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -8.063,
+      "realized_regret": -8.071,
       "realized_value": -0.057,
       "round": 2,
       "team_id": 8
@@ -788,7 +788,7 @@
       "pick_index": 17,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -12.428,
-      "realized_value": -4.422,
+      "realized_value": -4.414,
       "round": 2,
       "team_id": 9
     },
@@ -802,7 +802,7 @@
       "name": "Logan Webb",
       "pick_index": 18,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -7.151,
+      "realized_regret": -7.159,
       "realized_value": 0.855,
       "round": 2,
       "team_id": 5
@@ -818,7 +818,7 @@
       "pick_index": 19,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -3.317,
-      "realized_value": 4.689,
+      "realized_value": 4.697,
       "round": 2,
       "team_id": 2
     },
@@ -832,7 +832,7 @@
       "name": "Max Fried",
       "pick_index": 20,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -9.486,
+      "realized_regret": -9.494,
       "realized_value": -1.48,
       "round": 3,
       "team_id": 2
@@ -847,7 +847,7 @@
       "name": "Logan Gilbert",
       "pick_index": 21,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -6.609,
+      "realized_regret": -6.617,
       "realized_value": 1.397,
       "round": 3,
       "team_id": 5
@@ -863,7 +863,7 @@
       "pick_index": 22,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -11.377,
-      "realized_value": -3.371,
+      "realized_value": -3.363,
       "round": 3,
       "team_id": 9
     },
@@ -877,7 +877,7 @@
       "name": "Brent Rooker",
       "pick_index": 23,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -15.141,
+      "realized_regret": -15.149,
       "realized_value": -7.135,
       "round": 3,
       "team_id": 8
@@ -892,7 +892,7 @@
       "name": "Yordan Alvarez",
       "pick_index": 24,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -1.257,
+      "realized_regret": -1.265,
       "realized_value": 6.749,
       "round": 3,
       "team_id": 3
@@ -907,7 +907,7 @@
       "name": "Jacob deGrom",
       "pick_index": 25,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -8.776,
+      "realized_regret": -8.784,
       "realized_value": -0.77,
       "round": 3,
       "team_id": 10
@@ -923,7 +923,7 @@
       "pick_index": 26,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -5.185,
-      "realized_value": 2.821,
+      "realized_value": 2.829,
       "round": 3,
       "team_id": 4
     },
@@ -938,7 +938,7 @@
       "pick_index": 27,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -4.083,
-      "realized_value": 3.923,
+      "realized_value": 3.931,
       "round": 3,
       "team_id": 6
     },
@@ -952,7 +952,7 @@
       "name": "Chris Sale",
       "pick_index": 28,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -5.518,
+      "realized_regret": -5.526,
       "realized_value": 2.488,
       "round": 3,
       "team_id": 1
@@ -968,7 +968,7 @@
       "pick_index": 29,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -6.436,
-      "realized_value": 1.57,
+      "realized_value": 1.578,
       "round": 3,
       "team_id": 7
     },
@@ -983,7 +983,7 @@
       "pick_index": 30,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -6.789,
-      "realized_value": 1.217,
+      "realized_value": 1.225,
       "round": 4,
       "team_id": 7
     },
@@ -997,7 +997,7 @@
       "name": "Hunter Greene",
       "pick_index": 31,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -12.845,
+      "realized_regret": -12.853,
       "realized_value": -4.839,
       "round": 4,
       "team_id": 1
@@ -1012,7 +1012,7 @@
       "name": "Cole Ragans",
       "pick_index": 32,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -12.296,
+      "realized_regret": -12.304,
       "realized_value": -4.29,
       "round": 4,
       "team_id": 6
@@ -1027,7 +1027,7 @@
       "name": "George Kirby",
       "pick_index": 33,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -8.713,
+      "realized_regret": -8.721,
       "realized_value": -0.707,
       "round": 4,
       "team_id": 4
@@ -1043,7 +1043,7 @@
       "pick_index": 34,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -6.404,
-      "realized_value": 1.602,
+      "realized_value": 1.61,
       "round": 4,
       "team_id": 10
     },
@@ -1057,7 +1057,7 @@
       "name": "Edwin D\u00edaz",
       "pick_index": 36,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -12.719,
+      "realized_regret": -12.727,
       "realized_value": -4.713,
       "round": 4,
       "team_id": 8
@@ -1072,7 +1072,7 @@
       "name": "Framber Valdez",
       "pick_index": 37,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -9.567,
+      "realized_regret": -9.575,
       "realized_value": -1.561,
       "round": 4,
       "team_id": 2
@@ -1087,8 +1087,8 @@
       "name": "Alex Bregman",
       "pick_index": 38,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -6.459,
-      "realized_value": 1.547,
+      "realized_regret": -6.531,
+      "realized_value": 1.483,
       "round": 4,
       "team_id": 5
     },
@@ -1102,7 +1102,7 @@
       "name": "Cody Bellinger",
       "pick_index": 39,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -8.006,
+      "realized_regret": -8.014,
       "realized_value": 0.0,
       "round": 4,
       "team_id": 2
@@ -1117,7 +1117,7 @@
       "name": "Dylan Cease",
       "pick_index": 40,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -6.131,
+      "realized_regret": -6.139,
       "realized_value": 1.875,
       "round": 5,
       "team_id": 2
@@ -1132,7 +1132,7 @@
       "name": "Wyatt Langford",
       "pick_index": 41,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -11.34,
+      "realized_regret": -11.348,
       "realized_value": -3.334,
       "round": 5,
       "team_id": 5
@@ -1147,7 +1147,7 @@
       "name": "Jose Altuve",
       "pick_index": 42,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -10.321,
+      "realized_regret": -10.329,
       "realized_value": -2.315,
       "round": 5,
       "team_id": 9
@@ -1162,7 +1162,7 @@
       "name": "Jes\u00fas Luzardo",
       "pick_index": 43,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -6.187,
+      "realized_regret": -6.195,
       "realized_value": 1.819,
       "round": 5,
       "team_id": 8
@@ -1177,7 +1177,7 @@
       "name": "Joe Ryan",
       "pick_index": 44,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -8.005,
+      "realized_regret": -8.013,
       "realized_value": 0.001,
       "round": 5,
       "team_id": 3
@@ -1192,7 +1192,7 @@
       "name": "Andr\u00e9s Mu\u00f1oz",
       "pick_index": 46,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -8.353,
+      "realized_regret": -8.361,
       "realized_value": -0.347,
       "round": 5,
       "team_id": 2
@@ -1207,7 +1207,7 @@
       "name": "Nolan McLean",
       "pick_index": 47,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -6.761,
+      "realized_regret": -6.769,
       "realized_value": 1.245,
       "round": 5,
       "team_id": 6
@@ -1222,8 +1222,8 @@
       "name": "Austin Riley",
       "pick_index": 48,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -8.629,
-      "realized_value": -0.623,
+      "realized_regret": -8.701,
+      "realized_value": -0.687,
       "round": 5,
       "team_id": 1
     },
@@ -1237,7 +1237,7 @@
       "name": "Riley Greene",
       "pick_index": 49,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -7.071,
+      "realized_regret": -7.079,
       "realized_value": 0.935,
       "round": 5,
       "team_id": 7
@@ -1252,7 +1252,7 @@
       "name": "Aroldis Chapman",
       "pick_index": 50,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -7.189,
+      "realized_regret": -7.197,
       "realized_value": 0.817,
       "round": 6,
       "team_id": 2
@@ -1267,7 +1267,7 @@
       "name": "Jarren Duran",
       "pick_index": 51,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -7.38,
+      "realized_regret": -7.388,
       "realized_value": 0.626,
       "round": 6,
       "team_id": 1
@@ -1282,7 +1282,7 @@
       "name": "Jhoan Duran",
       "pick_index": 52,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -7.023,
+      "realized_regret": -7.031,
       "realized_value": 0.983,
       "round": 6,
       "team_id": 6
@@ -1298,7 +1298,7 @@
       "pick_index": 53,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -7.192,
-      "realized_value": 0.814,
+      "realized_value": 0.822,
       "round": 6,
       "team_id": 4
     },
@@ -1312,7 +1312,7 @@
       "name": "Ben Rice",
       "pick_index": 54,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -4.148,
+      "realized_regret": -4.156,
       "realized_value": 3.858,
       "round": 6,
       "team_id": 10
@@ -1328,7 +1328,7 @@
       "pick_index": 55,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -12.881,
-      "realized_value": -4.875,
+      "realized_value": -4.867,
       "round": 6,
       "team_id": 3
     },
@@ -1342,7 +1342,7 @@
       "name": "Devin Williams",
       "pick_index": 56,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -10.135,
+      "realized_regret": -10.143,
       "realized_value": -2.129,
       "round": 6,
       "team_id": 8
@@ -1357,7 +1357,7 @@
       "name": "Zack Wheeler",
       "pick_index": 57,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -7.052,
+      "realized_regret": -7.06,
       "realized_value": 0.954,
       "round": 6,
       "team_id": 9
@@ -1372,7 +1372,7 @@
       "name": "George Springer",
       "pick_index": 58,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -10.547,
+      "realized_regret": -10.555,
       "realized_value": -2.541,
       "round": 6,
       "team_id": 5
@@ -1387,7 +1387,7 @@
       "name": "David Bednar",
       "pick_index": 59,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -6.667,
+      "realized_regret": -6.675,
       "realized_value": 1.339,
       "round": 6,
       "team_id": 2
@@ -1402,8 +1402,8 @@
       "name": "Maikel Garcia",
       "pick_index": 60,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -12.999,
-      "realized_value": -4.993,
+      "realized_regret": -13.071,
+      "realized_value": -5.057,
       "round": 7,
       "team_id": 2
     },
@@ -1418,7 +1418,7 @@
       "pick_index": 61,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -13.813,
-      "realized_value": -5.807,
+      "realized_value": -5.799,
       "round": 7,
       "team_id": 5
     },
@@ -1432,7 +1432,7 @@
       "name": "Shea Langeliers",
       "pick_index": 62,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -8.351,
+      "realized_regret": -8.359,
       "realized_value": -0.345,
       "round": 7,
       "team_id": 9
@@ -1448,7 +1448,7 @@
       "pick_index": 64,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -5.212,
-      "realized_value": 2.794,
+      "realized_value": 2.802,
       "round": 7,
       "team_id": 3
     },
@@ -1463,7 +1463,7 @@
       "pick_index": 65,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -7.953,
-      "realized_value": 0.053,
+      "realized_value": 0.061,
       "round": 7,
       "team_id": 10
     },
@@ -1477,7 +1477,7 @@
       "name": "Byron Buxton",
       "pick_index": 66,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -8.297,
+      "realized_regret": -8.305,
       "realized_value": -0.291,
       "round": 7,
       "team_id": 4
@@ -1492,7 +1492,7 @@
       "name": "Hunter Goodman",
       "pick_index": 68,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -5.162,
+      "realized_regret": -5.17,
       "realized_value": 2.844,
       "round": 7,
       "team_id": 1
@@ -1507,7 +1507,7 @@
       "name": "Tyler Glasnow",
       "pick_index": 69,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -11.053,
+      "realized_regret": -11.061,
       "realized_value": -3.047,
       "round": 7,
       "team_id": 7
@@ -1523,7 +1523,7 @@
       "pick_index": 70,
       "realized_best_available": "CJ Abrams",
       "realized_regret": 0.0,
-      "realized_value": 8.006,
+      "realized_value": 8.014,
       "round": 8,
       "team_id": 7
     },
@@ -1567,8 +1567,8 @@
       "name": "Eugenio Su\u00e1rez",
       "pick_index": 73,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -9.51,
-      "realized_value": -4.025,
+      "realized_regret": -9.574,
+      "realized_value": -4.089,
       "round": 8,
       "team_id": 4
     },
@@ -1597,8 +1597,8 @@
       "name": "Michael Busch",
       "pick_index": 75,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -5.303,
-      "realized_value": 0.182,
+      "realized_regret": -5.295,
+      "realized_value": 0.19,
       "round": 8,
       "team_id": 3
     },
@@ -1687,8 +1687,8 @@
       "name": "Spencer Torkelson",
       "pick_index": 82,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -5.989,
-      "realized_value": -0.504,
+      "realized_regret": -5.981,
+      "realized_value": -0.496,
       "round": 9,
       "team_id": 9
     },
@@ -1702,8 +1702,8 @@
       "name": "Matt Chapman",
       "pick_index": 83,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -9.873,
-      "realized_value": -4.388,
+      "realized_regret": -9.937,
+      "realized_value": -4.452,
       "round": 9,
       "team_id": 8
     },
@@ -1747,8 +1747,8 @@
       "name": "Christian Yelich",
       "pick_index": 87,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -7.775,
-      "realized_value": -2.29,
+      "realized_regret": -7.767,
+      "realized_value": -2.282,
       "round": 9,
       "team_id": 6
     },
@@ -1807,8 +1807,8 @@
       "name": "Luke Keaschall",
       "pick_index": 92,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -5.891,
-      "realized_value": -0.406,
+      "realized_regret": -5.883,
+      "realized_value": -0.398,
       "round": 10,
       "team_id": 6
     },
@@ -1822,8 +1822,8 @@
       "name": "Ozzie Albies",
       "pick_index": 93,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -4.017,
-      "realized_value": 1.468,
+      "realized_regret": -4.009,
+      "realized_value": 1.476,
       "round": 10,
       "team_id": 2
     },
@@ -1852,8 +1852,8 @@
       "name": "Bryson Stott",
       "pick_index": 96,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -3.228,
-      "realized_value": 2.257,
+      "realized_regret": -3.22,
+      "realized_value": 2.265,
       "round": 10,
       "team_id": 8
     },
@@ -1957,8 +1957,8 @@
       "name": "Willy Adames",
       "pick_index": 103,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -6.087,
-      "realized_value": -0.602,
+      "realized_regret": -6.079,
+      "realized_value": -0.594,
       "round": 11,
       "team_id": 8
     },
@@ -2047,8 +2047,8 @@
       "name": "Matt McLain",
       "pick_index": 109,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -8.68,
-      "realized_value": -3.195,
+      "realized_regret": -8.672,
+      "realized_value": -3.187,
       "round": 11,
       "team_id": 7
     },
@@ -2107,8 +2107,8 @@
       "name": "Munetaka Murakami",
       "pick_index": 115,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -5.485,
-      "realized_value": 0.0,
+      "realized_regret": -5.549,
+      "realized_value": -0.064,
       "round": 12,
       "team_id": 3
     },
@@ -2182,8 +2182,8 @@
       "name": "Jackson Holliday",
       "pick_index": 120,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -11.615,
-      "realized_value": -6.13,
+      "realized_regret": -11.607,
+      "realized_value": -6.122,
       "round": 13,
       "team_id": 2
     },
@@ -2452,8 +2452,8 @@
       "name": "Konnor Griffin",
       "pick_index": 140,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -8.795,
-      "realized_value": -3.31,
+      "realized_regret": -8.787,
+      "realized_value": -3.302,
       "round": 15,
       "team_id": 2
     },
@@ -2482,8 +2482,8 @@
       "name": "Addison Barger",
       "pick_index": 142,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -17.2,
-      "realized_value": -11.715,
+      "realized_regret": -17.227,
+      "realized_value": -11.742,
       "round": 15,
       "team_id": 9
     },
@@ -2542,8 +2542,8 @@
       "name": "Jeremy Pe\u00f1a",
       "pick_index": 147,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -6.761,
-      "realized_value": -1.276,
+      "realized_regret": -6.753,
+      "realized_value": -1.268,
       "round": 15,
       "team_id": 6
     },
@@ -2692,8 +2692,8 @@
       "name": "Brandon Lowe",
       "pick_index": 161,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -2.623,
-      "realized_value": 2.862,
+      "realized_regret": -2.615,
+      "realized_value": 2.87,
       "round": 17,
       "team_id": 5
     },
@@ -2707,8 +2707,8 @@
       "name": "Jos\u00e9 Caballero",
       "pick_index": 162,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -5.729,
-      "realized_value": -0.244,
+      "realized_regret": -5.756,
+      "realized_value": -0.271,
       "round": 17,
       "team_id": 9
     },
@@ -2737,8 +2737,8 @@
       "name": "Kevin McGonigle",
       "pick_index": 164,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -2.45,
-      "realized_value": 3.035,
+      "realized_regret": -2.442,
+      "realized_value": 3.043,
       "round": 17,
       "team_id": 3
     },
@@ -2752,8 +2752,8 @@
       "name": "Trevor Story",
       "pick_index": 165,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -13.867,
-      "realized_value": -8.382,
+      "realized_regret": -13.859,
+      "realized_value": -8.374,
       "round": 17,
       "team_id": 10
     },
@@ -2767,8 +2767,8 @@
       "name": "Xavier Edwards",
       "pick_index": 166,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -4.038,
-      "realized_value": 1.447,
+      "realized_regret": -4.03,
+      "realized_value": 1.455,
       "round": 17,
       "team_id": 4
     },
@@ -2812,8 +2812,8 @@
       "name": "Kazuma Okamoto",
       "pick_index": 170,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -4.6,
-      "realized_value": 0.885,
+      "realized_regret": -4.664,
+      "realized_value": 0.821,
       "round": 18,
       "team_id": 7
     },
@@ -2842,8 +2842,8 @@
       "name": "Jacob Wilson",
       "pick_index": 173,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -9.5,
-      "realized_value": -4.015,
+      "realized_regret": -9.492,
+      "realized_value": -4.007,
       "round": 18,
       "team_id": 4
     },
@@ -2872,8 +2872,8 @@
       "name": "Sal Stewart",
       "pick_index": 175,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -0.344,
-      "realized_value": 5.141,
+      "realized_regret": -0.408,
+      "realized_value": 5.077,
       "round": 18,
       "team_id": 3
     },
@@ -2932,8 +2932,8 @@
       "name": "Otto Lopez",
       "pick_index": 180,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -0.957,
-      "realized_value": 4.528,
+      "realized_regret": -0.949,
+      "realized_value": 4.536,
       "round": 19,
       "team_id": 5
     },
@@ -3067,8 +3067,8 @@
       "name": "Yandy D\u00edaz",
       "pick_index": 192,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -2.815,
-      "realized_value": 2.67,
+      "realized_regret": -2.807,
+      "realized_value": 2.678,
       "round": 20,
       "team_id": 4
     },
@@ -3142,8 +3142,8 @@
       "name": "JJ Wetherholt",
       "pick_index": 198,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -3.654,
-      "realized_value": 1.831,
+      "realized_regret": -3.646,
+      "realized_value": 1.839,
       "round": 20,
       "team_id": 5
     },
@@ -3157,8 +3157,8 @@
       "name": "Noelvi Marte",
       "pick_index": 199,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -13.277,
-      "realized_value": -7.792,
+      "realized_regret": -13.304,
+      "realized_value": -7.819,
       "round": 20,
       "team_id": 9
     },
@@ -3337,8 +3337,8 @@
       "name": "Jordan Lawlar",
       "pick_index": 212,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -15.776,
-      "realized_value": -10.291,
+      "realized_regret": -15.84,
+      "realized_value": -10.355,
       "round": 22,
       "team_id": 3
     },
@@ -3352,8 +3352,8 @@
       "name": "Dansby Swanson",
       "pick_index": 213,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -2.455,
-      "realized_value": 3.03,
+      "realized_regret": -2.447,
+      "realized_value": 3.038,
       "round": 22,
       "team_id": 8
     },
@@ -3412,8 +3412,8 @@
       "name": "Marcus Semien",
       "pick_index": 218,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -8.581,
-      "realized_value": -3.096,
+      "realized_regret": -8.573,
+      "realized_value": -3.088,
       "round": 22,
       "team_id": 8
     },
@@ -3502,8 +3502,8 @@
       "name": "Max Muncy",
       "pick_index": 224,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -4.952,
-      "realized_value": 0.533,
+      "realized_regret": -5.016,
+      "realized_value": 0.469,
       "round": 23,
       "team_id": 7
     },
@@ -3517,8 +3517,8 @@
       "name": "Jorge Polanco",
       "pick_index": 227,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -16.431,
-      "realized_value": -10.946,
+      "realized_regret": -16.423,
+      "realized_value": -10.938,
       "round": 23,
       "team_id": 6
     },
@@ -3547,8 +3547,8 @@
       "name": "Christian Walker",
       "pick_index": 229,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -4.589,
-      "realized_value": 0.896,
+      "realized_regret": -4.581,
+      "realized_value": 0.904,
       "round": 23,
       "team_id": 10
     },
@@ -3747,8 +3747,8 @@
       "name": "Jordan Lawlar",
       "pick_index": 212,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -15.776,
-      "realized_value": -10.291,
+      "realized_regret": -15.84,
+      "realized_value": -10.355,
       "round": 22,
       "team_id": 3
     },
@@ -3762,8 +3762,8 @@
       "name": "Kevin McGonigle",
       "pick_index": 164,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -2.45,
-      "realized_value": 3.035,
+      "realized_regret": -2.442,
+      "realized_value": 3.043,
       "round": 17,
       "team_id": 3
     },
@@ -3777,8 +3777,8 @@
       "name": "Konnor Griffin",
       "pick_index": 140,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -8.795,
-      "realized_value": -3.31,
+      "realized_regret": -8.787,
+      "realized_value": -3.302,
       "round": 15,
       "team_id": 2
     },
@@ -3792,8 +3792,8 @@
       "name": "Jos\u00e9 Caballero",
       "pick_index": 162,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -5.729,
-      "realized_value": -0.244,
+      "realized_regret": -5.756,
+      "realized_value": -0.271,
       "round": 17,
       "team_id": 9
     },
@@ -3927,8 +3927,8 @@
       "name": "JJ Wetherholt",
       "pick_index": 198,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -3.654,
-      "realized_value": 1.831,
+      "realized_regret": -3.646,
+      "realized_value": 1.839,
       "round": 20,
       "team_id": 5
     },
@@ -3957,8 +3957,8 @@
       "name": "Addison Barger",
       "pick_index": 142,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -17.2,
-      "realized_value": -11.715,
+      "realized_regret": -17.227,
+      "realized_value": -11.742,
       "round": 15,
       "team_id": 9
     },
@@ -4049,8 +4049,8 @@
       "name": "Addison Barger",
       "pick_index": 142,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -17.2,
-      "realized_value": -11.715,
+      "realized_regret": -17.227,
+      "realized_value": -11.742,
       "round": 15,
       "team_id": 9
     },
@@ -4064,8 +4064,8 @@
       "name": "Jorge Polanco",
       "pick_index": 227,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -16.431,
-      "realized_value": -10.946,
+      "realized_regret": -16.423,
+      "realized_value": -10.938,
       "round": 23,
       "team_id": 6
     },
@@ -4079,8 +4079,8 @@
       "name": "Jordan Lawlar",
       "pick_index": 212,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -15.776,
-      "realized_value": -10.291,
+      "realized_regret": -15.84,
+      "realized_value": -10.355,
       "round": 22,
       "team_id": 3
     },
@@ -4094,7 +4094,7 @@
       "name": "Brent Rooker",
       "pick_index": 23,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -15.141,
+      "realized_regret": -15.149,
       "realized_value": -7.135,
       "round": 3,
       "team_id": 8
@@ -4109,8 +4109,8 @@
       "name": "Trevor Story",
       "pick_index": 165,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -13.867,
-      "realized_value": -8.382,
+      "realized_regret": -13.859,
+      "realized_value": -8.374,
       "round": 17,
       "team_id": 10
     },
@@ -4125,7 +4125,7 @@
       "pick_index": 61,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -13.813,
-      "realized_value": -5.807,
+      "realized_value": -5.799,
       "round": 7,
       "team_id": 5
     },
@@ -4169,8 +4169,8 @@
       "name": "Noelvi Marte",
       "pick_index": 199,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -13.277,
-      "realized_value": -7.792,
+      "realized_regret": -13.304,
+      "realized_value": -7.819,
       "round": 20,
       "team_id": 9
     },
@@ -4199,8 +4199,8 @@
       "name": "Maikel Garcia",
       "pick_index": 60,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -12.999,
-      "realized_value": -4.993,
+      "realized_regret": -13.071,
+      "realized_value": -5.057,
       "round": 7,
       "team_id": 2
     },
@@ -4230,7 +4230,7 @@
       "pick_index": 55,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -12.881,
-      "realized_value": -4.875,
+      "realized_value": -4.867,
       "round": 6,
       "team_id": 3
     },
@@ -4244,7 +4244,7 @@
       "name": "Hunter Greene",
       "pick_index": 31,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -12.845,
+      "realized_regret": -12.853,
       "realized_value": -4.839,
       "round": 4,
       "team_id": 1
@@ -4274,7 +4274,7 @@
       "name": "Edwin D\u00edaz",
       "pick_index": 36,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -12.719,
+      "realized_regret": -12.727,
       "realized_value": -4.713,
       "round": 4,
       "team_id": 8
@@ -4290,7 +4290,7 @@
       "pick_index": 17,
       "realized_best_available": "CJ Abrams",
       "realized_regret": -12.428,
-      "realized_value": -4.422,
+      "realized_value": -4.414,
       "round": 2,
       "team_id": 9
     },
@@ -4304,7 +4304,7 @@
       "name": "Cole Ragans",
       "pick_index": 32,
       "realized_best_available": "CJ Abrams",
-      "realized_regret": -12.296,
+      "realized_regret": -12.304,
       "realized_value": -4.29,
       "round": 4,
       "team_id": 6
@@ -4334,8 +4334,8 @@
       "name": "Jackson Holliday",
       "pick_index": 120,
       "realized_best_available": "Jordan Walker",
-      "realized_regret": -11.615,
-      "realized_value": -6.13,
+      "realized_regret": -11.607,
+      "realized_value": -6.122,
       "round": 13,
       "team_id": 2
     }

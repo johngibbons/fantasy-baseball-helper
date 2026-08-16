@@ -2,9 +2,9 @@
   "as_of": "2026-08-15",
   "curve": [
     {
-      "max_realized_value": 3.561,
+      "max_realized_value": 3.569,
       "mean_board_value": 5.061,
-      "mean_realized_value": 1.026,
+      "mean_realized_value": 1.032,
       "min_realized_value": -2.28,
       "picks": 6,
       "round": 1
@@ -12,23 +12,23 @@
     {
       "max_realized_value": 4.844,
       "mean_board_value": 3.09,
-      "mean_realized_value": 1.857,
-      "min_realized_value": -4.422,
+      "mean_realized_value": 1.846,
+      "min_realized_value": -4.414,
       "picks": 10,
       "round": 2
     },
     {
       "max_realized_value": 6.749,
       "mean_board_value": 2.162,
-      "mean_realized_value": 0.619,
+      "mean_realized_value": 0.622,
       "min_realized_value": -7.135,
       "picks": 10,
       "round": 3
     },
     {
-      "max_realized_value": 1.602,
+      "max_realized_value": 1.61,
       "mean_board_value": 1.497,
-      "mean_realized_value": -1.305,
+      "mean_realized_value": -1.31,
       "min_realized_value": -4.839,
       "picks": 9,
       "round": 4
@@ -36,7 +36,7 @@
     {
       "max_realized_value": 1.875,
       "mean_board_value": 1.443,
-      "mean_realized_value": -0.083,
+      "mean_realized_value": -0.09,
       "min_realized_value": -3.334,
       "picks": 9,
       "round": 5
@@ -44,23 +44,23 @@
     {
       "max_realized_value": 3.858,
       "mean_board_value": 1.307,
-      "mean_realized_value": -0.015,
-      "min_realized_value": -4.875,
+      "mean_realized_value": -0.014,
+      "min_realized_value": -4.867,
       "picks": 10,
       "round": 6
     },
     {
       "max_realized_value": 2.844,
       "mean_board_value": 0.908,
-      "mean_realized_value": -1.099,
-      "min_realized_value": -5.807,
+      "mean_realized_value": -1.104,
+      "min_realized_value": -5.799,
       "picks": 8,
       "round": 7
     },
     {
-      "max_realized_value": 8.006,
+      "max_realized_value": 8.014,
       "mean_board_value": 0.737,
-      "mean_realized_value": -0.206,
+      "mean_realized_value": -0.211,
       "min_realized_value": -5.041,
       "picks": 10,
       "round": 8
@@ -68,15 +68,15 @@
     {
       "max_realized_value": 3.655,
       "mean_board_value": -0.168,
-      "mean_realized_value": -0.72,
-      "min_realized_value": -4.426,
+      "mean_realized_value": -0.727,
+      "min_realized_value": -4.452,
       "picks": 7,
       "round": 9
     },
     {
-      "max_realized_value": 2.257,
+      "max_realized_value": 2.265,
       "mean_board_value": 0.243,
-      "mean_realized_value": -1.16,
+      "mean_realized_value": -1.158,
       "min_realized_value": -7.295,
       "picks": 9,
       "round": 10
@@ -84,7 +84,7 @@
     {
       "max_realized_value": 4.074,
       "mean_board_value": 0.149,
-      "mean_realized_value": -1.388,
+      "mean_realized_value": -1.387,
       "min_realized_value": -8.325,
       "picks": 10,
       "round": 11
@@ -92,7 +92,7 @@
     {
       "max_realized_value": 1.852,
       "mean_board_value": -0.604,
-      "mean_realized_value": -0.811,
+      "mean_realized_value": -0.819,
       "min_realized_value": -5.694,
       "picks": 8,
       "round": 12
@@ -100,7 +100,7 @@
     {
       "max_realized_value": 1.265,
       "mean_board_value": -0.47,
-      "mean_realized_value": -1.952,
+      "mean_realized_value": -1.951,
       "min_realized_value": -8.323,
       "picks": 9,
       "round": 13
@@ -114,10 +114,10 @@
       "round": 14
     },
     {
-      "max_realized_value": -1.276,
+      "max_realized_value": -1.268,
       "mean_board_value": -1.116,
-      "mean_realized_value": -3.8,
-      "min_realized_value": -11.715,
+      "mean_realized_value": -3.801,
+      "min_realized_value": -11.742,
       "picks": 9,
       "round": 15
     },
@@ -130,34 +130,34 @@
       "round": 16
     },
     {
-      "max_realized_value": 3.035,
+      "max_realized_value": 3.043,
       "mean_board_value": -1.924,
       "mean_realized_value": -1.354,
-      "min_realized_value": -8.382,
+      "min_realized_value": -8.374,
       "picks": 8,
       "round": 17
     },
     {
-      "max_realized_value": 5.141,
+      "max_realized_value": 5.077,
       "mean_board_value": -1.529,
-      "mean_realized_value": -1.863,
+      "mean_realized_value": -1.878,
       "min_realized_value": -5.694,
       "picks": 8,
       "round": 18
     },
     {
-      "max_realized_value": 4.528,
+      "max_realized_value": 4.536,
       "mean_board_value": -1.648,
-      "mean_realized_value": -2.341,
+      "mean_realized_value": -2.34,
       "min_realized_value": -4.746,
       "picks": 8,
       "round": 19
     },
     {
-      "max_realized_value": 2.67,
+      "max_realized_value": 2.678,
       "mean_board_value": -1.981,
-      "mean_realized_value": -2.408,
-      "min_realized_value": -7.792,
+      "mean_realized_value": -2.41,
+      "min_realized_value": -7.819,
       "picks": 8,
       "round": 20
     },
@@ -172,16 +172,16 @@
     {
       "max_realized_value": 3.778,
       "mean_board_value": -1.806,
-      "mean_realized_value": -3.535,
-      "min_realized_value": -10.291,
+      "mean_realized_value": -3.54,
+      "min_realized_value": -10.355,
       "picks": 9,
       "round": 22
     },
     {
-      "max_realized_value": 0.896,
+      "max_realized_value": 0.904,
       "mean_board_value": -1.668,
-      "mean_realized_value": -3.796,
-      "min_realized_value": -10.946,
+      "mean_realized_value": -3.801,
+      "min_realized_value": -10.938,
       "picks": 8,
       "round": 23
     },
@@ -208,106 +208,106 @@
   "vs_assumption": [
     {
       "actual_board_value": 5.061,
-      "actual_realized_value": 1.026,
+      "actual_realized_value": 1.032,
       "assumed_value": 4.691,
       "assumption_error_vs_board": -0.37,
-      "assumption_error_vs_realized": 3.665,
+      "assumption_error_vs_realized": 3.659,
       "round": 1
     },
     {
       "actual_board_value": 3.09,
-      "actual_realized_value": 1.857,
+      "actual_realized_value": 1.846,
       "assumed_value": 3.319,
       "assumption_error_vs_board": 0.229,
-      "assumption_error_vs_realized": 1.462,
+      "assumption_error_vs_realized": 1.473,
       "round": 2
     },
     {
       "actual_board_value": 2.162,
-      "actual_realized_value": 0.619,
+      "actual_realized_value": 0.622,
       "assumed_value": 2.56,
       "assumption_error_vs_board": 0.398,
-      "assumption_error_vs_realized": 1.941,
+      "assumption_error_vs_realized": 1.938,
       "round": 3
     },
     {
       "actual_board_value": 1.497,
-      "actual_realized_value": -1.305,
+      "actual_realized_value": -1.31,
       "assumed_value": 2.11,
       "assumption_error_vs_board": 0.613,
-      "assumption_error_vs_realized": 3.415,
+      "assumption_error_vs_realized": 3.42,
       "round": 4
     },
     {
       "actual_board_value": 1.443,
-      "actual_realized_value": -0.083,
+      "actual_realized_value": -0.09,
       "assumed_value": 1.777,
       "assumption_error_vs_board": 0.334,
-      "assumption_error_vs_realized": 1.86,
+      "assumption_error_vs_realized": 1.867,
       "round": 5
     },
     {
       "actual_board_value": 1.307,
-      "actual_realized_value": -0.015,
+      "actual_realized_value": -0.014,
       "assumed_value": 1.529,
       "assumption_error_vs_board": 0.222,
-      "assumption_error_vs_realized": 1.544,
+      "assumption_error_vs_realized": 1.543,
       "round": 6
     },
     {
       "actual_board_value": 0.908,
-      "actual_realized_value": -1.099,
+      "actual_realized_value": -1.104,
       "assumed_value": 1.224,
       "assumption_error_vs_board": 0.316,
-      "assumption_error_vs_realized": 2.323,
+      "assumption_error_vs_realized": 2.328,
       "round": 7
     },
     {
       "actual_board_value": 0.737,
-      "actual_realized_value": -0.206,
+      "actual_realized_value": -0.211,
       "assumed_value": 1.056,
       "assumption_error_vs_board": 0.319,
-      "assumption_error_vs_realized": 1.262,
+      "assumption_error_vs_realized": 1.267,
       "round": 8
     },
     {
       "actual_board_value": -0.168,
-      "actual_realized_value": -0.72,
+      "actual_realized_value": -0.727,
       "assumed_value": 0.924,
       "assumption_error_vs_board": 1.092,
-      "assumption_error_vs_realized": 1.644,
+      "assumption_error_vs_realized": 1.651,
       "round": 9
     },
     {
       "actual_board_value": 0.243,
-      "actual_realized_value": -1.16,
+      "actual_realized_value": -1.158,
       "assumed_value": 0.763,
       "assumption_error_vs_board": 0.52,
-      "assumption_error_vs_realized": 1.923,
+      "assumption_error_vs_realized": 1.921,
       "round": 10
     },
     {
       "actual_board_value": 0.149,
-      "actual_realized_value": -1.388,
+      "actual_realized_value": -1.387,
       "assumed_value": 0.656,
       "assumption_error_vs_board": 0.507,
-      "assumption_error_vs_realized": 2.044,
+      "assumption_error_vs_realized": 2.043,
       "round": 11
     },
     {
       "actual_board_value": -0.604,
-      "actual_realized_value": -0.811,
+      "actual_realized_value": -0.819,
       "assumed_value": 0.5,
       "assumption_error_vs_board": 1.104,
-      "assumption_error_vs_realized": 1.311,
+      "assumption_error_vs_realized": 1.319,
       "round": 12
     },
     {
       "actual_board_value": -0.47,
-      "actual_realized_value": -1.952,
+      "actual_realized_value": -1.951,
       "assumed_value": 0.306,
       "assumption_error_vs_board": 0.776,
-      "assumption_error_vs_realized": 2.258,
+      "assumption_error_vs_realized": 2.257,
       "round": 13
     },
     {
@@ -320,10 +320,10 @@
     },
     {
       "actual_board_value": -1.116,
-      "actual_realized_value": -3.8,
+      "actual_realized_value": -3.801,
       "assumed_value": -0.065,
       "assumption_error_vs_board": 1.051,
-      "assumption_error_vs_realized": 3.735,
+      "assumption_error_vs_realized": 3.736,
       "round": 15
     },
     {
@@ -344,26 +344,26 @@
     },
     {
       "actual_board_value": -1.529,
-      "actual_realized_value": -1.863,
+      "actual_realized_value": -1.878,
       "assumed_value": -0.555,
       "assumption_error_vs_board": 0.974,
-      "assumption_error_vs_realized": 1.308,
+      "assumption_error_vs_realized": 1.323,
       "round": 18
     },
     {
       "actual_board_value": -1.648,
-      "actual_realized_value": -2.341,
+      "actual_realized_value": -2.34,
       "assumed_value": -0.677,
       "assumption_error_vs_board": 0.971,
-      "assumption_error_vs_realized": 1.664,
+      "assumption_error_vs_realized": 1.663,
       "round": 19
     },
     {
       "actual_board_value": -1.981,
-      "actual_realized_value": -2.408,
+      "actual_realized_value": -2.41,
       "assumed_value": -0.765,
       "assumption_error_vs_board": 1.216,
-      "assumption_error_vs_realized": 1.643,
+      "assumption_error_vs_realized": 1.645,
       "round": 20
     },
     {
@@ -376,18 +376,18 @@
     },
     {
       "actual_board_value": -1.806,
-      "actual_realized_value": -3.535,
+      "actual_realized_value": -3.54,
       "assumed_value": -0.951,
       "assumption_error_vs_board": 0.855,
-      "assumption_error_vs_realized": 2.584,
+      "assumption_error_vs_realized": 2.589,
       "round": 22
     },
     {
       "actual_board_value": -1.668,
-      "actual_realized_value": -3.796,
+      "actual_realized_value": -3.801,
       "assumed_value": -1.026,
       "assumption_error_vs_board": 0.642,
-      "assumption_error_vs_realized": 2.77,
+      "assumption_error_vs_realized": 2.775,
       "round": 23
     },
     {

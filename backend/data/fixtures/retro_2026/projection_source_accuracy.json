@@ -1,0 +1,436 @@
+{
+  "as_of": "2026-08-15",
+  "hitters": {
+    "best_source": "thebatx",
+    "blends": {
+      "blend_all": {
+        "n": 569,
+        "spearman": 0.7100488767712051,
+        "top_100": 0.58,
+        "top_25": 0.32
+      },
+      "blend_fangraphs": {
+        "n": 569,
+        "spearman": 0.7090941269621813,
+        "top_100": 0.6,
+        "top_25": 0.4
+      }
+    },
+    "common_players": 569,
+    "coverage": [
+      {
+        "in_common_set": 569,
+        "projected_players": 666,
+        "source": "statcast_adjusted"
+      },
+      {
+        "in_common_set": 569,
+        "projected_players": 4186,
+        "source": "steamer"
+      },
+      {
+        "in_common_set": 569,
+        "projected_players": 660,
+        "source": "thebatx"
+      },
+      {
+        "in_common_set": 569,
+        "projected_players": 666,
+        "source": "trend"
+      },
+      {
+        "in_common_set": 569,
+        "projected_players": 1903,
+        "source": "zips"
+      }
+    ],
+    "significance_vs_best": {
+      "blend_all": {
+        "delta_spearman_ci": [
+          -0.05151099364543854,
+          -0.011087662336565444
+        ],
+        "distinguishable": true,
+        "vs": "thebatx"
+      },
+      "statcast_adjusted": {
+        "delta_spearman_ci": [
+          -0.14066891322252356,
+          -0.0684335092550044
+        ],
+        "distinguishable": true,
+        "vs": "thebatx"
+      },
+      "steamer": {
+        "delta_spearman_ci": [
+          -0.01970285601009245,
+          0.008166233948567721
+        ],
+        "distinguishable": false,
+        "vs": "thebatx"
+      },
+      "trend": {
+        "delta_spearman_ci": [
+          -0.13875767799617214,
+          -0.06780981653068746
+        ],
+        "distinguishable": true,
+        "vs": "thebatx"
+      },
+      "zips": {
+        "delta_spearman_ci": [
+          -0.2607294234331183,
+          -0.15424811533847418
+        ],
+        "distinguishable": true,
+        "vs": "thebatx"
+      }
+    },
+    "sources": {
+      "statcast_adjusted": {
+        "rate_accuracy": {
+          "correlation": 0.435848739298193,
+          "mean_abs_error": 0.0288,
+          "mean_actual": 0.3167,
+          "mean_error": 0.0008,
+          "mean_projected": 0.3158,
+          "n": 318
+        },
+        "value_accuracy": {
+          "n": 569,
+          "spearman": 0.6373271989795215,
+          "top_100": 0.59,
+          "top_25": 0.28
+        },
+        "volume_accuracy": {
+          "correlation": 0.6739891166385569,
+          "mean_abs_error": 139.6,
+          "mean_actual": 283.2,
+          "mean_error": -20.7,
+          "mean_projected": 303.9,
+          "n": 569
+        }
+      },
+      "steamer": {
+        "rate_accuracy": {
+          "correlation": 0.5625219711897801,
+          "mean_abs_error": 0.0229,
+          "mean_actual": 0.3167,
+          "mean_error": -0.0044,
+          "mean_projected": 0.3211,
+          "n": 319
+        },
+        "value_accuracy": {
+          "n": 569,
+          "spearman": 0.7354129924624236,
+          "top_100": 0.56,
+          "top_25": 0.36
+        },
+        "volume_accuracy": {
+          "correlation": 0.7685672079813958,
+          "mean_abs_error": 117.1,
+          "mean_actual": 283.2,
+          "mean_error": 2.3,
+          "mean_projected": 280.9,
+          "n": 569
+        }
+      },
+      "thebatx": {
+        "rate_accuracy": {
+          "correlation": 0.5271729469984411,
+          "mean_abs_error": 0.0244,
+          "mean_actual": 0.3167,
+          "mean_error": 0.0051,
+          "mean_projected": 0.3116,
+          "n": 319
+        },
+        "value_accuracy": {
+          "n": 569,
+          "spearman": 0.7406697311151973,
+          "top_100": 0.6,
+          "top_25": 0.36
+        },
+        "volume_accuracy": {
+          "correlation": 0.7735545521564706,
+          "mean_abs_error": 115.9,
+          "mean_actual": 283.2,
+          "mean_error": -31.5,
+          "mean_projected": 314.7,
+          "n": 569
+        }
+      },
+      "trend": {
+        "rate_accuracy": {
+          "correlation": 0.42724767453038387,
+          "mean_abs_error": 0.0294,
+          "mean_actual": 0.3167,
+          "mean_error": 0.0032,
+          "mean_projected": 0.3134,
+          "n": 318
+        },
+        "value_accuracy": {
+          "n": 569,
+          "spearman": 0.638853691572296,
+          "top_100": 0.6,
+          "top_25": 0.28
+        },
+        "volume_accuracy": {
+          "correlation": 0.6739891166385569,
+          "mean_abs_error": 139.6,
+          "mean_actual": 283.2,
+          "mean_error": -20.7,
+          "mean_projected": 303.9,
+          "n": 569
+        }
+      },
+      "zips": {
+        "rate_accuracy": {
+          "correlation": 0.5675222320517258,
+          "mean_abs_error": 0.0229,
+          "mean_actual": 0.3167,
+          "mean_error": -0.0031,
+          "mean_projected": 0.3198,
+          "n": 319
+        },
+        "value_accuracy": {
+          "n": 569,
+          "spearman": 0.5325997342839933,
+          "top_100": 0.52,
+          "top_25": 0.4
+        },
+        "volume_accuracy": {
+          "correlation": 0.5478259483492659,
+          "mean_abs_error": 213.5,
+          "mean_actual": 283.2,
+          "mean_error": -174.4,
+          "mean_projected": 457.6,
+          "n": 569
+        }
+      }
+    }
+  },
+  "note": "All sources valued over the same player intersection with the same denominators. 'atc' is excluded \u2014 it now holds rest-of-season values, not preseason ones.",
+  "pitchers": {
+    "best_source": "thebatx",
+    "blends": {
+      "blend_all": {
+        "n": 608,
+        "spearman": 0.5864008875351602,
+        "top_100": 0.48,
+        "top_25": 0.32
+      },
+      "blend_fangraphs": {
+        "n": 608,
+        "spearman": 0.6058816455744981,
+        "top_100": 0.52,
+        "top_25": 0.36
+      }
+    },
+    "common_players": 608,
+    "coverage": [
+      {
+        "in_common_set": 608,
+        "projected_players": 802,
+        "source": "statcast_adjusted"
+      },
+      {
+        "in_common_set": 608,
+        "projected_players": 5161,
+        "source": "steamer"
+      },
+      {
+        "in_common_set": 608,
+        "projected_players": 698,
+        "source": "thebatx"
+      },
+      {
+        "in_common_set": 608,
+        "projected_players": 802,
+        "source": "trend"
+      },
+      {
+        "in_common_set": 608,
+        "projected_players": 1838,
+        "source": "zips"
+      }
+    ],
+    "significance_vs_best": {
+      "blend_all": {
+        "delta_spearman_ci": [
+          -0.044127530266858186,
+          -0.00034555351241537843
+        ],
+        "distinguishable": true,
+        "vs": "thebatx"
+      },
+      "statcast_adjusted": {
+        "delta_spearman_ci": [
+          -0.17058747802751711,
+          -0.07189692858195727
+        ],
+        "distinguishable": true,
+        "vs": "thebatx"
+      },
+      "steamer": {
+        "delta_spearman_ci": [
+          -0.059427491552219866,
+          -0.005136247187072899
+        ],
+        "distinguishable": true,
+        "vs": "thebatx"
+      },
+      "trend": {
+        "delta_spearman_ci": [
+          -0.18203059435079072,
+          -0.08359778322778243
+        ],
+        "distinguishable": true,
+        "vs": "thebatx"
+      },
+      "zips": {
+        "delta_spearman_ci": [
+          -0.10111287114371108,
+          -0.03383655328619162
+        ],
+        "distinguishable": true,
+        "vs": "thebatx"
+      }
+    },
+    "sources": {
+      "statcast_adjusted": {
+        "rate_accuracy": {
+          "correlation": 0.171466599955594,
+          "mean_abs_error": 1.1361,
+          "mean_actual": 3.9704,
+          "mean_error": 0.0347,
+          "mean_projected": 3.9356,
+          "n": 329
+        },
+        "value_accuracy": {
+          "n": 608,
+          "spearman": 0.4898552483784892,
+          "top_100": 0.46,
+          "top_25": 0.24
+        },
+        "volume_accuracy": {
+          "correlation": 0.6142924553968881,
+          "mean_abs_error": 33.5,
+          "mean_actual": 56.2,
+          "mean_error": -5.1,
+          "mean_projected": 61.4,
+          "n": 608
+        }
+      },
+      "steamer": {
+        "rate_accuracy": {
+          "correlation": 0.417918355376753,
+          "mean_abs_error": 0.9457,
+          "mean_actual": 3.9704,
+          "mean_error": -0.0681,
+          "mean_projected": 4.0384,
+          "n": 329
+        },
+        "value_accuracy": {
+          "n": 608,
+          "spearman": 0.5781939093860654,
+          "top_100": 0.51,
+          "top_25": 0.32
+        },
+        "volume_accuracy": {
+          "correlation": 0.748689070827091,
+          "mean_abs_error": 29.2,
+          "mean_actual": 56.2,
+          "mean_error": -16.5,
+          "mean_projected": 72.7,
+          "n": 608
+        }
+      },
+      "thebatx": {
+        "rate_accuracy": {
+          "correlation": 0.39438459700947737,
+          "mean_abs_error": 0.9826,
+          "mean_actual": 3.9704,
+          "mean_error": -0.2617,
+          "mean_projected": 4.232,
+          "n": 329
+        },
+        "value_accuracy": {
+          "n": 608,
+          "spearman": 0.6097053526612418,
+          "top_100": 0.51,
+          "top_25": 0.36
+        },
+        "volume_accuracy": {
+          "correlation": 0.7462484463854645,
+          "mean_abs_error": 29.0,
+          "mean_actual": 56.2,
+          "mean_error": -13.8,
+          "mean_projected": 70.1,
+          "n": 608
+        }
+      },
+      "trend": {
+        "rate_accuracy": {
+          "correlation": 0.11296338243946273,
+          "mean_abs_error": 1.262,
+          "mean_actual": 3.9704,
+          "mean_error": 0.0764,
+          "mean_projected": 3.894,
+          "n": 329
+        },
+        "value_accuracy": {
+          "n": 608,
+          "spearman": 0.4775797553596458,
+          "top_100": 0.45,
+          "top_25": 0.28
+        },
+        "volume_accuracy": {
+          "correlation": 0.6142924553968881,
+          "mean_abs_error": 33.5,
+          "mean_actual": 56.2,
+          "mean_error": -5.1,
+          "mean_projected": 61.4,
+          "n": 608
+        }
+      },
+      "zips": {
+        "rate_accuracy": {
+          "correlation": 0.2947454923420536,
+          "mean_abs_error": 1.0081,
+          "mean_actual": 3.9704,
+          "mean_error": -0.0793,
+          "mean_projected": 4.0497,
+          "n": 329
+        },
+        "value_accuracy": {
+          "n": 608,
+          "spearman": 0.5433091694373994,
+          "top_100": 0.49,
+          "top_25": 0.2
+        },
+        "volume_accuracy": {
+          "correlation": 0.6214867962697863,
+          "mean_abs_error": 40.0,
+          "mean_actual": 56.2,
+          "mean_error": -26.1,
+          "mean_projected": 82.3,
+          "n": 608
+        }
+      }
+    }
+  },
+  "season": 2026,
+  "season_elapsed_fraction": 0.7688,
+  "sgp_denominators": {
+    "ERA": 0.084556,
+    "K": 75.925926,
+    "OBP": 0.003522,
+    "QS": 5.833333,
+    "R": 18.777778,
+    "RBI": 19.962963,
+    "SB": 11.074074,
+    "SVHD": 7.777778,
+    "TB": 52.407407,
+    "WHIP": 0.012333
+  }
+}

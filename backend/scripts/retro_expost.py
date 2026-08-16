@@ -186,11 +186,18 @@ def build_boards(conn, season: int, source: str, as_of: date, streaming_bonus: f
 
 
 def slim(results: list[dict]) -> list[dict]:
+    """Trim a valued board to the fields the analysis layers read.
+
+    The raw stat columns are kept alongside the SGP ones so Layer D can split
+    a source's error into playing time versus per-unit rate without going back
+    to the database.
+    """
     keep = ("mlb_id", "full_name", "primary_position", "eligible_positions",
             "player_type", "total_zscore", "replacement_adj",
             "zscore_r", "zscore_tb", "zscore_rbi", "zscore_sb", "zscore_obp",
             "zscore_k", "zscore_qs", "zscore_era", "zscore_whip", "zscore_svhd",
-            "proj_pa", "proj_ip")
+            "proj_pa", "proj_r", "proj_tb", "proj_rbi", "proj_sb", "proj_obp",
+            "proj_ip", "proj_k", "proj_qs", "proj_era", "proj_whip", "proj_svhd")
     return [{k: r[k] for k in keep if k in r} for r in results]
 
 
