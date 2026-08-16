@@ -1,0 +1,2018 @@
+{
+  "as_of": "2026-08-15",
+  "by_adp_bucket": [
+    {
+      "adp_bucket": "0-50",
+      "mean_adp": 29.7,
+      "mean_residual": 3.23,
+      "n": 24,
+      "sigma": 6.51
+    },
+    {
+      "adp_bucket": "50-100",
+      "mean_adp": 72.9,
+      "mean_residual": -1.61,
+      "n": 33,
+      "sigma": 17.09
+    },
+    {
+      "adp_bucket": "100-150",
+      "mean_adp": 122.2,
+      "mean_residual": 3.58,
+      "n": 30,
+      "sigma": 31.86
+    },
+    {
+      "adp_bucket": "150-200",
+      "mean_adp": 172.1,
+      "mean_residual": -9.41,
+      "n": 43,
+      "sigma": 40.31
+    },
+    {
+      "adp_bucket": "200+",
+      "mean_adp": 240.9,
+      "mean_residual": -22.37,
+      "n": 70,
+      "sigma": 37.76
+    }
+  ],
+  "keepers_with_adp": 40,
+  "linear_sigma_fit": {
+    "intercept": 6.55,
+    "note": "sigma = intercept + slope * adp, fitted on bucket sigmas",
+    "slope": 0.15801
+  },
+  "manager_bias": [
+    {
+      "biggest_reach": {
+        "name": "Luis Robert Jr.",
+        "residual": -70.6
+      },
+      "manager": "Jess Barron",
+      "mean_residual": -15.31,
+      "picks": 21,
+      "sigma": 27.38,
+      "team_id": 1
+    },
+    {
+      "biggest_reach": {
+        "name": "Konnor Griffin",
+        "residual": -62.7
+      },
+      "manager": "Russell Berry",
+      "mean_residual": -3.42,
+      "picks": 21,
+      "sigma": 24.2,
+      "team_id": 2
+    },
+    {
+      "biggest_reach": {
+        "name": "Zach Neto",
+        "residual": -103.7
+      },
+      "manager": "Tim Riker",
+      "mean_residual": -42.54,
+      "picks": 16,
+      "sigma": 36.35,
+      "team_id": 3
+    },
+    {
+      "biggest_reach": {
+        "name": "Nick Lodolo",
+        "residual": -46.6
+      },
+      "manager": "Harris Cook",
+      "mean_residual": 3.86,
+      "picks": 21,
+      "sigma": 36.87,
+      "team_id": 4
+    },
+    {
+      "biggest_reach": {
+        "name": "Wyatt Langford",
+        "residual": -35.5
+      },
+      "manager": "Jason McComb",
+      "mean_residual": 1.77,
+      "picks": 21,
+      "sigma": 25.01,
+      "team_id": 5
+    },
+    {
+      "biggest_reach": {
+        "name": "Jac Caglianone",
+        "residual": -90.2
+      },
+      "manager": "Matt Wayne",
+      "mean_residual": -6.95,
+      "picks": 20,
+      "sigma": 30.55,
+      "team_id": 6
+    },
+    {
+      "biggest_reach": {
+        "name": "Matt McLain",
+        "residual": -109.2
+      },
+      "manager": "David Rotatori",
+      "mean_residual": -8.49,
+      "picks": 19,
+      "sigma": 43.91,
+      "team_id": 7
+    },
+    {
+      "biggest_reach": {
+        "name": "Bryson Stott",
+        "residual": -54.4
+      },
+      "manager": "John Gibbons",
+      "mean_residual": -5.79,
+      "picks": 20,
+      "sigma": 27.66,
+      "team_id": 8
+    },
+    {
+      "biggest_reach": {
+        "name": "Shane McClanahan",
+        "residual": -113.3
+      },
+      "manager": "Eric Mercado",
+      "mean_residual": -22.45,
+      "picks": 20,
+      "sigma": 42.93,
+      "team_id": 9
+    },
+    {
+      "biggest_reach": {
+        "name": "Mike Trout",
+        "residual": -54.6
+      },
+      "manager": "Bryan Lewis",
+      "mean_residual": -0.86,
+      "picks": 21,
+      "sigma": 22.49,
+      "team_id": 10
+    }
+  ],
+  "residuals": [
+    {
+      "adp": 7.2,
+      "effective_adp": 1.2,
+      "mlb_id": 677951,
+      "name": "Bobby Witt Jr.",
+      "pick": 1,
+      "residual": -0.2,
+      "team_id": 2
+    },
+    {
+      "adp": 16.0,
+      "effective_adp": 6.0,
+      "mlb_id": 665489,
+      "name": "Vladimir Guerrero Jr.",
+      "pick": 2,
+      "residual": -4.0,
+      "team_id": 5
+    },
+    {
+      "adp": 11.8,
+      "effective_adp": 3.8,
+      "mlb_id": 663656,
+      "name": "Kyle Tucker",
+      "pick": 6,
+      "residual": 2.2,
+      "team_id": 10
+    },
+    {
+      "adp": 10.7,
+      "effective_adp": 3.7,
+      "mlb_id": 660670,
+      "name": "Ronald Acu\u00f1a Jr.",
+      "pick": 7,
+      "residual": 3.3,
+      "team_id": 4
+    },
+    {
+      "adp": 33.9,
+      "effective_adp": 18.9,
+      "mlb_id": 682829,
+      "name": "Elly De La Cruz",
+      "pick": 8,
+      "residual": -10.9,
+      "team_id": 6
+    },
+    {
+      "adp": 25.0,
+      "effective_adp": 12.0,
+      "mlb_id": 683002,
+      "name": "Gunnar Henderson",
+      "pick": 10,
+      "residual": -2.0,
+      "team_id": 7
+    },
+    {
+      "adp": 24.4,
+      "effective_adp": 11.4,
+      "mlb_id": 677594,
+      "name": "Julio Rodr\u00edguez",
+      "pick": 11,
+      "residual": -0.4,
+      "team_id": 7
+    },
+    {
+      "adp": 14.9,
+      "effective_adp": 5.9,
+      "mlb_id": 665487,
+      "name": "Fernando Tatis Jr.",
+      "pick": 12,
+      "residual": 6.1,
+      "team_id": 1
+    },
+    {
+      "adp": 20.1,
+      "effective_adp": 10.1,
+      "mlb_id": 682998,
+      "name": "Corbin Carroll",
+      "pick": 13,
+      "residual": 2.9,
+      "team_id": 6
+    },
+    {
+      "adp": 52.3,
+      "effective_adp": 34.3,
+      "mlb_id": 624413,
+      "name": "Pete Alonso",
+      "pick": 14,
+      "residual": -20.3,
+      "team_id": 4
+    },
+    {
+      "adp": 26.3,
+      "effective_adp": 13.3,
+      "mlb_id": 592518,
+      "name": "Manny Machado",
+      "pick": 15,
+      "residual": 1.7,
+      "team_id": 10
+    },
+    {
+      "adp": 54.6,
+      "effective_adp": 35.6,
+      "mlb_id": 665862,
+      "name": "Jazz Chisholm Jr.",
+      "pick": 16,
+      "residual": -19.6,
+      "team_id": 3
+    },
+    {
+      "adp": 35.8,
+      "effective_adp": 20.8,
+      "mlb_id": 661388,
+      "name": "William Contreras",
+      "pick": 17,
+      "residual": -3.8,
+      "team_id": 8
+    },
+    {
+      "adp": 27.5,
+      "effective_adp": 13.5,
+      "mlb_id": 596019,
+      "name": "Francisco Lindor",
+      "pick": 18,
+      "residual": 4.5,
+      "team_id": 9
+    },
+    {
+      "adp": 26.1,
+      "effective_adp": 13.1,
+      "mlb_id": 657277,
+      "name": "Logan Webb",
+      "pick": 19,
+      "residual": 5.9,
+      "team_id": 5
+    },
+    {
+      "adp": 61.0,
+      "effective_adp": 41.0,
+      "mlb_id": 621566,
+      "name": "Matt Olson",
+      "pick": 20,
+      "residual": -21.0,
+      "team_id": 2
+    },
+    {
+      "adp": 30.4,
+      "effective_adp": 16.4,
+      "mlb_id": 608331,
+      "name": "Max Fried",
+      "pick": 21,
+      "residual": 4.6,
+      "team_id": 2
+    },
+    {
+      "adp": 22.6,
+      "effective_adp": 10.6,
+      "mlb_id": 669302,
+      "name": "Logan Gilbert",
+      "pick": 22,
+      "residual": 11.4,
+      "team_id": 5
+    },
+    {
+      "adp": 39.3,
+      "effective_adp": 23.3,
+      "mlb_id": 605141,
+      "name": "Mookie Betts",
+      "pick": 23,
+      "residual": -0.3,
+      "team_id": 9
+    },
+    {
+      "adp": 49.9,
+      "effective_adp": 31.9,
+      "mlb_id": 667670,
+      "name": "Brent Rooker",
+      "pick": 24,
+      "residual": -7.9,
+      "team_id": 8
+    },
+    {
+      "adp": 36.6,
+      "effective_adp": 21.6,
+      "mlb_id": 670541,
+      "name": "Yordan Alvarez",
+      "pick": 25,
+      "residual": 3.4,
+      "team_id": 3
+    },
+    {
+      "adp": 53.5,
+      "effective_adp": 34.5,
+      "mlb_id": 594798,
+      "name": "Jacob deGrom",
+      "pick": 26,
+      "residual": -8.5,
+      "team_id": 10
+    },
+    {
+      "adp": 83.2,
+      "effective_adp": 58.2,
+      "mlb_id": 607208,
+      "name": "Trea Turner",
+      "pick": 27,
+      "residual": -31.2,
+      "team_id": 4
+    },
+    {
+      "adp": 75.6,
+      "effective_adp": 53.6,
+      "mlb_id": 547180,
+      "name": "Bryce Harper",
+      "pick": 28,
+      "residual": -25.6,
+      "team_id": 6
+    },
+    {
+      "adp": 37.8,
+      "effective_adp": 22.8,
+      "mlb_id": 519242,
+      "name": "Chris Sale",
+      "pick": 29,
+      "residual": 6.2,
+      "team_id": 1
+    },
+    {
+      "adp": 81.4,
+      "effective_adp": 56.4,
+      "mlb_id": 518692,
+      "name": "Freddie Freeman",
+      "pick": 30,
+      "residual": -26.4,
+      "team_id": 7
+    },
+    {
+      "adp": 91.6,
+      "effective_adp": 65.6,
+      "mlb_id": 646240,
+      "name": "Rafael Devers",
+      "pick": 31,
+      "residual": -34.6,
+      "team_id": 7
+    },
+    {
+      "adp": 43.3,
+      "effective_adp": 26.3,
+      "mlb_id": 668881,
+      "name": "Hunter Greene",
+      "pick": 32,
+      "residual": 5.7,
+      "team_id": 1
+    },
+    {
+      "adp": 59.4,
+      "effective_adp": 39.4,
+      "mlb_id": 666142,
+      "name": "Cole Ragans",
+      "pick": 33,
+      "residual": -6.4,
+      "team_id": 6
+    },
+    {
+      "adp": 65.5,
+      "effective_adp": 44.5,
+      "mlb_id": 669923,
+      "name": "George Kirby",
+      "pick": 34,
+      "residual": -10.5,
+      "team_id": 4
+    },
+    {
+      "adp": 54.5,
+      "effective_adp": 35.5,
+      "mlb_id": 663538,
+      "name": "Nico Hoerner",
+      "pick": 35,
+      "residual": -0.5,
+      "team_id": 10
+    },
+    {
+      "adp": 42.1,
+      "effective_adp": 25.1,
+      "mlb_id": 621242,
+      "name": "Edwin D\u00edaz",
+      "pick": 37,
+      "residual": 11.9,
+      "team_id": 8
+    },
+    {
+      "adp": 47.1,
+      "effective_adp": 29.1,
+      "mlb_id": 664285,
+      "name": "Framber Valdez",
+      "pick": 38,
+      "residual": 8.9,
+      "team_id": 2
+    },
+    {
+      "adp": 35.6,
+      "effective_adp": 20.6,
+      "mlb_id": 608324,
+      "name": "Alex Bregman",
+      "pick": 39,
+      "residual": 18.4,
+      "team_id": 5
+    },
+    {
+      "adp": 48.2,
+      "effective_adp": 30.2,
+      "mlb_id": 641355,
+      "name": "Cody Bellinger",
+      "pick": 40,
+      "residual": 9.8,
+      "team_id": 2
+    },
+    {
+      "adp": 79.1,
+      "effective_adp": 54.1,
+      "mlb_id": 656302,
+      "name": "Dylan Cease",
+      "pick": 41,
+      "residual": -13.1,
+      "team_id": 2
+    },
+    {
+      "adp": 104.5,
+      "effective_adp": 77.5,
+      "mlb_id": 694671,
+      "name": "Wyatt Langford",
+      "pick": 42,
+      "residual": -35.5,
+      "team_id": 5
+    },
+    {
+      "adp": 58.0,
+      "effective_adp": 38.0,
+      "mlb_id": 514888,
+      "name": "Jose Altuve",
+      "pick": 43,
+      "residual": 5.0,
+      "team_id": 9
+    },
+    {
+      "adp": 58.2,
+      "effective_adp": 38.2,
+      "mlb_id": 666200,
+      "name": "Jes\u00fas Luzardo",
+      "pick": 44,
+      "residual": 5.8,
+      "team_id": 8
+    },
+    {
+      "adp": 58.5,
+      "effective_adp": 38.5,
+      "mlb_id": 657746,
+      "name": "Joe Ryan",
+      "pick": 45,
+      "residual": 6.5,
+      "team_id": 3
+    },
+    {
+      "adp": 52.4,
+      "effective_adp": 34.4,
+      "mlb_id": 662253,
+      "name": "Andr\u00e9s Mu\u00f1oz",
+      "pick": 47,
+      "residual": 12.6,
+      "team_id": 2
+    },
+    {
+      "adp": 154.3,
+      "effective_adp": 122.3,
+      "mlb_id": 690997,
+      "name": "Nolan McLean",
+      "pick": 48,
+      "residual": -74.3,
+      "team_id": 6
+    },
+    {
+      "adp": 75.1,
+      "effective_adp": 53.1,
+      "mlb_id": 663586,
+      "name": "Austin Riley",
+      "pick": 49,
+      "residual": -4.1,
+      "team_id": 1
+    },
+    {
+      "adp": 126.1,
+      "effective_adp": 97.1,
+      "mlb_id": 682985,
+      "name": "Riley Greene",
+      "pick": 50,
+      "residual": -47.1,
+      "team_id": 7
+    },
+    {
+      "adp": 69.9,
+      "effective_adp": 47.9,
+      "mlb_id": 547973,
+      "name": "Aroldis Chapman",
+      "pick": 51,
+      "residual": 3.1,
+      "team_id": 2
+    },
+    {
+      "adp": 61.8,
+      "effective_adp": 41.8,
+      "mlb_id": 680776,
+      "name": "Jarren Duran",
+      "pick": 52,
+      "residual": 10.2,
+      "team_id": 1
+    },
+    {
+      "adp": 56.5,
+      "effective_adp": 37.5,
+      "mlb_id": 661395,
+      "name": "Jhoan Duran",
+      "pick": 53,
+      "residual": 15.5,
+      "team_id": 6
+    },
+    {
+      "adp": 99.7,
+      "effective_adp": 72.7,
+      "mlb_id": 647304,
+      "name": "Josh Naylor",
+      "pick": 54,
+      "residual": -18.7,
+      "team_id": 4
+    },
+    {
+      "adp": 62.8,
+      "effective_adp": 41.8,
+      "mlb_id": 700250,
+      "name": "Ben Rice",
+      "pick": 55,
+      "residual": 13.2,
+      "team_id": 10
+    },
+    {
+      "adp": 103.0,
+      "effective_adp": 76.0,
+      "mlb_id": 686469,
+      "name": "Vinnie Pasquantino",
+      "pick": 56,
+      "residual": -20.0,
+      "team_id": 3
+    },
+    {
+      "adp": 82.9,
+      "effective_adp": 57.9,
+      "mlb_id": 642207,
+      "name": "Devin Williams",
+      "pick": 57,
+      "residual": -0.9,
+      "team_id": 8
+    },
+    {
+      "adp": 96.3,
+      "effective_adp": 70.3,
+      "mlb_id": 554430,
+      "name": "Zack Wheeler",
+      "pick": 58,
+      "residual": -12.3,
+      "team_id": 9
+    },
+    {
+      "adp": 75.3,
+      "effective_adp": 53.3,
+      "mlb_id": 543807,
+      "name": "George Springer",
+      "pick": 59,
+      "residual": 5.7,
+      "team_id": 5
+    },
+    {
+      "adp": 84.0,
+      "effective_adp": 59.0,
+      "mlb_id": 670280,
+      "name": "David Bednar",
+      "pick": 60,
+      "residual": 1.0,
+      "team_id": 2
+    },
+    {
+      "adp": 107.9,
+      "effective_adp": 79.9,
+      "mlb_id": 672580,
+      "name": "Maikel Garcia",
+      "pick": 61,
+      "residual": -18.9,
+      "team_id": 2
+    },
+    {
+      "adp": 116.0,
+      "effective_adp": 88.0,
+      "mlb_id": 608369,
+      "name": "Corey Seager",
+      "pick": 62,
+      "residual": -26.0,
+      "team_id": 5
+    },
+    {
+      "adp": 86.1,
+      "effective_adp": 60.1,
+      "mlb_id": 669127,
+      "name": "Shea Langeliers",
+      "pick": 63,
+      "residual": 2.9,
+      "team_id": 9
+    },
+    {
+      "adp": 203.7,
+      "effective_adp": 168.7,
+      "mlb_id": 687263,
+      "name": "Zach Neto",
+      "pick": 65,
+      "residual": -103.7,
+      "team_id": 3
+    },
+    {
+      "adp": 117.2,
+      "effective_adp": 89.2,
+      "mlb_id": 666182,
+      "name": "Bo Bichette",
+      "pick": 66,
+      "residual": -23.2,
+      "team_id": 10
+    },
+    {
+      "adp": 132.5,
+      "effective_adp": 101.5,
+      "mlb_id": 621439,
+      "name": "Byron Buxton",
+      "pick": 67,
+      "residual": -34.5,
+      "team_id": 4
+    },
+    {
+      "adp": 156.1,
+      "effective_adp": 124.1,
+      "mlb_id": 696100,
+      "name": "Hunter Goodman",
+      "pick": 69,
+      "residual": -55.1,
+      "team_id": 1
+    },
+    {
+      "adp": 126.5,
+      "effective_adp": 97.5,
+      "mlb_id": 607192,
+      "name": "Tyler Glasnow",
+      "pick": 70,
+      "residual": -27.5,
+      "team_id": 7
+    },
+    {
+      "adp": 185.8,
+      "effective_adp": 152.8,
+      "mlb_id": 682928,
+      "name": "CJ Abrams",
+      "pick": 71,
+      "residual": -81.8,
+      "team_id": 7
+    },
+    {
+      "adp": 136.1,
+      "effective_adp": 105.1,
+      "mlb_id": 691016,
+      "name": "Tyler Soderstrom",
+      "pick": 72,
+      "residual": -33.1,
+      "team_id": 1
+    },
+    {
+      "adp": 74.4,
+      "effective_adp": 52.4,
+      "mlb_id": 605483,
+      "name": "Blake Snell",
+      "pick": 73,
+      "residual": 20.6,
+      "team_id": 2
+    },
+    {
+      "adp": 109.3,
+      "effective_adp": 81.3,
+      "mlb_id": 553993,
+      "name": "Eugenio Su\u00e1rez",
+      "pick": 74,
+      "residual": -7.3,
+      "team_id": 4
+    },
+    {
+      "adp": 78.8,
+      "effective_adp": 53.8,
+      "mlb_id": 680757,
+      "name": "Steven Kwan",
+      "pick": 75,
+      "residual": 21.2,
+      "team_id": 10
+    },
+    {
+      "adp": 211.8,
+      "effective_adp": 176.8,
+      "mlb_id": 683737,
+      "name": "Michael Busch",
+      "pick": 76,
+      "residual": -100.8,
+      "team_id": 3
+    },
+    {
+      "adp": 118.7,
+      "effective_adp": 89.7,
+      "mlb_id": 668227,
+      "name": "Randy Arozarena",
+      "pick": 77,
+      "residual": -12.7,
+      "team_id": 8
+    },
+    {
+      "adp": 96.0,
+      "effective_adp": 70.0,
+      "mlb_id": 675911,
+      "name": "Spencer Strider",
+      "pick": 78,
+      "residual": 8.0,
+      "team_id": 9
+    },
+    {
+      "adp": 107.0,
+      "effective_adp": 80.0,
+      "mlb_id": 673548,
+      "name": "Seiya Suzuki",
+      "pick": 79,
+      "residual": -1.0,
+      "team_id": 5
+    },
+    {
+      "adp": 84.5,
+      "effective_adp": 59.5,
+      "mlb_id": 592332,
+      "name": "Kevin Gausman",
+      "pick": 80,
+      "residual": 20.5,
+      "team_id": 2
+    },
+    {
+      "adp": 96.6,
+      "effective_adp": 70.6,
+      "mlb_id": 543243,
+      "name": "Sonny Gray",
+      "pick": 81,
+      "residual": 10.4,
+      "team_id": 2
+    },
+    {
+      "adp": 230.1,
+      "effective_adp": 194.1,
+      "mlb_id": 679529,
+      "name": "Spencer Torkelson",
+      "pick": 83,
+      "residual": -111.1,
+      "team_id": 9
+    },
+    {
+      "adp": 140.7,
+      "effective_adp": 109.7,
+      "mlb_id": 656305,
+      "name": "Matt Chapman",
+      "pick": 84,
+      "residual": -25.7,
+      "team_id": 8
+    },
+    {
+      "adp": 171.3,
+      "effective_adp": 138.3,
+      "mlb_id": 656876,
+      "name": "Drew Rasmussen",
+      "pick": 85,
+      "residual": -53.3,
+      "team_id": 3
+    },
+    {
+      "adp": 166.6,
+      "effective_adp": 133.6,
+      "mlb_id": 666157,
+      "name": "Nick Lodolo",
+      "pick": 87,
+      "residual": -46.6,
+      "team_id": 4
+    },
+    {
+      "adp": 109.2,
+      "effective_adp": 81.2,
+      "mlb_id": 592885,
+      "name": "Christian Yelich",
+      "pick": 88,
+      "residual": 6.8,
+      "team_id": 6
+    },
+    {
+      "adp": 161.7,
+      "effective_adp": 128.7,
+      "mlb_id": 693645,
+      "name": "Cam Schlittler",
+      "pick": 90,
+      "residual": -38.7,
+      "team_id": 9
+    },
+    {
+      "adp": 125.8,
+      "effective_adp": 96.8,
+      "mlb_id": 605540,
+      "name": "Brandon Woodruff",
+      "pick": 91,
+      "residual": -5.8,
+      "team_id": 7
+    },
+    {
+      "adp": 168.1,
+      "effective_adp": 135.1,
+      "mlb_id": 671739,
+      "name": "Michael Harris II",
+      "pick": 92,
+      "residual": -43.1,
+      "team_id": 1
+    },
+    {
+      "adp": 155.8,
+      "effective_adp": 123.8,
+      "mlb_id": 807712,
+      "name": "Luke Keaschall",
+      "pick": 93,
+      "residual": -30.8,
+      "team_id": 6
+    },
+    {
+      "adp": 102.2,
+      "effective_adp": 75.2,
+      "mlb_id": 645277,
+      "name": "Ozzie Albies",
+      "pick": 94,
+      "residual": 18.8,
+      "team_id": 2
+    },
+    {
+      "adp": 112.0,
+      "effective_adp": 84.0,
+      "mlb_id": 622491,
+      "name": "Luis Castillo",
+      "pick": 95,
+      "residual": 11.0,
+      "team_id": 10
+    },
+    {
+      "adp": 184.4,
+      "effective_adp": 151.4,
+      "mlb_id": 681082,
+      "name": "Bryson Stott",
+      "pick": 97,
+      "residual": -54.4,
+      "team_id": 8
+    },
+    {
+      "adp": 140.3,
+      "effective_adp": 109.3,
+      "mlb_id": 621493,
+      "name": "Taylor Ward",
+      "pick": 98,
+      "residual": -11.3,
+      "team_id": 9
+    },
+    {
+      "adp": 86.7,
+      "effective_adp": 60.7,
+      "mlb_id": 669257,
+      "name": "Will Smith",
+      "pick": 99,
+      "residual": 38.3,
+      "team_id": 5
+    },
+    {
+      "adp": 115.0,
+      "effective_adp": 87.0,
+      "mlb_id": 543135,
+      "name": "Nathan Eovaldi",
+      "pick": 100,
+      "residual": 13.0,
+      "team_id": 2
+    },
+    {
+      "adp": 125.6,
+      "effective_adp": 96.6,
+      "mlb_id": 607043,
+      "name": "Brandon Nimmo",
+      "pick": 101,
+      "residual": 4.4,
+      "team_id": 2
+    },
+    {
+      "adp": 168.8,
+      "effective_adp": 135.8,
+      "mlb_id": 681624,
+      "name": "Andy Pages",
+      "pick": 102,
+      "residual": -33.8,
+      "team_id": 5
+    },
+    {
+      "adp": 253.3,
+      "effective_adp": 216.3,
+      "mlb_id": 663556,
+      "name": "Shane McClanahan",
+      "pick": 103,
+      "residual": -113.3,
+      "team_id": 9
+    },
+    {
+      "adp": 160.4,
+      "effective_adp": 128.4,
+      "mlb_id": 642715,
+      "name": "Willy Adames",
+      "pick": 104,
+      "residual": -24.4,
+      "team_id": 8
+    },
+    {
+      "adp": 180.3,
+      "effective_adp": 147.3,
+      "mlb_id": 665833,
+      "name": "Oneil Cruz",
+      "pick": 105,
+      "residual": -42.3,
+      "team_id": 3
+    },
+    {
+      "adp": 103.6,
+      "effective_adp": 76.6,
+      "mlb_id": 628452,
+      "name": "Raisel Iglesias",
+      "pick": 106,
+      "residual": 29.4,
+      "team_id": 2
+    },
+    {
+      "adp": 173.2,
+      "effective_adp": 140.2,
+      "mlb_id": 686218,
+      "name": "Emmet Sheehan",
+      "pick": 107,
+      "residual": -33.2,
+      "team_id": 4
+    },
+    {
+      "adp": 141.2,
+      "effective_adp": 110.2,
+      "mlb_id": 682663,
+      "name": "Agust\u00edn Ram\u00edrez",
+      "pick": 108,
+      "residual": -2.2,
+      "team_id": 6
+    },
+    {
+      "adp": 165.8,
+      "effective_adp": 132.8,
+      "mlb_id": 650633,
+      "name": "Michael King",
+      "pick": 109,
+      "residual": -23.8,
+      "team_id": 1
+    },
+    {
+      "adp": 257.2,
+      "effective_adp": 219.2,
+      "mlb_id": 680574,
+      "name": "Matt McLain",
+      "pick": 110,
+      "residual": -109.2,
+      "team_id": 7
+    },
+    {
+      "adp": 195.8,
+      "effective_adp": 162.8,
+      "mlb_id": 645261,
+      "name": "Sandy Alcantara",
+      "pick": 112,
+      "residual": -50.8,
+      "team_id": 1
+    },
+    {
+      "adp": 123.8,
+      "effective_adp": 94.8,
+      "mlb_id": 686752,
+      "name": "Ryan Pepiot",
+      "pick": 113,
+      "residual": 18.2,
+      "team_id": 6
+    },
+    {
+      "adp": 204.6,
+      "effective_adp": 169.6,
+      "mlb_id": 545361,
+      "name": "Mike Trout",
+      "pick": 115,
+      "residual": -54.6,
+      "team_id": 10
+    },
+    {
+      "adp": 236.9,
+      "effective_adp": 200.9,
+      "mlb_id": 808959,
+      "name": "Munetaka Murakami",
+      "pick": 116,
+      "residual": -84.9,
+      "team_id": 3
+    },
+    {
+      "adp": 152.4,
+      "effective_adp": 120.4,
+      "mlb_id": 624133,
+      "name": "Ranger Su\u00e1rez",
+      "pick": 117,
+      "residual": -3.4,
+      "team_id": 8
+    },
+    {
+      "adp": 190.8,
+      "effective_adp": 157.8,
+      "mlb_id": 702056,
+      "name": "Trey Yesavage",
+      "pick": 118,
+      "residual": -39.8,
+      "team_id": 9
+    },
+    {
+      "adp": 153.1,
+      "effective_adp": 121.1,
+      "mlb_id": 664023,
+      "name": "Ian Happ",
+      "pick": 119,
+      "residual": -2.1,
+      "team_id": 5
+    },
+    {
+      "adp": 187.4,
+      "effective_adp": 154.4,
+      "mlb_id": 543037,
+      "name": "Gerrit Cole",
+      "pick": 120,
+      "residual": -34.4,
+      "team_id": 2
+    },
+    {
+      "adp": 188.2,
+      "effective_adp": 155.2,
+      "mlb_id": 702616,
+      "name": "Jackson Holliday",
+      "pick": 121,
+      "residual": -34.2,
+      "team_id": 2
+    },
+    {
+      "adp": 165.2,
+      "effective_adp": 132.2,
+      "mlb_id": 668909,
+      "name": "Gavin Williams",
+      "pick": 122,
+      "residual": -10.2,
+      "team_id": 5
+    },
+    {
+      "adp": 221.7,
+      "effective_adp": 186.7,
+      "mlb_id": 666176,
+      "name": "Jo Adell",
+      "pick": 123,
+      "residual": -63.7,
+      "team_id": 9
+    },
+    {
+      "adp": 154.1,
+      "effective_adp": 122.1,
+      "mlb_id": 676440,
+      "name": "Tanner Bibee",
+      "pick": 124,
+      "residual": 1.9,
+      "team_id": 8
+    },
+    {
+      "adp": 234.2,
+      "effective_adp": 198.2,
+      "mlb_id": 802415,
+      "name": "Chandler Simpson",
+      "pick": 125,
+      "residual": -73.2,
+      "team_id": 3
+    },
+    {
+      "adp": 121.8,
+      "effective_adp": 92.8,
+      "mlb_id": 521692,
+      "name": "Salvador Perez",
+      "pick": 126,
+      "residual": 33.2,
+      "team_id": 10
+    },
+    {
+      "adp": 255.2,
+      "effective_adp": 218.2,
+      "mlb_id": 695506,
+      "name": "Jac Caglianone",
+      "pick": 128,
+      "residual": -90.2,
+      "team_id": 6
+    },
+    {
+      "adp": 235.6,
+      "effective_adp": 199.6,
+      "mlb_id": 673357,
+      "name": "Luis Robert Jr.",
+      "pick": 129,
+      "residual": -70.6,
+      "team_id": 1
+    },
+    {
+      "adp": 160.9,
+      "effective_adp": 128.9,
+      "mlb_id": 606192,
+      "name": "Teoscar Hern\u00e1ndez",
+      "pick": 130,
+      "residual": 1.1,
+      "team_id": 7
+    },
+    {
+      "adp": 120.3,
+      "effective_adp": 91.3,
+      "mlb_id": 623352,
+      "name": "Josh Hader",
+      "pick": 131,
+      "residual": 39.7,
+      "team_id": 7
+    },
+    {
+      "adp": 169.9,
+      "effective_adp": 136.9,
+      "mlb_id": 650556,
+      "name": "Bryan Abreu",
+      "pick": 132,
+      "residual": -4.9,
+      "team_id": 1
+    },
+    {
+      "adp": 169.4,
+      "effective_adp": 136.4,
+      "mlb_id": 694037,
+      "name": "Daniel Palencia",
+      "pick": 133,
+      "residual": -3.4,
+      "team_id": 6
+    },
+    {
+      "adp": 152.7,
+      "effective_adp": 120.7,
+      "mlb_id": 668678,
+      "name": "Zac Gallen",
+      "pick": 135,
+      "residual": 14.3,
+      "team_id": 10
+    },
+    {
+      "adp": 189.4,
+      "effective_adp": 156.4,
+      "mlb_id": 684007,
+      "name": "Shota Imanaga",
+      "pick": 136,
+      "residual": -20.4,
+      "team_id": 3
+    },
+    {
+      "adp": 188.2,
+      "effective_adp": 155.2,
+      "mlb_id": 571510,
+      "name": "Matthew Boyd",
+      "pick": 137,
+      "residual": -18.2,
+      "team_id": 8
+    },
+    {
+      "adp": 122.2,
+      "effective_adp": 93.2,
+      "mlb_id": 608032,
+      "name": "Carlos Est\u00e9vez",
+      "pick": 138,
+      "residual": 44.8,
+      "team_id": 9
+    },
+    {
+      "adp": 177.5,
+      "effective_adp": 144.5,
+      "mlb_id": 676475,
+      "name": "Alec Burleson",
+      "pick": 139,
+      "residual": -5.5,
+      "team_id": 5
+    },
+    {
+      "adp": 219.5,
+      "effective_adp": 184.5,
+      "mlb_id": 805300,
+      "name": "Jakob Marsee",
+      "pick": 140,
+      "residual": -44.5,
+      "team_id": 2
+    },
+    {
+      "adp": 239.7,
+      "effective_adp": 203.7,
+      "mlb_id": 804606,
+      "name": "Konnor Griffin",
+      "pick": 141,
+      "residual": -62.7,
+      "team_id": 2
+    },
+    {
+      "adp": 189.6,
+      "effective_adp": 156.6,
+      "mlb_id": 592662,
+      "name": "Robbie Ray",
+      "pick": 142,
+      "residual": -14.6,
+      "team_id": 5
+    },
+    {
+      "adp": 247.3,
+      "effective_adp": 210.3,
+      "mlb_id": 680718,
+      "name": "Addison Barger",
+      "pick": 143,
+      "residual": -67.3,
+      "team_id": 9
+    },
+    {
+      "adp": 211.5,
+      "effective_adp": 176.5,
+      "mlb_id": 607074,
+      "name": "Carlos Rod\u00f3n",
+      "pick": 144,
+      "residual": -32.5,
+      "team_id": 8
+    },
+    {
+      "adp": 238.7,
+      "effective_adp": 202.7,
+      "mlb_id": 696149,
+      "name": "Bubba Chandler",
+      "pick": 145,
+      "residual": -57.7,
+      "team_id": 3
+    },
+    {
+      "adp": 186.0,
+      "effective_adp": 153.0,
+      "mlb_id": 643377,
+      "name": "Griffin Jax",
+      "pick": 147,
+      "residual": -6.0,
+      "team_id": 4
+    },
+    {
+      "adp": 164.9,
+      "effective_adp": 131.9,
+      "mlb_id": 665161,
+      "name": "Jeremy Pe\u00f1a",
+      "pick": 148,
+      "residual": 16.1,
+      "team_id": 6
+    },
+    {
+      "adp": 223.8,
+      "effective_adp": 188.8,
+      "mlb_id": 605400,
+      "name": "Aaron Nola",
+      "pick": 149,
+      "residual": -39.8,
+      "team_id": 1
+    },
+    {
+      "adp": 158.1,
+      "effective_adp": 126.1,
+      "mlb_id": 664854,
+      "name": "Ryan Helsley",
+      "pick": 150,
+      "residual": 23.9,
+      "team_id": 7
+    },
+    {
+      "adp": 145.9,
+      "effective_adp": 113.9,
+      "mlb_id": 641941,
+      "name": "Emilio Pag\u00e1n",
+      "pick": 151,
+      "residual": 37.1,
+      "team_id": 9
+    },
+    {
+      "adp": 185.8,
+      "effective_adp": 152.8,
+      "mlb_id": 678882,
+      "name": "Ceddanne Rafaela",
+      "pick": 152,
+      "residual": -0.8,
+      "team_id": 1
+    },
+    {
+      "adp": 147.9,
+      "effective_adp": 115.9,
+      "mlb_id": 664126,
+      "name": "Pete Fairbanks",
+      "pick": 154,
+      "residual": 38.1,
+      "team_id": 4
+    },
+    {
+      "adp": 207.8,
+      "effective_adp": 172.8,
+      "mlb_id": 663158,
+      "name": "Robert Suarez",
+      "pick": 155,
+      "residual": -17.8,
+      "team_id": 10
+    },
+    {
+      "adp": 234.1,
+      "effective_adp": 198.1,
+      "mlb_id": 837227,
+      "name": "Tatsuya Imai",
+      "pick": 156,
+      "residual": -42.1,
+      "team_id": 3
+    },
+    {
+      "adp": 249.0,
+      "effective_adp": 212.0,
+      "mlb_id": 669358,
+      "name": "Shane Baz",
+      "pick": 158,
+      "residual": -54.0,
+      "team_id": 9
+    },
+    {
+      "adp": 131.5,
+      "effective_adp": 100.5,
+      "mlb_id": 656730,
+      "name": "Trevor Megill",
+      "pick": 159,
+      "residual": 58.5,
+      "team_id": 5
+    },
+    {
+      "adp": 176.3,
+      "effective_adp": 143.3,
+      "mlb_id": 664040,
+      "name": "Brandon Lowe",
+      "pick": 162,
+      "residual": 18.7,
+      "team_id": 5
+    },
+    {
+      "adp": 238.1,
+      "effective_adp": 202.1,
+      "mlb_id": 676609,
+      "name": "Jos\u00e9 Caballero",
+      "pick": 163,
+      "residual": -39.1,
+      "team_id": 9
+    },
+    {
+      "adp": 187.8,
+      "effective_adp": 154.8,
+      "mlb_id": 656427,
+      "name": "Jack Flaherty",
+      "pick": 164,
+      "residual": 9.2,
+      "team_id": 8
+    },
+    {
+      "adp": 258.2,
+      "effective_adp": 219.2,
+      "mlb_id": 805808,
+      "name": "Kevin McGonigle",
+      "pick": 165,
+      "residual": -54.2,
+      "team_id": 3
+    },
+    {
+      "adp": 226.4,
+      "effective_adp": 191.4,
+      "mlb_id": 596115,
+      "name": "Trevor Story",
+      "pick": 166,
+      "residual": -25.4,
+      "team_id": 10
+    },
+    {
+      "adp": 207.6,
+      "effective_adp": 172.6,
+      "mlb_id": 669364,
+      "name": "Xavier Edwards",
+      "pick": 167,
+      "residual": -5.6,
+      "team_id": 4
+    },
+    {
+      "adp": 206.7,
+      "effective_adp": 171.7,
+      "mlb_id": 671096,
+      "name": "Andrew Abbott",
+      "pick": 169,
+      "residual": -2.7,
+      "team_id": 1
+    },
+    {
+      "adp": 232.9,
+      "effective_adp": 196.9,
+      "mlb_id": 663460,
+      "name": "Kris Bubic",
+      "pick": 170,
+      "residual": -26.9,
+      "team_id": 7
+    },
+    {
+      "adp": 199.6,
+      "effective_adp": 165.6,
+      "mlb_id": 672960,
+      "name": "Kazuma Okamoto",
+      "pick": 171,
+      "residual": 5.4,
+      "team_id": 7
+    },
+    {
+      "adp": 155.9,
+      "effective_adp": 123.9,
+      "mlb_id": 656546,
+      "name": "Jeff Hoffman",
+      "pick": 172,
+      "residual": 48.1,
+      "team_id": 1
+    },
+    {
+      "adp": 170.4,
+      "effective_adp": 137.4,
+      "mlb_id": 805779,
+      "name": "Jacob Wilson",
+      "pick": 174,
+      "residual": 36.6,
+      "team_id": 4
+    },
+    {
+      "adp": 232.0,
+      "effective_adp": 196.0,
+      "mlb_id": 690990,
+      "name": "Cade Horton",
+      "pick": 175,
+      "residual": -21.0,
+      "team_id": 10
+    },
+    {
+      "adp": 245.8,
+      "effective_adp": 209.8,
+      "mlb_id": 701398,
+      "name": "Sal Stewart",
+      "pick": 176,
+      "residual": -33.8,
+      "team_id": 3
+    },
+    {
+      "adp": 223.7,
+      "effective_adp": 188.7,
+      "mlb_id": 518876,
+      "name": "Merrill Kelly",
+      "pick": 177,
+      "residual": -11.7,
+      "team_id": 8
+    },
+    {
+      "adp": 161.0,
+      "effective_adp": 129.0,
+      "mlb_id": 445276,
+      "name": "Kenley Jansen",
+      "pick": 179,
+      "residual": 50.0,
+      "team_id": 5
+    },
+    {
+      "adp": 232.9,
+      "effective_adp": 196.9,
+      "mlb_id": 672640,
+      "name": "Otto Lopez",
+      "pick": 181,
+      "residual": -15.9,
+      "team_id": 5
+    },
+    {
+      "adp": 246.0,
+      "effective_adp": 210.0,
+      "mlb_id": 669093,
+      "name": "Jeremiah Estrada",
+      "pick": 183,
+      "residual": -27.0,
+      "team_id": 8
+    },
+    {
+      "adp": 249.7,
+      "effective_adp": 212.7,
+      "mlb_id": 669456,
+      "name": "Shane Bieber",
+      "pick": 185,
+      "residual": -27.7,
+      "team_id": 10
+    },
+    {
+      "adp": 237.3,
+      "effective_adp": 201.3,
+      "mlb_id": 665795,
+      "name": "Edward Cabrera",
+      "pick": 186,
+      "residual": -15.3,
+      "team_id": 4
+    },
+    {
+      "adp": 240.2,
+      "effective_adp": 204.2,
+      "mlb_id": 808963,
+      "name": "Roki Sasaki",
+      "pick": 187,
+      "residual": -17.2,
+      "team_id": 6
+    },
+    {
+      "adp": 256.6,
+      "effective_adp": 218.6,
+      "mlb_id": 683004,
+      "name": "Jack Leiter",
+      "pick": 188,
+      "residual": -30.6,
+      "team_id": 1
+    },
+    {
+      "adp": 133.7,
+      "effective_adp": 102.7,
+      "mlb_id": 668939,
+      "name": "Adley Rutschman",
+      "pick": 189,
+      "residual": 86.3,
+      "team_id": 7
+    },
+    {
+      "adp": 248.9,
+      "effective_adp": 211.9,
+      "mlb_id": 676477,
+      "name": "Garrett Whitlock",
+      "pick": 191,
+      "residual": -20.9,
+      "team_id": 1
+    },
+    {
+      "adp": 204.1,
+      "effective_adp": 169.1,
+      "mlb_id": 650490,
+      "name": "Yandy D\u00edaz",
+      "pick": 193,
+      "residual": 23.9,
+      "team_id": 4
+    },
+    {
+      "adp": 243.5,
+      "effective_adp": 207.5,
+      "mlb_id": 592094,
+      "name": "Jason Adam",
+      "pick": 194,
+      "residual": -13.5,
+      "team_id": 10
+    },
+    {
+      "adp": 235.9,
+      "effective_adp": 199.9,
+      "mlb_id": 676254,
+      "name": "Ryan Walker",
+      "pick": 196,
+      "residual": -3.9,
+      "team_id": 8
+    },
+    {
+      "adp": 252.9,
+      "effective_adp": 215.9,
+      "mlb_id": 673540,
+      "name": "Kodai Senga",
+      "pick": 198,
+      "residual": -17.9,
+      "team_id": 5
+    },
+    {
+      "adp": 249.3,
+      "effective_adp": 212.3,
+      "mlb_id": 802139,
+      "name": "JJ Wetherholt",
+      "pick": 199,
+      "residual": -13.3,
+      "team_id": 5
+    },
+    {
+      "adp": 238.5,
+      "effective_adp": 202.5,
+      "mlb_id": 682622,
+      "name": "Noelvi Marte",
+      "pick": 200,
+      "residual": -2.5,
+      "team_id": 9
+    },
+    {
+      "adp": 257.7,
+      "effective_adp": 218.7,
+      "mlb_id": 667755,
+      "name": "Jos\u00e9 Soriano",
+      "pick": 201,
+      "residual": -17.7,
+      "team_id": 8
+    },
+    {
+      "adp": 245.4,
+      "effective_adp": 209.4,
+      "mlb_id": 676395,
+      "name": "Robert Garcia",
+      "pick": 204,
+      "residual": -5.4,
+      "team_id": 4
+    },
+    {
+      "adp": 251.8,
+      "effective_adp": 214.8,
+      "mlb_id": 643511,
+      "name": "Tyler Rogers",
+      "pick": 205,
+      "residual": -9.8,
+      "team_id": 6
+    },
+    {
+      "adp": 256.0,
+      "effective_adp": 218.0,
+      "mlb_id": 680885,
+      "name": "Spencer Schwellenbach",
+      "pick": 206,
+      "residual": -12.0,
+      "team_id": 1
+    },
+    {
+      "adp": 254.8,
+      "effective_adp": 217.8,
+      "mlb_id": 702070,
+      "name": "Noah Cameron",
+      "pick": 207,
+      "residual": -10.8,
+      "team_id": 7
+    },
+    {
+      "adp": 253.7,
+      "effective_adp": 216.7,
+      "mlb_id": 663757,
+      "name": "Trent Grisham",
+      "pick": 208,
+      "residual": -8.7,
+      "team_id": 7
+    },
+    {
+      "adp": 258.1,
+      "effective_adp": 219.1,
+      "mlb_id": 681343,
+      "name": "Shane Smith",
+      "pick": 209,
+      "residual": -10.1,
+      "team_id": 1
+    },
+    {
+      "adp": 258.1,
+      "effective_adp": 219.1,
+      "mlb_id": 664074,
+      "name": "Cody Ponce",
+      "pick": 210,
+      "residual": -9.1,
+      "team_id": 6
+    },
+    {
+      "adp": 195.8,
+      "effective_adp": 162.8,
+      "mlb_id": 668804,
+      "name": "Bryan Reynolds",
+      "pick": 211,
+      "residual": 48.2,
+      "team_id": 4
+    },
+    {
+      "adp": 253.2,
+      "effective_adp": 216.2,
+      "mlb_id": 686668,
+      "name": "Brenton Doyle",
+      "pick": 212,
+      "residual": -4.2,
+      "team_id": 10
+    },
+    {
+      "adp": 238.5,
+      "effective_adp": 202.5,
+      "mlb_id": 621020,
+      "name": "Dansby Swanson",
+      "pick": 214,
+      "residual": 11.5,
+      "team_id": 8
+    },
+    {
+      "adp": 248.6,
+      "effective_adp": 211.6,
+      "mlb_id": 642701,
+      "name": "Dennis Santana",
+      "pick": 215,
+      "residual": 3.4,
+      "team_id": 9
+    },
+    {
+      "adp": 241.9,
+      "effective_adp": 205.9,
+      "mlb_id": 686217,
+      "name": "Sal Frelick",
+      "pick": 216,
+      "residual": 10.1,
+      "team_id": 5
+    },
+    {
+      "adp": 258.2,
+      "effective_adp": 219.2,
+      "mlb_id": 691725,
+      "name": "Andrew Painter",
+      "pick": 218,
+      "residual": -1.2,
+      "team_id": 9
+    },
+    {
+      "adp": 163.9,
+      "effective_adp": 130.9,
+      "mlb_id": 543760,
+      "name": "Marcus Semien",
+      "pick": 219,
+      "residual": 88.1,
+      "team_id": 8
+    },
+    {
+      "adp": 255.0,
+      "effective_adp": 218.0,
+      "mlb_id": 656605,
+      "name": "Mitch Keller",
+      "pick": 221,
+      "residual": 3.0,
+      "team_id": 10
+    },
+    {
+      "adp": 254.2,
+      "effective_adp": 217.2,
+      "mlb_id": 676684,
+      "name": "Will Vest",
+      "pick": 222,
+      "residual": 4.8,
+      "team_id": 4
+    },
+    {
+      "adp": 252.3,
+      "effective_adp": 215.3,
+      "mlb_id": 666969,
+      "name": "Adolis Garc\u00eda",
+      "pick": 223,
+      "residual": 7.7,
+      "team_id": 6
+    },
+    {
+      "adp": 258.5,
+      "effective_adp": 219.5,
+      "mlb_id": 663554,
+      "name": "Casey Mize",
+      "pick": 224,
+      "residual": 4.5,
+      "team_id": 1
+    },
+    {
+      "adp": 228.1,
+      "effective_adp": 192.1,
+      "mlb_id": 571970,
+      "name": "Max Muncy",
+      "pick": 225,
+      "residual": 32.9,
+      "team_id": 7
+    },
+    {
+      "adp": 237.7,
+      "effective_adp": 201.7,
+      "mlb_id": 593871,
+      "name": "Jorge Polanco",
+      "pick": 228,
+      "residual": 26.3,
+      "team_id": 6
+    },
+    {
+      "adp": 258.1,
+      "effective_adp": 219.1,
+      "mlb_id": 657006,
+      "name": "Justin Steele",
+      "pick": 229,
+      "residual": 9.9,
+      "team_id": 4
+    },
+    {
+      "adp": 238.6,
+      "effective_adp": 202.6,
+      "mlb_id": 572233,
+      "name": "Christian Walker",
+      "pick": 230,
+      "residual": 27.4,
+      "team_id": 10
+    },
+    {
+      "adp": 252.6,
+      "effective_adp": 215.6,
+      "mlb_id": 682243,
+      "name": "Bryce Miller",
+      "pick": 231,
+      "residual": 15.4,
+      "team_id": 3
+    },
+    {
+      "adp": 253.6,
+      "effective_adp": 216.6,
+      "mlb_id": 579328,
+      "name": "Yusei Kikuchi",
+      "pick": 238,
+      "residual": 21.4,
+      "team_id": 10
+    },
+    {
+      "adp": 258.7,
+      "effective_adp": 219.7,
+      "mlb_id": 813349,
+      "name": "Connelly Early",
+      "pick": 240,
+      "residual": 20.3,
+      "team_id": 6
+    },
+    {
+      "adp": 253.8,
+      "effective_adp": 216.8,
+      "mlb_id": 662139,
+      "name": "Daulton Varsho",
+      "pick": 244,
+      "residual": 27.2,
+      "team_id": 6
+    },
+    {
+      "adp": 159.1,
+      "effective_adp": 127.1,
+      "mlb_id": 673237,
+      "name": "Yainer Diaz",
+      "pick": 245,
+      "residual": 117.9,
+      "team_id": 4
+    },
+    {
+      "adp": 253.2,
+      "effective_adp": 216.2,
+      "mlb_id": 671218,
+      "name": "Heliot Ramos",
+      "pick": 246,
+      "residual": 29.8,
+      "team_id": 10
+    },
+    {
+      "adp": 251.1,
+      "effective_adp": 214.1,
+      "mlb_id": 693855,
+      "name": "Ian Seymour",
+      "pick": 247,
+      "residual": 32.9,
+      "team_id": 4
+    },
+    {
+      "adp": 258.4,
+      "effective_adp": 219.4,
+      "mlb_id": 676282,
+      "name": "Joey Cantillo",
+      "pick": 250,
+      "residual": 30.6,
+      "team_id": 7
+    }
+  ],
+  "season": 2026,
+  "season_elapsed_fraction": 0.7688,
+  "sigma_model_comparison": {
+    "best": "variable_py",
+    "mean_abs_error": {
+      "flat_18": 13.666,
+      "variable_py": 6.614,
+      "variable_ts": 17.726
+    },
+    "per_bucket": [
+      {
+        "adp_bucket": "0-50",
+        "flat_18": 18.0,
+        "measured_sigma": 6.51,
+        "variable_py": 12.97,
+        "variable_ts": 6.71
+      },
+      {
+        "adp_bucket": "50-100",
+        "flat_18": 18.0,
+        "measured_sigma": 17.09,
+        "variable_py": 17.29,
+        "variable_ts": 7.75
+      },
+      {
+        "adp_bucket": "100-150",
+        "flat_18": 18.0,
+        "measured_sigma": 31.86,
+        "variable_py": 22.22,
+        "variable_ts": 8.93
+      },
+      {
+        "adp_bucket": "150-200",
+        "flat_18": 18.0,
+        "measured_sigma": 40.31,
+        "variable_py": 27.21,
+        "variable_ts": 10.13
+      },
+      {
+        "adp_bucket": "200+",
+        "flat_18": 18.0,
+        "measured_sigma": 37.76,
+        "variable_py": 34.09,
+        "variable_ts": 11.78
+      }
+    ]
+  },
+  "summary": {
+    "keeper_adjusted": {
+      "mean": -9.19,
+      "sigma": 33.92
+    },
+    "n": 200,
+    "raw": {
+      "mean": -38.71,
+      "sigma": 36.58
+    }
+  }
+}
