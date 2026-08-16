@@ -38,6 +38,8 @@ from backend.analysis.retro.expost import (
     align_pool,
     attrition_report,
     batting_actuals_to_row,
+    pace_adjust_hitters,
+    pace_adjust_pitchers,
     pitching_actuals_to_row,
     season_elapsed_fraction,
 )
@@ -155,6 +157,13 @@ def build_boards(conn, season: int, source: str, as_of: date, streaming_bonus: f
         streaming_bonus=streaming_bonus,
     )
 
+    # A second ex-post board with counting stats projected to a full-season
+    # pace, so that *levels* can be compared against full-season projections.
+    # See pace_adjust for why the raw board understates counting categories.
+    elapsed = season_elapsed_fraction(as_of)
+    paced_hitter_rows = pace_adjust_hitters(expost_hitter_rows, elapsed)
+    paced_pitcher_rows = pace_adjust_pitchers(expost_pitcher_rows, elapsed)
+
     boards = {
         "preseason": {
             "hitters": compute_hitter_sgp(preseason_hitters, config=preseason_cfg),
@@ -163,6 +172,10 @@ def build_boards(conn, season: int, source: str, as_of: date, streaming_bonus: f
         "expost": {
             "hitters": compute_hitter_sgp(expost_hitter_rows, config=expost_cfg),
             "pitchers": compute_pitcher_sgp(expost_pitcher_rows, config=expost_cfg),
+        },
+        "expost_paced": {
+            "hitters": compute_hitter_sgp(paced_hitter_rows, config=expost_cfg),
+            "pitchers": compute_pitcher_sgp(paced_pitcher_rows, config=expost_cfg),
         },
     }
     raw_rows = {
@@ -251,6 +264,8 @@ def main() -> int:
 
     pre_h, pre_p = boards["preseason"]["hitters"], boards["preseason"]["pitchers"]
     exp_h, exp_p = boards["expost"]["hitters"], boards["expost"]["pitchers"]
+    paced_h, paced_p = (boards["expost_paced"]["hitters"],
+                        boards["expost_paced"]["pitchers"])
 
     _write_json(out_dir / "preseason_board.json", {
         **header,
@@ -262,6 +277,13 @@ def main() -> int:
         "config": {"apply_playing_time_discount": False,
                    "streaming_bonus": args.streaming_bonus},
         "hitters": slim(exp_h), "pitchers": slim(exp_p),
+    })
+    _write_json(out_dir / "expost_values_paced.json", {
+        **header,
+        "config": {"apply_playing_time_discount": False,
+                   "streaming_bonus": args.streaming_bonus,
+                   "pace_adjusted": True},
+        "hitters": slim(paced_h), "pitchers": slim(paced_p),
     })
     _write_json(out_dir / "attrition.json", {
         **header,

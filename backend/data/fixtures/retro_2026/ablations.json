@@ -1,0 +1,389 @@
+{
+  "as_of": "2026-08-15",
+  "combined": {
+    "note": "Cross-position board. The realized side needs no normalizer \u2014 it is the objective, not a ranking to be corrected.",
+    "results": [
+      {
+        "delta_spearman": 0.0,
+        "delta_spearman_ci": [
+          null,
+          null
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": null,
+        "label": "baseline",
+        "spearman": 0.7504049407448549,
+        "top_100_precision": 0.48
+      },
+      {
+        "delta_spearman": 0.00203,
+        "delta_spearman_ci": [
+          -0.00381,
+          0.00799
+        ],
+        "delta_top_100": -0.01,
+        "inside_noise": true,
+        "label": "pitcher_normalizer_1.0",
+        "spearman": 0.7524368312669449,
+        "top_100_precision": 0.47
+      },
+      {
+        "delta_spearman": 0.00035,
+        "delta_spearman_ci": [
+          -0.00392,
+          0.00428
+        ],
+        "delta_top_100": -0.01,
+        "inside_noise": true,
+        "label": "pitcher_normalizer_1.1",
+        "spearman": 0.7507573683488462,
+        "top_100_precision": 0.47
+      },
+      {
+        "delta_spearman": -0.00265,
+        "delta_spearman_ci": [
+          -0.00633,
+          0.00125
+        ],
+        "delta_top_100": -0.01,
+        "inside_noise": true,
+        "label": "pitcher_normalizer_1.4",
+        "spearman": 0.7477583185145806,
+        "top_100_precision": 0.47
+      },
+      {
+        "delta_spearman": -0.00805,
+        "delta_spearman_ci": [
+          -0.01513,
+          -0.0011
+        ],
+        "delta_top_100": -0.02,
+        "inside_noise": false,
+        "label": "pitcher_normalizer_1.6",
+        "spearman": 0.7423500690022878,
+        "top_100_precision": 0.46
+      }
+    ],
+    "shipped_normalizer": 1.25
+  },
+  "expost_board": "pace_adjusted",
+  "hitters": {
+    "baseline_spearman_ci": [
+      0.7054711716227272,
+      0.7751553643021758
+    ],
+    "results": [
+      {
+        "delta_spearman": 0.0,
+        "delta_spearman_ci": [
+          null,
+          null
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": null,
+        "label": "baseline",
+        "spearman": 0.7414227974247193,
+        "top_100_precision": 0.57
+      },
+      {
+        "delta_spearman": -0.00225,
+        "delta_spearman_ci": [
+          -0.00471,
+          -0.00021
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": false,
+        "label": "category_weights_scale_0.0",
+        "spearman": 0.7391757519362073,
+        "top_100_precision": 0.57
+      },
+      {
+        "delta_spearman": -0.00144,
+        "delta_spearman_ci": [
+          -0.00325,
+          2e-05
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": true,
+        "label": "category_weights_scale_0.5",
+        "spearman": 0.7399800808373451,
+        "top_100_precision": 0.57
+      },
+      {
+        "delta_spearman": 0.00033,
+        "delta_spearman_ci": [
+          -0.00024,
+          0.00092
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": true,
+        "label": "category_weights_scale_1.5",
+        "spearman": 0.7417483473069382,
+        "top_100_precision": 0.57
+      },
+      {
+        "delta_spearman": 0.00624,
+        "delta_spearman_ci": [
+          -0.00021,
+          0.01312
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": true,
+        "label": "no_playing_time_discount",
+        "spearman": 0.747657977782327,
+        "top_100_precision": 0.57
+      },
+      {
+        "delta_spearman": 0.00379,
+        "delta_spearman_ci": [
+          0.00028,
+          0.00768
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": false,
+        "label": "full_credit_pa_300",
+        "spearman": 0.7452138522611631,
+        "top_100_precision": 0.57
+      },
+      {
+        "delta_spearman": -0.00047,
+        "delta_spearman_ci": [
+          -0.00246,
+          0.00161
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": true,
+        "label": "full_credit_pa_650",
+        "spearman": 0.7409479980455317,
+        "top_100_precision": 0.57
+      },
+      {
+        "delta_spearman": 0.0,
+        "delta_spearman_ci": [
+          0.0,
+          0.0
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": true,
+        "label": "full_credit_ip_sp_100",
+        "spearman": 0.7414227974247193,
+        "top_100_precision": 0.57
+      },
+      {
+        "delta_spearman": 0.0,
+        "delta_spearman_ci": [
+          0.0,
+          0.0
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": true,
+        "label": "full_credit_ip_sp_180",
+        "spearman": 0.7414227974247193,
+        "top_100_precision": 0.57
+      },
+      {
+        "delta_spearman": 0.0,
+        "delta_spearman_ci": [
+          0.0,
+          0.0
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": true,
+        "label": "streaming_bonus_0.0",
+        "spearman": 0.7414227974247193,
+        "top_100_precision": 0.57
+      },
+      {
+        "delta_spearman": 0.0,
+        "delta_spearman_ci": [
+          0.0,
+          0.0
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": true,
+        "label": "streaming_bonus_1.4",
+        "spearman": 0.7414227974247193,
+        "top_100_precision": 0.57
+      },
+      {
+        "delta_spearman": 0.00116,
+        "delta_spearman_ci": [
+          -0.00656,
+          0.01024
+        ],
+        "delta_top_100": -0.01,
+        "inside_noise": true,
+        "label": "no_replacement",
+        "spearman": 0.7425779965188979,
+        "top_100_precision": 0.56
+      }
+    ]
+  },
+  "pitchers": {
+    "baseline_spearman_ci": [
+      0.5622032715905652,
+      0.6604377611463662
+    ],
+    "results": [
+      {
+        "delta_spearman": 0.0,
+        "delta_spearman_ci": [
+          null,
+          null
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": null,
+        "label": "baseline",
+        "spearman": 0.6138712059966712,
+        "top_100_precision": 0.49
+      },
+      {
+        "delta_spearman": -0.00912,
+        "delta_spearman_ci": [
+          -0.02092,
+          0.00294
+        ],
+        "delta_top_100": 0.02,
+        "inside_noise": true,
+        "label": "category_weights_scale_0.0",
+        "spearman": 0.6047484062632289,
+        "top_100_precision": 0.51
+      },
+      {
+        "delta_spearman": -0.00509,
+        "delta_spearman_ci": [
+          -0.01239,
+          0.00116
+        ],
+        "delta_top_100": 0.02,
+        "inside_noise": true,
+        "label": "category_weights_scale_0.5",
+        "spearman": 0.6087834514872389,
+        "top_100_precision": 0.51
+      },
+      {
+        "delta_spearman": 0.00071,
+        "delta_spearman_ci": [
+          -0.00344,
+          0.00501
+        ],
+        "delta_top_100": -0.02,
+        "inside_noise": true,
+        "label": "category_weights_scale_1.5",
+        "spearman": 0.6145785236799466,
+        "top_100_precision": 0.47
+      },
+      {
+        "delta_spearman": -0.00355,
+        "delta_spearman_ci": [
+          -0.00969,
+          0.00197
+        ],
+        "delta_top_100": 0.03,
+        "inside_noise": true,
+        "label": "no_playing_time_discount",
+        "spearman": 0.610318574327756,
+        "top_100_precision": 0.52
+      },
+      {
+        "delta_spearman": 0.0,
+        "delta_spearman_ci": [
+          0.0,
+          0.0
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": true,
+        "label": "full_credit_pa_300",
+        "spearman": 0.6138712059966712,
+        "top_100_precision": 0.49
+      },
+      {
+        "delta_spearman": 0.0,
+        "delta_spearman_ci": [
+          0.0,
+          0.0
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": true,
+        "label": "full_credit_pa_650",
+        "spearman": 0.6138712059966712,
+        "top_100_precision": 0.49
+      },
+      {
+        "delta_spearman": -0.0036,
+        "delta_spearman_ci": [
+          -0.00953,
+          0.00149
+        ],
+        "delta_top_100": 0.03,
+        "inside_noise": true,
+        "label": "full_credit_ip_sp_100",
+        "spearman": 0.6102705171123124,
+        "top_100_precision": 0.52
+      },
+      {
+        "delta_spearman": 0.00073,
+        "delta_spearman_ci": [
+          -0.00455,
+          0.00641
+        ],
+        "delta_top_100": 0.0,
+        "inside_noise": true,
+        "label": "full_credit_ip_sp_180",
+        "spearman": 0.6145977328958394,
+        "top_100_precision": 0.49
+      },
+      {
+        "delta_spearman": -0.00215,
+        "delta_spearman_ci": [
+          -0.00909,
+          0.00497
+        ],
+        "delta_top_100": -0.03,
+        "inside_noise": true,
+        "label": "streaming_bonus_0.0",
+        "spearman": 0.6117181410684124,
+        "top_100_precision": 0.46
+      },
+      {
+        "delta_spearman": -0.01589,
+        "delta_spearman_ci": [
+          -0.03126,
+          -0.0002
+        ],
+        "delta_top_100": 0.03,
+        "inside_noise": false,
+        "label": "streaming_bonus_1.4",
+        "spearman": 0.597977436119687,
+        "top_100_precision": 0.52
+      },
+      {
+        "delta_spearman": -0.00375,
+        "delta_spearman_ci": [
+          -0.009,
+          0.0008
+        ],
+        "delta_top_100": 0.02,
+        "inside_noise": true,
+        "label": "no_replacement",
+        "spearman": 0.6101176688380966,
+        "top_100_precision": 0.51
+      }
+    ]
+  },
+  "preseason_source": "thebatx",
+  "season": 2026,
+  "season_elapsed_fraction": 0.7688,
+  "sgp_denominators": {
+    "ERA": 0.084556,
+    "K": 75.925926,
+    "OBP": 0.003522,
+    "QS": 5.833333,
+    "R": 18.777778,
+    "RBI": 19.962963,
+    "SB": 11.074074,
+    "SVHD": 7.777778,
+    "TB": 52.407407,
+    "WHIP": 0.012333
+  }
+}

@@ -124,6 +124,48 @@ def pitching_actuals_to_row(identity: PlayerIdentity, stats: dict | None) -> dic
     }
 
 
+# Counting columns scale with playing time; rate columns do not.
+_HITTER_VOLUME_KEYS = (
+    "proj_pa", "proj_runs", "proj_total_bases", "proj_rbi", "proj_stolen_bases",
+    "proj_hits", "proj_walks", "proj_hbp", "proj_sac_flies", "proj_at_bats",
+)
+_PITCHER_VOLUME_KEYS = (
+    "proj_ip", "proj_pitcher_strikeouts", "proj_quality_starts", "proj_saves",
+    "proj_holds", "proj_hits_allowed", "proj_walks_allowed", "proj_earned_runs",
+)
+
+
+def pace_adjust(row: dict, elapsed_fraction: float, volume_keys) -> dict:
+    """Project a partial season's counting stats to a full-season pace.
+
+    Needed for any comparison of *levels* against a full-season projection.
+    SGP is not scale-free: counting terms are stat/denominator and so scale
+    with playing time, while rate terms are marginal-rate x (volume / team
+    volume) and do not — the volume cancels. So a mid-season board understates
+    counting categories relative to rate categories, and regressing realized on
+    projected value would report over-dispersion that is really just the
+    calendar.
+
+    Rank metrics do not need this. Levels and calibration do.
+    """
+    if elapsed_fraction <= 0:
+        return dict(row)
+    scale = 1.0 / elapsed_fraction
+    adjusted = dict(row)
+    for key in volume_keys:
+        if key in adjusted:
+            adjusted[key] = _num(adjusted[key]) * scale
+    return adjusted
+
+
+def pace_adjust_hitters(rows: list[dict], elapsed_fraction: float) -> list[dict]:
+    return [pace_adjust(r, elapsed_fraction, _HITTER_VOLUME_KEYS) for r in rows]
+
+
+def pace_adjust_pitchers(rows: list[dict], elapsed_fraction: float) -> list[dict]:
+    return [pace_adjust(r, elapsed_fraction, _PITCHER_VOLUME_KEYS) for r in rows]
+
+
 def align_pool(rows: list[dict], universe: set[int],
                identities: dict[int, PlayerIdentity],
                builder) -> list[dict]:
