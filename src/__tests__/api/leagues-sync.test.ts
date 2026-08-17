@@ -220,7 +220,9 @@ describe('/api/leagues/[leagueId]/sync', () => {
 
     mockPrisma.league.findUnique.mockResolvedValue(mockLeague as any)
     mockPrisma.team.findMany.mockResolvedValue(mockTeams as any)
-    mockESPNApi.getRosters.mockResolvedValue(rosterWithMissingPlayer)
+    // `player: null` is the case under test — ESPN omitting player data — which
+    // the typed roster shape does not model, so the mock is cast.
+    mockESPNApi.getRosters.mockResolvedValue(rosterWithMissingPlayer as never)
     mockPrisma.rosterSlot.deleteMany.mockResolvedValue({ count: 0 })
     mockPrisma.league.update.mockResolvedValue(mockLeague as any)
 

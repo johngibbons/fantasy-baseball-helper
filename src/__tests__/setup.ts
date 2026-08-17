@@ -1,8 +1,11 @@
 import { TextEncoder, TextDecoder } from 'util'
 
-// Polyfill for Next.js Web APIs in test environment
-global.TextEncoder = TextEncoder
-global.TextDecoder = TextDecoder
+// Polyfill for Next.js Web APIs in test environment.
+// Node's util versions are structurally compatible with the DOM ones for what
+// the tests need, but their declared types differ, so the assignment needs a
+// cast.
+global.TextEncoder = TextEncoder as typeof global.TextEncoder
+global.TextDecoder = TextDecoder as typeof global.TextDecoder
 
 // Mock the Request and Response objects for Next.js API testing
 if (!global.Request) {

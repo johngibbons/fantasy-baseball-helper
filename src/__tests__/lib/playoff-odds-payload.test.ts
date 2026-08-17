@@ -89,7 +89,12 @@ describe('buildPlayoffOddsPayload with observed history', () => {
   ]
 
   it('emits observed_history filtered to completed periods preceding currentMatchupPeriod', () => {
-    const observedHistory = [
+    // Annotated because the last entry deliberately carries only two
+    // categories; without this, TypeScript infers a union whose `cats` has
+    // optional members and no longer matches Record<string, number>.
+    const observedHistory: { team_id: number; matchup_period_id: number;
+                             period_days: number;
+                             cats: Record<string, number> }[] = [
       { team_id: 1, matchup_period_id: 1, period_days: 7,
         cats: { R: 70, TB: 200, RBI: 70, SB: 5, OBP: 0.330,
                 K: 60, QS: 6, ERA: 3.50, WHIP: 1.20, SVHD: 5 } },

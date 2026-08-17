@@ -12,7 +12,9 @@ jest.mock('next/server', () => ({
 }))
 
 // Add missing Node.js polyfills
-global.setImmediate = global.setImmediate || ((fn, ...args) => setTimeout(fn, 0, ...args))
+global.setImmediate = global.setImmediate
+  || (((fn: (...callbackArgs: unknown[]) => void, ...args: unknown[]) =>
+    setTimeout(fn, 0, ...args)) as unknown as typeof global.setImmediate)
 
 // Mock the ESPN API
 jest.mock('../../lib/espn-api', () => ({

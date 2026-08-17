@@ -1,28 +1,11 @@
 /// <reference types="@testing-library/jest-dom" />
 
-declare namespace jest {
-  interface Matchers<R> {
-    toBeInTheDocument(): R;
-    toHaveValue(value: string | number): R;
-    toHaveTextContent(text: string | RegExp): R;
-    toHaveClass(className: string): R;
-    toBeVisible(): R;
-    toBeChecked(): R;
-    toBeDisabled(): R;
-    toBeEnabled(): R;
-    toBeEmptyDOMElement(): R;
-    toBeInvalid(): R;
-    toBeRequired(): R;
-    toBeValid(): R;
-    toContainElement(element: HTMLElement | null): R;
-    toContainHTML(htmlText: string): R;
-    toHaveAttribute(attr: string, value?: string): R;
-    toHaveDisplayValue(value: string | RegExp | (string | RegExp)[]): R;
-    toHaveFocus(): R;
-    toHaveFormValues(expectedValues: Record<string, any>): R;
-    toHaveStyle(css: Record<string, any> | string): R;
-    toHaveAccessibleDescription(expectedDescription?: string | RegExp): R;
-    toHaveAccessibleName(expectedName?: string | RegExp): R;
-    toHaveErrorMessage(expectedErrorMessage?: string | RegExp): R;
-  }
-}
+// @testing-library/jest-dom v6 ships its own matcher types, which augment
+// jest.Matchers via the reference above. This file used to redeclare that
+// interface by hand; the copy had drifted (its toHaveClass took a single
+// class name, and it declared Matchers with one type parameter where jest-dom
+// uses two, so the real declarations never merged). The result was a repo that
+// failed `tsc` on assertions that pass at runtime — which kept the Node CI job
+// red and stopped the Jest suite from ever running there.
+//
+// Add nothing here unless it is a genuinely custom matcher.
