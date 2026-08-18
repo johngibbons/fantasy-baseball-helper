@@ -1,0 +1,372 @@
+{
+  "extracted_at": "2026-08-18T02:46:26+00:00",
+  "git_sha": "cd1849ea98884706785496ba5b0b384ecf988c8c",
+  "keepers": [
+    {
+      "manager": "Russell Berry",
+      "player_name": "Jackson Merrill",
+      "round_cost": 16,
+      "round_cost_raw": 16.0,
+      "seasons_kept": 2,
+      "seasons_kept_raw": 2.0,
+      "slot": 1
+    },
+    {
+      "manager": "Russell Berry",
+      "player_name": "Eury Perez",
+      "round_cost": 16,
+      "round_cost_raw": 16.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 2
+    },
+    {
+      "manager": "Russell Berry",
+      "player_name": "Drake Baldwin",
+      "round_cost": 17,
+      "round_cost_raw": 17.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 3
+    },
+    {
+      "manager": "Russell Berry",
+      "player_name": "Roman Anthony",
+      "round_cost": 18,
+      "round_cost_raw": 18.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 4
+    },
+    {
+      "manager": "Jason McComb",
+      "player_name": "Brice Turang",
+      "round_cost": 9,
+      "round_cost_raw": 9.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 1
+    },
+    {
+      "manager": "Jason McComb",
+      "player_name": "Tony Santillan",
+      "round_cost": 24,
+      "round_cost_raw": 24.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 2
+    },
+    {
+      "manager": "Jason McComb",
+      "player_name": "Abner Uribe",
+      "round_cost": 25,
+      "round_cost_raw": 25.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 3
+    },
+    {
+      "manager": "Jason McComb",
+      "player_name": "Alex Vesia",
+      "round_cost": 23,
+      "round_cost_raw": 23.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 4
+    },
+    {
+      "manager": "Eric Mercado",
+      "player_name": "Aaron Judge",
+      "round_cost": 1,
+      "round_cost_raw": 1.0,
+      "seasons_kept": 2,
+      "seasons_kept_raw": 2.0,
+      "slot": 1
+    },
+    {
+      "manager": "Eric Mercado",
+      "player_name": "Mackenzie Gore",
+      "round_cost": 19,
+      "round_cost_raw": 19.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 2
+    },
+    {
+      "manager": "Eric Mercado",
+      "player_name": "Kyle Stowers",
+      "round_cost": 20,
+      "round_cost_raw": 20.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 3
+    },
+    {
+      "manager": "Eric Mercado",
+      "player_name": "Spencer Jones",
+      "round_cost": 24,
+      "round_cost_raw": 24.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 4
+    },
+    {
+      "manager": "John Gibbons",
+      "player_name": "Nick Kurtz",
+      "round_cost": 25,
+      "round_cost_raw": 25.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 1
+    },
+    {
+      "manager": "John Gibbons",
+      "player_name": "Jackson Chourio",
+      "round_cost": 7,
+      "round_cost_raw": 7.0,
+      "seasons_kept": 2,
+      "seasons_kept_raw": 2.0,
+      "slot": 2
+    },
+    {
+      "manager": "John Gibbons",
+      "player_name": "Juan Soto",
+      "round_cost": 1,
+      "round_cost_raw": 1.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 3
+    },
+    {
+      "manager": "John Gibbons",
+      "player_name": "Lawrence Butler",
+      "round_cost": 16,
+      "round_cost_raw": 16.0,
+      "seasons_kept": 2,
+      "seasons_kept_raw": 2.0,
+      "slot": 4
+    },
+    {
+      "manager": "Tim Riker",
+      "player_name": "Cal Raleigh",
+      "round_cost": 10,
+      "round_cost_raw": 10.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 1
+    },
+    {
+      "manager": "Tim Riker",
+      "player_name": "Yoshinobu Yamamoto",
+      "round_cost": 4,
+      "round_cost_raw": 4.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 2
+    },
+    {
+      "manager": "Tim Riker",
+      "player_name": "Jos\u00e9 Ram\u00edrez",
+      "round_cost": 1,
+      "round_cost_raw": 1.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 3
+    },
+    {
+      "manager": "Tim Riker",
+      "player_name": "Jacob Misiorowski",
+      "round_cost": 25,
+      "round_cost_raw": 25.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 4
+    },
+    {
+      "manager": "Bryan Lewis",
+      "player_name": "Kyle Schwarber",
+      "round_cost": 5,
+      "round_cost_raw": 5.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 1
+    },
+    {
+      "manager": "Bryan Lewis",
+      "player_name": "Freddy Peralta",
+      "round_cost": 9,
+      "round_cost_raw": 9.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 2
+    },
+    {
+      "manager": "Bryan Lewis",
+      "player_name": "Paul Skenes",
+      "round_cost": 15,
+      "round_cost_raw": 15.0,
+      "seasons_kept": 3,
+      "seasons_kept_raw": 3.0,
+      "slot": 3
+    },
+    {
+      "manager": "Bryan Lewis",
+      "player_name": "Nick Pivetta",
+      "round_cost": 21,
+      "round_cost_raw": 21.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 4
+    },
+    {
+      "manager": "Harris Cook",
+      "player_name": "Tarik Skubal",
+      "round_cost": 14,
+      "round_cost_raw": 14.0,
+      "seasons_kept": 3,
+      "seasons_kept_raw": 3.0,
+      "slot": 1
+    },
+    {
+      "manager": "Harris Cook",
+      "player_name": "Bryan Woo",
+      "round_cost": 12,
+      "round_cost_raw": 12.0,
+      "seasons_kept": 2,
+      "seasons_kept_raw": 2.0,
+      "slot": 2
+    },
+    {
+      "manager": "Harris Cook",
+      "player_name": "Pete Crow Armstrong",
+      "round_cost": 13,
+      "round_cost_raw": 13.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 3
+    },
+    {
+      "manager": "Harris Cook",
+      "player_name": "Chase Burns",
+      "round_cost": 25,
+      "round_cost_raw": 25.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 4
+    },
+    {
+      "manager": "Matt Wayne",
+      "player_name": "Junior Caminero",
+      "round_cost": 7,
+      "round_cost_raw": 7.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 1
+    },
+    {
+      "manager": "Matt Wayne",
+      "player_name": "Cristopher S\u00e1nchez",
+      "round_cost": 17,
+      "round_cost_raw": 17.0,
+      "seasons_kept": 2,
+      "seasons_kept_raw": 2.0,
+      "slot": 2
+    },
+    {
+      "manager": "Matt Wayne",
+      "player_name": "Garrett Crochet",
+      "round_cost": 18,
+      "round_cost_raw": 18.0,
+      "seasons_kept": 2,
+      "seasons_kept_raw": 2.0,
+      "slot": 3
+    },
+    {
+      "manager": "Matt Wayne",
+      "player_name": "James Wood",
+      "round_cost": 20,
+      "round_cost_raw": 20.0,
+      "seasons_kept": 2,
+      "seasons_kept_raw": 2.0,
+      "slot": 4
+    },
+    {
+      "manager": "Jess Barron",
+      "player_name": "Shohei Ohtani",
+      "round_cost": 1,
+      "round_cost_raw": 1.0,
+      "seasons_kept": 2,
+      "seasons_kept_raw": 2.0,
+      "slot": 1
+    },
+    {
+      "manager": "Jess Barron",
+      "player_name": "Ketel Marte",
+      "round_cost": 9,
+      "round_cost_raw": 9.0,
+      "seasons_kept": 3,
+      "seasons_kept_raw": 3.0,
+      "slot": 2
+    },
+    {
+      "manager": "Jess Barron",
+      "player_name": "Geraldo Perdomo",
+      "round_cost": 25,
+      "round_cost_raw": 25.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 3
+    },
+    {
+      "manager": "Jess Barron",
+      "player_name": "Cade Smith",
+      "round_cost": 24,
+      "round_cost_raw": 24.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 4
+    },
+    {
+      "manager": "David Rotatori",
+      "player_name": "Hunter Brown",
+      "round_cost": 12,
+      "round_cost_raw": 12.0,
+      "seasons_kept": 2,
+      "seasons_kept_raw": 2.0,
+      "slot": 1
+    },
+    {
+      "manager": "David Rotatori",
+      "player_name": "Mason Miller",
+      "round_cost": 20,
+      "round_cost_raw": 20.0,
+      "seasons_kept": 2,
+      "seasons_kept_raw": 2.0,
+      "slot": 2
+    },
+    {
+      "manager": "David Rotatori",
+      "player_name": "Trevor Rogers",
+      "round_cost": 24,
+      "round_cost_raw": 24.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 3
+    },
+    {
+      "manager": "David Rotatori",
+      "player_name": "Kyle Bradish",
+      "round_cost": 25,
+      "round_cost_raw": 25.0,
+      "seasons_kept": 1,
+      "seasons_kept_raw": 1.0,
+      "slot": 4
+    }
+  ],
+  "layout_variant": "manager_round_seasons",
+  "pick_slots": [],
+  "season": 2026,
+  "sheet": "2026 Keepers",
+  "workbook": "2026 Juiced Fantasy Baseball Draft.xlsx",
+  "workbook_sheets": 72
+}

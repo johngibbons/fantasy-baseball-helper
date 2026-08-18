@@ -1,0 +1,1822 @@
+{
+  "draft_seasons": [
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "extracted_at": "2026-08-18T02:46:26+00:00",
+  "git_sha": "cd1849ea98884706785496ba5b0b384ecf988c8c",
+  "keeper_seasons": [
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+  ],
+  "ranking_seasons": [
+    2017,
+    2020,
+    2021,
+    2023,
+    2024,
+    2025,
+    2026
+  ],
+  "sheets": [
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 10,
+      "sheet": "2026 Trades",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "empty planning template; the real 2026 draft is in backend/data/fixtures/retro_2026/draft_state_2026.json",
+      "sheet": "2026 Draft",
+      "status": "skipped"
+    },
+    {
+      "issues": [],
+      "kind": "rankings",
+      "rows_parsed": 2250,
+      "season": 2026,
+      "season_inferred": false,
+      "sheet": "ESPN BY ADP 2.27.26",
+      "snapshot_date": "2026-02-27",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 34,
+      "sheet": "2026 Draft Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "issues": [],
+      "kind": "keepers",
+      "layout_variant": "manager_round_seasons",
+      "managers": [
+        "Bryan Lewis",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Russell Berry",
+        "Tim Riker"
+      ],
+      "pick_slots_parsed": 0,
+      "rows_parsed": 40,
+      "season": 2026,
+      "sheet": "2026 Keepers",
+      "status": "parsed"
+    },
+    {
+      "issues": [
+        {
+          "detail": "9 rows carried a player but no rank; kept with rank=null",
+          "kind": "unranked_rows",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "ESPN 300 2.2.25"
+        }
+      ],
+      "kind": "rankings",
+      "rows_parsed": 309,
+      "season": 2025,
+      "season_inferred": false,
+      "sheet": "ESPN 300 2.2.25",
+      "snapshot_date": "2025-02-02",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 10,
+      "sheet": "2025 Trades",
+      "status": "not_extracted"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 6,
+        "notes": 7,
+        "owner": 2,
+        "pick": 1,
+        "player": 3,
+        "position": 4
+      },
+      "issues": [
+        {
+          "detail": "most rounds hold 10 picks; these differ: {22: 9, 23: 9, 24: 8, 25: 8}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2025 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "numbered",
+      "owner_count": 10,
+      "owners": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "rows_parsed": 250,
+      "season": 2025,
+      "sheet": "2025 Draft",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 34,
+      "sheet": "2025 Draft Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "issues": [],
+      "kind": "keepers",
+      "layout_variant": "manager_round_seasons",
+      "managers": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "pick_slots_parsed": 0,
+      "rows_parsed": 40,
+      "season": 2025,
+      "sheet": "2025 Keepers",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 10,
+      "sheet": "2024 Trades",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 0,
+      "sheet": "2024 Final Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 5,
+        "notes": 6,
+        "owner": 2,
+        "pick": 1,
+        "player": 3,
+        "position": 4
+      },
+      "issues": [
+        {
+          "detail": "most rounds hold 10 picks; these differ: {19: 9, 21: 8, 22: 8, 23: 9, 24: 9, 25: 9}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2024 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "numbered",
+      "owner_count": 10,
+      "owners": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "rows_parsed": 250,
+      "season": 2024,
+      "sheet": "2024 Draft",
+      "status": "parsed"
+    },
+    {
+      "issues": [
+        {
+          "detail": "24 rows carried a player but no rank; kept with rank=null",
+          "kind": "unranked_rows",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "ESPN300 2.26.24"
+        }
+      ],
+      "kind": "rankings",
+      "rows_parsed": 324,
+      "season": 2024,
+      "season_inferred": false,
+      "sheet": "ESPN300 2.26.24",
+      "snapshot_date": "2024-02-26",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 33,
+      "sheet": "2024 Draft Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "issues": [],
+      "kind": "keepers",
+      "layout_variant": "manager_round_seasons",
+      "managers": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercardo",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "pick_slots_parsed": 0,
+      "rows_parsed": 40,
+      "season": 2024,
+      "sheet": "2024 Keepers",
+      "status": "parsed"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 5,
+        "notes": 6,
+        "owner": 2,
+        "pick": 1,
+        "player": 3,
+        "position": 4
+      },
+      "issues": [
+        {
+          "detail": "most rounds hold 10 picks; these differ: {20: 9, 21: 9, 22: 8, 23: 8, 24: 8, 25: 9}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2023 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "numbered",
+      "owner_count": 10,
+      "owners": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "rows_parsed": 250,
+      "season": 2023,
+      "sheet": "2023 Draft",
+      "status": "parsed"
+    },
+    {
+      "issues": [],
+      "kind": "keepers",
+      "layout_variant": "manager_round_seasons",
+      "managers": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercardo",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "pick_slots_parsed": 0,
+      "rows_parsed": 40,
+      "season": 2023,
+      "sheet": "2023 Keepers",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 0,
+      "sheet": "2023 Final Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 17,
+      "sheet": "2023 Trades",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 33,
+      "sheet": "2023 Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 29,
+      "sheet": "2022 Trades",
+      "status": "not_extracted"
+    },
+    {
+      "issues": [
+        {
+          "detail": "3 rows carried a player but no rank; kept with rank=null",
+          "kind": "unranked_rows",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "ESPN300 2.25.23"
+        }
+      ],
+      "kind": "rankings",
+      "rows_parsed": 303,
+      "season": 2023,
+      "season_inferred": false,
+      "sheet": "ESPN300 2.25.23",
+      "snapshot_date": "2023-02-25",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 0,
+      "sheet": "2022 FINAL ROSTERS",
+      "status": "not_extracted"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 5,
+        "notes": 6,
+        "owner": 2,
+        "pick": 1,
+        "player": 3,
+        "position": 4
+      },
+      "issues": [
+        {
+          "detail": "most rounds hold 10 picks; these differ: {21: 9, 22: 9, 23: 8, 24: 9}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2022 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "numbered",
+      "owner_count": 10,
+      "owners": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "rows_parsed": 250,
+      "season": 2022,
+      "sheet": "2022 Draft",
+      "status": "parsed"
+    },
+    {
+      "issues": [],
+      "kind": "keepers",
+      "layout_variant": "manager_round_seasons",
+      "managers": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "pick_slots_parsed": 0,
+      "rows_parsed": 40,
+      "season": 2022,
+      "sheet": "2022 Keepers",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 32,
+      "sheet": "2022 Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 0,
+      "sheet": "Sheet65",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 13,
+      "sheet": "2021 Trades",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 0,
+      "sheet": "2021 FINAL Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "supplemental draft, not the main draft",
+      "sheet": "2020 & 2021 Supplemental Draft",
+      "status": "skipped"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 16,
+      "sheet": "2021 Optioned Players",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 32,
+      "sheet": "2021 Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "issues": [],
+      "kind": "rankings",
+      "rows_parsed": 300,
+      "season": 2021,
+      "season_inferred": false,
+      "sheet": "ESPN 300 3.17.21",
+      "snapshot_date": "2021-03-17",
+      "status": "parsed"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 5,
+        "notes": 6,
+        "owner": 2,
+        "pick": 1,
+        "player": 3,
+        "position": 4
+      },
+      "issues": [
+        {
+          "detail": "most rounds hold 10 picks; these differ: {22: 9, 23: 8, 24: 8, 25: 9}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2020 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "numbered",
+      "owner_count": 10,
+      "owners": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "rows_parsed": 250,
+      "season": 2020,
+      "sheet": "2020 Draft",
+      "status": "parsed"
+    },
+    {
+      "issues": [],
+      "kind": "keepers",
+      "layout_variant": "manager_round_seasons",
+      "managers": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "pick_slots_parsed": 0,
+      "rows_parsed": 40,
+      "season": 2020,
+      "sheet": "2020 Keepers",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 32,
+      "sheet": "2020 Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 400,
+      "sheet": "2020 MLB Player List",
+      "status": "not_extracted"
+    },
+    {
+      "issues": [],
+      "kind": "rankings",
+      "rows_parsed": 300,
+      "season": 2020,
+      "season_inferred": true,
+      "sheet": "ESPN300",
+      "snapshot_date": null,
+      "status": "parsed"
+    },
+    {
+      "issues": [],
+      "kind": "rankings",
+      "rows_parsed": 388,
+      "season": 2020,
+      "season_inferred": true,
+      "sheet": "Yahoo300",
+      "snapshot_date": null,
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 16,
+      "sheet": "2020 Trades",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 73,
+      "sheet": "Record Book",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 17,
+      "sheet": "2019 Trades",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 26,
+      "sheet": "2019 Final Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 5,
+        "notes": 6,
+        "owner": 2,
+        "pick": 1,
+        "player": 3,
+        "position": 4
+      },
+      "issues": [
+        {
+          "detail": "most rounds hold 10 picks; these differ: {21: 9, 22: 9, 23: 9, 24: 9, 25: 8, 26: 5, 27: 1}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2019 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "numbered",
+      "owner_count": 10,
+      "owners": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27
+      ],
+      "rows_parsed": 250,
+      "season": 2019,
+      "sheet": "2019 Draft",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 31,
+      "sheet": "2019 Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "issues": [],
+      "kind": "keepers",
+      "layout_variant": "manager_round_seasons",
+      "managers": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "pick_slots_parsed": 0,
+      "rows_parsed": 40,
+      "season": 2019,
+      "sheet": "2019 Keepers",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 0,
+      "sheet": "2018 Final Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 10,
+      "sheet": "2018 Trades",
+      "status": "not_extracted"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 5,
+        "notes": 6,
+        "owner": 2,
+        "pick": 1,
+        "player": 3,
+        "position": 4
+      },
+      "issues": [
+        {
+          "detail": "most rounds hold 10 picks; these differ: {24: 8, 25: 8}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2018 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "numbered",
+      "owner_count": 10,
+      "owners": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27
+      ],
+      "rows_parsed": 250,
+      "season": 2018,
+      "sheet": "2018 Draft",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 31,
+      "sheet": "2018 Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "issues": [
+        {
+          "detail": "Tim Riker / Nolan Arenado: seasons cell was 'final'",
+          "kind": "unparsed_seasons_kept",
+          "raw": [
+            "Tim Riker",
+            "Francisco Lindor",
+            1.0,
+            1.0,
+            "Nolan Arenado",
+            2.0,
+            "final",
+            "Freddie Freeman",
+            3.0,
+            2.0,
+            "Miguel Sano",
+            9.0,
+            1.0,
+            null,
+            null,
+            null
+          ],
+          "row_number": 6,
+          "sheet": "2018 Keepers"
+        },
+        {
+          "detail": "Eric Mercado / JD Martinez: seasons cell was 'final'",
+          "kind": "unparsed_seasons_kept",
+          "raw": [
+            "Eric Mercado",
+            "JD Martinez",
+            5.0,
+            "final",
+            "Trea Turner",
+            9.0,
+            2.0,
+            "Gary Sanchez",
+            10.0,
+            2.0,
+            "Andrew Benintendi",
+            11.0,
+            1.0,
+            null,
+            null,
+            null
+          ],
+          "row_number": 7,
+          "sheet": "2018 Keepers"
+        },
+        {
+          "detail": "Jess Barron / Clayton Kershaw: seasons cell was 'final'",
+          "kind": "unparsed_seasons_kept",
+          "raw": [
+            "Jess Barron",
+            "Clayton Kershaw",
+            1.0,
+            "final",
+            "Chris Sale",
+            2.0,
+            1.0,
+            "Brian Dozier",
+            3.0,
+            1.0,
+            "Corey Seager",
+            4.0,
+            2.0,
+            null,
+            null,
+            null
+          ],
+          "row_number": 8,
+          "sheet": "2018 Keepers"
+        },
+        {
+          "detail": "John Gibbons / Jose Altuve: seasons cell was 'final'",
+          "kind": "unparsed_seasons_kept",
+          "raw": [
+            "John Gibbons",
+            "Jose Altuve",
+            1.0,
+            "final",
+            "Carlos Correa",
+            4.0,
+            "final",
+            "Charlie Blackmon",
+            5.0,
+            "final",
+            "Rhys Hoskins",
+            25.0,
+            1.0,
+            null,
+            null,
+            null
+          ],
+          "row_number": 9,
+          "sheet": "2018 Keepers"
+        },
+        {
+          "detail": "John Gibbons / Carlos Correa: seasons cell was 'final'",
+          "kind": "unparsed_seasons_kept",
+          "raw": [
+            "John Gibbons",
+            "Jose Altuve",
+            1.0,
+            "final",
+            "Carlos Correa",
+            4.0,
+            "final",
+            "Charlie Blackmon",
+            5.0,
+            "final",
+            "Rhys Hoskins",
+            25.0,
+            1.0,
+            null,
+            null,
+            null
+          ],
+          "row_number": 9,
+          "sheet": "2018 Keepers"
+        },
+        {
+          "detail": "John Gibbons / Charlie Blackmon: seasons cell was 'final'",
+          "kind": "unparsed_seasons_kept",
+          "raw": [
+            "John Gibbons",
+            "Jose Altuve",
+            1.0,
+            "final",
+            "Carlos Correa",
+            4.0,
+            "final",
+            "Charlie Blackmon",
+            5.0,
+            "final",
+            "Rhys Hoskins",
+            25.0,
+            1.0,
+            null,
+            null,
+            null
+          ],
+          "row_number": 9,
+          "sheet": "2018 Keepers"
+        },
+        {
+          "detail": "David Rotatori / Kris Bryant: seasons cell was 'final'",
+          "kind": "unparsed_seasons_kept",
+          "raw": [
+            "David Rotatori",
+            "Giancarlo Stanton",
+            2.0,
+            1.0,
+            "Kris Bryant",
+            3.0,
+            "final",
+            "Justin Upton",
+            12.0,
+            1.0,
+            "Garrett Richards",
+            18.0,
+            1.0,
+            null,
+            null,
+            null
+          ],
+          "row_number": 10,
+          "sheet": "2018 Keepers"
+        }
+      ],
+      "kind": "keepers",
+      "layout_variant": "manager_round_seasons",
+      "managers": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "pick_slots_parsed": 0,
+      "rows_parsed": 40,
+      "season": 2018,
+      "sheet": "2018 Keepers",
+      "status": "parsed"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 4,
+        "notes": 5,
+        "owner": 1,
+        "pick": null,
+        "player": 2,
+        "position": 3
+      },
+      "issues": [
+        {
+          "detail": "most rounds hold 10 picks; these differ: {5: 11, 9: 11, 10: 11, 21: 9, 22: 9, 23: 9, 24: 8, 25: 7, 26: 4, 27: 1}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2017 Draft"
+        },
+        {
+          "detail": "most managers hold 25 picks; these differ: {'Jason McComb': 26, 'Jess Barron': 24}",
+          "kind": "uneven_rosters",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2017 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "positional",
+      "owner_count": 10,
+      "owners": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27
+      ],
+      "rows_parsed": 250,
+      "season": 2017,
+      "sheet": "2017 Draft",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 6,
+      "sheet": "2017 Trades",
+      "status": "not_extracted"
+    },
+    {
+      "issues": [],
+      "kind": "rankings",
+      "rows_parsed": 300,
+      "season": 2017,
+      "season_inferred": false,
+      "sheet": "2017 ESPN Top 300",
+      "snapshot_date": null,
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 30,
+      "sheet": "2017 Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "issues": [],
+      "kind": "keepers",
+      "layout_variant": "manager_round_seasons",
+      "managers": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "pick_slots_parsed": 0,
+      "rows_parsed": 40,
+      "season": 2017,
+      "sheet": "2017 Keepers",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 18,
+      "sheet": "2016 Trades",
+      "status": "not_extracted"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 4,
+        "notes": 5,
+        "owner": 1,
+        "pick": null,
+        "player": 2,
+        "position": 3
+      },
+      "issues": [
+        {
+          "detail": "non-empty row carried no player name",
+          "kind": "row_without_player",
+          "raw": [
+            "Supp 26",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "row_number": 270,
+          "sheet": "2016 Draft"
+        },
+        {
+          "detail": "most rounds hold 10 picks; these differ: {22: 9, 23: 8, 24: 8, 25: 15}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2016 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "positional",
+      "owner_count": 10,
+      "owners": [
+        "Bryan Lewis",
+        "Cam/Dan",
+        "Chris Herbst",
+        "Dave Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Tim Riker"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "rows_parsed": 250,
+      "season": 2016,
+      "sheet": "2016 Draft",
+      "status": "parsed"
+    },
+    {
+      "issues": [],
+      "kind": "keepers",
+      "layout_variant": "manager_round",
+      "managers": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne",
+        "Tim Riker"
+      ],
+      "pick_slots_parsed": 40,
+      "rows_parsed": 40,
+      "season": 2016,
+      "sheet": "2016 Keepers",
+      "status": "parsed"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 4,
+        "notes": 5,
+        "owner": 1,
+        "pick": null,
+        "player": 2,
+        "position": 3
+      },
+      "issues": [],
+      "kind": "draft",
+      "layout_variant": "positional",
+      "owner_count": 8,
+      "owners": [
+        "Brian Martin",
+        "Cameron Rich",
+        "Christopher Herbst",
+        "Dave Rotatori",
+        "Harris Cook",
+        "Jess Barron",
+        "John Gibbons",
+        "Paul Schifano"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25
+      ],
+      "rows_parsed": 200,
+      "season": 2014,
+      "sheet": "2014 Draft",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 8,
+      "sheet": "2014 Trades",
+      "status": "not_extracted"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 27,
+      "sheet": "2014 Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 4,
+        "notes": null,
+        "owner": 1,
+        "pick": null,
+        "player": 2,
+        "position": 3
+      },
+      "issues": [
+        {
+          "detail": "most rounds hold 10 picks; these differ: {18: 9, 19: 9, 20: 2}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2013 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "positional",
+      "owner_count": 10,
+      "owners": [
+        "Atlanta Cougars",
+        "Denver Bombers",
+        "London Wankers",
+        "Long Island Toast",
+        "Los Angeles Anorexic",
+        "Mid-Atlantic Armada",
+        "New Jersey Scary Bad",
+        "Ozzie Canseco",
+        "P.S. 173",
+        "Philadelphia Dingleberries"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "rows_parsed": 190,
+      "season": 2013,
+      "sheet": "2013 Draft",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 27,
+      "sheet": "2013 Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 4,
+        "notes": 5,
+        "owner": 1,
+        "pick": null,
+        "player": 2,
+        "position": 3
+      },
+      "issues": [
+        {
+          "detail": "most rounds hold 10 picks; these differ: {17: 9, 18: 7, 19: 4}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2012 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "positional",
+      "owner_count": 10,
+      "owners": [
+        "Atlanta Cougars",
+        "Denver Bombers",
+        "Interstate Misconduct",
+        "London Wankers",
+        "Long Island Toast",
+        "Mid-Atlantic Armada",
+        "New Jersey Scary Good",
+        "New Orleans Jeff Goldblum",
+        "P.S. 173",
+        "Philadelphia Dingleberries"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ],
+      "rows_parsed": 180,
+      "season": 2012,
+      "sheet": "2012 Draft",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 27,
+      "sheet": "2012 Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 4,
+        "notes": 5,
+        "owner": 1,
+        "pick": null,
+        "player": 2,
+        "position": 3
+      },
+      "issues": [
+        {
+          "detail": "non-empty row carried no player name",
+          "kind": "row_without_player",
+          "raw": [
+            169.0,
+            "Albany Misconduct",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "row_number": 189,
+          "sheet": "2011 Draft"
+        },
+        {
+          "detail": "non-empty row carried no player name",
+          "kind": "row_without_player",
+          "raw": [
+            170.0,
+            "New Orleans Jeff Goldblum",
+            null,
+            null,
+            null,
+            "Mr. Irrelevant",
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "row_number": 190,
+          "sheet": "2011 Draft"
+        },
+        {
+          "detail": "most rounds hold 10 picks; these differ: {16: 9, 17: 8, 18: 1}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2011 Draft"
+        },
+        {
+          "detail": "most managers hold 17 picks; these differ: {'Albany Misconduct': 16, 'Armada': 3, 'Dingleberries': 3, 'Mid-Atlantic Armada': 14, 'New Orleans Jeff Goldblum': 16, 'Philadelphia Dingleberries': 14}",
+          "kind": "uneven_rosters",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2011 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "positional",
+      "owner_count": 12,
+      "owners": [
+        "Albany Misconduct",
+        "Armada",
+        "Atlanta Bombers",
+        "Dingleberries",
+        "Long Island Toast",
+        "Miami Vice All-Stars",
+        "Mid-Atlantic Armada",
+        "Nashville Cougars",
+        "New Jersey Scary Good",
+        "New Orleans Jeff Goldblum",
+        "P.S. 173",
+        "Philadelphia Dingleberries"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18
+      ],
+      "rows_parsed": 168,
+      "season": 2011,
+      "sheet": "2011 Draft",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 27,
+      "sheet": "2011 Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "columns": {
+        "header_row": 0,
+        "mlb_team": 4,
+        "notes": null,
+        "owner": 1,
+        "pick": null,
+        "player": 2,
+        "position": 3
+      },
+      "issues": [
+        {
+          "detail": "non-empty row carried no player name",
+          "kind": "row_without_player",
+          "raw": [
+            152.0,
+            "Philadelphia Dingleberries",
+            null,
+            "SP",
+            "Cincinnati Reds"
+          ],
+          "row_number": 169,
+          "sheet": "2010 Draft"
+        },
+        {
+          "detail": "1 gaps, e.g. [152]",
+          "kind": "missing_pick_numbers",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2010 Draft"
+        },
+        {
+          "detail": "most rounds hold 10 picks; these differ: {14: 9, 15: 9, 16: 8}",
+          "kind": "uneven_rounds",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2010 Draft"
+        },
+        {
+          "detail": "most managers hold 14 picks; these differ: {'Albany Misconduct': 16, 'Atlanta Bombers': 17, 'Long island Toast': 1, 'Miami Vice All-Stars': 16, 'Mid-Atlantic Armada': 13, 'Mid-Atlantic Armada (traded back to from Vice All-Stars)': 1, 'Nashville Cougars': 17, 'New Jersey Scary Good': 17, 'Philadelphia Dingleberries': 16}",
+          "kind": "uneven_rosters",
+          "raw": [],
+          "row_number": 0,
+          "sheet": "2010 Draft"
+        }
+      ],
+      "kind": "draft",
+      "layout_variant": "positional",
+      "owner_count": 12,
+      "owners": [
+        "Albany Misconduct",
+        "Atlanta Bombers",
+        "Long Island Toast",
+        "Long island Toast",
+        "Miami Vice All-Stars",
+        "Mid-Atlantic Armada",
+        "Mid-Atlantic Armada (traded back to from Vice All-Stars)",
+        "Nashville Cougars",
+        "New Jersey Scary Good",
+        "New Orleans Jeff Goldblum",
+        "P.S. 173",
+        "Philadelphia Dingleberries"
+      ],
+      "rounds": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "rows_parsed": 156,
+      "season": 2010,
+      "sheet": "2010 Draft",
+      "status": "parsed"
+    },
+    {
+      "reason": "no parser for this sheet family (Trades, Rosters, Record Book)",
+      "rows": 28,
+      "sheet": "2010 Rosters",
+      "status": "not_extracted"
+    },
+    {
+      "issues": [],
+      "kind": "keepers",
+      "layout_variant": "manager_round",
+      "managers": [
+        "Bryan Lewis",
+        "Chris Herbst",
+        "David Rotatori",
+        "Eric Mercado",
+        "Harris Cook",
+        "Jason McComb",
+        "Jess Barron",
+        "John Gibbons",
+        "Matt Wayne (Cameron Rich)",
+        "Tim Riker (Brian Martin)"
+      ],
+      "pick_slots_parsed": 40,
+      "rows_parsed": 40,
+      "season": 2015,
+      "sheet": "2015 Keepers",
+      "status": "parsed"
+    }
+  ],
+  "total_issues": 31,
+  "workbook": "2026 Juiced Fantasy Baseball Draft.xlsx",
+  "workbook_sheets": 72
+}

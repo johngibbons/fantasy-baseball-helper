@@ -1,0 +1,2416 @@
+{
+  "extracted_at": "2026-08-18T02:46:26+00:00",
+  "git_sha": "cd1849ea98884706785496ba5b0b384ecf988c8c",
+  "season": 2017,
+  "sources": [
+    {
+      "rankings": [
+        {
+          "mlb_team": "LAA",
+          "player_name": "Mike Trout",
+          "position": "OF",
+          "rank": 1,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "HOU",
+          "player_name": "Jose Altuve",
+          "position": "2B",
+          "rank": 2,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Mookie Betts",
+          "position": "OF",
+          "rank": 3,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "Kris Bryant",
+          "position": "3B/OF",
+          "rank": 4,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ARI",
+          "player_name": "Paul Goldschmidt",
+          "position": "1B",
+          "rank": 5,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "COL",
+          "player_name": "Nolan Arenado",
+          "position": "3B",
+          "rank": 6,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BAL",
+          "player_name": "Manny Machado",
+          "position": "3B/SS",
+          "rank": 7,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "Anthony Rizzo",
+          "position": "1B",
+          "rank": 8,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TOR",
+          "player_name": "Josh Donaldson",
+          "position": "3B",
+          "rank": 9,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "WAS",
+          "player_name": "Bryce Harper",
+          "position": "OF",
+          "rank": 10,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAD",
+          "player_name": "Clayton Kershaw",
+          "position": "SP",
+          "rank": 11,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "COL",
+          "player_name": "Charlie Blackmon",
+          "position": "OF",
+          "rank": 12,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "WAS",
+          "player_name": "Max Scherzer",
+          "position": "SP",
+          "rank": 13,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "DET",
+          "player_name": "Miguel Cabrera",
+          "position": "1B",
+          "rank": 14,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SF",
+          "player_name": "Madison Bumgarner",
+          "position": "SP",
+          "rank": 15,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "WAS",
+          "player_name": "Trea Turner",
+          "position": "OF/2B",
+          "rank": 16,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "HOU",
+          "player_name": "Carlos Correa",
+          "position": "SS",
+          "rank": 17,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Chris Sale",
+          "position": "SP",
+          "rank": 18,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAD",
+          "player_name": "Corey Seager",
+          "position": "SS",
+          "rank": 19,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PIT",
+          "player_name": "Starling Marte",
+          "position": "OF",
+          "rank": 20,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CIN",
+          "player_name": "Joey Votto",
+          "position": "1B",
+          "rank": 21,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CLE",
+          "player_name": "Francisco Lindor",
+          "position": "SS",
+          "rank": 22,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CLE",
+          "player_name": "Corey Kluber",
+          "position": "SP",
+          "rank": 23,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ATL",
+          "player_name": "Freddie Freeman",
+          "position": "1B",
+          "rank": 24,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Xander Bogaerts",
+          "position": "SS",
+          "rank": 25,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "Jake Arrieta",
+          "position": "SP",
+          "rank": 26,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIN",
+          "player_name": "Brian Dozier",
+          "position": "2B",
+          "rank": 27,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "WAS",
+          "player_name": "Daniel Murphy",
+          "position": "2B/1B",
+          "rank": 28,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "COL",
+          "player_name": "Carlos Gonzalez",
+          "position": "OF",
+          "rank": 29,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Noah Syndergaard",
+          "position": "SP",
+          "rank": 30,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CLE",
+          "player_name": "Edwin Encarnacion",
+          "position": "1B",
+          "rank": 31,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "David Price",
+          "position": "SP",
+          "rank": 32,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIA",
+          "player_name": "Christian Yelich",
+          "position": "OF",
+          "rank": 33,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SEA",
+          "player_name": "Robinson Cano",
+          "position": "2B",
+          "rank": 34,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIL",
+          "player_name": "Ryan Braun",
+          "position": "OF",
+          "rank": 35,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIA",
+          "player_name": "Giancarlo Stanton",
+          "position": "OF",
+          "rank": 36,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "DET",
+          "player_name": "J.D. Martinez",
+          "position": "OF",
+          "rank": 37,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "DET",
+          "player_name": "Justin Verlander",
+          "position": "SP",
+          "rank": 38,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CWS",
+          "player_name": "Jose Abreu",
+          "position": "1B",
+          "rank": 39,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "HOU",
+          "player_name": "George Springer",
+          "position": "OF",
+          "rank": 40,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "Jon Lester",
+          "position": "SP",
+          "rank": 41,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PIT",
+          "player_name": "Andrew McCutchen",
+          "position": "OF",
+          "rank": 42,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIL",
+          "player_name": "Jonathan Villar",
+          "position": "SS/3B",
+          "rank": 43,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PIT",
+          "player_name": "Gregory Polanco",
+          "position": "OF",
+          "rank": 44,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SEA",
+          "player_name": "Kyle Seager",
+          "position": "3B",
+          "rank": 45,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Yoenis Cespedes",
+          "position": "OF",
+          "rank": 46,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "COL",
+          "player_name": "Trevor Story",
+          "position": "SS",
+          "rank": 47,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SF",
+          "player_name": "Johnny Cueto",
+          "position": "SP",
+          "rank": 48,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SEA",
+          "player_name": "Nelson Cruz",
+          "position": "OF",
+          "rank": 49,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "COL",
+          "player_name": "Ian Desmond",
+          "position": "OF",
+          "rank": 50,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SD",
+          "player_name": "Wil Myers",
+          "position": "1B",
+          "rank": 51,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TEX",
+          "player_name": "Adrian Beltre",
+          "position": "3B",
+          "rank": 52,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "DET",
+          "player_name": "Ian Kinsler",
+          "position": "2B",
+          "rank": 53,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TB",
+          "player_name": "Chris Archer",
+          "position": "SP",
+          "rank": 54,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TEX",
+          "player_name": "Rougned Odor",
+          "position": "2B",
+          "rank": 55,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "KC",
+          "player_name": "Eric Hosmer",
+          "position": "1B",
+          "rank": 56,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CLE",
+          "player_name": "Carlos Carrasco",
+          "position": "SP",
+          "rank": 57,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ARI",
+          "player_name": "A.J. Pollock",
+          "position": "OF",
+          "rank": 58,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIA",
+          "player_name": "Dee Gordon",
+          "position": "2B",
+          "rank": 59,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TEX",
+          "player_name": "Yu Darvish",
+          "position": "SP",
+          "rank": 60,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TOR",
+          "player_name": "Jose Bautista",
+          "position": "OF",
+          "rank": 61,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "WAS",
+          "player_name": "Stephen Strasburg",
+          "position": "SP",
+          "rank": 62,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CIN",
+          "player_name": "Billy Hamilton",
+          "position": "OF",
+          "rank": 63,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Jacob DeGrom",
+          "position": "SP",
+          "rank": 64,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "DET",
+          "player_name": "Justin Upton",
+          "position": "OF",
+          "rank": 65,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CWS",
+          "player_name": "Todd Frazier",
+          "position": "3B",
+          "rank": 66,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAD",
+          "player_name": "Kenley Jansen",
+          "position": "RP",
+          "rank": 67,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Carlos Martinez",
+          "position": "SP",
+          "rank": 68,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Hanley Ramirez",
+          "position": "1B",
+          "rank": 69,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "Kyle Schwarber",
+          "position": "OF",
+          "rank": 70,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BAL",
+          "player_name": "Zach Britton",
+          "position": "RP",
+          "rank": 71,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SF",
+          "player_name": "Buster Posey",
+          "position": "C",
+          "rank": 72,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYY",
+          "player_name": "Aroldis Chapman",
+          "position": "RP",
+          "rank": 73,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "COL",
+          "player_name": "DJ LeMahieu",
+          "position": "2B",
+          "rank": 74,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "Kyle Hendricks",
+          "position": "SP",
+          "rank": 75,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CLE",
+          "player_name": "Jason Kipnis",
+          "position": "2B",
+          "rank": 76,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SF",
+          "player_name": "Mark Melancon",
+          "position": "RP",
+          "rank": 77,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BAL",
+          "player_name": "Adam Jones",
+          "position": "OF",
+          "rank": 78,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ARI",
+          "player_name": "Zack Greinke",
+          "position": "SP",
+          "rank": 79,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Stephen Piscotty",
+          "position": "OF",
+          "rank": 80,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYY",
+          "player_name": "Masahiro Tanaka",
+          "position": "SP",
+          "rank": 81,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CLE",
+          "player_name": "Carlos Santana",
+          "position": "1B",
+          "rank": 82,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SEA",
+          "player_name": "Jean Segura",
+          "position": "2B/SS",
+          "rank": 83,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "HOU",
+          "player_name": "Alex Bregman",
+          "position": "3B",
+          "rank": 84,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "Jr.",
+          "player_name": "Jackie Bradley",
+          "position": "26.0",
+          "rank": 85,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Matt Carpenter",
+          "position": "3B/1B/2B",
+          "rank": 86,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PIT",
+          "player_name": "Gerrit Cole",
+          "position": "SP",
+          "rank": 87,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TOR",
+          "player_name": "Roberto Osuna",
+          "position": "RP",
+          "rank": 88,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Dustin Pedroia",
+          "position": "2B",
+          "rank": 89,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CWS",
+          "player_name": "Jose Quintana",
+          "position": "SP",
+          "rank": 90,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BAL",
+          "player_name": "Chris Davis",
+          "position": "1B",
+          "rank": 91,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BAL",
+          "player_name": "Mark Trumbo",
+          "position": "OF",
+          "rank": 92,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAD",
+          "player_name": "Kenta Maeda",
+          "position": "SP",
+          "rank": 93,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CLE",
+          "player_name": "Michael Brantley",
+          "position": "OF",
+          "rank": 94,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TEX",
+          "player_name": "Cole Hamels",
+          "position": "SP",
+          "rank": 95,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BAL",
+          "player_name": "Kevin Gausman",
+          "position": "SP",
+          "rank": 96,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TB",
+          "player_name": "Evan Longoria",
+          "position": "3B",
+          "rank": 97,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Craig Kimbrel",
+          "position": "RP",
+          "rank": 98,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "OAK",
+          "player_name": "Khris Davis",
+          "position": "OF",
+          "rank": 99,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SEA",
+          "player_name": "Edwin Diaz",
+          "position": "RP",
+          "rank": 100,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ATL",
+          "player_name": "Matt Kemp",
+          "position": "OF",
+          "rank": 101,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "Wade Davis",
+          "position": "RP",
+          "rank": 102,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Rick Porcello",
+          "position": "SP",
+          "rank": 103,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "WAS",
+          "player_name": "Adam Eaton",
+          "position": "OF",
+          "rank": 104,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TOR",
+          "player_name": "Aaron Sanchez",
+          "position": "SP",
+          "rank": 105,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIA",
+          "player_name": "Marcell Ozuna",
+          "position": "OF",
+          "rank": 106,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Jeurys Familia",
+          "position": "RP",
+          "rank": 107,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ATL",
+          "player_name": "Julio Teheran",
+          "position": "SP",
+          "rank": 108,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SEA",
+          "player_name": "Felix Hernandez",
+          "position": "SP",
+          "rank": 109,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CLE",
+          "player_name": "Jose Ramirez",
+          "position": "3B/OF",
+          "rank": 110,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "HOU",
+          "player_name": "Ken Giles",
+          "position": "RP",
+          "rank": 111,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "KC",
+          "player_name": "Danny Duffy",
+          "position": "SP/RP",
+          "rank": 112,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYY",
+          "player_name": "Gary Sanchez",
+          "position": "C",
+          "rank": 113,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIN",
+          "player_name": "Miguel Sano",
+          "position": "3B/OF",
+          "rank": 114,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "KC",
+          "player_name": "Lorenzo Cain",
+          "position": "OF",
+          "rank": 115,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CLE",
+          "player_name": "Danny Salazar",
+          "position": "SP",
+          "rank": 116,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CLE",
+          "player_name": "Andrew Miller",
+          "position": "RP",
+          "rank": 117,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SF",
+          "player_name": "Brandon Belt",
+          "position": "1B",
+          "rank": 118,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Andrew Benintendi",
+          "position": "OF",
+          "rank": 119,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Seung-Hwan Oh",
+          "position": "RP",
+          "rank": 120,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAA",
+          "player_name": "Albert Pujols",
+          "position": "1B",
+          "rank": 121,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "John Lackey",
+          "position": "SP",
+          "rank": 122,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "Addison Russell",
+          "position": "SS",
+          "rank": 123,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Matt Harvey",
+          "position": "SP",
+          "rank": 124,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CIN",
+          "player_name": "Anthony DeSclafani",
+          "position": "SP",
+          "rank": 125,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "WAS",
+          "player_name": "Anthony Rendon",
+          "position": "3B",
+          "rank": 126,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "DET",
+          "player_name": "Michael Fulmer",
+          "position": "SP",
+          "rank": 127,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAD",
+          "player_name": "Adrian Gonzalez",
+          "position": "1B",
+          "rank": 128,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TEX",
+          "player_name": "Jonathan Lucroy",
+          "position": "C",
+          "rank": 129,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Drew Pomeranz",
+          "position": "SP",
+          "rank": 130,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TEX",
+          "player_name": "Mike Napoli",
+          "position": "1B",
+          "rank": 131,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAD",
+          "player_name": "Justin Turner",
+          "position": "3B",
+          "rank": 132,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "COL",
+          "player_name": "David Dahl",
+          "position": "OF",
+          "rank": 133,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TOR",
+          "player_name": "Marcus Stroman",
+          "position": "SP",
+          "rank": 134,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TB",
+          "player_name": "Brad Miller",
+          "position": "SS/1B",
+          "rank": 135,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SEA",
+          "player_name": "Drew Smyly",
+          "position": "SP",
+          "rank": 136,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Aledmys Diaz",
+          "position": "SS",
+          "rank": 137,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CIN",
+          "player_name": "Adam Duvall",
+          "position": "OF",
+          "rank": 138,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "Willson Contreras",
+          "position": "C/OF",
+          "rank": 139,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "DET",
+          "player_name": "Victor Martinez",
+          "position": "DH",
+          "rank": 140,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAD",
+          "player_name": "Rich Hill",
+          "position": "SP",
+          "rank": 141,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CWS",
+          "player_name": "David Robertson",
+          "position": "RP",
+          "rank": 142,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TEX",
+          "player_name": "Elvis Andrus",
+          "position": "SS",
+          "rank": 143,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PHI",
+          "player_name": "Odubel Herrera",
+          "position": "OF",
+          "rank": 144,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TOR",
+          "player_name": "Troy Tulowitzki",
+          "position": "SS",
+          "rank": 145,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "KC",
+          "player_name": "Kelvin Herrera",
+          "position": "RP",
+          "rank": 146,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAA",
+          "player_name": "Kole Calhoun",
+          "position": "OF",
+          "rank": 147,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SEA",
+          "player_name": "Hisashi Iwakuma",
+          "position": "SP",
+          "rank": 148,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIA",
+          "player_name": "J.T. Realmuto",
+          "position": "C",
+          "rank": 149,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "WAS",
+          "player_name": "Tanner Roark",
+          "position": "SP",
+          "rank": 150,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Jay Bruce",
+          "position": "OF",
+          "rank": 151,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "HOU",
+          "player_name": "Dallas Keuchel",
+          "position": "SP",
+          "rank": 152,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Randal Grichuk",
+          "position": "OF",
+          "rank": 153,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ARI",
+          "player_name": "Jake Lamb",
+          "position": "3B",
+          "rank": 154,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TOR",
+          "player_name": "Kendrys Morales",
+          "position": "DH",
+          "rank": 155,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "HOU",
+          "player_name": "Carlos Beltran",
+          "position": "OF",
+          "rank": 156,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Dexter Fowler",
+          "position": "OF",
+          "rank": 157,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYY",
+          "player_name": "Dellin Betances",
+          "position": "RP",
+          "rank": 158,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TB",
+          "player_name": "Jake Odorizzi",
+          "position": "SP",
+          "rank": 159,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SF",
+          "player_name": "Eduardo Nunez",
+          "position": "3B/SS",
+          "rank": 160,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SF",
+          "player_name": "Jeff Samardzija",
+          "position": "SP",
+          "rank": 161,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAD",
+          "player_name": "Yasmani Grandal",
+          "position": "C",
+          "rank": 162,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAD",
+          "player_name": "Joc Pederson",
+          "position": "OF",
+          "rank": 163,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "OAK",
+          "player_name": "Sonny Gray",
+          "position": "SP",
+          "rank": 164,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ATL",
+          "player_name": "Dansby Swanson",
+          "position": "SS",
+          "rank": 165,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TB",
+          "player_name": "Logan Forsythe",
+          "position": "2B",
+          "rank": 166,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TOR",
+          "player_name": "Kevin Pillar",
+          "position": "OF",
+          "rank": 167,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PIT",
+          "player_name": "Tony Watson",
+          "position": "RP",
+          "rank": 168,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PIT",
+          "player_name": "Jung-Ho Kang",
+          "position": "3B",
+          "rank": 169,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Curtis Granderson",
+          "position": "OF",
+          "rank": 170,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Adam Wainwright",
+          "position": "SP",
+          "rank": 171,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "HOU",
+          "player_name": "Evan Gattis",
+          "position": "C",
+          "rank": 172,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "Ben Zobrist",
+          "position": "2B/OF",
+          "rank": 173,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "KC",
+          "player_name": "Salvador Perez",
+          "position": "C",
+          "rank": 174,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TB",
+          "player_name": "Alex Colome",
+          "position": "RP",
+          "rank": 175,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TOR",
+          "player_name": "Marco Estrada",
+          "position": "SP",
+          "rank": 176,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "DET",
+          "player_name": "Nick Castellanos",
+          "position": "3B",
+          "rank": 177,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CWS",
+          "player_name": "Melky Cabrera",
+          "position": "OF",
+          "rank": 178,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PHI",
+          "player_name": "Aaron Nola",
+          "position": "SP",
+          "rank": 179,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYY",
+          "player_name": "Jacoby Ellsbury",
+          "position": "OF",
+          "rank": 180,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYY",
+          "player_name": "Starlin Castro",
+          "position": "2B",
+          "rank": 181,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PHI",
+          "player_name": "Maikel Franco",
+          "position": "3B",
+          "rank": 182,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "COL",
+          "player_name": "Jon Gray",
+          "position": "SP",
+          "rank": 183,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SF",
+          "player_name": "Brandon Crawford",
+          "position": "SS",
+          "rank": 184,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Michael Conforto",
+          "position": "OF",
+          "rank": 185,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Alex Reyes",
+          "position": "SP",
+          "rank": 186,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CLE",
+          "player_name": "Cody Allen",
+          "position": "RP",
+          "rank": 187,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Steven Matz",
+          "position": "SP",
+          "rank": 188,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "DET",
+          "player_name": "Francisco Rodriguez",
+          "position": "RP",
+          "rank": 189,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CWS",
+          "player_name": "Carlos Rodon",
+          "position": "SP",
+          "rank": 190,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ATL",
+          "player_name": "Ender Inciarte",
+          "position": "OF",
+          "rank": 191,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "OAK",
+          "player_name": "Ryon Healy",
+          "position": "3B",
+          "rank": 192,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BAL",
+          "player_name": "Jonathan Schoop",
+          "position": "2B",
+          "rank": 193,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "HOU",
+          "player_name": "Brian McCann",
+          "position": "C",
+          "rank": 194,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CIN",
+          "player_name": "Raisel Iglesias",
+          "position": "RP/SP",
+          "rank": 195,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TOR",
+          "player_name": "J.A. Happ",
+          "position": "SP",
+          "rank": 196,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYY",
+          "player_name": "Brett Gardner",
+          "position": "OF",
+          "rank": 197,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "OAK",
+          "player_name": "Rajai Davis",
+          "position": "OF",
+          "rank": 198,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "OAK",
+          "player_name": "Sean Manaea",
+          "position": "SP",
+          "rank": 199,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ARI",
+          "player_name": "Yasmany Tomas",
+          "position": "OF",
+          "rank": 200,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "HOU",
+          "player_name": "Yulieski Gurriel",
+          "position": "3B",
+          "rank": 201,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "WAS",
+          "player_name": "Gio Gonzalez",
+          "position": "SP",
+          "rank": 202,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "Javier Baez",
+          "position": "3B/2B/SS",
+          "rank": 203,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "WAS",
+          "player_name": "Matt Wieters",
+          "position": "C",
+          "rank": 204,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TEX",
+          "player_name": "Sam Dyson",
+          "position": "RP",
+          "rank": 205,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "KC",
+          "player_name": "Mike Moustakas",
+          "position": "3B",
+          "rank": 206,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ARI",
+          "player_name": "Taijuan Walker",
+          "position": "SP",
+          "rank": 207,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TEX",
+          "player_name": "Carlos Gomez",
+          "position": "OF",
+          "rank": 208,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAA",
+          "player_name": "C.J. Cron",
+          "position": "1B",
+          "rank": 209,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CIN",
+          "player_name": "Eugenio Suarez",
+          "position": "3B",
+          "rank": 210,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BAL",
+          "player_name": "Chris Tillman",
+          "position": "SP",
+          "rank": 211,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "OAK",
+          "player_name": "Marcus Semien",
+          "position": "SS",
+          "rank": 212,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TEX",
+          "player_name": "Nomar Mazara",
+          "position": "OF",
+          "rank": 213,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PHI",
+          "player_name": "Vince Velasquez",
+          "position": "SP",
+          "rank": 214,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIA",
+          "player_name": "A.J. Ramos",
+          "position": "RP",
+          "rank": 215,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ATL",
+          "player_name": "Brandon Phillips",
+          "position": "2B",
+          "rank": 216,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYY",
+          "player_name": "Chris Carter",
+          "position": "1B",
+          "rank": 217,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PIT",
+          "player_name": "Jameson Taillon",
+          "position": "SP",
+          "rank": 218,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYY",
+          "player_name": "Didi Gregorius",
+          "position": "SS",
+          "rank": 219,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAD",
+          "player_name": "Yasiel Puig",
+          "position": "OF",
+          "rank": 220,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "OAK",
+          "player_name": "Ryan Madson",
+          "position": "RP",
+          "rank": 221,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIN",
+          "player_name": "Byron Buxton",
+          "position": "OF",
+          "rank": 222,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAA",
+          "player_name": "Matt Shoemaker",
+          "position": "SP",
+          "rank": 223,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIL",
+          "player_name": "Keon Broxton",
+          "position": "OF",
+          "rank": 224,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CHC",
+          "player_name": "Jason Heyward",
+          "position": "OF",
+          "rank": 225,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ARI",
+          "player_name": "Robbie Ray",
+          "position": "SP",
+          "rank": 226,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TOR",
+          "player_name": "Devon Travis",
+          "position": "2B",
+          "rank": 227,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TOR",
+          "player_name": "Russell Martin",
+          "position": "C",
+          "rank": 228,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CIN",
+          "player_name": "Jose Peraza",
+          "position": "SS/OF",
+          "rank": 229,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PIT",
+          "player_name": "Ivan Nova",
+          "position": "SP",
+          "rank": 230,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Yadier Molina",
+          "position": "C",
+          "rank": 231,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SF",
+          "player_name": "Matt Moore",
+          "position": "SP",
+          "rank": 232,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SF",
+          "player_name": "Hunter Pence",
+          "position": "OF",
+          "rank": 233,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYY",
+          "player_name": "Michael Pineda",
+          "position": "SP",
+          "rank": 234,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "COL",
+          "player_name": "Adam Ottavino",
+          "position": "RP",
+          "rank": 235,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIL",
+          "player_name": "Domingo Santana",
+          "position": "OF",
+          "rank": 236,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Jedd Gyorko",
+          "position": "2B/3B/SS",
+          "rank": 237,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Eduardo Rodriguez",
+          "position": "SP",
+          "rank": 238,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIL",
+          "player_name": "Eric Thames",
+          "position": "1B",
+          "rank": 239,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "WAS",
+          "player_name": "Joe Ross",
+          "position": "SP",
+          "rank": 240,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PIT",
+          "player_name": "Josh Harrison",
+          "position": "2B",
+          "rank": 241,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PHI",
+          "player_name": "Hector Neris",
+          "position": "RP",
+          "rank": 242,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIA",
+          "player_name": "Martin Prado",
+          "position": "3B",
+          "rank": 243,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ARI",
+          "player_name": "David Peralta",
+          "position": "OF",
+          "rank": 244,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "HOU",
+          "player_name": "Lance McCullers",
+          "position": "SP",
+          "rank": 245,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Neil Walker",
+          "position": "2B",
+          "rank": 246,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BAL",
+          "player_name": "Welington Castillo",
+          "position": "C",
+          "rank": 247,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TB",
+          "player_name": "Kevin Kiermaier",
+          "position": "OF",
+          "rank": 248,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SD",
+          "player_name": "Brandon Maurer",
+          "position": "RP",
+          "rank": 249,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAA",
+          "player_name": "Ben Revere",
+          "position": "OF",
+          "rank": 250,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "KC",
+          "player_name": "Jason Hammel",
+          "position": "SP",
+          "rank": 251,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "KC",
+          "player_name": "Alcides Escobar",
+          "position": "SS",
+          "rank": 252,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAD",
+          "player_name": "Julio Urias",
+          "position": "SP",
+          "rank": 253,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "HOU",
+          "player_name": "Josh Reddick",
+          "position": "OF",
+          "rank": 254,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "OAK",
+          "player_name": "Stephen Vogt",
+          "position": "C",
+          "rank": 255,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SEA",
+          "player_name": "James Paxton",
+          "position": "SP",
+          "rank": 256,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAA",
+          "player_name": "Cameron Maybin",
+          "position": "OF",
+          "rank": 257,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ATL",
+          "player_name": "Jim Johnson",
+          "position": "RP",
+          "rank": 258,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PHI",
+          "player_name": "Tommy Joseph",
+          "position": "1B",
+          "rank": 259,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "KC",
+          "player_name": "Ian Kennedy",
+          "position": "SP",
+          "rank": 260,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "KC",
+          "player_name": "Jorge Soler",
+          "position": "OF",
+          "rank": 261,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PHI",
+          "player_name": "Cesar Hernandez",
+          "position": "2B",
+          "rank": 262,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Addison Reed",
+          "position": "RP",
+          "rank": 263,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIL",
+          "player_name": "Zach Davies",
+          "position": "SP",
+          "rank": 264,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "COL",
+          "player_name": "Tom Murphy",
+          "position": "C",
+          "rank": 265,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ARI",
+          "player_name": "Ketel Marte",
+          "position": "SS",
+          "rank": 266,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TB",
+          "player_name": "Blake Snell",
+          "position": "SP",
+          "rank": 267,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CIN",
+          "player_name": "Michael Lorenzen",
+          "position": "RP",
+          "rank": 268,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SD",
+          "player_name": "Hunter Renfroe",
+          "position": "OF",
+          "rank": 269,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Steven Wright",
+          "position": "SP",
+          "rank": 270,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ATL",
+          "player_name": "Nick Markakis",
+          "position": "OF",
+          "rank": 271,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Trevor Rosenthal",
+          "position": "RP",
+          "rank": 272,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Mitch Moreland",
+          "position": "1B",
+          "rank": 273,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PIT",
+          "player_name": "Francisco Cervelli",
+          "position": "C",
+          "rank": 274,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SEA",
+          "player_name": "Jarrod Dyson",
+          "position": "OF",
+          "rank": 275,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "STL",
+          "player_name": "Michael Wacha",
+          "position": "SP",
+          "rank": 276,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "CWS",
+          "player_name": "Tim Anderson",
+          "position": "SS",
+          "rank": 277,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "Jr.",
+          "player_name": "Steven Souza",
+          "position": "27.0",
+          "rank": 278,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "OAK",
+          "player_name": "Ryan Dull",
+          "position": "RP",
+          "rank": 279,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SF",
+          "player_name": "Joe Panik",
+          "position": "2B",
+          "rank": 280,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "TB",
+          "player_name": "Wilson Ramos",
+          "position": "C",
+          "rank": 281,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "DET",
+          "player_name": "Jordan Zimmermann",
+          "position": "SP",
+          "rank": 282,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ATL",
+          "player_name": "Mauricio Cabrera",
+          "position": "RP",
+          "rank": 283,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Wilmer Flores",
+          "position": "3B/1B",
+          "rank": 284,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "NYM",
+          "player_name": "Asdrubal Cabrera",
+          "position": "SS",
+          "rank": 285,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PHI",
+          "player_name": "Jerad Eickhoff",
+          "position": "SP",
+          "rank": 286,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BAL",
+          "player_name": "Pedro Alvarez",
+          "position": "DH",
+          "rank": 287,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAA",
+          "player_name": "Cam Bedrosian",
+          "position": "RP",
+          "rank": 288,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIL",
+          "player_name": "Hernan Perez",
+          "position": "3B/OF",
+          "rank": 289,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "SEA",
+          "player_name": "Mike Zunino",
+          "position": "C",
+          "rank": 290,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "PIT",
+          "player_name": "Tyler Glasnow",
+          "position": "SP",
+          "rank": 291,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "MIL",
+          "player_name": "Travis Shaw",
+          "position": "3B/1B",
+          "rank": 292,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAA",
+          "player_name": "Garrett Richards",
+          "position": "SP",
+          "rank": 293,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BAL",
+          "player_name": "Dylan Bundy",
+          "position": "RP/SP",
+          "rank": 294,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "BOS",
+          "player_name": "Pablo Sandoval",
+          "position": "3B",
+          "rank": 295,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "LAD",
+          "player_name": "Scott Kazmir",
+          "position": "SP",
+          "rank": 296,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "KC",
+          "player_name": "Yordano Ventura",
+          "position": "SP",
+          "rank": 297,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ARI",
+          "player_name": "Fernando Rodney",
+          "position": "RP",
+          "rank": 298,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "WAS",
+          "player_name": "Jayson Werth",
+          "position": "OF",
+          "rank": 299,
+          "rank_source": "sheet",
+          "status": null
+        },
+        {
+          "mlb_team": "ATL",
+          "player_name": "Jaime Garcia",
+          "position": "SP",
+          "rank": 300,
+          "rank_source": "sheet",
+          "status": null
+        }
+      ],
+      "season_inferred": false,
+      "sheet": "2017 ESPN Top 300",
+      "snapshot_date": null
+    }
+  ],
+  "workbook": "2026 Juiced Fantasy Baseball Draft.xlsx",
+  "workbook_sheets": 72
+}
