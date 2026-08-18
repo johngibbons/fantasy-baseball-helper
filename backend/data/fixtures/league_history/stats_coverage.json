@@ -1,0 +1,167 @@
+{
+  "backfilled_at": "2026-08-18T02:37:34+00:00",
+  "by_season": {
+    "2009": {
+      "fetch_errors": 0,
+      "hitter_targets": 83,
+      "hitters_with_stats": 80,
+      "no_stats": 7,
+      "pitcher_targets": 71,
+      "pitchers_with_stats": 67,
+      "pitching_rows_with_quality_starts": 67
+    },
+    "2010": {
+      "fetch_errors": 0,
+      "hitter_targets": 127,
+      "hitters_with_stats": 123,
+      "no_stats": 7,
+      "pitcher_targets": 113,
+      "pitchers_with_stats": 110,
+      "pitching_rows_with_quality_starts": 110
+    },
+    "2011": {
+      "fetch_errors": 0,
+      "hitter_targets": 134,
+      "hitters_with_stats": 131,
+      "no_stats": 5,
+      "pitcher_targets": 115,
+      "pitchers_with_stats": 113,
+      "pitching_rows_with_quality_starts": 113
+    },
+    "2012": {
+      "fetch_errors": 0,
+      "hitter_targets": 146,
+      "hitters_with_stats": 140,
+      "no_stats": 11,
+      "pitcher_targets": 136,
+      "pitchers_with_stats": 131,
+      "pitching_rows_with_quality_starts": 131
+    },
+    "2013": {
+      "fetch_errors": 0,
+      "hitter_targets": 165,
+      "hitters_with_stats": 161,
+      "no_stats": 6,
+      "pitcher_targets": 127,
+      "pitchers_with_stats": 125,
+      "pitching_rows_with_quality_starts": 125
+    },
+    "2014": {
+      "fetch_errors": 0,
+      "hitter_targets": 120,
+      "hitters_with_stats": 118,
+      "no_stats": 4,
+      "pitcher_targets": 81,
+      "pitchers_with_stats": 79,
+      "pitching_rows_with_quality_starts": 79
+    },
+    "2015": {
+      "fetch_errors": 0,
+      "hitter_targets": 141,
+      "hitters_with_stats": 139,
+      "no_stats": 9,
+      "pitcher_targets": 109,
+      "pitchers_with_stats": 102,
+      "pitching_rows_with_quality_starts": 102
+    },
+    "2016": {
+      "fetch_errors": 0,
+      "hitter_targets": 177,
+      "hitters_with_stats": 175,
+      "no_stats": 5,
+      "pitcher_targets": 148,
+      "pitchers_with_stats": 145,
+      "pitching_rows_with_quality_starts": 145
+    },
+    "2017": {
+      "fetch_errors": 0,
+      "hitter_targets": 180,
+      "hitters_with_stats": 177,
+      "no_stats": 6,
+      "pitcher_targets": 146,
+      "pitchers_with_stats": 143,
+      "pitching_rows_with_quality_starts": 143
+    },
+    "2018": {
+      "fetch_errors": 0,
+      "hitter_targets": 173,
+      "hitters_with_stats": 168,
+      "no_stats": 8,
+      "pitcher_targets": 152,
+      "pitchers_with_stats": 149,
+      "pitching_rows_with_quality_starts": 149
+    },
+    "2019": {
+      "fetch_errors": 0,
+      "hitter_targets": 179,
+      "hitters_with_stats": 174,
+      "no_stats": 9,
+      "pitcher_targets": 152,
+      "pitchers_with_stats": 148,
+      "pitching_rows_with_quality_starts": 148
+    },
+    "2020": {
+      "fetch_errors": 0,
+      "hitter_targets": 135,
+      "hitters_with_stats": 133,
+      "no_stats": 4,
+      "pitcher_targets": 103,
+      "pitchers_with_stats": 101,
+      "pitching_rows_with_quality_starts": 101
+    },
+    "2021": {
+      "fetch_errors": 0,
+      "hitter_targets": 136,
+      "hitters_with_stats": 129,
+      "no_stats": 11,
+      "pitcher_targets": 111,
+      "pitchers_with_stats": 107,
+      "pitching_rows_with_quality_starts": 107
+    },
+    "2022": {
+      "fetch_errors": 0,
+      "hitter_targets": 180,
+      "hitters_with_stats": 175,
+      "no_stats": 9,
+      "pitcher_targets": 151,
+      "pitchers_with_stats": 147,
+      "pitching_rows_with_quality_starts": 147
+    },
+    "2023": {
+      "fetch_errors": 0,
+      "hitter_targets": 177,
+      "hitters_with_stats": 169,
+      "no_stats": 16,
+      "pitcher_targets": 154,
+      "pitchers_with_stats": 146,
+      "pitching_rows_with_quality_starts": 146
+    },
+    "2024": {
+      "fetch_errors": 0,
+      "hitter_targets": 163,
+      "hitters_with_stats": 161,
+      "no_stats": 9,
+      "pitcher_targets": 161,
+      "pitchers_with_stats": 154,
+      "pitching_rows_with_quality_starts": 597
+    },
+    "2025": {
+      "fetch_errors": 0,
+      "hitter_targets": 132,
+      "hitters_with_stats": 131,
+      "no_stats": 3,
+      "pitcher_targets": 129,
+      "pitchers_with_stats": 127,
+      "pitching_rows_with_quality_starts": 802
+    },
+    "2026": {
+      "fetch_errors": 0,
+      "hitter_targets": 20,
+      "hitters_with_stats": 20,
+      "no_stats": 0,
+      "pitcher_targets": 21,
+      "pitchers_with_stats": 21,
+      "pitching_rows_with_quality_starts": 556
+    }
+  }
+}
