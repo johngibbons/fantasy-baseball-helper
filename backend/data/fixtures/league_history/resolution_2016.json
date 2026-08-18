@@ -1,0 +1,2611 @@
+{
+  "floor": 0.9,
+  "resolutions": [
+    {
+      "confidence": 0.95,
+      "matched_name": "AJ Pollock",
+      "method": "last_plus_first",
+      "mlb_id": 572041,
+      "name": "AJ Pollack",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "AJ Ramos",
+      "method": "exact",
+      "mlb_id": 573109,
+      "name": "AJ Ramos",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Aaron Nola",
+      "method": "exact",
+      "mlb_id": 605400,
+      "name": "Aaron Nola",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Adam Eaton",
+      "method": "exact",
+      "mlb_id": 594809,
+      "name": "Adam Eaton",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Adam Jones",
+      "method": "exact",
+      "mlb_id": 430945,
+      "name": "Adam Jones",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Adam Wainwright",
+      "method": "exact",
+      "mlb_id": 425794,
+      "name": "Adam Wainwright",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Addison Russell",
+      "method": "exact",
+      "mlb_id": 608365,
+      "name": "Addison Russell",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Adrian Beltr\u00e9",
+      "method": "exact",
+      "mlb_id": 134181,
+      "name": "Adrian Beltre",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Adri\u00e1n Gonz\u00e1lez",
+      "method": "exact",
+      "mlb_id": 408236,
+      "name": "Adrian Gonzalez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Albert Pujols",
+      "method": "exact",
+      "mlb_id": 405395,
+      "name": "Albert Pujols",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Alex Gordon",
+      "method": "exact",
+      "mlb_id": 460086,
+      "name": "Alex Gordon",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Alex Wood",
+      "method": "exact",
+      "mlb_id": 622072,
+      "name": "Alex Wood",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 0.95,
+      "matched_name": "Alexei Ramirez",
+      "method": "last_plus_first",
+      "mlb_id": 493351,
+      "name": "Alexi Ramirez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Andrew Cashner",
+      "method": "exact",
+      "mlb_id": 488768,
+      "name": "Andrew Cashner",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Andrew Heaney",
+      "method": "exact",
+      "mlb_id": 571760,
+      "name": "Andrew Heaney",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Andrew McCutchen",
+      "method": "exact",
+      "mlb_id": 457705,
+      "name": "Andrew McCutchen",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Andrew Miller",
+      "method": "exact",
+      "mlb_id": 453192,
+      "name": "Andrew Miller",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "An\u00edbal S\u00e1nchez",
+      "method": "exact",
+      "mlb_id": 434671,
+      "name": "Anibal Sanchez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Anthony DeSclafani",
+      "method": "exact",
+      "mlb_id": 543101,
+      "name": "Anthony DeSclafani",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Anthony Rendon",
+      "method": "exact",
+      "mlb_id": 543685,
+      "name": "Anthony Rendon",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Anthony Rizzo",
+      "method": "exact",
+      "mlb_id": 519203,
+      "name": "Anthony Rizzo",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Aroldis Chapman",
+      "method": "exact",
+      "mlb_id": 547973,
+      "name": "Aroldis Chapman",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Ben Revere",
+      "method": "exact",
+      "mlb_id": 519184,
+      "name": "Ben Revere",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Ben Zobrist",
+      "method": "exact",
+      "mlb_id": 450314,
+      "name": "Ben Zobrist",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Billy Burns",
+      "method": "exact",
+      "mlb_id": 542993,
+      "name": "Billy Burns",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Billy Hamilton",
+      "method": "exact",
+      "mlb_id": 571740,
+      "name": "Billy Hamilton",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Blake Snell",
+      "method": "exact",
+      "mlb_id": 605483,
+      "name": "Blake Snell",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Brad Miller",
+      "method": "exact",
+      "mlb_id": 543543,
+      "name": "Brad Miller",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Brad Ziegler",
+      "method": "exact",
+      "mlb_id": 446899,
+      "name": "Brad Ziegler",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Brandon Belt",
+      "method": "exact",
+      "mlb_id": 474832,
+      "name": "Brandon Belt",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Brandon Crawford",
+      "method": "exact",
+      "mlb_id": 543063,
+      "name": "Brandon Crawford",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Brett Gardner",
+      "method": "exact",
+      "mlb_id": 458731,
+      "name": "Brett Gardner",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Brett Lawrie",
+      "method": "exact",
+      "mlb_id": 543434,
+      "name": "Brett Lawrie",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Brian Dozier",
+      "method": "exact",
+      "mlb_id": 572821,
+      "name": "Brian Dozier",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Brian McCann",
+      "method": "exact",
+      "mlb_id": 435263,
+      "name": "Brian McCann",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Bryce Harper",
+      "method": "exact",
+      "mlb_id": 547180,
+      "name": "Bryce Harper",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Buster Posey",
+      "method": "exact",
+      "mlb_id": 457763,
+      "name": "Buster Posey",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Byron Buxton",
+      "method": "exact",
+      "mlb_id": 621439,
+      "name": "Byron Buxton",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 0.95,
+      "matched_name": "ByungHo Park",
+      "method": "last_plus_first",
+      "mlb_id": 666560,
+      "name": "Byung Ho Park",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 0.95,
+      "matched_name": "Carlos Carrasco",
+      "method": "last_plus_first",
+      "mlb_id": 471911,
+      "name": "Carlos Carassco",
+      "sources": [
+        "draft",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Carlos Carrasco",
+      "method": "exact",
+      "mlb_id": 471911,
+      "name": "Carlos Carrasco",
+      "sources": [
+        "keeper"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Carlos Correa",
+      "method": "exact",
+      "mlb_id": 621043,
+      "name": "Carlos Correa",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Carlos G\u00f3mez",
+      "method": "exact",
+      "mlb_id": 460576,
+      "name": "Carlos Gomez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Carlos Gonz\u00e1lez",
+      "method": "exact",
+      "mlb_id": 471865,
+      "name": "Carlos Gonzalez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Carlos Martinez",
+      "method": "exact",
+      "mlb_id": 593372,
+      "name": "Carlos Martinez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Carlos Rod\u00f3n",
+      "method": "exact",
+      "mlb_id": 607074,
+      "name": "Carlos Rodon",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Carlos Santana",
+      "method": "exact",
+      "mlb_id": 467793,
+      "name": "Carlos Santana",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Charlie Blackmon",
+      "method": "exact",
+      "mlb_id": 453568,
+      "name": "Charlie Blackmon",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Chris Archer",
+      "method": "exact",
+      "mlb_id": 502042,
+      "name": "Chris Archer",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Chris Davis",
+      "method": "exact",
+      "mlb_id": 448801,
+      "name": "Chris Davis",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Chris Sale",
+      "method": "exact",
+      "mlb_id": 519242,
+      "name": "Chris Sale",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Christian Yelich",
+      "method": "exact",
+      "mlb_id": 592885,
+      "name": "Christian Yelich",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Clayton Kershaw",
+      "method": "exact",
+      "mlb_id": 477132,
+      "name": "Clayton Kershaw",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Cody Allen",
+      "method": "exact",
+      "mlb_id": 592102,
+      "name": "Cody Allen",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Cole Hamels",
+      "method": "exact",
+      "mlb_id": 430935,
+      "name": "Cole Hamels",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 0.95,
+      "matched_name": "Collin McHugh",
+      "method": "last_plus_first",
+      "mlb_id": 543521,
+      "name": "Colin McHugh",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Corey Dickerson",
+      "method": "exact",
+      "mlb_id": 572816,
+      "name": "Corey Dickerson",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Corey Kluber",
+      "method": "exact",
+      "mlb_id": 446372,
+      "name": "Corey Kluber",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Corey Seager",
+      "method": "exact",
+      "mlb_id": 608369,
+      "name": "Corey Seager",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Craig Kimbrel",
+      "method": "exact",
+      "mlb_id": 518886,
+      "name": "Craig Kimbrel",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Curtis Granderson",
+      "method": "exact",
+      "mlb_id": 434158,
+      "name": "Curtis Granderson",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "DJ LeMahieu",
+      "method": "exact",
+      "mlb_id": 518934,
+      "name": "DJ LeMahieu",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Dallas Keuchel",
+      "method": "exact",
+      "mlb_id": 572971,
+      "name": "Dallas Keuchel",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Daniel Murphy",
+      "method": "exact",
+      "mlb_id": 502517,
+      "name": "Daniel Murphy",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Danny Salazar",
+      "method": "exact",
+      "mlb_id": 517593,
+      "name": "Danny Salazar",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Danny Valencia",
+      "method": "exact",
+      "mlb_id": 502143,
+      "name": "Danny Valencia",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "David Ortiz",
+      "method": "exact",
+      "mlb_id": 120074,
+      "name": "David Ortiz",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "David Peralta",
+      "method": "exact",
+      "mlb_id": 444482,
+      "name": "David Peralta",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "David Price",
+      "method": "exact",
+      "mlb_id": 456034,
+      "name": "David Price",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "David Robertson",
+      "method": "exact",
+      "mlb_id": 502085,
+      "name": "David Robertson",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 0.95,
+      "matched_name": "Dee Strange-Gordon",
+      "method": "last_plus_first",
+      "mlb_id": 543829,
+      "name": "Dee Gordon",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 0.95,
+      "matched_name": "Dellin Betances",
+      "method": "last_plus_first",
+      "mlb_id": 476454,
+      "name": "Delin Betances",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Delino DeShields",
+      "method": "exact",
+      "mlb_id": 592261,
+      "name": "Delino DeShields",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Denard Span",
+      "method": "exact",
+      "mlb_id": 452655,
+      "name": "Denard Span",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Derek Norris",
+      "method": "exact",
+      "mlb_id": 519083,
+      "name": "Derek Norris",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Devin Mesoraco",
+      "method": "exact",
+      "mlb_id": 519023,
+      "name": "Devin Mesoraco",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Devon Travis",
+      "method": "exact",
+      "mlb_id": 581527,
+      "name": "Devon Travis",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Dexter Fowler",
+      "method": "exact",
+      "mlb_id": 451594,
+      "name": "Dexter Fowler",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Drew Smyly",
+      "method": "exact",
+      "mlb_id": 592767,
+      "name": "Drew Smyly",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Drew Storen",
+      "method": "exact",
+      "mlb_id": 519322,
+      "name": "Drew Storen",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Dustin Pedroia",
+      "method": "exact",
+      "mlb_id": 456030,
+      "name": "Dustin Pedroia",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Eduardo Rodriguez",
+      "method": "exact",
+      "mlb_id": 593958,
+      "name": "Eduardo Rodriguez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Edwin Encarnaci\u00f3n",
+      "method": "exact",
+      "mlb_id": 429665,
+      "name": "Edwin Encarnacion",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Elvis Andrus",
+      "method": "exact",
+      "mlb_id": 462101,
+      "name": "Elvis Andrus",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Ender Inciarte",
+      "method": "exact",
+      "mlb_id": 542255,
+      "name": "Ender Inciarte",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Eric Hosmer",
+      "method": "exact",
+      "mlb_id": 543333,
+      "name": "Eric Hosmer",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Eugenio Su\u00e1rez",
+      "method": "exact",
+      "mlb_id": 553993,
+      "name": "Eugenio Suarez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Evan Longoria",
+      "method": "exact",
+      "mlb_id": 446334,
+      "name": "Evan Longoria",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "F\u00e9lix Hern\u00e1ndez",
+      "method": "exact",
+      "mlb_id": 433587,
+      "name": "Felix Hernandez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Francisco Cervelli",
+      "method": "exact",
+      "mlb_id": 465041,
+      "name": "Francisco Cervelli",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Francisco Lindor",
+      "method": "exact",
+      "mlb_id": 596019,
+      "name": "Francisco Lindor",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Francisco Liriano",
+      "method": "exact",
+      "mlb_id": 434538,
+      "name": "Francisco Liriano",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Francisco Rodr\u00edguez",
+      "method": "exact",
+      "mlb_id": 408061,
+      "name": "Francisco Rodriguez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Freddie Freeman",
+      "method": "exact",
+      "mlb_id": 518692,
+      "name": "Freddie Freeman",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Garrett Richards",
+      "method": "exact",
+      "mlb_id": 572070,
+      "name": "Garrett Richards",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "George Springer",
+      "method": "exact",
+      "mlb_id": 543807,
+      "name": "George Springer",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Gerardo Parra",
+      "method": "exact",
+      "mlb_id": 467827,
+      "name": "Gerardo Parra",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Gerrit Cole",
+      "method": "exact",
+      "mlb_id": 543037,
+      "name": "Gerrit Cole",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Giancarlo Stanton",
+      "method": "exact",
+      "mlb_id": 519317,
+      "name": "Giancarlo Stanton",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Gio Gonzalez",
+      "method": "exact",
+      "mlb_id": 461829,
+      "name": "Gio Gonzalez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Glen Perkins",
+      "method": "exact",
+      "mlb_id": 450282,
+      "name": "Glen Perkins",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Gregory Polanco",
+      "method": "exact",
+      "mlb_id": 570256,
+      "name": "Gregory Polanco",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Hanley Ramirez",
+      "method": "exact",
+      "mlb_id": 434670,
+      "name": "Hanley Ramirez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "H\u00e9ctor Rond\u00f3n",
+      "method": "exact",
+      "mlb_id": 444468,
+      "name": "Hector Rondon",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Hisashi Iwakuma",
+      "method": "exact",
+      "mlb_id": 547874,
+      "name": "Hisashi Iwakuma",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Hunter Pence",
+      "method": "exact",
+      "mlb_id": 452254,
+      "name": "Hunter Pence",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Huston Street",
+      "method": "exact",
+      "mlb_id": 434718,
+      "name": "Huston Street",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Ian Desmond",
+      "method": "exact",
+      "mlb_id": 435622,
+      "name": "Ian Desmond",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Ian Kinsler",
+      "method": "exact",
+      "mlb_id": 435079,
+      "name": "Ian Kinsler",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "J.D. Martinez",
+      "method": "exact",
+      "mlb_id": 502110,
+      "name": "JD Martinez",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jacob deGrom",
+      "method": "exact",
+      "mlb_id": 594798,
+      "name": "Jacob deGrom",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jacoby Ellsbury",
+      "method": "exact",
+      "mlb_id": 453056,
+      "name": "Jacoby Ellsbury",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jaime Garc\u00eda",
+      "method": "exact",
+      "mlb_id": 448802,
+      "name": "Jaime Garcia",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jake Arrieta",
+      "method": "exact",
+      "mlb_id": 453562,
+      "name": "Jake Arrieta",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jake McGee",
+      "method": "exact",
+      "mlb_id": 459429,
+      "name": "Jake McGee",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jake Odorizzi",
+      "method": "exact",
+      "mlb_id": 543606,
+      "name": "Jake Odorizzi",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "James Shields",
+      "method": "exact",
+      "mlb_id": 448306,
+      "name": "James Shields",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jason Hammel",
+      "method": "exact",
+      "mlb_id": 434628,
+      "name": "Jason Hammel",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jason Heyward",
+      "method": "exact",
+      "mlb_id": 518792,
+      "name": "Jason Heyward",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jason Kipnis",
+      "method": "exact",
+      "mlb_id": 543401,
+      "name": "Jason Kipnis",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jay Bruce",
+      "method": "exact",
+      "mlb_id": 457803,
+      "name": "Jay Bruce",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jean Segura",
+      "method": "exact",
+      "mlb_id": 516416,
+      "name": "Jean Segura",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jeff Samardzija",
+      "method": "exact",
+      "mlb_id": 502188,
+      "name": "Jeff Samardzija",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jeremy Jeffress",
+      "method": "exact",
+      "mlb_id": 502026,
+      "name": "Jeremy Jeffress",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jeurys Familia",
+      "method": "exact",
+      "mlb_id": 544727,
+      "name": "Jeurys Familia",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Joc Pederson",
+      "method": "exact",
+      "mlb_id": 592626,
+      "name": "Joc Pederson",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Joe Ross",
+      "method": "exact",
+      "mlb_id": 605452,
+      "name": "Joe Ross",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Joey Gallo",
+      "method": "exact",
+      "mlb_id": 608336,
+      "name": "Joey Gallo",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Joey Votto",
+      "method": "exact",
+      "mlb_id": 458015,
+      "name": "Joey Votto",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "John Lackey",
+      "method": "exact",
+      "mlb_id": 407793,
+      "name": "John Lackey",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 0.95,
+      "matched_name": "Jonathan Lucroy",
+      "method": "last_plus_first",
+      "mlb_id": 518960,
+      "name": "Johnathan Lucroy",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Johnny Cueto",
+      "method": "exact",
+      "mlb_id": 456501,
+      "name": "Johnny Cueto",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jon Lester",
+      "method": "exact",
+      "mlb_id": 452657,
+      "name": "Jon Lester",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jonathan Papelbon",
+      "method": "exact",
+      "mlb_id": 449097,
+      "name": "Jonathan Papelbon",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jonathan Schoop",
+      "method": "exact",
+      "mlb_id": 570731,
+      "name": "Jonathan Schoop",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jordan Zimmermann",
+      "method": "exact",
+      "mlb_id": 519455,
+      "name": "Jordan Zimmermann",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jos\u00e9 Abreu",
+      "method": "exact",
+      "mlb_id": 547989,
+      "name": "Jose Abreu",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jose Altuve",
+      "method": "exact",
+      "mlb_id": 514888,
+      "name": "Jose Altuve",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jos\u00e9 Bautista",
+      "method": "exact",
+      "mlb_id": 430832,
+      "name": "Jose Bautista",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jos\u00e9 Berr\u00edos",
+      "method": "exact",
+      "mlb_id": 621244,
+      "name": "Jose Berrios",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jos\u00e9 Fern\u00e1ndez",
+      "method": "exact",
+      "mlb_id": 605228,
+      "name": "Jose Fernandez",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jos\u00e9 Peraza",
+      "method": "exact",
+      "mlb_id": 606299,
+      "name": "Jose Peraza",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jose Quintana",
+      "method": "exact",
+      "mlb_id": 500779,
+      "name": "Jose Quintana",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Josh Donaldson",
+      "method": "exact",
+      "mlb_id": 518626,
+      "name": "Josh Donaldson",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Josh Harrison",
+      "method": "exact",
+      "mlb_id": 543281,
+      "name": "Josh Harrison",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Julio Teheran",
+      "method": "exact",
+      "mlb_id": 527054,
+      "name": "Julio Teheran",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Jung Ho Kang",
+      "method": "exact",
+      "mlb_id": 628356,
+      "name": "Jung Ho Kang",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Justin Turner",
+      "method": "exact",
+      "mlb_id": 457759,
+      "name": "Justin Turner",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Justin Upton",
+      "method": "exact",
+      "mlb_id": 457708,
+      "name": "Justin Upton",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Justin Verlander",
+      "method": "exact",
+      "mlb_id": 434378,
+      "name": "Justin Verlander",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Ken Giles",
+      "method": "exact",
+      "mlb_id": 571704,
+      "name": "Ken Giles",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Kendrys Morales",
+      "method": "exact",
+      "mlb_id": 434778,
+      "name": "Kendrys Morales",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Kenley Jansen",
+      "method": "exact",
+      "mlb_id": 445276,
+      "name": "Kenley Jansen",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Kenta Maeda",
+      "method": "exact",
+      "mlb_id": 628317,
+      "name": "Kenta Maeda",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Ketel Marte",
+      "method": "exact",
+      "mlb_id": 606466,
+      "name": "Ketel Marte",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Kevin Gausman",
+      "method": "exact",
+      "mlb_id": 592332,
+      "name": "Kevin Gausman",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Kevin Pillar",
+      "method": "exact",
+      "mlb_id": 607680,
+      "name": "Kevin Pillar",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Khris Davis",
+      "method": "exact",
+      "mlb_id": 501981,
+      "name": "Khris Davis",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Kole Calhoun",
+      "method": "exact",
+      "mlb_id": 594777,
+      "name": "Kole Calhoun",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Kolten Wong",
+      "method": "exact",
+      "mlb_id": 543939,
+      "name": "Kolten Wong",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Kris Bryant",
+      "method": "exact",
+      "mlb_id": 592178,
+      "name": "Kris Bryant",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Kyle Hendricks",
+      "method": "exact",
+      "mlb_id": 543294,
+      "name": "Kyle Hendricks",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Kyle Schwarber",
+      "method": "exact",
+      "mlb_id": 656941,
+      "name": "Kyle Schwarber",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Kyle Seager",
+      "method": "exact",
+      "mlb_id": 572122,
+      "name": "Kyle Seager",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Lance McCullers Jr.",
+      "method": "exact",
+      "mlb_id": 621121,
+      "name": "Lance McCullers",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Logan Forsythe",
+      "method": "exact",
+      "mlb_id": 523253,
+      "name": "Logan Forsythe",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Lorenzo Cain",
+      "method": "exact",
+      "mlb_id": 456715,
+      "name": "Lorenzo Cain",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Lucas Duda",
+      "method": "exact",
+      "mlb_id": 446263,
+      "name": "Lucas Duda",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Lucas Giolito",
+      "method": "exact",
+      "mlb_id": 608337,
+      "name": "Lucas Giolito",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Luis Severino",
+      "method": "exact",
+      "mlb_id": 622663,
+      "name": "Luis Severino",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Madison Bumgarner",
+      "method": "exact",
+      "mlb_id": 518516,
+      "name": "Madison Bumgarner",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Maikel Franco",
+      "method": "exact",
+      "mlb_id": 596748,
+      "name": "Maikel Franco",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Manny Machado",
+      "method": "exact",
+      "mlb_id": 592518,
+      "name": "Manny Machado",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Marcus Stroman",
+      "method": "exact",
+      "mlb_id": 573186,
+      "name": "Marcus Stroman",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Mark Melancon",
+      "method": "exact",
+      "mlb_id": 453343,
+      "name": "Mark Melancon",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Mark Teixeira",
+      "method": "exact",
+      "mlb_id": 407893,
+      "name": "Mark Teixeira",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Masahiro Tanaka",
+      "method": "exact",
+      "mlb_id": 547888,
+      "name": "Masahiro Tanaka",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Matt Carpenter",
+      "method": "exact",
+      "mlb_id": 572761,
+      "name": "Matt Carpenter",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 0.0,
+      "matched_name": null,
+      "method": "ambiguous_exact:2",
+      "mlb_id": null,
+      "name": "Matt Duffy",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Matt Harvey",
+      "method": "exact",
+      "mlb_id": 518774,
+      "name": "Matt Harvey",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Matt Holliday",
+      "method": "exact",
+      "mlb_id": 407812,
+      "name": "Matt Holliday",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Matt Kemp",
+      "method": "exact",
+      "mlb_id": 461314,
+      "name": "Matt Kemp",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Matt Moore",
+      "method": "exact",
+      "mlb_id": 519043,
+      "name": "Matt Moore",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Matt Wieters",
+      "method": "exact",
+      "mlb_id": 446308,
+      "name": "Matt Wieters",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Max Scherzer",
+      "method": "exact",
+      "mlb_id": 453286,
+      "name": "Max Scherzer",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Michael Brantley",
+      "method": "exact",
+      "mlb_id": 488726,
+      "name": "Michael Brantley",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Michael Conforto",
+      "method": "exact",
+      "mlb_id": 624424,
+      "name": "Michael Conforto",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Michael Pineda",
+      "method": "exact",
+      "mlb_id": 501381,
+      "name": "Michael Pineda",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Michael Wacha",
+      "method": "exact",
+      "mlb_id": 608379,
+      "name": "Michael Wacha",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Miguel Cabrera",
+      "method": "exact",
+      "mlb_id": 408234,
+      "name": "Miguel Cabrera",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Miguel San\u00f3",
+      "method": "exact",
+      "mlb_id": 593934,
+      "name": "Miguel Sano",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Mike Fiers",
+      "method": "exact",
+      "mlb_id": 571666,
+      "name": "Mike Fiers",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Mike Leake",
+      "method": "exact",
+      "mlb_id": 502190,
+      "name": "Mike Leake",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Mike Moustakas",
+      "method": "exact",
+      "mlb_id": 519058,
+      "name": "Mike Moustakas",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Mike Trout",
+      "method": "exact",
+      "mlb_id": 545361,
+      "name": "Mike Trout",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Mookie Betts",
+      "method": "exact",
+      "mlb_id": 605141,
+      "name": "Mookie Betts",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Neil Walker",
+      "method": "exact",
+      "mlb_id": 435522,
+      "name": "Neil Walker",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Nelson Cruz",
+      "method": "exact",
+      "mlb_id": 443558,
+      "name": "Nelson Cruz",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Noah Syndergaard",
+      "method": "exact",
+      "mlb_id": 592789,
+      "name": "Noah Syndergaard",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Nolan Arenado",
+      "method": "exact",
+      "mlb_id": 571448,
+      "name": "Nolan Arenado",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Patrick Corbin",
+      "method": "exact",
+      "mlb_id": 571578,
+      "name": "Patrick Corbin",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Paul Goldschmidt",
+      "method": "exact",
+      "mlb_id": 502671,
+      "name": "Paul Goldschmidt",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Pedro \u00c1lvarez",
+      "method": "exact",
+      "mlb_id": 476883,
+      "name": "Pedro Alvarez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Prince Fielder",
+      "method": "exact",
+      "mlb_id": 425902,
+      "name": "Prince Fielder",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Raisel Iglesias",
+      "method": "exact",
+      "mlb_id": 628452,
+      "name": "Raisel Iglesias",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Randal Grichuk",
+      "method": "exact",
+      "mlb_id": 545341,
+      "name": "Randal Grichuk",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Roberto Osuna",
+      "method": "exact",
+      "mlb_id": 532077,
+      "name": "Roberto Osuna",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Robinson Can\u00f3",
+      "method": "exact",
+      "mlb_id": 429664,
+      "name": "Robinson Cano",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Rougned Odor",
+      "method": "exact",
+      "mlb_id": 596059,
+      "name": "Rougned Odor",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Russell Martin",
+      "method": "exact",
+      "mlb_id": 431145,
+      "name": "Russell Martin",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Ryan Braun",
+      "method": "exact",
+      "mlb_id": 460075,
+      "name": "Ryan Braun",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Salvador Perez",
+      "method": "exact",
+      "mlb_id": 521692,
+      "name": "Salvador Perez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Santiago Casilla",
+      "method": "exact",
+      "mlb_id": 433586,
+      "name": "Santiago Casilla",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Scott Kazmir",
+      "method": "exact",
+      "mlb_id": 431148,
+      "name": "Scott Kazmir",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Sean Doolittle",
+      "method": "exact",
+      "mlb_id": 448281,
+      "name": "Sean Doolittle",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Shawn Tolleson",
+      "method": "exact",
+      "mlb_id": 474521,
+      "name": "Shawn Tolleson",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Shelby Miller",
+      "method": "exact",
+      "mlb_id": 571946,
+      "name": "Shelby Miller",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Shin-Soo Choo",
+      "method": "exact",
+      "mlb_id": 425783,
+      "name": "Shin-Soo Choo",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Sonny Gray",
+      "method": "exact",
+      "mlb_id": 543243,
+      "name": "Sonny Gray",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Starlin Castro",
+      "method": "exact",
+      "mlb_id": 516770,
+      "name": "Starlin Castro",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Starling Marte",
+      "method": "exact",
+      "mlb_id": 516782,
+      "name": "Starling Marte",
+      "sources": [
+        "draft",
+        "keeper",
+        "keeper_slot"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Stephen Piscotty",
+      "method": "exact",
+      "mlb_id": 572039,
+      "name": "Stephen Piscotty",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Stephen Strasburg",
+      "method": "exact",
+      "mlb_id": 544931,
+      "name": "Stephen Strasburg",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Stephen Vogt",
+      "method": "exact",
+      "mlb_id": 519390,
+      "name": "Stephen Vogt",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 0.95,
+      "matched_name": "Steve Cishek",
+      "method": "last_plus_first",
+      "mlb_id": 518553,
+      "name": "Steve Cischek",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Steven Matz",
+      "method": "exact",
+      "mlb_id": 571927,
+      "name": "Steven Matz",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Steven Souza Jr.",
+      "method": "exact",
+      "mlb_id": 519306,
+      "name": "Steven Souza",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Taijuan Walker",
+      "method": "exact",
+      "mlb_id": 592836,
+      "name": "Taijuan Walker",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Tanner Roark",
+      "method": "exact",
+      "mlb_id": 543699,
+      "name": "Tanner Roark",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Taylor Jungmann",
+      "method": "exact",
+      "mlb_id": 543380,
+      "name": "Taylor Jungmann",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Todd Frazier",
+      "method": "exact",
+      "mlb_id": 453943,
+      "name": "Todd Frazier",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Travis d'Arnaud",
+      "method": "exact",
+      "mlb_id": 518595,
+      "name": "Travis d'Arnaud",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Trea Turner",
+      "method": "exact",
+      "mlb_id": 607208,
+      "name": "Trea Turner",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Trevor Bauer",
+      "method": "exact",
+      "mlb_id": 545333,
+      "name": "Trevor Bauer",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Trevor Rosenthal",
+      "method": "exact",
+      "mlb_id": 572096,
+      "name": "Trevor Rosenthal",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Trevor Story",
+      "method": "exact",
+      "mlb_id": 596115,
+      "name": "Trevor Story",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Troy Tulowitzki",
+      "method": "exact",
+      "mlb_id": 453064,
+      "name": "Troy Tulowitzki",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Tyler Glasnow",
+      "method": "exact",
+      "mlb_id": 607192,
+      "name": "Tyler Glasnow",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Tyson Ross",
+      "method": "exact",
+      "mlb_id": 475115,
+      "name": "Tyson Ross",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Vince Velasquez",
+      "method": "exact",
+      "mlb_id": 592826,
+      "name": "Vince Velasquez",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Wade Davis",
+      "method": "exact",
+      "mlb_id": 451584,
+      "name": "Wade Davis",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Wei-Yin Chen",
+      "method": "exact",
+      "mlb_id": 612672,
+      "name": "Wei-Yin Chen",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Wil Myers",
+      "method": "exact",
+      "mlb_id": 571976,
+      "name": "Wil Myers",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Xander Bogaerts",
+      "method": "exact",
+      "mlb_id": 593428,
+      "name": "Xander Bogaerts",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Yasiel Puig",
+      "method": "exact",
+      "mlb_id": 624577,
+      "name": "Yasiel Puig",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Yoenis Cespedes",
+      "method": "exact",
+      "mlb_id": 493316,
+      "name": "Yoenis Cespedes",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Yordano Ventura",
+      "method": "exact",
+      "mlb_id": 570649,
+      "name": "Yordano Ventura",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Yu Darvish",
+      "method": "exact",
+      "mlb_id": 506433,
+      "name": "Yu Darvish",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 0.95,
+      "matched_name": "Zack Britton",
+      "method": "last_plus_first",
+      "mlb_id": 502154,
+      "name": "Zach Britton",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Zack Greinke",
+      "method": "exact",
+      "mlb_id": 425844,
+      "name": "Zack Greinke",
+      "sources": [
+        "draft"
+      ]
+    },
+    {
+      "confidence": 1.0,
+      "matched_name": "Zack Wheeler",
+      "method": "exact_adjacent_season",
+      "mlb_id": 554430,
+      "name": "Zack Wheeler",
+      "sources": [
+        "draft"
+      ]
+    }
+  ],
+  "resolved_at": "2026-08-18T02:44:44+00:00",
+  "season": 2016,
+  "source": "https://statsapi.mlb.com/api/v1/sports/1/players",
+  "summary": {
+    "by_method": {
+      "ambiguous_exact:2": 1,
+      "exact": 239,
+      "exact_adjacent_season": 1,
+      "last_plus_first": 10
+    },
+    "floor": 0.9,
+    "included": true,
+    "match_rate": 0.996,
+    "names": 251,
+    "resolved": 250,
+    "roster_size": 1353
+  }
+}
