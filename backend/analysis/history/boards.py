@@ -67,6 +67,47 @@ def stat_coverage(conn, season: int, universe: set[int]) -> float:
     return len(found & universe) / len(universe)
 
 
+def full_pool(conn, season: int, extra: set[int] | None = None
+              ) -> tuple[set[int], set[int]]:
+    """Hitter and pitcher pools over everyone who recorded a season line.
+
+    This is the pool the app's own board approximates — every player who could
+    plausibly have been rostered — as opposed to the ~250 the league actually
+    drafted. The distinction decides where replacement level sits, so any
+    question phrased "how many players cleared replacement" or "what is the
+    player ranked Nth worth" has to be asked over this pool, not the drafted one.
+
+    The only filter is the pitcher/hitter split by primary position. Pitchers
+    take plate appearances, and leaving them in the hitter pool would drag the
+    pool's league OBP down and rescale every hitter's rate categories. No
+    playing-time threshold is applied: position players number ~630 a season,
+    close to the ~660 the shipped board carries, so a threshold would be a knob
+    without a purpose.
+
+    `extra` adds players who recorded no line at all — drafted players who
+    missed the whole season. They belong in the pool at zero, not absent.
+    """
+    batting = {r[0] for r in conn.execute(
+        "SELECT mlb_id FROM batting_stats WHERE season = ?", (season,)).fetchall()}
+    pitching = {r[0] for r in conn.execute(
+        "SELECT mlb_id FROM pitching_stats WHERE season = ?", (season,)).fetchall()}
+    everyone = batting | pitching | (extra or set())
+    if not everyone:
+        return set(), set()
+
+    marks = ",".join("?" * len(everyone))
+    positions = {r[0]: (r[1] or "") for r in conn.execute(
+        f"SELECT mlb_id, primary_position FROM players WHERE mlb_id IN ({marks})",
+        tuple(everyone)).fetchall()}
+
+    hitters = {i for i in everyone
+               if positions.get(i, "") not in PITCHER_POSITIONS}
+    # A pitcher is anyone classified as one who actually pitched, plus any
+    # drafted pitcher who did not appear at all.
+    pitchers = (everyone - hitters) & (pitching | (extra or set()))
+    return hitters, pitchers
+
+
 def season_board(conn, season: int, hitters: set[int], pitchers: set[int],
                  identities: dict[int, PlayerIdentity],
                  denominators: dict[str, float]) -> tuple[list[dict], list[dict]]:

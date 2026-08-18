@@ -1,0 +1,14 @@
+{
+  "backfilled_at": "2026-08-18T03:31:23+00:00",
+  "by_season": {
+    "2026": {
+      "hitters": 708,
+      "pitchers": 806,
+      "players_added": 0,
+      "quality_starts_derived": 337,
+      "quality_starts_missing": 0,
+      "starters": 337
+    }
+  },
+  "source": "https://statsapi.mlb.com/api/v1/stats?stats=season&playerPool=All"
+}
