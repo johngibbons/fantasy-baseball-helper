@@ -34,11 +34,12 @@ from backend.analysis.history.keeper_backtest import (
     pick_index_for_round,
     surplus_vs_round_cost,
 )
-from backend.analysis.retro.expost import (
-    PlayerIdentity,
-    align_pool,
-    batting_actuals_to_row,
-    pitching_actuals_to_row,
+from backend.analysis.history.boards import (
+    ALL_CATS,
+    PITCHER_POSITIONS,
+    load_identities,
+    stat_coverage,
+    value_board,
 )
 from backend.analysis.retro.keeper_eval import (
     NUM_TEAMS,
@@ -46,20 +47,12 @@ from backend.analysis.retro.keeper_eval import (
     keeper_cost,
     value_at_pick_curve,
 )
-from backend.analysis.zscores import (
-    PITCHER_CATEGORY_NORMALIZER,
-    ValuationConfig,
-    _compute_sgp_denominators,
-    compute_hitter_sgp,
-    compute_pitcher_sgp,
-)
+from backend.analysis.zscores import _compute_sgp_denominators
 from backend.database import get_connection
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 HISTORY_DIR = REPO_ROOT / "backend" / "data" / "fixtures" / "league_history"
 ROSTER_CACHE = HISTORY_DIR / "_rosters"
-ALL_CATS = ["R", "TB", "RBI", "SB", "OBP", "K", "QS", "ERA", "WHIP", "SVHD"]
-PITCHER_POSITIONS = {"P", "SP", "RP"}
 
 # Share of a season's drafted players that must have a stat row in the PRIOR
 # season before that season's baseline is trusted. Well below the ~85% a real
@@ -89,72 +82,8 @@ def roster_positions(season: int) -> dict[int, str]:
     return positions
 
 
-def load_identities(conn, mlb_ids: set[int]) -> dict[int, PlayerIdentity]:
-    if not mlb_ids:
-        return {}
-    marks = ",".join("?" * len(mlb_ids))
-    rows = conn.execute(
-        f"""SELECT mlb_id, full_name, primary_position, team, eligible_positions
-            FROM players WHERE mlb_id IN ({marks})""", tuple(mlb_ids)).fetchall()
-    return {r["mlb_id"]: PlayerIdentity(
-        mlb_id=r["mlb_id"], full_name=r["full_name"],
-        primary_position=r["primary_position"], team=r["team"],
-        eligible_positions=r["eligible_positions"]) for r in rows}
 
 
-def stat_coverage(conn, season: int, universe: set[int]) -> float:
-    """Share of `universe` with a batting or pitching row in `season`."""
-    if not universe:
-        return 0.0
-    marks = ",".join("?" * len(universe))
-    found = {r[0] for r in conn.execute(
-        f"SELECT mlb_id FROM batting_stats WHERE season = ? "
-        f"AND mlb_id IN ({marks})", (season, *universe)).fetchall()}
-    found |= {r[0] for r in conn.execute(
-        f"SELECT mlb_id FROM pitching_stats WHERE season = ? "
-        f"AND mlb_id IN ({marks})", (season, *universe)).fetchall()}
-    return len(found & universe) / len(universe)
-
-
-def load_actuals(conn, season: int, table: str) -> dict[int, dict]:
-    return {r["mlb_id"]: dict(r) for r in conn.execute(
-        f"SELECT * FROM {table} WHERE season = ?", (season,)).fetchall()}
-
-
-def value_board(conn, season: int, hitters: set[int], pitchers: set[int],
-                identities: dict[int, PlayerIdentity],
-                denominators: dict[str, float]) -> dict[int, float]:
-    """SGP for a fixed player universe from one season's realized stats.
-
-    The universe is held constant across the seasons being compared so that
-    replacement level — which is pool-relative — is built the same way each
-    time. Players who did not appear stay in the pool at zero rather than being
-    dropped, which is what keeps a draft's busts inside the average.
-    """
-    batting = load_actuals(conn, season, "batting_stats")
-    pitching = load_actuals(conn, season, "pitching_stats")
-
-    hitter_rows = align_pool(
-        [batting_actuals_to_row(identities[i], batting.get(i))
-         for i in sorted(hitters) if i in identities],
-        hitters, identities, batting_actuals_to_row)
-    pitcher_rows = align_pool(
-        [pitching_actuals_to_row(identities[i], pitching.get(i))
-         for i in sorted(pitchers) if i in identities],
-        pitchers, identities, pitching_actuals_to_row)
-
-    config = ValuationConfig(
-        sgp_denominators=denominators,
-        apply_playing_time_discount=False,   # realized volume is not a risk
-        streaming_bonus=0.0,                 # truth metric is pure production
-    )
-    values: dict[int, float] = {}
-    for row in compute_hitter_sgp(hitter_rows, config=config):
-        values[row["mlb_id"]] = float(row["total_zscore"])
-    for row in compute_pitcher_sgp(pitcher_rows, config=config):
-        # Put pitchers on the hitters' scale, as retro_keepers_adp.value_map does.
-        values[row["mlb_id"]] = float(row["total_zscore"]) * PITCHER_CATEGORY_NORMALIZER
-    return values
 
 
 def analyse_season(conn, season: int, denominators: dict[str, float]) -> dict | None:
