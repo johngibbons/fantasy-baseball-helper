@@ -226,3 +226,78 @@ class TestEmptyInput:
     def test_empty_row_lists_return_empty_results(self):
         assert compute_hitter_sgp([], config=config()) == []
         assert compute_pitcher_sgp([], config=config()) == []
+
+
+class TestSlotAssignmentDeterminism:
+    """The board must not depend on Python's per-process string hash seed.
+
+    `_eligible_slots` used to return `list(set(...))`, and both the greedy
+    replacement-level assignment and `_best_slot` break ties by list position.
+    That made replacement levels — and therefore every hitter's total_zscore
+    and the whole board ordering — differ between processes on identical data.
+    It surfaced as a multi-season backtest artifact that would not reproduce:
+    two consecutive runs disagreed on 23 players.
+    """
+
+    def test_eligible_slots_order_is_deterministic(self):
+        slots = _eligible_slots("2B/3B/SS/OF", "2B")
+        assert slots == ["2B", "3B", "SS", "OF", "UTIL"]
+        # Repeated calls in-process must also agree.
+        assert all(_eligible_slots("2B/3B/SS/OF", "2B") == slots for _ in range(5))
+
+    def test_eligible_slots_preserves_listed_order_and_dedupes(self):
+        # LF/CF/RF all map to OF; UTIL is appended once, last.
+        assert _eligible_slots("LF/CF/RF", "LF") == ["OF", "UTIL"]
+        assert _eligible_slots("DH/1B", "DH") == ["UTIL", "1B"]
+
+    def test_best_slot_breaks_ties_without_relying_on_order(self):
+        """Equal replacement levels must resolve to the same slot every time."""
+        levels = {"1B": 1.0, "OF": 1.0, "UTIL": 1.0}
+        chosen = {_best_slot("1B/OF", "1B", levels) for _ in range(20)}
+        assert len(chosen) == 1
+
+    def test_board_is_identical_across_hash_seeds(self):
+        """End-to-end guard: same input, different PYTHONHASHSEED.
+
+        Broader but blunter than the two order tests above, which are what
+        actually pin the bug — this one only bites when a tie-break happens to
+        move a replacement level, and a synthetic pool does not reliably
+        produce that. It stays because it is cheap and would catch a
+        reintroduction through some path other than `_eligible_slots`.
+        """
+        import json
+        import pathlib
+        import subprocess
+        import sys
+
+        script = (
+            "import json;"
+            "from backend.analysis.zscores import compute_hitter_sgp, ValuationConfig;"
+            "elig=['1B/OF','OF/3B','SS/2B','C/1B','2B/3B/SS','OF','C','SS/OF'];"
+            "rows=[{'mlb_id':i,'full_name':f'P{i}','primary_position':'1B',"
+            "'eligible_positions':elig[i%len(elig)],'team':'X',"
+            "'proj_pa':600,'proj_runs':120-i*0.4,'proj_total_bases':300-i,"
+            "'proj_rbi':110-i*0.3,'proj_stolen_bases':30-i*0.1,'proj_obp':.360-i*0.0008,"
+            "'proj_hits':170-i*0.5,'proj_walks':60,'proj_hbp':5,'proj_sac_flies':5,"
+            "'proj_at_bats':550} for i in range(160)];"
+            "cfg=ValuationConfig(sgp_denominators=" + json.dumps(DENOMS) + ");"
+            "out=compute_hitter_sgp(rows,config=cfg);"
+            "print(json.dumps([(r['mlb_id'],r['total_zscore'],r['replacement_adj'])"
+            " for r in out]))"
+        )
+
+        results = []
+        for seed in ("0", "1", "12345", "99999"):
+            proc = subprocess.run(
+                [sys.executable, "-c", script],
+                capture_output=True, text=True,
+                env={"PYTHONHASHSEED": seed, "PATH": "/usr/bin:/bin"},
+                cwd=str(pathlib.Path(__file__).resolve().parents[3]),
+            )
+            assert proc.returncode == 0, proc.stderr
+            results.append(proc.stdout.strip())
+
+        assert len(set(results)) == 1, (
+            "hitter board differs between hash seeds — slot assignment has "
+            "become order-dependent again"
+        )

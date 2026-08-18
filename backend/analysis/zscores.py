@@ -187,14 +187,31 @@ def _eligible_slots(eligible_positions: str, primary_position: str) -> list[str]
     else:
         positions = [primary_position]
 
-    slots = set()
+    # Deduplicate while preserving the order the positions were listed in.
+    # This used to build a set and return list(set(...)), whose iteration order
+    # varies with PYTHONHASHSEED between processes. Callers below break ties
+    # by list position, so that made replacement levels — and therefore every
+    # hitter's value and the whole board ordering — differ run to run on
+    # identical data. See test_eligible_slots_order_is_deterministic.
+    slots: list[str] = []
     for pos in positions:
         slot = POSITION_TO_SLOT.get(pos)
-        if slot:
-            slots.add(slot)
-    # Every hitter can fill UTIL
-    slots.add("UTIL")
-    return list(slots)
+        if slot and slot not in slots:
+            slots.append(slot)
+    # Every hitter can fill UTIL, and it is always the last resort.
+    if "UTIL" not in slots:
+        slots.append("UTIL")
+    return slots
+
+
+def _slot_priority(slot: str) -> tuple[int, str]:
+    """Deterministic tie-break between equally attractive slots.
+
+    Scarcer slots (fewer roster spots league-wide) win, then the slot name.
+    Used so that a tie never resolves by list order, which is what allowed
+    hash-seed variation to reach the replacement levels in the first place.
+    """
+    return (HITTER_SLOTS.get(slot, 99), slot)
 
 
 def _best_slot(eligible_positions: str, primary_position: str,
@@ -215,7 +232,8 @@ def _best_slot(eligible_positions: str, primary_position: str,
     if not slots:
         return POSITION_TO_SLOT.get(primary_position, "UTIL")
 
-    return min(slots, key=lambda s: replacement_levels.get(s, 0.0))
+    return min(slots, key=lambda s: (replacement_levels.get(s, 0.0),
+                                     _slot_priority(s)))
 
 
 def _compute_sgp_denominators(categories: list[str]) -> dict[str, float]:
@@ -323,7 +341,7 @@ def _compute_hitter_replacement_levels(results: list[dict]) -> dict[str, float]:
         # Try specific slots first (not UTIL) — pick the scarcest one
         specific = [s for s in eligible if s != "UTIL" and remaining.get(s, 0) > 0]
         if specific:
-            chosen = min(specific, key=lambda s: remaining[s])
+            chosen = min(specific, key=lambda s: (remaining[s], _slot_priority(s)))
             remaining[chosen] -= 1
             last_assigned[chosen] = p["total_zscore"]
         elif remaining.get("UTIL", 0) > 0:
