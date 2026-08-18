@@ -24,8 +24,13 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
 
-  /* Configure projects for major browsers */
-  projects: [
+  /* Chromium alone on CI. The smoke suite checks that routes resolve and the
+     shell renders, which does not vary by engine, and running three browsers
+     against a dev server took the best part of an hour. Locally all three are
+     available for when a rendering difference is actually suspected. */
+  projects: process.env.CI
+    ? [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }]
+    : [
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
