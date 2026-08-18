@@ -1,283 +1,153 @@
+/**
+ * Tests for the dashboard at src/app/page.tsx.
+ *
+ * This file previously tested a league-connection UI — loading leagues,
+ * showing a connection form, selecting a league to view its roster. None of
+ * that lives here any more; the home page was rebuilt as a valuations
+ * dashboard and league management moved to /leagues, where
+ * LeagueConnection.test.tsx and the LeagueRoster suites cover it. Those tests
+ * were asserting against a page that no longer exists, so they are replaced
+ * with coverage of what this page actually does.
+ */
+
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import HomePage from '../../app/page'
+import Dashboard from '../../app/page'
+import { getStatsSummary, StatsSummary } from '../../lib/valuations-api'
 
-// Mock the child components
-jest.mock('../../components/PlayerSearch', () => {
-  return function MockPlayerSearch() {
-    return <div data-testid="player-search">Player Search Component</div>
-  }
-})
+jest.mock('../../lib/valuations-api', () => ({
+  getStatsSummary: jest.fn(),
+}))
 
-jest.mock('../../components/PlayerStats', () => {
-  return function MockPlayerStats() {
-    return <div data-testid="player-stats">Player Stats Component</div>
-  }
-})
+const mockGetStatsSummary = getStatsSummary as jest.MockedFunction<
+  typeof getStatsSummary
+>
 
-jest.mock('../../components/LeagueConnection', () => {
-  return function MockLeagueConnection({ onLeagueConnected }: { onLeagueConnected: (data: any) => void }) {
-    return (
-      <div data-testid="league-connection">
-        League Connection Component
-        <button onClick={() => onLeagueConnected({ id: 'new-league', name: 'New League', platform: 'ESPN', season: '2025', teamCount: 10 })}>
-          Connect League
-        </button>
-      </div>
-    )
-  }
-})
+const summary: StatsSummary = {
+  total_players: 1356,
+  total_hitters: 660,
+  total_pitchers: 696,
+  top_5: [
+    {
+      mlb_id: 669373,
+      full_name: 'Tarik Skubal',
+      primary_position: 'SP',
+      team: 'DET',
+      overall_rank: 1,
+      total_zscore: 2.32,
+      player_type: 'pitcher',
+    },
+  ],
+}
 
-jest.mock('../../components/LeagueRoster', () => {
-  return function MockLeagueRoster({ league, onBack }: { league: any; onBack: () => void }) {
-    return (
-      <div data-testid="league-roster">
-        League Roster for {league.name}
-        <button onClick={onBack}>Back</button>
-      </div>
-    )
-  }
-})
-
-// Mock fetch
-global.fetch = jest.fn()
-
-describe('HomePage', () => {
+describe('Dashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    global.fetch = jest.fn()
   })
 
-  it('should load existing leagues on component mount', async () => {
-    const mockLeagues = [
-      {
-        id: 'espn_123456_2025',
-        name: 'Test League',
-        platform: 'ESPN',
-        season: '2025',
-        teamCount: 10,
-        isActive: true,
-        lastSyncAt: '2025-01-01T00:00:00Z',
-      },
-      {
-        id: 'espn_789012_2025',
-        name: 'Another League',
-        platform: 'ESPN',
-        season: '2025',
-        teamCount: 12,
-        isActive: true,
-        lastSyncAt: '2025-01-02T00:00:00Z',
-      },
-    ]
+  it('shows a loading state until the summary resolves', async () => {
+    let resolve: (value: StatsSummary) => void = () => {}
+    mockGetStatsSummary.mockReturnValue(
+      new Promise<StatsSummary>((r) => { resolve = r }),
+    )
 
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
+    render(<Dashboard />)
+    expect(screen.getByText('Loading data...')).toBeInTheDocument()
+
+    resolve(summary)
+    await waitFor(() => {
+      expect(screen.queryByText('Loading data...')).not.toBeInTheDocument()
+    })
+  })
+
+  it('renders the ranked player counts once loaded', async () => {
+    mockGetStatsSummary.mockResolvedValue(summary)
+
+    render(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('1356')).toBeInTheDocument()
+    })
+    expect(screen.getByText('Total Ranked')).toBeInTheDocument()
+    expect(screen.getByText('660')).toBeInTheDocument()
+    expect(screen.getByText('696')).toBeInTheDocument()
+  })
+
+  it('explains how to start the backend when the summary fails', async () => {
+    mockGetStatsSummary.mockRejectedValue(new Error('fetch failed'))
+
+    render(<Dashboard />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Backend not connected')).toBeInTheDocument()
+    })
+    // The page shows the commands to run, which is the actionable part.
+    expect(screen.getByText(/uvicorn backend.api.main:app/)).toBeInTheDocument()
+  })
+
+  it('refreshes projections and reports how many players were updated', async () => {
+    mockGetStatsSummary.mockResolvedValue(summary)
+    ;(global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: async () => mockLeagues,
+      json: async () => ({ total_players: 1400, sources: ['ATC', 'Steamer'] }),
     })
 
-    render(<HomePage />)
-
-    // Switch to leagues tab
-    const leaguesTab = screen.getByRole('button', { name: /league integration/i })
-    await userEvent.click(leaguesTab)
-
-    // Wait for leagues to load
+    render(<Dashboard />)
     await waitFor(() => {
-      expect(screen.getByText('Connected Leagues')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /refresh projections/i }))
+        .toBeInTheDocument()
     })
 
-    // Check that leagues are displayed
-    expect(screen.getByText('Test League')).toBeInTheDocument()
-    expect(screen.getByText('Another League')).toBeInTheDocument()
-    expect(screen.getByText('2025 • 10 teams')).toBeInTheDocument()
-    expect(screen.getByText('2025 • 12 teams')).toBeInTheDocument()
+    await userEvent.click(
+      screen.getByRole('button', { name: /refresh projections/i }),
+    )
 
-    // Verify fetch was called
-    expect(fetch).toHaveBeenCalledWith('/api/leagues')
+    await waitFor(() => {
+      expect(screen.getByText('Updated: 1400 players (ATC, Steamer)'))
+        .toBeInTheDocument()
+    })
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/api/refresh-projections?season=2026',
+      expect.objectContaining({ method: 'POST' }),
+    )
+    // A successful refresh reloads the summary.
+    expect(mockGetStatsSummary).toHaveBeenCalledTimes(2)
   })
 
-  it('should handle API errors gracefully when loading leagues', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
-
-    ;(fetch as jest.Mock).mockRejectedValueOnce(new Error('Network error'))
-
-    render(<HomePage />)
-
-    // Switch to leagues tab
-    const leaguesTab = screen.getByRole('button', { name: /league integration/i })
-    await userEvent.click(leaguesTab)
-
-    // Wait for error handling
-    await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('Error loading existing leagues:', expect.any(Error))
-    })
-
-    // Should show connection form instead of leagues
-    expect(screen.getByTestId('league-connection')).toBeInTheDocument()
-    expect(screen.queryByText('Connected Leagues')).not.toBeInTheDocument()
-
-    consoleSpy.mockRestore()
-  })
-
-  it('should handle API response errors when loading leagues', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
-
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
+  it('surfaces the reason a refresh failed', async () => {
+    mockGetStatsSummary.mockResolvedValue(summary)
+    ;(global.fetch as jest.Mock).mockResolvedValue({
       ok: false,
-      status: 500,
+      status: 502,
+      json: async () => ({ detail: 'FanGraphs API error' }),
     })
 
-    render(<HomePage />)
-
-    // Switch to leagues tab
-    const leaguesTab = screen.getByRole('button', { name: /league integration/i })
-    await userEvent.click(leaguesTab)
-
-    // Wait for error handling - the component doesn't log for response errors, only network errors
+    render(<Dashboard />)
     await waitFor(() => {
-      expect(screen.getByTestId('league-connection')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /refresh projections/i }))
+        .toBeInTheDocument()
     })
 
-    // Should show connection form instead of leagues
-    expect(screen.getByTestId('league-connection')).toBeInTheDocument()
-    expect(screen.queryByText('Connected Leagues')).not.toBeInTheDocument()
+    await userEvent.click(
+      screen.getByRole('button', { name: /refresh projections/i }),
+    )
 
-    consoleSpy.mockRestore()
+    await waitFor(() => {
+      expect(screen.getByText('Failed: FanGraphs API error')).toBeInTheDocument()
+    })
   })
 
-  it('should show connection form when no leagues exist', async () => {
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => [],
-    })
+  it('does not offer a refresh while the backend is unreachable', async () => {
+    mockGetStatsSummary.mockRejectedValue(new Error('fetch failed'))
 
-    render(<HomePage />)
+    render(<Dashboard />)
 
-    // Switch to leagues tab
-    const leaguesTab = screen.getByRole('button', { name: /league integration/i })
-    await userEvent.click(leaguesTab)
-
-    // Should show connection form
-    expect(screen.getByTestId('league-connection')).toBeInTheDocument()
-    expect(screen.queryByText('Connected Leagues')).not.toBeInTheDocument()
-  })
-
-  it('should allow selecting a league and viewing its roster', async () => {
-    const mockLeagues = [
-      {
-        id: 'espn_123456_2025',
-        name: 'Test League',
-        platform: 'ESPN',
-        season: '2025',
-        teamCount: 10,
-        isActive: true,
-        lastSyncAt: '2025-01-01T00:00:00Z',
-      },
-    ]
-
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockLeagues,
-    })
-
-    render(<HomePage />)
-
-    // Switch to leagues tab
-    const leaguesTab = screen.getByRole('button', { name: /league integration/i })
-    await userEvent.click(leaguesTab)
-
-    // Wait for leagues to load
     await waitFor(() => {
-      expect(screen.getByText('Test League')).toBeInTheDocument()
+      expect(screen.getByText('Backend not connected')).toBeInTheDocument()
     })
-
-    // Click on the league
-    const leagueButton = screen.getByText('Test League')
-    await userEvent.click(leagueButton)
-
-    // Should show league roster
-    expect(screen.getByTestId('league-roster')).toBeInTheDocument()
-    expect(screen.getByText('League Roster for Test League')).toBeInTheDocument()
-
-    // Should be able to go back
-    const backButton = screen.getByText('Back')
-    await userEvent.click(backButton)
-
-    // Should show leagues list again
-    expect(screen.getByText('Connected Leagues')).toBeInTheDocument()
-  })
-
-  it('should handle connecting a new league and add it to the list', async () => {
-    const mockLeagues = [
-      {
-        id: 'espn_123456_2025',
-        name: 'Existing League',
-        platform: 'ESPN',
-        season: '2025',
-        teamCount: 10,
-        isActive: true,
-        lastSyncAt: '2025-01-01T00:00:00Z',
-      },
-    ]
-
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockLeagues,
-    })
-
-    render(<HomePage />)
-
-    // Switch to leagues tab
-    const leaguesTab = screen.getByRole('button', { name: /league integration/i })
-    await userEvent.click(leaguesTab)
-
-    // Wait for leagues to load
-    await waitFor(() => {
-      expect(screen.getByText('Existing League')).toBeInTheDocument()
-    })
-
-    // Connect a new league
-    const connectButton = screen.getByText('Connect League')
-    await userEvent.click(connectButton)
-
-    // Should now show both leagues
-    expect(screen.getByText('Existing League')).toBeInTheDocument()
-    expect(screen.getByText('New League')).toBeInTheDocument()
-  })
-
-  it('should highlight selected league', async () => {
-    const mockLeagues = [
-      {
-        id: 'espn_123456_2025',
-        name: 'Test League',
-        platform: 'ESPN',
-        season: '2025',
-        teamCount: 10,
-        isActive: true,
-        lastSyncAt: '2025-01-01T00:00:00Z',
-      },
-    ]
-
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockLeagues,
-    })
-
-    render(<HomePage />)
-
-    // Switch to leagues tab
-    const leaguesTab = screen.getByRole('button', { name: /league integration/i })
-    await userEvent.click(leaguesTab)
-
-    // Wait for leagues to load
-    await waitFor(() => {
-      expect(screen.getByText('Test League')).toBeInTheDocument()
-    })
-
-    // Click on the league
-    const leagueButton = screen.getByText('Test League').closest('button')
-    await userEvent.click(leagueButton!)
-
-    // Should have selected styling
-    expect(leagueButton).toHaveClass('border-blue-500', 'bg-blue-50')
+    expect(
+      screen.queryByRole('button', { name: /refresh projections/i }),
+    ).not.toBeInTheDocument()
   })
 })

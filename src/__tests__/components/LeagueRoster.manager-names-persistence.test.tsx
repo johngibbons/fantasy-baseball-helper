@@ -1,8 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import LeagueRoster from '../../components/LeagueRoster'
+import { installFetchMock } from '../../test-utils/fetch-mock'
 
 // Mock fetch
-global.fetch = jest.fn()
+const mockFetch = jest.fn()
+installFetchMock(mockFetch)
 
 const mockLeague = {
   id: 'espn_123456_2025',
@@ -42,7 +44,7 @@ describe('LeagueRoster - Manager Names from Real Data', () => {
       ]
     }
 
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
+    ;mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockApiResponse
     })
@@ -97,7 +99,7 @@ describe('LeagueRoster - Manager Names from Real Data', () => {
       ]
     }
 
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
+    ;mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockApiResponse
     })
@@ -144,7 +146,7 @@ describe('LeagueRoster - Manager Names from Real Data', () => {
       ]
     }
 
-    ;(fetch as jest.Mock).mockResolvedValueOnce({
+    ;mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => mockApiResponse
     })

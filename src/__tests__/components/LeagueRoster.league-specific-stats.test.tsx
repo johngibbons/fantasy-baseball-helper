@@ -4,10 +4,11 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import LeagueRoster from '../../components/LeagueRoster'
+import { installFetchMock } from '../../test-utils/fetch-mock'
 
 // Mock fetch globally
 const mockFetch = jest.fn()
-global.fetch = mockFetch
+installFetchMock(mockFetch)
 
 describe('LeagueRoster League-Specific Stats Display', () => {
   beforeEach(() => {
@@ -98,7 +99,7 @@ describe('LeagueRoster League-Specific Stats Display', () => {
           { statId: 21, points: 1, isReverseItem: false }, // RBI
           { statId: 23, points: 1, isReverseItem: false }, // Stolen Bases
           { statId: 8, points: 1, isReverseItem: false },  // Walks (hitters)
-          { statId: 17, points: 1, isReverseItem: false }, // Total Bases (corrected)
+          { statId: 17, points: 1, isReverseItem: false }, // On-base percentage
           { statId: 47, points: 1, isReverseItem: true },  // ERA (lower is better)
           { statId: 41, points: 1, isReverseItem: true },  // WHIP (lower is better)
           { statId: 63, points: 1, isReverseItem: false }, // Wins
@@ -133,11 +134,10 @@ describe('LeagueRoster League-Specific Stats Display', () => {
   }
 
   it('should display only stats that are scored in category leagues', async () => {
+    installFetchMock(mockFetch, {
+      '/settings': { json: { scoringSettings: mockLeagueWithCategoryScoring.settings.scoringSettings } },
+    })
     mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ scoringSettings: mockLeagueWithCategoryScoring.settings.scoringSettings })
-      })
       .mockResolvedValueOnce({
         ok: true,
         json: async () => mockTeamsResponse
@@ -169,8 +169,12 @@ describe('LeagueRoster League-Specific Stats Display', () => {
     expect(screen.getByText('SB')).toBeInTheDocument() // SB label
     expect(screen.getByText('80')).toBeInTheDocument() // Walks
     expect(screen.getByText('BB')).toBeInTheDocument() // Walks label
-    expect(screen.getByText('234')).toBeInTheDocument() // Total Bases
-    expect(screen.getByText('TB')).toBeInTheDocument() // TB label
+    // ESPN stat 17 is on-base percentage, not total bases — the component's
+    // statIdToFieldMap is the authority here. Total bases is a calculated
+    // field with a synthetic id (999) that never appears in ESPN's settings,
+    // so it cannot be exercised through a scoring-items fixture.
+    expect(screen.getByText('0.365')).toBeInTheDocument() // OBP
+    expect(screen.getByText('OBP')).toBeInTheDocument() // OBP label
 
     // Should NOT show HR since it's not in the scoring settings
     expect(screen.queryByText('HR')).not.toBeInTheDocument()
@@ -188,11 +192,10 @@ describe('LeagueRoster League-Specific Stats Display', () => {
   })
 
   it('should display point values for stats in points leagues', async () => {
+    installFetchMock(mockFetch, {
+      '/settings': { json: { scoringSettings: mockLeagueWithPointsScoring.settings.scoringSettings } },
+    })
     mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ scoringSettings: mockLeagueWithPointsScoring.settings.scoringSettings })
-      })
       .mockResolvedValueOnce({
         ok: true,
         json: async () => mockTeamsResponse
@@ -237,11 +240,10 @@ describe('LeagueRoster League-Specific Stats Display', () => {
       // No settings property
     }
 
+    installFetchMock(mockFetch, {
+      '/settings': { json: { scoringSettings: null } },
+    })
     mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ scoringSettings: null })
-      })
       .mockResolvedValueOnce({
         ok: true,
         json: async () => mockTeamsResponse
@@ -274,11 +276,10 @@ describe('LeagueRoster League-Specific Stats Display', () => {
     // Category leagues should show more stats (up to 5-6 categories)
     // Points leagues should show fewer, high-impact stats (3-4 stats)
     
+    installFetchMock(mockFetch, {
+      '/settings': { json: { scoringSettings: mockLeagueWithCategoryScoring.settings.scoringSettings } },
+    })
     mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ scoringSettings: mockLeagueWithCategoryScoring.settings.scoringSettings })
-      })
       .mockResolvedValueOnce({
         ok: true,
         json: async () => mockTeamsResponse

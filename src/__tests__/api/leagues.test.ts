@@ -93,8 +93,12 @@ describe('/api/leagues', () => {
       const response = await GET()
       const data = await response.json()
 
-      expect(response.status).toBe(500)
-      expect(data).toEqual({ error: 'Failed to fetch leagues' })
+      // The route deliberately answers 200 with an empty list rather than 500:
+      // the client falls back to teams held in localStorage, which is more
+      // useful than an error page when the database is briefly unreachable.
+      // See the comment in src/app/api/leagues/route.ts.
+      expect(response.status).toBe(200)
+      expect(data).toEqual([])
     })
 
     it('should only return active leagues', async () => {

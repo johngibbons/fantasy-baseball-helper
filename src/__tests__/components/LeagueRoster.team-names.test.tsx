@@ -1,9 +1,10 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import LeagueRoster from '../../components/LeagueRoster'
+import { installFetchMock } from '../../test-utils/fetch-mock'
 
 // Mock fetch for team data
 const mockFetch = jest.fn()
-global.fetch = mockFetch
+installFetchMock(mockFetch)
 
 describe('LeagueRoster - Team Names', () => {
   const mockLeague = {

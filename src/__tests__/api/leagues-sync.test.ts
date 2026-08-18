@@ -31,6 +31,17 @@ jest.mock('../../lib/prisma', () => ({
 
 jest.mock('../../lib/espn-api')
 
+// The sync route enriches ESPN rosters with MLB Stats API data. Left unmocked,
+// those lookups hit the network and fail with an undefined response, which the
+// route swallows — so the counts under test come back as zero.
+jest.mock('../../lib/mlb-stats-api', () => ({
+  MLBStatsApi: {
+    findPlayerByName: jest.fn(),
+    getPlayerPitchingStats: jest.fn(),
+    getPlayerBattingStats: jest.fn(),
+  },
+}))
+
 const mockPrisma = prisma as any
 const mockESPNApi = ESPNApi as jest.Mocked<typeof ESPNApi>
 
@@ -103,8 +114,8 @@ describe('/api/leagues/[leagueId]/sync', () => {
 
     expect(response.status).toBe(200)
     expect(data.success).toBe(true)
-    expect(data.playersProcessed).toBe(1)
-    expect(data.rostersProcessed).toBe(1)
+    expect(data.stats.playersProcessed).toBe(1)
+    expect(data.stats.rostersProcessed).toBe(1)
 
     // Verify ESPN API was called correctly
     expect(mockESPNApi.getRosters).toHaveBeenCalledWith(
@@ -113,14 +124,17 @@ describe('/api/leagues/[leagueId]/sync', () => {
       { swid: 'test_swid', espn_s2: 'test_espn_s2' }
     )
 
-    // Verify player was created
+    // defaultPositionId 5 maps to OF, but the route refines that using
+    // eligibleSlots — [0, 5] contains a position slot, so it takes the first
+    // one found (0 = C). The eligibleSlots refinement is deliberate and takes
+    // precedence over defaultPositionId.
     expect(mockPrisma.player.upsert).toHaveBeenCalledWith({
       where: { id: 12345 },
       update: {
         fullName: 'Mike Trout',
         firstName: 'Mike',
         lastName: 'Trout',
-        primaryPosition: 'OF',
+        primaryPosition: 'C',
         active: true
       },
       create: {
@@ -128,7 +142,7 @@ describe('/api/leagues/[leagueId]/sync', () => {
         fullName: 'Mike Trout',
         firstName: 'Mike',
         lastName: 'Trout',
-        primaryPosition: 'OF',
+        primaryPosition: 'C',
         active: true
       }
     })
@@ -242,8 +256,8 @@ describe('/api/leagues/[leagueId]/sync', () => {
 
     expect(response.status).toBe(200)
     expect(data.success).toBe(true)
-    expect(data.playersProcessed).toBe(0) // No players processed due to missing data
-    expect(data.rostersProcessed).toBe(1) // But roster was still processed
+    expect(data.stats.playersProcessed).toBe(0) // No players processed due to missing data
+    expect(data.stats.rostersProcessed).toBe(1) // But roster was still processed
 
     // Verify player upsert was not called
     expect(mockPrisma.player.upsert).not.toHaveBeenCalled()

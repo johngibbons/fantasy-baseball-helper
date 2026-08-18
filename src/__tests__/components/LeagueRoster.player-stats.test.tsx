@@ -4,10 +4,11 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import LeagueRoster from '../../components/LeagueRoster'
+import { installFetchMock } from '../../test-utils/fetch-mock'
 
 // Mock fetch globally
 const mockFetch = jest.fn()
-global.fetch = mockFetch
+installFetchMock(mockFetch)
 
 describe('LeagueRoster Player Stats Display', () => {
   beforeEach(() => {

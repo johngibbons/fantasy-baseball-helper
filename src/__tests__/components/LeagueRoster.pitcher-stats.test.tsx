@@ -4,10 +4,11 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import LeagueRoster from '../../components/LeagueRoster'
+import { installFetchMock } from '../../test-utils/fetch-mock'
 
 // Mock fetch globally
 const mockFetch = jest.fn()
-global.fetch = mockFetch
+installFetchMock(mockFetch)
 
 describe('LeagueRoster Pitcher Stats Display', () => {
   beforeEach(() => {
@@ -158,7 +159,9 @@ describe('LeagueRoster Pitcher Stats Display', () => {
     expect(screen.getByText('11')).toBeInTheDocument() // Wins
     expect(screen.getAllByText('W').length).toBeGreaterThanOrEqual(1) // Wins label
     expect(screen.getByText('113')).toBeInTheDocument() // Strikeouts
-    expect(screen.getByText('K')).toBeInTheDocument() // Strikeouts label (only for SP)
+    // Both pitchers on this roster render a K label, so match the same way
+    // the W assertion above does.
+    expect(screen.getAllByText('K').length).toBeGreaterThanOrEqual(1)
 
     // Should NOT show hitting stats labels for pitchers
     expect(screen.queryByText('HR')).not.toBeInTheDocument()
@@ -168,6 +171,30 @@ describe('LeagueRoster Pitcher Stats Display', () => {
   })
 
   it('should display relief pitcher stats correctly', async () => {
+    // Saves only render when the league actually scores them — the default
+    // pitcher stat set is ERA/WHIP/W/K. So this test supplies a league whose
+    // categories include saves (ESPN stat 83), which is what makes SV appear.
+    const leagueScoringSaves = {
+      ...mockLeague,
+      settings: {
+        scoringSettings: {
+          scoringType: 'H2H_CATEGORY',
+          scoringItems: [
+            { statId: 47, points: 1, isReverseItem: true },  // ERA
+            { statId: 41, points: 1, isReverseItem: true },  // WHIP
+            { statId: 48, points: 1, isReverseItem: false }, // K
+            { statId: 53, points: 1, isReverseItem: false }, // W
+            { statId: 83, points: 1, isReverseItem: false }, // SV
+          ],
+        },
+      },
+    }
+
+    installFetchMock(mockFetch, {
+      '/settings': {
+        json: { scoringSettings: leagueScoringSaves.settings.scoringSettings },
+      },
+    })
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
@@ -178,7 +205,7 @@ describe('LeagueRoster Pitcher Stats Display', () => {
         json: async () => mockRosterWithPitcher
       })
 
-    render(<LeagueRoster league={mockLeague} />)
+    render(<LeagueRoster league={leagueScoringSaves} />)
 
     await waitFor(() => {
       expect(screen.getByText('Test Team 1')).toBeInTheDocument()
@@ -191,10 +218,11 @@ describe('LeagueRoster Pitcher Stats Display', () => {
     })
 
     // Check relief pitcher specific stats
-    expect(screen.getByText('15')).toBeInTheDocument() // Saves
-    expect(screen.getByText('SV')).toBeInTheDocument() // Saves label (only for RP)
+    expect(screen.getByText('15')).toBeInTheDocument() // Saves — Tyler Rogers
+    // Every pitcher on the roster renders an SV label once the league scores it.
+    expect(screen.getAllByText('SV').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('3.25')).toBeInTheDocument() // ERA
-    expect(screen.getByText('3')).toBeInTheDocument() // Wins (should be 3 for Tyler Rogers)
+    expect(screen.getByText('3')).toBeInTheDocument() // Wins — Tyler Rogers
   })
 
   it('should handle pitchers without stats gracefully', async () => {
@@ -211,11 +239,10 @@ describe('LeagueRoster Pitcher Stats Display', () => {
       ]
     }
 
+    installFetchMock(mockFetch, {
+      '/settings': { json: { scoringSettings: null } },
+    })
     mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ scoringSettings: null })
-      })
       .mockResolvedValueOnce({
         ok: true,
         json: async () => mockTeamsResponse

@@ -1,10 +1,18 @@
 /**
  * @jest-environment node
+ *
+ * Stats no longer come from the numeric keys embedded in ESPN's roster
+ * payload. Commit 76845c1 moved the sync to a hybrid approach: ESPN supplies
+ * the roster, the MLB Stats API supplies the statistics, because ESPN's
+ * numbers were unreliable for saves, holds and quality starts. These tests
+ * were asserting the replaced mapping, so they now cover what the route
+ * actually persists.
  */
 import { NextRequest } from 'next/server'
 import { POST } from '../../app/api/leagues/[leagueId]/sync/route'
 import { prisma } from '../../lib/prisma'
 import { ESPNApi } from '../../lib/espn-api'
+import { MLBStatsApi } from '../../lib/mlb-stats-api'
 
 // Mock dependencies
 jest.mock('../../lib/prisma', () => ({
@@ -31,8 +39,17 @@ jest.mock('../../lib/prisma', () => ({
 
 jest.mock('../../lib/espn-api')
 
+jest.mock('../../lib/mlb-stats-api', () => ({
+  MLBStatsApi: {
+    findPlayerByName: jest.fn(),
+    getPlayerPitchingStats: jest.fn(),
+    getPlayerBattingStats: jest.fn(),
+  },
+}))
+
 const mockPrisma = prisma as any
 const mockESPNApi = ESPNApi as jest.Mocked<typeof ESPNApi>
+const mockMLB = MLBStatsApi as jest.Mocked<typeof MLBStatsApi>
 
 describe('ESPN Stats Mapping in Sync Process', () => {
   beforeEach(() => {
@@ -51,7 +68,7 @@ describe('ESPN Stats Mapping in Sync Process', () => {
     { id: 'team-1', externalId: '1', name: 'Team 1' }
   ]
 
-  it('should correctly map ESPN stats format to database format', async () => {
+  it('should persist batting stats sourced from the MLB Stats API', async () => {
     const mockRosterWithESPNStats = {
       1: [{
         playerId: 12345,
@@ -88,6 +105,20 @@ describe('ESPN Stats Mapping in Sync Process', () => {
         }
       }]
     }
+
+    // The route looks the player up in the MLB Stats API and takes the
+    // statistics from there; the numbers embedded in the ESPN payload above
+    // are ignored.
+    mockMLB.findPlayerByName.mockResolvedValue({
+      id: 545361, fullName: 'Mike Trout',
+    } as any)
+    mockMLB.getPlayerPitchingStats.mockResolvedValue(null as any)
+    mockMLB.getPlayerBattingStats.mockResolvedValue({
+      atBats: 450, runs: 85, hits: 140, doubles: 28, triples: 3,
+      homeRuns: 35, rbi: 95, stolenBases: 20, baseOnBalls: 65,
+      strikeOuts: 110, battingAverage: 0.311, onBasePercentage: 0.395,
+      sluggingPercentage: 0.585, totalBases: 274,
+    } as any)
 
     // Setup mocks
     mockPrisma.league.findUnique.mockResolvedValue(mockLeague as any)
@@ -156,7 +187,7 @@ describe('ESPN Stats Mapping in Sync Process', () => {
     })
   })
 
-  it('should handle missing or null stat values gracefully', async () => {
+  it('should store zeroes when the player is not found in the MLB Stats API', async () => {
     const mockRosterWithPartialStats = {
       1: [{
         playerId: 12345,
@@ -186,6 +217,11 @@ describe('ESPN Stats Mapping in Sync Process', () => {
       }]
     }
 
+    // Nobody by this name in the MLB Stats API, so no statistics are found.
+    mockMLB.findPlayerByName.mockResolvedValue(null as any)
+    mockMLB.getPlayerPitchingStats.mockResolvedValue(null as any)
+    mockMLB.getPlayerBattingStats.mockResolvedValue(null as any)
+
     mockPrisma.league.findUnique.mockResolvedValue(mockLeague as any)
     mockPrisma.team.findMany.mockResolvedValue(mockTeams as any)
     mockESPNApi.getRosters.mockResolvedValue(mockRosterWithPartialStats)
@@ -209,7 +245,13 @@ describe('ESPN Stats Mapping in Sync Process', () => {
 
     expect(response.status).toBe(200)
 
-    // Verify missing stats default to 0
+    // With no MLB match, every statistic is stored as zero rather than
+    // falling back to the numbers ESPN embedded in the roster payload.
+    const zeroed = {
+      atBats: 0, runs: 0, hits: 0, doubles: 0, triples: 0, homeRuns: 0,
+      rbi: 0, stolenBases: 0, baseOnBalls: 0, strikeOuts: 0,
+      battingAverage: 0, onBasePercentage: 0, sluggingPercentage: 0,
+    }
     expect(mockPrisma.playerStats.upsert).toHaveBeenCalledWith({
       where: {
         playerId_season: {
@@ -217,25 +259,11 @@ describe('ESPN Stats Mapping in Sync Process', () => {
           season: '2024'
         }
       },
-      update: expect.objectContaining({
-        homeRuns: 2,
-        rbi: 8,
-        atBats: 50,        // Should use provided value
-        runs: 0,           // Should default to 0
-        hits: 15,          // Should use provided value
-        battingAverage: 0, // Should default to 0
-        stolenBases: 0     // Should default to 0
-      }),
+      update: expect.objectContaining(zeroed),
       create: expect.objectContaining({
         playerId: 12345,
         season: '2024',
-        homeRuns: 2,
-        rbi: 8,
-        atBats: 50,
-        runs: 0,
-        hits: 15,
-        battingAverage: 0,
-        stolenBases: 0
+        ...zeroed,
       })
     })
   })
