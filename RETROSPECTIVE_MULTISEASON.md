@@ -1,7 +1,7 @@
 # Multi-Season Backtest: Keeper Outcomes, 2016–2025
 
-**Status:** Phases 0–3 complete. Phases 4–6 (value-at-pick curve, ADP
-replication, regenerated projections) are unblocked but not run.
+**Status:** Phases 0–4 complete. Phases 5–6 (ADP replication, regenerated
+projections) are unblocked but not run.
 **Plan:** `docs/superpowers/plans/2026-08-17-multi-season-backtest.md`
 **Builds on:** `RETROSPECTIVE_2026.md`
 
@@ -19,22 +19,40 @@ seasons takes the sample to **360 decisions**, and the result holds:
 | | 2026 alone | 2016–2025 |
 |---|---|---|
 | Keeper decisions | 40 | **360** |
-| Beat what their round returned | 70% | **72.5%** (95% CI 68.1–76.9) |
-| Control: ordinary picks beating their round | not measured | **50.1%** (n=1,848) |
+| Beat what their round returned | 70% | **73.3%** (95% CI 68.9–77.8) |
+| Control: ordinary picks beating their round | not measured | **51.9%** (n=1,848) |
 
 The control is what makes the headline readable. Value within a round is
 right-skewed, so an ordinary pick clears its round's mean about half the time.
-Keepers clear it 72.5% of the time — **22 points above the null, far outside the
-confidence interval.** Keeping is a real edge, worth **+2.86 SGP per decision**
-(CI +2.36 to +3.36) over letting the player go and drafting that round normally.
+Keepers clear it 73.3% of the time — **21 points above the null, far outside the
+confidence interval.** Keeping is a real edge, worth **+2.33 SGP per decision**
+(CI +1.93 to +2.75) over letting the player go and drafting that round normally.
 
-Three secondary results, all with the sample to support them:
+Phase 4 adds the answer the keeper model actually needs:
 
-1. **Surplus does not vary with round cost.** Slope +0.048 SGP per round, CI
-   [−0.013, +0.107] — flat. The round-cost model is not mispriced at either end.
-2. **Multi-season keepers hold up.** Year 3 keepers beat their round 74.3% of
-   the time at a mean cost of round 7.8, against 73.5% for year 1 at round 15.6.
-   Paying five rounds more per season neither gains nor loses ground.
+**`expectedValueAtRound` overestimates every round, by about 2.2 SGP.** Its
+rank-linear assumption — round R is worth the player ranked R×10 — is a fine
+description of a sorted board, but "what round R returns" is not "the R×10-th
+best player". It is about 2 SGP worse, because drafting does not sort players
+correctly. Since the app computes keeper surplus as *player value minus
+`expectedValueAtRound`*, an inflated baseline means **the app understates every
+keeper surplus** — which is the same direction as the Phase 3 finding that
+keeping wins far more often than it loses.
+
+The curve is stable enough to replace it with: a fitted logarithmic curve,
+`value ≈ 2.37 − 1.68 × ln(round)`.
+
+Three more results, all with the sample to support them:
+
+1. **Value above replacement is a league constant.** Between 134 and 142
+   players cleared replacement in *every* season from 2010 to 2025, while the
+   league rosters 250. 2026's 139 sits mid-range. The 2026 retrospective's
+   "44% of rostered spots hold below-replacement players" holds at 44.7%
+   (range 43.2–46.4, sd 0.9).
+2. **Multi-season keepers hold up.** Year 3 keepers beat their round 77.1% of
+   the time at a mean cost of round 7.8, against 74.5% for year 1 at round
+   15.6, with essentially identical surplus. Paying five rounds more per season
+   neither gains nor loses ground.
 3. **`KEEPER_HISTORY` in `src/lib/draft-history.ts` is wrong**, in 29 field
    disagreements and 22 fabricated 2026 rows. Where the league's own keeper
    doctrine can adjudicate, the workbook obeys it 12 times and the curated file
@@ -62,8 +80,8 @@ uses the non-keeper one.
 projections do either, so *"did the model say keep?"* cannot be asked of these
 seasons. The `prior_*` fields in the artifact are a decision-time baseline — the
 player's production the previous season, which is what every manager actually
-had in February. That baseline's sign agreed with the outcome **68.9%** of the
-time (CI 64.4–73.6). It is **not** the app's board and must not be reported as
+had in February. That baseline's sign agreed with the outcome **71.7%** of the
+time (CI 67.2–76.1). It is **not** the app's board and must not be reported as
 one.
 
 ---
@@ -79,66 +97,184 @@ picks formed each comparison:
 
 | Comparison baseline | n | Beat rate | Mean surplus |
 |---|---|---|---|
-| < 5 non-keeper picks | 79 | 72.2% | +2.50 |
-| ≥ 5 non-keeper picks | 281 | 72.6% | +2.96 |
+| < 5 non-keeper picks | 79 | 70.9% | +2.00 |
+| ≥ 5 non-keeper picks | 281 | 74.0% | +2.43 |
 
-Identical. The headline does not depend on the thin rounds.
+Close enough that the headline does not rest on the thin rounds.
 
 ### Season to season
 
 | Season | Keepers | Beat rate |
 |---|---|---|
 | 2016 | 40 | 70.0% |
-| 2017 | 40 | 77.5% |
+| 2017 | 40 | **82.5%** |
 | 2018 | 40 | 67.5% |
 | 2019 | 40 | 77.5% |
-| 2020 | 40 | **57.5%** |
+| 2020 | 40 | **60.0%** |
 | 2022 | 40 | 70.0% |
-| 2023 | 40 | **80.0%** |
-| 2024 | 40 | 75.0% |
+| 2023 | 40 | 77.5% |
+| 2024 | 40 | 77.5% |
 | 2025 | 40 | 77.5% |
 
-Seven of nine land between 67.5% and 77.5%. The two outliers are 2020 — the
-60-game COVID season, where small samples make every projection worse — and
-2023. On n=40 per season, that spread is what the 2026 confidence interval
-predicted; it is the reason a single season could not answer this question.
+Eight of nine land between 67.5% and 82.5%. The low outlier is 2020 — the
+60-game COVID season, where small samples make every projection worse. On n=40
+per season, that spread is what the 2026 confidence interval predicted; it is
+the reason a single season could not answer this question.
 
 ### Keeping longer keeps working
 
 | Seasons kept | n | Mean round cost | Mean surplus | 95% CI | Beat rate |
 |---|---|---|---|---|---|
-| 1 | 204 | 15.6 | +2.95 | +2.30 to +3.58 | 73.5% |
-| 2 | 74 | 12.8 | +2.79 | +1.65 to +3.98 | 73.0% |
-| 3 | 35 | 7.8 | +3.27 | +1.70 to +4.87 | 74.3% |
+| 1 | 204 | 15.6 | +2.41 | +1.88 to +2.93 | 74.5% |
+| 2 | 74 | 12.8 | +2.40 | +1.53 to +3.35 | 73.0% |
+| 3 | 35 | 7.8 | +2.46 | +1.16 to +3.75 | 77.1% |
 
 The cost escalation is doing its job. A year-3 keeper costs roughly eight rounds
-more than a year-1 keeper and returns the same surplus within the confidence
-intervals, which says the five-rounds-per-season rule is priced about right
-rather than generous. There is no decay to correct for.
+more than a year-1 keeper and returns the same surplus to within a hundredth of
+an SGP, which says the five-rounds-per-season rule is priced about right rather
+than generous. There is no decay to correct for.
+
+### Surplus barely varies with round cost, and that result is pool-sensitive
+
+Regressing realized surplus on round cost gives a slope of **+0.057 SGP per
+round** (CI +0.006 to +0.109, R² 0.013). Read literally, the interval excludes
+zero and cheap late-round keepers are slightly better value than expensive
+early ones.
+
+It should not be read literally. The same regression over the narrower
+drafted-only pool gives +0.048 with a CI of [−0.013, +0.107] — flat. A finding
+that changes significance between two defensible pool definitions is not a
+finding, and the magnitude settles it either way: +0.057 across the 24 rounds
+of spread is 1.4 SGP, against keeper surpluses that range over 25 SGP.
+**Reported as no effect**, with the sensitivity noted because it would be easy
+to rediscover and over-read.
 
 ### Best and worst decisions
 
 | | Season | Cost | Surplus |
 |---|---|---|---|
-| Shane Bieber (Harris Cook) | 2020 | R12, yr 1 | **+17.05** |
-| Cody Bellinger (Harris Cook) | 2019 | R18, yr 2 | +15.24 |
-| Charlie Blackmon (John Gibbons) | 2017 | R10, yr 3 | +14.64 |
-| Gunnar Henderson (Tim Riker) | 2024 | R20, yr 2 | +14.48 |
+| Gunnar Henderson (Tim Riker) | 2024 | R20, yr 2 | **+13.13** |
+| Charlie Blackmon (John Gibbons) | 2017 | R10, yr 3 | +12.83 |
+| Cody Bellinger (Harris Cook) | 2019 | R18, yr 2 | +12.32 |
+| James Wood (Matt Wayne) | 2025 | R25, yr 1 | +11.36 |
 | … | | | |
-| Alek Manoah (David Rotatori) | 2023 | R19, yr 2 | −9.28 |
-| Ronald Acuña (Jason McComb) | 2024 | R1, yr 1 | **−12.21** |
+| José Miranda (Jason McComb) | 2023 | R25, yr 1 | −9.07 |
+| Ronald Acuña (Jason McComb) | 2024 | R1, yr 1 | **−11.79** |
 
 ### Managers look different, but not measurably so
 
-Mean surplus per manager runs from John Gibbons at +3.95 to Jason McComb at
-+0.82 — a spread that looks like a story and is not one. Every manager's
-confidence interval overlaps the next, and the extremes overlap too (Gibbons
-+2.26 to +5.59; McComb −0.80 to +2.31). On 28–36 decisions each, **this is
-noise, and is reported as no finding.**
+Mean surplus per manager runs from John Gibbons at +3.30 to Jason McComb at
++0.83 — a spread that looks like a story. Every manager's interval overlaps its
+neighbours, and the two extremes separate only on a knife edge (Gibbons's floor
++2.10 against McComb's ceiling +2.04). That margin also flips sign depending on
+which player pool the board is built over.
 
-That is the opposite of the ADP reach/wait result in `RETROSPECTIVE_2026.md`,
-which was a 46-pick spread measured over hundreds of picks. Keeper skill, if it
-exists here, is smaller than this sample can see.
+**Reported as no finding.** A gap that survives only at the third decimal place
+and reverses under a defensible change of pool is noise. On 28–36 decisions per
+manager this sample cannot see keeper skill even if it exists — unlike the ADP
+reach/wait result in `RETROSPECTIVE_2026.md`, which was a 46-pick spread over
+hundreds of picks.
+
+---
+
+## Phase 4 — the value-at-pick curve
+
+### The curve is stable enough to fit
+
+Every keeper surplus the app shows depends on `expectedValueAtRound` in
+`src/app/keepers/page.tsx`. Whether that can be replaced by a fitted empirical
+curve comes down to one question: do seasons agree with each other more closely
+than picks within a round vary?
+
+| | SGP |
+|---|---|
+| Between-season spread of a round's mean (mean over rounds) | **1.31** |
+| Within-round spread of individual picks (mean over rounds) | **3.25** |
+| Ratio | **0.41** |
+
+They do, by a factor of about 2.5. The curve is a real signal sitting inside
+pick-level noise, not an artifact redrawn each year. The worst round is 25
+(between-season sd 2.18), which is also the shallowest.
+
+The caveat is that seasons agree on the *level* better than on the fine
+ordering: pairwise Spearman between season curves averages **+0.53** (range
++0.05 to +0.85 over 91 pairs). Rounds 8–20 are close enough together that their
+year-to-year ordering shuffles. That argues for fitting a smooth curve rather
+than using a per-round lookup table.
+
+### The shape is logarithmic
+
+| Shape | RMSE against the pooled curve |
+|---|---|
+| **Logarithmic** | **0.221** |
+| Quadratic | 0.335 |
+| Linear | 0.564 |
+
+`value ≈ 2.37 − 1.68 × ln(round)`, and the shapes are separable (RMSE spread
+0.34). Steep early, flattening late — the shape a value curve is usually
+assumed to have, now measured rather than assumed.
+
+### `expectedValueAtRound` is biased high at every round
+
+The rank-linear assumption evaluated against what rounds actually returned:
+
+| Round | Pooled actual | Rank-linear error |
+|---|---|---|
+| 1 | +2.47 | **+3.19** |
+| 5 | −0.32 | +2.83 |
+| 10 | −1.62 | +2.55 |
+| 15 | −2.77 | +2.61 |
+| 20 | −2.35 | +1.32 |
+| 25 | −3.19 | +1.45 |
+
+The error is positive at **every** round, averaging **+2.2 SGP** and largest
+early. The assumption is not badly shaped — it is uniformly too high.
+
+The reason is worth stating, because it is not a modelling error. "The player
+ranked R×10" and "what round R returns" are different things: the first assumes
+the draft sorts players correctly, and it does not. The gap between them *is*
+the cost of collective drafting error, and it is about 2 SGP per pick.
+
+For keeper decisions only the second matters, and the app currently uses the
+first. Because surplus is *player value minus `expectedValueAtRound`*, the
+inflated baseline means the app **understates keeper surplus across the board** —
+consistent with keepers beating their round 73% of the time.
+
+**One caveat, and it is important.** The app applies rank-linear to *projected*
+values; this measures it on *realized* ones. The 2026 retrospective found the
+assumption holds within ~0.5 SGP in board terms for the first eight rounds, so
+the shape is not the problem — the level is. That is the same conclusion from
+the other direction, but the +2.2 SGP figure is a realized-value quantity and
+should not be pasted into the app as a constant without re-deriving it on the
+board the app actually builds.
+
+### Value above replacement is a league constant
+
+| Season | Pool | Above replacement | Rostered spots below replacement |
+|---|---|---|---|
+| 2010 | 1,250 | 135 | 46.0% |
+| 2014 | 1,325 | 138 | 44.8% |
+| 2018 | 1,378 | 138 | 44.8% |
+| 2020 | 1,299 | 137 | 45.2% |
+| 2022 | 1,497 | 140 | 44.0% |
+| 2025 | 1,475 | 140 | 44.0% |
+| *2026 (retrospective)* | *1,358* | *139* | *44%* |
+
+Across fourteen seasons the count above replacement sits between **134 and
+142**, and the share of rostered spots holding below-replacement players is
+**44.7%** (range 43.2–46.4, sd 0.9). The pool itself grew by 20% over the
+period; the number of genuinely rosterable players did not move.
+
+So the 2026 finding is a league constant, not an artifact, and the strategic
+reading in `RETROSPECTIVE_2026.md` stands: the league rosters 250 players when
+fewer than 145 are worth rostering, so early picks are worth more than the
+board's spread suggests and late picks are close to lottery tickets.
+
+**Honesty about what is mechanical here.** Replacement level is defined by
+roster demand, which is fixed at ten teams and a fixed slot structure, so this
+number is anchored by construction and could not have landed anywhere. What is
+genuinely measured is that it does not drift — not with pool size, not across
+the pre- and post-universal-DH eras, not through the 60-game 2020 season.
 
 ---
 
@@ -273,13 +409,19 @@ Full detail in `keeper_history_crosscheck.json`, reproducible with
 # Phase 2 — backfill realized stats, quality starts derived from game logs
 .venv/bin/python -m backend.scripts.history_backfill_stats
 
-# Phase 3 — keeper outcomes
+# Phase 4 prerequisite — the FULL pool, not just draftees (two calls a season,
+# plus game logs for the ~370 pitchers a season who started a game)
+.venv/bin/python -m backend.scripts.history_backfill_pool
+
+# Phases 3 and 4
 .venv/bin/python -m backend.scripts.history_keepers
+.venv/bin/python -m backend.scripts.history_value_curve
 ```
 
-Artifacts land in `backend/data/fixtures/league_history/`. Phase 2 is the only
-slow step (~4,800 player-seasons) and the only one that needs the network for
-anything but the roster cache.
+Artifacts land in `backend/data/fixtures/league_history/`. The two backfills are
+the slow steps and the only ones needing the network beyond the roster cache.
+Every analysis step is deterministic and can be re-run to byte-identical output
+— which was not true until the hash-seed bug described below was fixed.
 
 ---
 
@@ -296,8 +438,8 @@ anything but the roster cache.
   the first backfill silently zeroed a pitcher's QS before the season was
   re-run — worth watching for, since a zero in one of four pitcher categories
   is invisible in aggregate.
-- **Realized value ≠ what a manager could have known.** The 72.5% says keeping
-  worked, not that it was predictable. The prior-season baseline at 68.9% is the
+- **Realized value ≠ what a manager could have known.** The 73.3% says keeping
+  worked, not that it was predictable. The prior-season baseline at 71.7% is the
   closest available answer to the predictability question, and it is a weak
   model.
 - **One league, ten teams.** Nine seasons of the same ten managers is not nine
@@ -307,11 +449,18 @@ anything but the roster cache.
 
 ## What is now unblocked
 
-Phases 4–6 need no new extraction. The value-at-pick curve is already computed
-and stored per season in `keeper_outcomes.json` (`value_curve` and
-`value_curve_excluding_keepers`), which is most of Phase 4. The ESPN top-300
-sheets for 2017, 2020, 2021, 2023, 2024, 2025 and 2026 are parsed into
-`rankings_YYYY.json` for Phase 5. Phase 6 remains the one carrying real risk,
-and the plan's warning stands: **a regenerated projection scoped to its own
-season produces a spectacular backtest that means nothing, and looks entirely
-normal.** Write the failing test first.
+**Phase 5** has the data but not the resolution. The ESPN top-300 sheets for
+2017, 2020, 2021, 2023, 2024, 2025 and 2026 are parsed into
+`rankings_YYYY.json`, but only draft and keeper names have been resolved to
+`mlb_id` — the ~2,000 ranking names are still raw strings. `resolve_season`
+takes any name list, so this is straightforward, but it is real work rather
+than none.
+
+**Phase 6** remains the one carrying real risk, and the plan's warning stands:
+**a regenerated projection scoped to its own season produces a spectacular
+backtest that means nothing, and looks entirely normal.** Write the failing
+test first.
+
+**Acting on Phase 4** is the nearer-term work. Replacing `expectedValueAtRound`
+with the fitted curve needs the +2.2 SGP bias re-derived on the projected board
+the app builds, not carried across from realized values — see the caveat above.

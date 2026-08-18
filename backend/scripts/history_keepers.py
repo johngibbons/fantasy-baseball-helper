@@ -37,6 +37,7 @@ from backend.analysis.history.keeper_backtest import (
 from backend.analysis.history.boards import (
     ALL_CATS,
     PITCHER_POSITIONS,
+    full_pool,
     load_identities,
     stat_coverage,
     value_board,
@@ -104,14 +105,17 @@ def analyse_season(conn, season: int, denominators: dict[str, float]) -> dict | 
     if not universe:
         return None
 
-    hitters = {i for i in universe if positions.get(i, "") not in PITCHER_POSITIONS}
-    pitchers = universe - hitters
-
-    identities = load_identities(conn, universe)
-    realized = value_board(conn, season, hitters, pitchers, identities, denominators)
+    # Valued over the full pool of rosterable players, the same board Phase 4
+    # uses, so replacement level sits where the app's board puts it rather than
+    # near the bottom of the 250 drafted.
+    pool_h, pool_p = full_pool(conn, season, universe)
+    prior_h, prior_p = full_pool(conn, season - 1, universe)
+    identities = load_identities(
+        conn, pool_h | pool_p | prior_h | prior_p | universe)
+    realized = value_board(conn, season, pool_h, pool_p, identities, denominators)
     # The decision-time baseline: what these same players did the season before,
     # valued identically. This is what a manager actually had in February.
-    prior = value_board(conn, season - 1, hitters, pitchers, identities, denominators)
+    prior = value_board(conn, season - 1, prior_h, prior_p, identities, denominators)
 
     # A season whose predecessor was never backfilled produces a board of
     # zeros, which looks like a real baseline and is not. 2021 and 2015 have no

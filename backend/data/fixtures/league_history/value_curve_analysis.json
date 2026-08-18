@@ -1,0 +1,6266 @@
+{
+  "by_season": [
+    {
+      "concentration": {
+        "above_replacement": 135,
+        "pool": 1250,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 115,
+        "share_of_pool_above_replacement": 0.108,
+        "share_of_rostered_spots_below_replacement": 0.46
+      },
+      "curve": [
+        {
+          "max_realized_value": 4.609,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.033,
+          "min_realized_value": -6.654,
+          "picks": 10,
+          "round": 1
+        },
+        {
+          "max_realized_value": 3.766,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.107,
+          "min_realized_value": -5.772,
+          "picks": 9,
+          "round": 2
+        },
+        {
+          "max_realized_value": 3.613,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.477,
+          "min_realized_value": -7.033,
+          "picks": 10,
+          "round": 3
+        },
+        {
+          "max_realized_value": 4.482,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.095,
+          "min_realized_value": -3.296,
+          "picks": 10,
+          "round": 4
+        },
+        {
+          "max_realized_value": 3.711,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.88,
+          "min_realized_value": -4.659,
+          "picks": 10,
+          "round": 5
+        },
+        {
+          "max_realized_value": 8.222,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.594,
+          "min_realized_value": -7.76,
+          "picks": 10,
+          "round": 6
+        },
+        {
+          "max_realized_value": 2.048,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.343,
+          "min_realized_value": -6.944,
+          "picks": 10,
+          "round": 7
+        },
+        {
+          "max_realized_value": 4.481,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.143,
+          "min_realized_value": -3.658,
+          "picks": 10,
+          "round": 8
+        },
+        {
+          "max_realized_value": 0.987,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.442,
+          "min_realized_value": -7.988,
+          "picks": 10,
+          "round": 9
+        },
+        {
+          "max_realized_value": 1.471,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.454,
+          "min_realized_value": -4.536,
+          "picks": 10,
+          "round": 10
+        },
+        {
+          "max_realized_value": 2.394,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.597,
+          "min_realized_value": -11.007,
+          "picks": 10,
+          "round": 11
+        },
+        {
+          "max_realized_value": 1.975,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.415,
+          "min_realized_value": -7.344,
+          "picks": 10,
+          "round": 12
+        },
+        {
+          "max_realized_value": 3.12,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.998,
+          "min_realized_value": -5.951,
+          "picks": 10,
+          "round": 13
+        },
+        {
+          "max_realized_value": 4.807,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.62,
+          "min_realized_value": -5.355,
+          "picks": 9,
+          "round": 14
+        },
+        {
+          "max_realized_value": 5.513,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.948,
+          "min_realized_value": -11.715,
+          "picks": 9,
+          "round": 15
+        },
+        {
+          "max_realized_value": 1.927,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.163,
+          "min_realized_value": -10.913,
+          "picks": 8,
+          "round": 16
+        }
+      ],
+      "drafted": 155,
+      "non_keeper_picks": 155,
+      "picks": 155,
+      "pool": 1250,
+      "pool_hitters": 622,
+      "pool_pitchers": 628,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 0.033,
+          "error": 5.093,
+          "rank_linear": 5.126,
+          "round": 1
+        },
+        {
+          "actual": 0.107,
+          "error": 4.105,
+          "rank_linear": 4.212,
+          "round": 2
+        },
+        {
+          "actual": -1.477,
+          "error": 4.84,
+          "rank_linear": 3.363,
+          "round": 3
+        },
+        {
+          "actual": -0.095,
+          "error": 3.118,
+          "rank_linear": 3.023,
+          "round": 4
+        },
+        {
+          "actual": -0.88,
+          "error": 3.451,
+          "rank_linear": 2.571,
+          "round": 5
+        },
+        {
+          "actual": -1.594,
+          "error": 4.018,
+          "rank_linear": 2.424,
+          "round": 6
+        },
+        {
+          "actual": -2.343,
+          "error": 4.336,
+          "rank_linear": 1.993,
+          "round": 7
+        },
+        {
+          "actual": -0.143,
+          "error": 1.824,
+          "rank_linear": 1.681,
+          "round": 8
+        },
+        {
+          "actual": -3.442,
+          "error": 4.683,
+          "rank_linear": 1.241,
+          "round": 9
+        },
+        {
+          "actual": -1.454,
+          "error": 2.328,
+          "rank_linear": 0.874,
+          "round": 10
+        },
+        {
+          "actual": -3.597,
+          "error": 4.23,
+          "rank_linear": 0.633,
+          "round": 11
+        },
+        {
+          "actual": -2.415,
+          "error": 2.786,
+          "rank_linear": 0.371,
+          "round": 12
+        },
+        {
+          "actual": -0.998,
+          "error": 1.189,
+          "rank_linear": 0.191,
+          "round": 13
+        },
+        {
+          "actual": -1.62,
+          "error": 1.614,
+          "rank_linear": -0.006,
+          "round": 14
+        },
+        {
+          "actual": -3.948,
+          "error": 3.685,
+          "rank_linear": -0.263,
+          "round": 15
+        },
+        {
+          "actual": -4.163,
+          "error": 3.549,
+          "rank_linear": -0.614,
+          "round": 16
+        }
+      ],
+      "season": 2010,
+      "within_round_sd": {
+        "1": 2.936,
+        "10": 1.917,
+        "11": 4.35,
+        "12": 2.773,
+        "13": 3.175,
+        "14": 2.84,
+        "15": 5.589,
+        "16": 3.943,
+        "2": 3.75,
+        "3": 3.27,
+        "4": 2.212,
+        "5": 2.901,
+        "6": 4.901,
+        "7": 3.119,
+        "8": 2.799,
+        "9": 3.13
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 134,
+        "pool": 1296,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 116,
+        "share_of_pool_above_replacement": 0.1034,
+        "share_of_rostered_spots_below_replacement": 0.464
+      },
+      "curve": [
+        {
+          "max_realized_value": 3.307,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.757,
+          "min_realized_value": -3.304,
+          "picks": 10,
+          "round": 1
+        },
+        {
+          "max_realized_value": 3.404,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.044,
+          "min_realized_value": -5.212,
+          "picks": 10,
+          "round": 2
+        },
+        {
+          "max_realized_value": 3.174,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.899,
+          "min_realized_value": -5.406,
+          "picks": 10,
+          "round": 3
+        },
+        {
+          "max_realized_value": 9.051,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.668,
+          "min_realized_value": -6.508,
+          "picks": 9,
+          "round": 4
+        },
+        {
+          "max_realized_value": 6.008,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.041,
+          "min_realized_value": -7.275,
+          "picks": 10,
+          "round": 5
+        },
+        {
+          "max_realized_value": 1.095,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.036,
+          "min_realized_value": -9.242,
+          "picks": 10,
+          "round": 6
+        },
+        {
+          "max_realized_value": 2.554,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.321,
+          "min_realized_value": -6.688,
+          "picks": 10,
+          "round": 7
+        },
+        {
+          "max_realized_value": 2.728,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.731,
+          "min_realized_value": -6.081,
+          "picks": 10,
+          "round": 8
+        },
+        {
+          "max_realized_value": 2.621,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.318,
+          "min_realized_value": -9.564,
+          "picks": 10,
+          "round": 9
+        },
+        {
+          "max_realized_value": 1.092,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.117,
+          "min_realized_value": -8.274,
+          "picks": 10,
+          "round": 10
+        },
+        {
+          "max_realized_value": 3.649,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.455,
+          "min_realized_value": -4.956,
+          "picks": 10,
+          "round": 11
+        },
+        {
+          "max_realized_value": 2.829,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.115,
+          "min_realized_value": -7.592,
+          "picks": 10,
+          "round": 12
+        },
+        {
+          "max_realized_value": 0.345,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.978,
+          "min_realized_value": -8.435,
+          "picks": 10,
+          "round": 13
+        },
+        {
+          "max_realized_value": 3.588,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.443,
+          "min_realized_value": -12.211,
+          "picks": 10,
+          "round": 14
+        },
+        {
+          "max_realized_value": 0.759,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.832,
+          "min_realized_value": -9.582,
+          "picks": 10,
+          "round": 15
+        },
+        {
+          "max_realized_value": 1.441,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.747,
+          "min_realized_value": -10.443,
+          "picks": 9,
+          "round": 16
+        },
+        {
+          "max_realized_value": 0.181,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -5.79,
+          "min_realized_value": -11.197,
+          "picks": 7,
+          "round": 17
+        },
+        {
+          "max_realized_value": -1.548,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.548,
+          "min_realized_value": -1.548,
+          "picks": 1,
+          "round": 18
+        }
+      ],
+      "drafted": 166,
+      "non_keeper_picks": 166,
+      "picks": 166,
+      "pool": 1296,
+      "pool_hitters": 642,
+      "pool_pitchers": 654,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 0.757,
+          "error": 5.019,
+          "rank_linear": 5.776,
+          "round": 1
+        },
+        {
+          "actual": 0.044,
+          "error": 4.261,
+          "rank_linear": 4.305,
+          "round": 2
+        },
+        {
+          "actual": -0.899,
+          "error": 4.487,
+          "rank_linear": 3.588,
+          "round": 3
+        },
+        {
+          "actual": -0.668,
+          "error": 3.68,
+          "rank_linear": 3.012,
+          "round": 4
+        },
+        {
+          "actual": -1.041,
+          "error": 3.595,
+          "rank_linear": 2.554,
+          "round": 5
+        },
+        {
+          "actual": -3.036,
+          "error": 5.26,
+          "rank_linear": 2.224,
+          "round": 6
+        },
+        {
+          "actual": -1.321,
+          "error": 3.13,
+          "rank_linear": 1.809,
+          "round": 7
+        },
+        {
+          "actual": -0.731,
+          "error": 2.103,
+          "rank_linear": 1.373,
+          "round": 8
+        },
+        {
+          "actual": -1.318,
+          "error": 2.396,
+          "rank_linear": 1.077,
+          "round": 9
+        },
+        {
+          "actual": -3.117,
+          "error": 3.957,
+          "rank_linear": 0.84,
+          "round": 10
+        },
+        {
+          "actual": -0.455,
+          "error": 0.926,
+          "rank_linear": 0.471,
+          "round": 11
+        },
+        {
+          "actual": -3.115,
+          "error": 3.445,
+          "rank_linear": 0.33,
+          "round": 12
+        },
+        {
+          "actual": -3.978,
+          "error": 4.076,
+          "rank_linear": 0.098,
+          "round": 13
+        },
+        {
+          "actual": -3.443,
+          "error": 3.387,
+          "rank_linear": -0.056,
+          "round": 14
+        },
+        {
+          "actual": -3.832,
+          "error": 3.572,
+          "rank_linear": -0.26,
+          "round": 15
+        },
+        {
+          "actual": -3.747,
+          "error": 3.198,
+          "rank_linear": -0.549,
+          "round": 16
+        },
+        {
+          "actual": -5.79,
+          "error": 5.008,
+          "rank_linear": -0.782,
+          "round": 17
+        },
+        {
+          "actual": -1.548,
+          "error": 0.506,
+          "rank_linear": -1.042,
+          "round": 18
+        }
+      ],
+      "season": 2011,
+      "within_round_sd": {
+        "1": 2.15,
+        "10": 3.114,
+        "11": 2.524,
+        "12": 3.798,
+        "13": 3.25,
+        "14": 4.84,
+        "15": 3.201,
+        "16": 3.802,
+        "17": 4.41,
+        "2": 2.584,
+        "3": 2.572,
+        "4": 4.939,
+        "5": 4.127,
+        "6": 3.364,
+        "7": 2.679,
+        "8": 2.952,
+        "9": 3.768
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 141,
+        "pool": 1287,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 109,
+        "share_of_pool_above_replacement": 0.1096,
+        "share_of_rostered_spots_below_replacement": 0.436
+      },
+      "curve": [
+        {
+          "max_realized_value": 2.996,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.156,
+          "min_realized_value": -3.507,
+          "picks": 10,
+          "round": 1
+        },
+        {
+          "max_realized_value": 3.206,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.212,
+          "min_realized_value": -8.484,
+          "picks": 9,
+          "round": 2
+        },
+        {
+          "max_realized_value": 4.773,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.864,
+          "min_realized_value": -10.148,
+          "picks": 10,
+          "round": 3
+        },
+        {
+          "max_realized_value": 4.673,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.674,
+          "min_realized_value": -6.867,
+          "picks": 10,
+          "round": 4
+        },
+        {
+          "max_realized_value": 1.251,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.553,
+          "min_realized_value": -11.054,
+          "picks": 10,
+          "round": 5
+        },
+        {
+          "max_realized_value": 3.196,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.859,
+          "min_realized_value": -6.058,
+          "picks": 10,
+          "round": 6
+        },
+        {
+          "max_realized_value": 2.712,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.446,
+          "min_realized_value": -7.923,
+          "picks": 10,
+          "round": 7
+        },
+        {
+          "max_realized_value": 0.714,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.403,
+          "min_realized_value": -8.029,
+          "picks": 10,
+          "round": 8
+        },
+        {
+          "max_realized_value": 0.854,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.257,
+          "min_realized_value": -6.874,
+          "picks": 10,
+          "round": 9
+        },
+        {
+          "max_realized_value": 9.87,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.137,
+          "min_realized_value": -8.029,
+          "picks": 10,
+          "round": 10
+        },
+        {
+          "max_realized_value": 3.249,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.066,
+          "min_realized_value": -10.186,
+          "picks": 10,
+          "round": 11
+        },
+        {
+          "max_realized_value": 3.312,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.751,
+          "min_realized_value": -4.204,
+          "picks": 10,
+          "round": 12
+        },
+        {
+          "max_realized_value": 1.755,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.383,
+          "min_realized_value": -8.029,
+          "picks": 10,
+          "round": 13
+        },
+        {
+          "max_realized_value": 4.234,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.26,
+          "min_realized_value": -6.976,
+          "picks": 10,
+          "round": 14
+        },
+        {
+          "max_realized_value": 2.248,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.218,
+          "min_realized_value": -8.057,
+          "picks": 10,
+          "round": 15
+        },
+        {
+          "max_realized_value": 4.194,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.028,
+          "min_realized_value": -6.91,
+          "picks": 10,
+          "round": 16
+        },
+        {
+          "max_realized_value": 1.292,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.244,
+          "min_realized_value": -8.766,
+          "picks": 9,
+          "round": 17
+        },
+        {
+          "max_realized_value": 2.692,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.629,
+          "min_realized_value": -8.618,
+          "picks": 7,
+          "round": 18
+        },
+        {
+          "max_realized_value": 1.553,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.247,
+          "min_realized_value": -6.55,
+          "picks": 4,
+          "round": 19
+        }
+      ],
+      "drafted": 179,
+      "non_keeper_picks": 179,
+      "picks": 179,
+      "pool": 1287,
+      "pool_hitters": 632,
+      "pool_pitchers": 655,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 0.156,
+          "error": 4.617,
+          "rank_linear": 4.773,
+          "round": 1
+        },
+        {
+          "actual": -2.212,
+          "error": 6.21,
+          "rank_linear": 3.998,
+          "round": 2
+        },
+        {
+          "actual": -1.864,
+          "error": 5.18,
+          "rank_linear": 3.316,
+          "round": 3
+        },
+        {
+          "actual": -1.674,
+          "error": 4.771,
+          "rank_linear": 3.097,
+          "round": 4
+        },
+        {
+          "actual": -2.553,
+          "error": 5.219,
+          "rank_linear": 2.666,
+          "round": 5
+        },
+        {
+          "actual": -0.859,
+          "error": 3.043,
+          "rank_linear": 2.184,
+          "round": 6
+        },
+        {
+          "actual": -1.446,
+          "error": 3.384,
+          "rank_linear": 1.938,
+          "round": 7
+        },
+        {
+          "actual": -2.403,
+          "error": 4.133,
+          "rank_linear": 1.73,
+          "round": 8
+        },
+        {
+          "actual": -3.257,
+          "error": 4.575,
+          "rank_linear": 1.318,
+          "round": 9
+        },
+        {
+          "actual": -1.137,
+          "error": 2.222,
+          "rank_linear": 1.085,
+          "round": 10
+        },
+        {
+          "actual": -2.066,
+          "error": 2.887,
+          "rank_linear": 0.821,
+          "round": 11
+        },
+        {
+          "actual": -0.751,
+          "error": 1.396,
+          "rank_linear": 0.645,
+          "round": 12
+        },
+        {
+          "actual": -3.383,
+          "error": 3.614,
+          "rank_linear": 0.231,
+          "round": 13
+        },
+        {
+          "actual": -2.26,
+          "error": 2.291,
+          "rank_linear": 0.031,
+          "round": 14
+        },
+        {
+          "actual": -4.218,
+          "error": 4.142,
+          "rank_linear": -0.076,
+          "round": 15
+        },
+        {
+          "actual": -1.028,
+          "error": 0.694,
+          "rank_linear": -0.334,
+          "round": 16
+        },
+        {
+          "actual": -2.244,
+          "error": 1.725,
+          "rank_linear": -0.519,
+          "round": 17
+        },
+        {
+          "actual": -2.629,
+          "error": 2.03,
+          "rank_linear": -0.599,
+          "round": 18
+        },
+        {
+          "actual": -3.247,
+          "error": 2.483,
+          "rank_linear": -0.764,
+          "round": 19
+        }
+      ],
+      "season": 2012,
+      "within_round_sd": {
+        "1": 1.816,
+        "10": 5.138,
+        "11": 4.152,
+        "12": 2.139,
+        "13": 3.578,
+        "14": 3.161,
+        "15": 4.065,
+        "16": 3.529,
+        "17": 3.501,
+        "18": 4.135,
+        "19": 3.501,
+        "2": 4.764,
+        "3": 4.592,
+        "4": 3.837,
+        "5": 3.823,
+        "6": 3.134,
+        "7": 3.64,
+        "8": 2.741,
+        "9": 2.896
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 138,
+        "pool": 1306,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 112,
+        "share_of_pool_above_replacement": 0.1057,
+        "share_of_rostered_spots_below_replacement": 0.448
+      },
+      "curve": [
+        {
+          "max_realized_value": 5.502,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.125,
+          "min_realized_value": -6.213,
+          "picks": 10,
+          "round": 1
+        },
+        {
+          "max_realized_value": 4.735,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.925,
+          "min_realized_value": -5.386,
+          "picks": 10,
+          "round": 2
+        },
+        {
+          "max_realized_value": 4.008,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.802,
+          "min_realized_value": -6.759,
+          "picks": 10,
+          "round": 3
+        },
+        {
+          "max_realized_value": 2.442,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.621,
+          "min_realized_value": -7.046,
+          "picks": 10,
+          "round": 4
+        },
+        {
+          "max_realized_value": 4.811,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.71,
+          "min_realized_value": -7.21,
+          "picks": 10,
+          "round": 5
+        },
+        {
+          "max_realized_value": 5.329,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.59,
+          "min_realized_value": -8.279,
+          "picks": 10,
+          "round": 6
+        },
+        {
+          "max_realized_value": 1.38,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.431,
+          "min_realized_value": -10.188,
+          "picks": 10,
+          "round": 7
+        },
+        {
+          "max_realized_value": 5.366,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.982,
+          "min_realized_value": -6.077,
+          "picks": 10,
+          "round": 8
+        },
+        {
+          "max_realized_value": 1.893,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.188,
+          "min_realized_value": -5.254,
+          "picks": 10,
+          "round": 9
+        },
+        {
+          "max_realized_value": 2.03,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.243,
+          "min_realized_value": -7.484,
+          "picks": 10,
+          "round": 10
+        },
+        {
+          "max_realized_value": 2.86,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.933,
+          "min_realized_value": -10.246,
+          "picks": 10,
+          "round": 11
+        },
+        {
+          "max_realized_value": 7.489,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.972,
+          "min_realized_value": -10.617,
+          "picks": 9,
+          "round": 12
+        },
+        {
+          "max_realized_value": 3.647,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.124,
+          "min_realized_value": -7.92,
+          "picks": 10,
+          "round": 13
+        },
+        {
+          "max_realized_value": 2.44,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.946,
+          "min_realized_value": -5.826,
+          "picks": 10,
+          "round": 14
+        },
+        {
+          "max_realized_value": 0.419,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.233,
+          "min_realized_value": -10.249,
+          "picks": 10,
+          "round": 15
+        },
+        {
+          "max_realized_value": 2.372,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.839,
+          "min_realized_value": -11.839,
+          "picks": 10,
+          "round": 16
+        },
+        {
+          "max_realized_value": 1.489,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.422,
+          "min_realized_value": -8.279,
+          "picks": 10,
+          "round": 17
+        },
+        {
+          "max_realized_value": 4.665,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.641,
+          "min_realized_value": -5.18,
+          "picks": 9,
+          "round": 18
+        },
+        {
+          "max_realized_value": 2.145,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.47,
+          "min_realized_value": -8.453,
+          "picks": 9,
+          "round": 19
+        },
+        {
+          "max_realized_value": -4.185,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -5.191,
+          "min_realized_value": -6.197,
+          "picks": 2,
+          "round": 20
+        }
+      ],
+      "drafted": 189,
+      "non_keeper_picks": 189,
+      "picks": 189,
+      "pool": 1306,
+      "pool_hitters": 638,
+      "pool_pitchers": 668,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 1.125,
+          "error": 3.991,
+          "rank_linear": 5.116,
+          "round": 1
+        },
+        {
+          "actual": 0.925,
+          "error": 3.065,
+          "rank_linear": 3.99,
+          "round": 2
+        },
+        {
+          "actual": -0.802,
+          "error": 4.426,
+          "rank_linear": 3.624,
+          "round": 3
+        },
+        {
+          "actual": -1.621,
+          "error": 4.127,
+          "rank_linear": 2.506,
+          "round": 4
+        },
+        {
+          "actual": -1.71,
+          "error": 3.855,
+          "rank_linear": 2.145,
+          "round": 5
+        },
+        {
+          "actual": -1.59,
+          "error": 3.37,
+          "rank_linear": 1.78,
+          "round": 6
+        },
+        {
+          "actual": -1.431,
+          "error": 2.92,
+          "rank_linear": 1.489,
+          "round": 7
+        },
+        {
+          "actual": -1.982,
+          "error": 3.248,
+          "rank_linear": 1.266,
+          "round": 8
+        },
+        {
+          "actual": -1.188,
+          "error": 2.11,
+          "rank_linear": 0.922,
+          "round": 9
+        },
+        {
+          "actual": -3.243,
+          "error": 3.87,
+          "rank_linear": 0.627,
+          "round": 10
+        },
+        {
+          "actual": -2.933,
+          "error": 3.435,
+          "rank_linear": 0.503,
+          "round": 11
+        },
+        {
+          "actual": -1.972,
+          "error": 2.286,
+          "rank_linear": 0.314,
+          "round": 12
+        },
+        {
+          "actual": -3.124,
+          "error": 3.274,
+          "rank_linear": 0.15,
+          "round": 13
+        },
+        {
+          "actual": -1.946,
+          "error": 1.946,
+          "rank_linear": 0.0,
+          "round": 14
+        },
+        {
+          "actual": -4.233,
+          "error": 3.981,
+          "rank_linear": -0.252,
+          "round": 15
+        },
+        {
+          "actual": -2.839,
+          "error": 2.377,
+          "rank_linear": -0.463,
+          "round": 16
+        },
+        {
+          "actual": -3.422,
+          "error": 2.776,
+          "rank_linear": -0.646,
+          "round": 17
+        },
+        {
+          "actual": -1.641,
+          "error": 0.829,
+          "rank_linear": -0.812,
+          "round": 18
+        },
+        {
+          "actual": -3.47,
+          "error": 2.476,
+          "rank_linear": -0.994,
+          "round": 19
+        },
+        {
+          "actual": -5.191,
+          "error": 3.978,
+          "rank_linear": -1.212,
+          "round": 20
+        }
+      ],
+      "season": 2013,
+      "within_round_sd": {
+        "1": 3.175,
+        "10": 3.782,
+        "11": 3.908,
+        "12": 5.772,
+        "13": 3.529,
+        "14": 3.499,
+        "15": 4.17,
+        "16": 5.39,
+        "17": 3.679,
+        "18": 3.076,
+        "19": 3.805,
+        "2": 3.097,
+        "20": 1.423,
+        "3": 3.343,
+        "4": 3.368,
+        "5": 3.357,
+        "6": 4.292,
+        "7": 3.644,
+        "8": 3.384,
+        "9": 2.727
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 138,
+        "pool": 1325,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 112,
+        "share_of_pool_above_replacement": 0.1042,
+        "share_of_rostered_spots_below_replacement": 0.448
+      },
+      "curve": [
+        {
+          "max_realized_value": 8.292,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.116,
+          "min_realized_value": -6.416,
+          "picks": 8,
+          "round": 1
+        },
+        {
+          "max_realized_value": 4.222,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.04,
+          "min_realized_value": -2.797,
+          "picks": 8,
+          "round": 2
+        },
+        {
+          "max_realized_value": 5.379,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.577,
+          "min_realized_value": -8.343,
+          "picks": 8,
+          "round": 3
+        },
+        {
+          "max_realized_value": 5.834,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 2.226,
+          "min_realized_value": -4.532,
+          "picks": 8,
+          "round": 4
+        },
+        {
+          "max_realized_value": 5.916,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.391,
+          "min_realized_value": -5.281,
+          "picks": 8,
+          "round": 5
+        },
+        {
+          "max_realized_value": 5.567,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.751,
+          "min_realized_value": -2.229,
+          "picks": 8,
+          "round": 6
+        },
+        {
+          "max_realized_value": 4.809,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 2.209,
+          "min_realized_value": -0.643,
+          "picks": 8,
+          "round": 7
+        },
+        {
+          "max_realized_value": 4.199,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.341,
+          "min_realized_value": -3.424,
+          "picks": 7,
+          "round": 8
+        },
+        {
+          "max_realized_value": 4.357,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.662,
+          "min_realized_value": -2.471,
+          "picks": 8,
+          "round": 9
+        },
+        {
+          "max_realized_value": 7.77,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.607,
+          "min_realized_value": -6.439,
+          "picks": 8,
+          "round": 10
+        },
+        {
+          "max_realized_value": 4.744,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.01,
+          "min_realized_value": -4.902,
+          "picks": 8,
+          "round": 11
+        },
+        {
+          "max_realized_value": 2.151,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.495,
+          "min_realized_value": -5.704,
+          "picks": 8,
+          "round": 12
+        },
+        {
+          "max_realized_value": 3.874,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.428,
+          "min_realized_value": -7.967,
+          "picks": 7,
+          "round": 13
+        },
+        {
+          "max_realized_value": -0.38,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.584,
+          "min_realized_value": -7.884,
+          "picks": 8,
+          "round": 14
+        },
+        {
+          "max_realized_value": 2.205,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.093,
+          "min_realized_value": -2.846,
+          "picks": 8,
+          "round": 15
+        },
+        {
+          "max_realized_value": 3.08,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.61,
+          "min_realized_value": -8.138,
+          "picks": 8,
+          "round": 16
+        },
+        {
+          "max_realized_value": 1.164,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.19,
+          "min_realized_value": -7.967,
+          "picks": 8,
+          "round": 17
+        },
+        {
+          "max_realized_value": 3.17,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.37,
+          "min_realized_value": -8.853,
+          "picks": 8,
+          "round": 18
+        },
+        {
+          "max_realized_value": 0.491,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.633,
+          "min_realized_value": -11.143,
+          "picks": 8,
+          "round": 19
+        },
+        {
+          "max_realized_value": 3.574,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.812,
+          "min_realized_value": -4.43,
+          "picks": 8,
+          "round": 20
+        },
+        {
+          "max_realized_value": 2.952,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.831,
+          "min_realized_value": -7.967,
+          "picks": 8,
+          "round": 21
+        },
+        {
+          "max_realized_value": 1.847,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.293,
+          "min_realized_value": -11.143,
+          "picks": 8,
+          "round": 22
+        },
+        {
+          "max_realized_value": 5.492,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.509,
+          "min_realized_value": -3.94,
+          "picks": 8,
+          "round": 23
+        },
+        {
+          "max_realized_value": 4.729,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.251,
+          "min_realized_value": -8.042,
+          "picks": 8,
+          "round": 24
+        },
+        {
+          "max_realized_value": 4.384,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.18,
+          "min_realized_value": -7.52,
+          "picks": 8,
+          "round": 25
+        }
+      ],
+      "drafted": 198,
+      "non_keeper_picks": 198,
+      "picks": 198,
+      "pool": 1325,
+      "pool_hitters": 647,
+      "pool_pitchers": 678,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 1.116,
+          "error": 4.377,
+          "rank_linear": 5.492,
+          "round": 1
+        },
+        {
+          "actual": 1.04,
+          "error": 3.567,
+          "rank_linear": 4.607,
+          "round": 2
+        },
+        {
+          "actual": -0.577,
+          "error": 4.23,
+          "rank_linear": 3.653,
+          "round": 3
+        },
+        {
+          "actual": 2.226,
+          "error": 0.946,
+          "rank_linear": 3.172,
+          "round": 4
+        },
+        {
+          "actual": 1.391,
+          "error": 1.448,
+          "rank_linear": 2.839,
+          "round": 5
+        },
+        {
+          "actual": 1.751,
+          "error": 0.672,
+          "rank_linear": 2.423,
+          "round": 6
+        },
+        {
+          "actual": 2.209,
+          "error": -0.087,
+          "rank_linear": 2.122,
+          "round": 7
+        },
+        {
+          "actual": 0.341,
+          "error": 1.506,
+          "rank_linear": 1.847,
+          "round": 8
+        },
+        {
+          "actual": 0.662,
+          "error": 0.89,
+          "rank_linear": 1.552,
+          "round": 9
+        },
+        {
+          "actual": 0.607,
+          "error": 0.634,
+          "rank_linear": 1.241,
+          "round": 10
+        },
+        {
+          "actual": 0.01,
+          "error": 0.838,
+          "rank_linear": 0.848,
+          "round": 11
+        },
+        {
+          "actual": -1.495,
+          "error": 2.089,
+          "rank_linear": 0.594,
+          "round": 12
+        },
+        {
+          "actual": -2.428,
+          "error": 2.801,
+          "rank_linear": 0.373,
+          "round": 13
+        },
+        {
+          "actual": -3.584,
+          "error": 3.584,
+          "rank_linear": 0.0,
+          "round": 14
+        },
+        {
+          "actual": -0.093,
+          "error": -0.066,
+          "rank_linear": -0.159,
+          "round": 15
+        },
+        {
+          "actual": -1.61,
+          "error": 1.274,
+          "rank_linear": -0.336,
+          "round": 16
+        },
+        {
+          "actual": -3.19,
+          "error": 2.712,
+          "rank_linear": -0.478,
+          "round": 17
+        },
+        {
+          "actual": -2.37,
+          "error": 1.723,
+          "rank_linear": -0.647,
+          "round": 18
+        },
+        {
+          "actual": -4.633,
+          "error": 3.799,
+          "rank_linear": -0.834,
+          "round": 19
+        },
+        {
+          "actual": -0.812,
+          "error": -0.142,
+          "rank_linear": -0.954,
+          "round": 20
+        },
+        {
+          "actual": -0.831,
+          "error": -0.313,
+          "rank_linear": -1.144,
+          "round": 21
+        },
+        {
+          "actual": -3.293,
+          "error": 1.975,
+          "rank_linear": -1.318,
+          "round": 22
+        },
+        {
+          "actual": -0.509,
+          "error": -0.98,
+          "rank_linear": -1.489,
+          "round": 23
+        },
+        {
+          "actual": -2.251,
+          "error": 0.617,
+          "rank_linear": -1.634,
+          "round": 24
+        },
+        {
+          "actual": -2.18,
+          "error": 0.383,
+          "rank_linear": -1.797,
+          "round": 25
+        }
+      ],
+      "season": 2014,
+      "within_round_sd": {
+        "1": 5.765,
+        "10": 4.942,
+        "11": 3.639,
+        "12": 3.213,
+        "13": 3.67,
+        "14": 2.915,
+        "15": 1.644,
+        "16": 3.613,
+        "17": 2.777,
+        "18": 3.915,
+        "19": 4.741,
+        "2": 2.512,
+        "20": 2.573,
+        "21": 4.137,
+        "22": 4.547,
+        "23": 3.519,
+        "24": 4.336,
+        "25": 4.03,
+        "3": 4.457,
+        "4": 2.957,
+        "5": 3.638,
+        "6": 2.694,
+        "7": 1.926,
+        "8": 2.887,
+        "9": 2.537
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 138,
+        "pool": 1352,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 112,
+        "share_of_pool_above_replacement": 0.1021,
+        "share_of_rostered_spots_below_replacement": 0.448
+      },
+      "curve": [
+        {
+          "max_realized_value": 4.948,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 2.136,
+          "min_realized_value": -1.416,
+          "picks": 4,
+          "round": 1
+        },
+        {
+          "max_realized_value": 4.84,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.558,
+          "min_realized_value": -0.527,
+          "picks": 7,
+          "round": 2
+        },
+        {
+          "max_realized_value": 4.465,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.023,
+          "min_realized_value": -2.281,
+          "picks": 8,
+          "round": 3
+        },
+        {
+          "max_realized_value": 4.554,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.563,
+          "min_realized_value": -2.789,
+          "picks": 9,
+          "round": 4
+        },
+        {
+          "max_realized_value": 2.973,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.192,
+          "min_realized_value": -5.263,
+          "picks": 9,
+          "round": 5
+        },
+        {
+          "max_realized_value": 5.638,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 2.3,
+          "min_realized_value": -0.653,
+          "picks": 6,
+          "round": 6
+        },
+        {
+          "max_realized_value": 3.279,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.859,
+          "min_realized_value": -7.027,
+          "picks": 8,
+          "round": 7
+        },
+        {
+          "max_realized_value": 4.647,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.66,
+          "min_realized_value": -8.31,
+          "picks": 7,
+          "round": 8
+        },
+        {
+          "max_realized_value": 3.19,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.691,
+          "min_realized_value": -6.398,
+          "picks": 8,
+          "round": 9
+        },
+        {
+          "max_realized_value": 2.725,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.191,
+          "min_realized_value": -11.485,
+          "picks": 6,
+          "round": 10
+        },
+        {
+          "max_realized_value": 4.38,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.885,
+          "min_realized_value": -4.361,
+          "picks": 8,
+          "round": 11
+        },
+        {
+          "max_realized_value": 5.204,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.648,
+          "min_realized_value": -7.915,
+          "picks": 10,
+          "round": 12
+        },
+        {
+          "max_realized_value": 2.055,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.271,
+          "min_realized_value": -2.235,
+          "picks": 9,
+          "round": 13
+        },
+        {
+          "max_realized_value": -1.035,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.49,
+          "min_realized_value": -8.766,
+          "picks": 8,
+          "round": 14
+        },
+        {
+          "max_realized_value": 0.761,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.621,
+          "min_realized_value": -8.313,
+          "picks": 3,
+          "round": 15
+        },
+        {
+          "max_realized_value": 5.404,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.097,
+          "min_realized_value": -4.954,
+          "picks": 10,
+          "round": 16
+        },
+        {
+          "max_realized_value": -0.671,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.687,
+          "min_realized_value": -12.076,
+          "picks": 10,
+          "round": 17
+        },
+        {
+          "max_realized_value": 2.431,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.923,
+          "min_realized_value": -6.574,
+          "picks": 10,
+          "round": 18
+        },
+        {
+          "max_realized_value": 5.056,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.131,
+          "min_realized_value": -11.655,
+          "picks": 10,
+          "round": 19
+        },
+        {
+          "max_realized_value": 2.809,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.592,
+          "min_realized_value": -8.091,
+          "picks": 10,
+          "round": 20
+        },
+        {
+          "max_realized_value": 0.173,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.081,
+          "min_realized_value": -8.466,
+          "picks": 10,
+          "round": 21
+        },
+        {
+          "max_realized_value": 1.851,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.583,
+          "min_realized_value": -8.253,
+          "picks": 8,
+          "round": 22
+        },
+        {
+          "max_realized_value": 1.913,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.98,
+          "min_realized_value": -9.175,
+          "picks": 8,
+          "round": 23
+        },
+        {
+          "max_realized_value": 1.959,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.895,
+          "min_realized_value": -10.227,
+          "picks": 8,
+          "round": 24
+        },
+        {
+          "max_realized_value": -0.854,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.522,
+          "min_realized_value": -8.195,
+          "picks": 15,
+          "round": 25
+        }
+      ],
+      "drafted": 249,
+      "non_keeper_picks": 209,
+      "picks": 249,
+      "pool": 1352,
+      "pool_hitters": 633,
+      "pool_pitchers": 719,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 2.136,
+          "error": 3.502,
+          "rank_linear": 5.638,
+          "round": 1
+        },
+        {
+          "actual": 1.558,
+          "error": 2.996,
+          "rank_linear": 4.554,
+          "round": 2
+        },
+        {
+          "actual": 1.023,
+          "error": 2.776,
+          "rank_linear": 3.799,
+          "round": 3
+        },
+        {
+          "actual": 1.563,
+          "error": 1.611,
+          "rank_linear": 3.174,
+          "round": 4
+        },
+        {
+          "actual": -0.192,
+          "error": 3.044,
+          "rank_linear": 2.852,
+          "round": 5
+        },
+        {
+          "actual": 2.3,
+          "error": 0.254,
+          "rank_linear": 2.554,
+          "round": 6
+        },
+        {
+          "actual": -0.859,
+          "error": 3.05,
+          "rank_linear": 2.191,
+          "round": 7
+        },
+        {
+          "actual": -0.66,
+          "error": 2.555,
+          "rank_linear": 1.895,
+          "round": 8
+        },
+        {
+          "actual": -0.691,
+          "error": 2.128,
+          "rank_linear": 1.437,
+          "round": 9
+        },
+        {
+          "actual": -2.191,
+          "error": 3.402,
+          "rank_linear": 1.211,
+          "round": 10
+        },
+        {
+          "actual": 0.885,
+          "error": 0.075,
+          "rank_linear": 0.96,
+          "round": 11
+        },
+        {
+          "actual": -0.648,
+          "error": 1.193,
+          "rank_linear": 0.545,
+          "round": 12
+        },
+        {
+          "actual": -0.271,
+          "error": 0.461,
+          "rank_linear": 0.19,
+          "round": 13
+        },
+        {
+          "actual": -4.49,
+          "error": 4.49,
+          "rank_linear": 0.0,
+          "round": 14
+        },
+        {
+          "actual": -4.621,
+          "error": 4.561,
+          "rank_linear": -0.06,
+          "round": 15
+        },
+        {
+          "actual": 0.097,
+          "error": -0.466,
+          "rank_linear": -0.369,
+          "round": 16
+        },
+        {
+          "actual": -4.687,
+          "error": 4.097,
+          "rank_linear": -0.59,
+          "round": 17
+        },
+        {
+          "actual": -0.923,
+          "error": 0.119,
+          "rank_linear": -0.804,
+          "round": 18
+        },
+        {
+          "actual": -2.131,
+          "error": 1.127,
+          "rank_linear": -1.004,
+          "round": 19
+        },
+        {
+          "actual": -2.592,
+          "error": 1.426,
+          "rank_linear": -1.166,
+          "round": 20
+        },
+        {
+          "actual": -4.081,
+          "error": 2.714,
+          "rank_linear": -1.368,
+          "round": 21
+        },
+        {
+          "actual": -2.583,
+          "error": 1.118,
+          "rank_linear": -1.465,
+          "round": 22
+        },
+        {
+          "actual": -2.98,
+          "error": 1.295,
+          "rank_linear": -1.685,
+          "round": 23
+        },
+        {
+          "actual": -2.895,
+          "error": 0.989,
+          "rank_linear": -1.906,
+          "round": 24
+        },
+        {
+          "actual": -3.522,
+          "error": 1.468,
+          "rank_linear": -2.054,
+          "round": 25
+        }
+      ],
+      "season": 2016,
+      "within_round_sd": {
+        "1": 2.774,
+        "10": 5.322,
+        "11": 3.405,
+        "12": 3.852,
+        "13": 1.505,
+        "14": 2.511,
+        "15": 4.767,
+        "16": 2.984,
+        "17": 3.641,
+        "18": 2.576,
+        "19": 4.699,
+        "2": 2.369,
+        "20": 4.265,
+        "21": 3.073,
+        "22": 3.243,
+        "23": 4.241,
+        "24": 4.133,
+        "25": 1.883,
+        "3": 2.327,
+        "4": 2.753,
+        "5": 3.161,
+        "6": 2.56,
+        "7": 3.661,
+        "8": 5.647,
+        "9": 3.155
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 138,
+        "pool": 1359,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 112,
+        "share_of_pool_above_replacement": 0.1015,
+        "share_of_rostered_spots_below_replacement": 0.448
+      },
+      "curve": [
+        {
+          "max_realized_value": 5.586,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 2.449,
+          "min_realized_value": -1.701,
+          "picks": 4,
+          "round": 1
+        },
+        {
+          "max_realized_value": 7.726,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 2.656,
+          "min_realized_value": -4.048,
+          "picks": 7,
+          "round": 2
+        },
+        {
+          "max_realized_value": 3.143,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.691,
+          "min_realized_value": -1.94,
+          "picks": 8,
+          "round": 3
+        },
+        {
+          "max_realized_value": 4.147,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.033,
+          "min_realized_value": -2.56,
+          "picks": 5,
+          "round": 4
+        },
+        {
+          "max_realized_value": 5.765,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.019,
+          "min_realized_value": -4.975,
+          "picks": 9,
+          "round": 5
+        },
+        {
+          "max_realized_value": 2.099,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.898,
+          "min_realized_value": -5.717,
+          "picks": 9,
+          "round": 6
+        },
+        {
+          "max_realized_value": 3.135,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.998,
+          "min_realized_value": -3.693,
+          "picks": 9,
+          "round": 7
+        },
+        {
+          "max_realized_value": 2.701,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.211,
+          "min_realized_value": -5.617,
+          "picks": 9,
+          "round": 8
+        },
+        {
+          "max_realized_value": 3.444,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.302,
+          "min_realized_value": -7.426,
+          "picks": 10,
+          "round": 9
+        },
+        {
+          "max_realized_value": 1.015,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.04,
+          "min_realized_value": -9.23,
+          "picks": 6,
+          "round": 10
+        },
+        {
+          "max_realized_value": 2.956,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.549,
+          "min_realized_value": -3.393,
+          "picks": 7,
+          "round": 11
+        },
+        {
+          "max_realized_value": 5.165,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.325,
+          "min_realized_value": -6.408,
+          "picks": 10,
+          "round": 12
+        },
+        {
+          "max_realized_value": 3.775,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.948,
+          "min_realized_value": -12.214,
+          "picks": 9,
+          "round": 13
+        },
+        {
+          "max_realized_value": 2.837,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.095,
+          "min_realized_value": -4.396,
+          "picks": 8,
+          "round": 14
+        },
+        {
+          "max_realized_value": 5.015,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.048,
+          "min_realized_value": -8.651,
+          "picks": 3,
+          "round": 15
+        },
+        {
+          "max_realized_value": 5.095,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.319,
+          "min_realized_value": -7.806,
+          "picks": 10,
+          "round": 16
+        },
+        {
+          "max_realized_value": 1.708,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.503,
+          "min_realized_value": -5.393,
+          "picks": 10,
+          "round": 17
+        },
+        {
+          "max_realized_value": 0.991,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.098,
+          "min_realized_value": -5.937,
+          "picks": 10,
+          "round": 18
+        },
+        {
+          "max_realized_value": 3.219,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.326,
+          "min_realized_value": -8.769,
+          "picks": 10,
+          "round": 19
+        },
+        {
+          "max_realized_value": 1.996,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.789,
+          "min_realized_value": -7.426,
+          "picks": 10,
+          "round": 20
+        },
+        {
+          "max_realized_value": 0.932,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.682,
+          "min_realized_value": -4.38,
+          "picks": 9,
+          "round": 21
+        },
+        {
+          "max_realized_value": 2.524,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.392,
+          "min_realized_value": -11.3,
+          "picks": 9,
+          "round": 22
+        },
+        {
+          "max_realized_value": 1.814,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.324,
+          "min_realized_value": -8.876,
+          "picks": 9,
+          "round": 23
+        },
+        {
+          "max_realized_value": 0.134,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.166,
+          "min_realized_value": -5.186,
+          "picks": 8,
+          "round": 24
+        },
+        {
+          "max_realized_value": -2.025,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.644,
+          "min_realized_value": -8.45,
+          "picks": 7,
+          "round": 25
+        },
+        {
+          "max_realized_value": 0.479,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.321,
+          "min_realized_value": -7.072,
+          "picks": 4,
+          "round": 26
+        },
+        {
+          "max_realized_value": -2.935,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.935,
+          "min_realized_value": -2.935,
+          "picks": 1,
+          "round": 27
+        }
+      ],
+      "drafted": 250,
+      "non_keeper_picks": 210,
+      "picks": 250,
+      "pool": 1359,
+      "pool_hitters": 626,
+      "pool_pitchers": 733,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 2.449,
+          "error": 3.284,
+          "rank_linear": 5.733,
+          "round": 1
+        },
+        {
+          "actual": 2.656,
+          "error": 1.876,
+          "rank_linear": 4.532,
+          "round": 2
+        },
+        {
+          "actual": 0.691,
+          "error": 2.759,
+          "rank_linear": 3.45,
+          "round": 3
+        },
+        {
+          "actual": 1.033,
+          "error": 2.037,
+          "rank_linear": 3.07,
+          "round": 4
+        },
+        {
+          "actual": 0.019,
+          "error": 2.757,
+          "rank_linear": 2.776,
+          "round": 5
+        },
+        {
+          "actual": -0.898,
+          "error": 3.135,
+          "rank_linear": 2.237,
+          "round": 6
+        },
+        {
+          "actual": -0.998,
+          "error": 2.869,
+          "rank_linear": 1.871,
+          "round": 7
+        },
+        {
+          "actual": -1.211,
+          "error": 2.793,
+          "rank_linear": 1.583,
+          "round": 8
+        },
+        {
+          "actual": -0.302,
+          "error": 1.502,
+          "rank_linear": 1.2,
+          "round": 9
+        },
+        {
+          "actual": -4.04,
+          "error": 5.031,
+          "rank_linear": 0.991,
+          "round": 10
+        },
+        {
+          "actual": -0.549,
+          "error": 1.242,
+          "rank_linear": 0.693,
+          "round": 11
+        },
+        {
+          "actual": -1.325,
+          "error": 1.79,
+          "rank_linear": 0.465,
+          "round": 12
+        },
+        {
+          "actual": -1.948,
+          "error": 2.184,
+          "rank_linear": 0.236,
+          "round": 13
+        },
+        {
+          "actual": -1.095,
+          "error": 1.095,
+          "rank_linear": 0.0,
+          "round": 14
+        },
+        {
+          "actual": -3.048,
+          "error": 2.957,
+          "rank_linear": -0.091,
+          "round": 15
+        },
+        {
+          "actual": -2.319,
+          "error": 2.054,
+          "rank_linear": -0.265,
+          "round": 16
+        },
+        {
+          "actual": -1.503,
+          "error": 1.083,
+          "rank_linear": -0.42,
+          "round": 17
+        },
+        {
+          "actual": -2.098,
+          "error": 1.527,
+          "rank_linear": -0.571,
+          "round": 18
+        },
+        {
+          "actual": -2.326,
+          "error": 1.59,
+          "rank_linear": -0.736,
+          "round": 19
+        },
+        {
+          "actual": -2.789,
+          "error": 1.931,
+          "rank_linear": -0.858,
+          "round": 20
+        },
+        {
+          "actual": -1.682,
+          "error": 0.59,
+          "rank_linear": -1.092,
+          "round": 21
+        },
+        {
+          "actual": -3.392,
+          "error": 2.181,
+          "rank_linear": -1.211,
+          "round": 22
+        },
+        {
+          "actual": -3.324,
+          "error": 1.848,
+          "rank_linear": -1.476,
+          "round": 23
+        },
+        {
+          "actual": -2.166,
+          "error": 0.586,
+          "rank_linear": -1.58,
+          "round": 24
+        },
+        {
+          "actual": -4.644,
+          "error": 2.952,
+          "rank_linear": -1.692,
+          "round": 25
+        },
+        {
+          "actual": -2.321,
+          "error": 0.532,
+          "rank_linear": -1.789,
+          "round": 26
+        },
+        {
+          "actual": -2.935,
+          "error": 1.051,
+          "rank_linear": -1.884,
+          "round": 27
+        }
+      ],
+      "season": 2017,
+      "within_round_sd": {
+        "1": 3.294,
+        "10": 3.902,
+        "11": 2.657,
+        "12": 3.464,
+        "13": 5.144,
+        "14": 2.212,
+        "15": 7.158,
+        "16": 3.609,
+        "17": 2.374,
+        "18": 2.717,
+        "19": 3.81,
+        "2": 4.308,
+        "20": 2.788,
+        "21": 1.576,
+        "22": 3.983,
+        "23": 3.673,
+        "24": 2.012,
+        "25": 2.254,
+        "26": 3.568,
+        "3": 2.113,
+        "4": 3.375,
+        "5": 3.252,
+        "6": 2.749,
+        "7": 2.226,
+        "8": 3.093,
+        "9": 3.109
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 138,
+        "pool": 1378,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 112,
+        "share_of_pool_above_replacement": 0.1001,
+        "share_of_rostered_spots_below_replacement": 0.448
+      },
+      "curve": [
+        {
+          "max_realized_value": 8.875,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 5.095,
+          "min_realized_value": -0.517,
+          "picks": 7,
+          "round": 1
+        },
+        {
+          "max_realized_value": 5.797,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.876,
+          "min_realized_value": -1.643,
+          "picks": 6,
+          "round": 2
+        },
+        {
+          "max_realized_value": 8.819,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 2.28,
+          "min_realized_value": -7.178,
+          "picks": 7,
+          "round": 3
+        },
+        {
+          "max_realized_value": 4.8,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.296,
+          "min_realized_value": -10.37,
+          "picks": 8,
+          "round": 4
+        },
+        {
+          "max_realized_value": 5.808,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.709,
+          "min_realized_value": -4.093,
+          "picks": 8,
+          "round": 5
+        },
+        {
+          "max_realized_value": 3.87,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.421,
+          "min_realized_value": -2.45,
+          "picks": 9,
+          "round": 6
+        },
+        {
+          "max_realized_value": 2.931,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.237,
+          "min_realized_value": -3.958,
+          "picks": 10,
+          "round": 7
+        },
+        {
+          "max_realized_value": 6.534,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.071,
+          "min_realized_value": -8.425,
+          "picks": 8,
+          "round": 8
+        },
+        {
+          "max_realized_value": 2.567,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.882,
+          "min_realized_value": -4.52,
+          "picks": 7,
+          "round": 9
+        },
+        {
+          "max_realized_value": 2.75,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.421,
+          "min_realized_value": -4.229,
+          "picks": 7,
+          "round": 10
+        },
+        {
+          "max_realized_value": 2.176,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.227,
+          "min_realized_value": -6.824,
+          "picks": 8,
+          "round": 11
+        },
+        {
+          "max_realized_value": 1.966,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.811,
+          "min_realized_value": -7.082,
+          "picks": 8,
+          "round": 12
+        },
+        {
+          "max_realized_value": 7.134,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.785,
+          "min_realized_value": -7.461,
+          "picks": 9,
+          "round": 13
+        },
+        {
+          "max_realized_value": 3.375,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.678,
+          "min_realized_value": -7.364,
+          "picks": 10,
+          "round": 14
+        },
+        {
+          "max_realized_value": 2.237,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.44,
+          "min_realized_value": -7.461,
+          "picks": 10,
+          "round": 15
+        },
+        {
+          "max_realized_value": 7.004,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.535,
+          "min_realized_value": -5.012,
+          "picks": 9,
+          "round": 16
+        },
+        {
+          "max_realized_value": 3.515,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.088,
+          "min_realized_value": -3.312,
+          "picks": 9,
+          "round": 17
+        },
+        {
+          "max_realized_value": 2.934,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.693,
+          "min_realized_value": -6.915,
+          "picks": 8,
+          "round": 18
+        },
+        {
+          "max_realized_value": -0.091,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.732,
+          "min_realized_value": -7.451,
+          "picks": 9,
+          "round": 19
+        },
+        {
+          "max_realized_value": 2.888,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.484,
+          "min_realized_value": -6.449,
+          "picks": 10,
+          "round": 20
+        },
+        {
+          "max_realized_value": 1.612,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.742,
+          "min_realized_value": -5.373,
+          "picks": 10,
+          "round": 21
+        },
+        {
+          "max_realized_value": 2.229,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.508,
+          "min_realized_value": -6.064,
+          "picks": 8,
+          "round": 22
+        },
+        {
+          "max_realized_value": -0.439,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.857,
+          "min_realized_value": -7.461,
+          "picks": 8,
+          "round": 23
+        },
+        {
+          "max_realized_value": 2.079,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.365,
+          "min_realized_value": -5.011,
+          "picks": 7,
+          "round": 24
+        },
+        {
+          "max_realized_value": -2.266,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.345,
+          "min_realized_value": -6.988,
+          "picks": 5,
+          "round": 25
+        },
+        {
+          "max_realized_value": -0.314,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.98,
+          "min_realized_value": -1.645,
+          "picks": 2,
+          "round": 26
+        },
+        {
+          "max_realized_value": -0.921,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.826,
+          "min_realized_value": -2.73,
+          "picks": 2,
+          "round": 27
+        }
+      ],
+      "drafted": 249,
+      "non_keeper_picks": 209,
+      "picks": 249,
+      "pool": 1378,
+      "pool_hitters": 626,
+      "pool_pitchers": 752,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 5.095,
+          "error": 1.596,
+          "rank_linear": 6.691,
+          "round": 1
+        },
+        {
+          "actual": 0.876,
+          "error": 4.285,
+          "rank_linear": 5.161,
+          "round": 2
+        },
+        {
+          "actual": 2.28,
+          "error": 1.59,
+          "rank_linear": 3.87,
+          "round": 3
+        },
+        {
+          "actual": -1.296,
+          "error": 4.208,
+          "rank_linear": 2.912,
+          "round": 4
+        },
+        {
+          "actual": 0.709,
+          "error": 1.883,
+          "rank_linear": 2.592,
+          "round": 5
+        },
+        {
+          "actual": 0.421,
+          "error": 1.808,
+          "rank_linear": 2.229,
+          "round": 6
+        },
+        {
+          "actual": -0.237,
+          "error": 2.217,
+          "rank_linear": 1.98,
+          "round": 7
+        },
+        {
+          "actual": -0.071,
+          "error": 1.793,
+          "rank_linear": 1.722,
+          "round": 8
+        },
+        {
+          "actual": -0.882,
+          "error": 2.352,
+          "rank_linear": 1.47,
+          "round": 9
+        },
+        {
+          "actual": -0.421,
+          "error": 1.492,
+          "rank_linear": 1.071,
+          "round": 10
+        },
+        {
+          "actual": -2.227,
+          "error": 2.943,
+          "rank_linear": 0.716,
+          "round": 11
+        },
+        {
+          "actual": -2.811,
+          "error": 3.35,
+          "rank_linear": 0.539,
+          "round": 12
+        },
+        {
+          "actual": -0.785,
+          "error": 0.953,
+          "rank_linear": 0.168,
+          "round": 13
+        },
+        {
+          "actual": -0.678,
+          "error": 0.678,
+          "rank_linear": 0.0,
+          "round": 14
+        },
+        {
+          "actual": -2.44,
+          "error": 2.286,
+          "rank_linear": -0.154,
+          "round": 15
+        },
+        {
+          "actual": -1.535,
+          "error": 1.152,
+          "rank_linear": -0.383,
+          "round": 16
+        },
+        {
+          "actual": 0.088,
+          "error": -0.629,
+          "rank_linear": -0.541,
+          "round": 17
+        },
+        {
+          "actual": -2.693,
+          "error": 2.099,
+          "rank_linear": -0.594,
+          "round": 18
+        },
+        {
+          "actual": -2.732,
+          "error": 1.956,
+          "rank_linear": -0.776,
+          "round": 19
+        },
+        {
+          "actual": -1.484,
+          "error": 0.554,
+          "rank_linear": -0.93,
+          "round": 20
+        },
+        {
+          "actual": -1.742,
+          "error": 0.69,
+          "rank_linear": -1.052,
+          "round": 21
+        },
+        {
+          "actual": -2.508,
+          "error": 1.316,
+          "rank_linear": -1.192,
+          "round": 22
+        },
+        {
+          "actual": -3.857,
+          "error": 2.508,
+          "rank_linear": -1.349,
+          "round": 23
+        },
+        {
+          "actual": -2.365,
+          "error": 0.831,
+          "rank_linear": -1.534,
+          "round": 24
+        },
+        {
+          "actual": -4.345,
+          "error": 2.7,
+          "rank_linear": -1.645,
+          "round": 25
+        },
+        {
+          "actual": -0.98,
+          "error": -0.798,
+          "rank_linear": -1.778,
+          "round": 26
+        },
+        {
+          "actual": -1.826,
+          "error": -0.104,
+          "rank_linear": -1.93,
+          "round": 27
+        }
+      ],
+      "season": 2018,
+      "within_round_sd": {
+        "1": 2.954,
+        "10": 2.425,
+        "11": 2.99,
+        "12": 3.332,
+        "13": 4.214,
+        "14": 3.11,
+        "15": 3.592,
+        "16": 3.562,
+        "17": 1.927,
+        "18": 3.749,
+        "19": 2.83,
+        "2": 2.892,
+        "20": 3.221,
+        "21": 2.324,
+        "22": 3.183,
+        "23": 2.622,
+        "24": 2.353,
+        "25": 2.207,
+        "26": 0.941,
+        "27": 1.279,
+        "3": 5.024,
+        "4": 4.883,
+        "5": 3.412,
+        "6": 2.383,
+        "7": 2.193,
+        "8": 5.337,
+        "9": 2.437
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 137,
+        "pool": 1408,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 113,
+        "share_of_pool_above_replacement": 0.0973,
+        "share_of_rostered_spots_below_replacement": 0.452
+      },
+      "curve": [
+        {
+          "max_realized_value": 5.804,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 2.168,
+          "min_realized_value": -6.449,
+          "picks": 7,
+          "round": 1
+        },
+        {
+          "max_realized_value": 7.229,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.927,
+          "min_realized_value": -10.243,
+          "picks": 10,
+          "round": 2
+        },
+        {
+          "max_realized_value": 6.218,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.944,
+          "min_realized_value": -5.364,
+          "picks": 9,
+          "round": 3
+        },
+        {
+          "max_realized_value": 6.383,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.122,
+          "min_realized_value": -3.981,
+          "picks": 9,
+          "round": 4
+        },
+        {
+          "max_realized_value": 3.386,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.222,
+          "min_realized_value": -3.425,
+          "picks": 5,
+          "round": 5
+        },
+        {
+          "max_realized_value": 1.636,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.268,
+          "min_realized_value": -4.895,
+          "picks": 8,
+          "round": 6
+        },
+        {
+          "max_realized_value": 5.798,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.157,
+          "min_realized_value": -6.604,
+          "picks": 10,
+          "round": 7
+        },
+        {
+          "max_realized_value": 2.974,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.352,
+          "min_realized_value": -6.261,
+          "picks": 8,
+          "round": 8
+        },
+        {
+          "max_realized_value": 2.977,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.633,
+          "min_realized_value": -11.812,
+          "picks": 10,
+          "round": 9
+        },
+        {
+          "max_realized_value": 2.2,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.731,
+          "min_realized_value": -10.856,
+          "picks": 10,
+          "round": 10
+        },
+        {
+          "max_realized_value": 3.036,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.178,
+          "min_realized_value": -9.945,
+          "picks": 10,
+          "round": 11
+        },
+        {
+          "max_realized_value": 6.854,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.05,
+          "min_realized_value": -4.01,
+          "picks": 10,
+          "round": 12
+        },
+        {
+          "max_realized_value": 0.411,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.552,
+          "min_realized_value": -7.219,
+          "picks": 8,
+          "round": 13
+        },
+        {
+          "max_realized_value": 3.677,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.003,
+          "min_realized_value": -7.565,
+          "picks": 8,
+          "round": 14
+        },
+        {
+          "max_realized_value": 1.236,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.924,
+          "min_realized_value": -6.727,
+          "picks": 10,
+          "round": 15
+        },
+        {
+          "max_realized_value": 1.874,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.291,
+          "min_realized_value": -7.259,
+          "picks": 9,
+          "round": 16
+        },
+        {
+          "max_realized_value": 4.856,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.172,
+          "min_realized_value": -7.5,
+          "picks": 7,
+          "round": 17
+        },
+        {
+          "max_realized_value": 0.91,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.981,
+          "min_realized_value": -7.8,
+          "picks": 7,
+          "round": 18
+        },
+        {
+          "max_realized_value": 3.484,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.661,
+          "min_realized_value": -6.24,
+          "picks": 9,
+          "round": 19
+        },
+        {
+          "max_realized_value": 3.435,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.573,
+          "min_realized_value": -6.831,
+          "picks": 8,
+          "round": 20
+        },
+        {
+          "max_realized_value": -0.237,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.606,
+          "min_realized_value": -6.38,
+          "picks": 8,
+          "round": 21
+        },
+        {
+          "max_realized_value": 2.688,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.653,
+          "min_realized_value": -8.08,
+          "picks": 8,
+          "round": 22
+        },
+        {
+          "max_realized_value": 0.599,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.571,
+          "min_realized_value": -6.577,
+          "picks": 7,
+          "round": 23
+        },
+        {
+          "max_realized_value": 0.01,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -5.439,
+          "min_realized_value": -11.873,
+          "picks": 6,
+          "round": 24
+        },
+        {
+          "max_realized_value": -1.091,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.492,
+          "min_realized_value": -3.894,
+          "picks": 2,
+          "round": 25
+        },
+        {
+          "max_realized_value": 1.32,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.906,
+          "min_realized_value": -7.637,
+          "picks": 5,
+          "round": 26
+        },
+        {
+          "max_realized_value": 0.0,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.0,
+          "min_realized_value": 0.0,
+          "picks": 1,
+          "round": 27
+        }
+      ],
+      "drafted": 249,
+      "non_keeper_picks": 209,
+      "picks": 249,
+      "pool": 1408,
+      "pool_hitters": 632,
+      "pool_pitchers": 776,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 2.168,
+          "error": 4.005,
+          "rank_linear": 6.173,
+          "round": 1
+        },
+        {
+          "actual": 1.927,
+          "error": 2.929,
+          "rank_linear": 4.856,
+          "round": 2
+        },
+        {
+          "actual": 0.944,
+          "error": 2.951,
+          "rank_linear": 3.895,
+          "round": 3
+        },
+        {
+          "actual": 1.122,
+          "error": 2.264,
+          "rank_linear": 3.386,
+          "round": 4
+        },
+        {
+          "actual": 0.222,
+          "error": 2.508,
+          "rank_linear": 2.73,
+          "round": 5
+        },
+        {
+          "actual": -0.268,
+          "error": 2.649,
+          "rank_linear": 2.381,
+          "round": 6
+        },
+        {
+          "actual": -1.157,
+          "error": 3.402,
+          "rank_linear": 2.245,
+          "round": 7
+        },
+        {
+          "actual": -0.352,
+          "error": 2.178,
+          "rank_linear": 1.826,
+          "round": 8
+        },
+        {
+          "actual": -2.633,
+          "error": 3.947,
+          "rank_linear": 1.314,
+          "round": 9
+        },
+        {
+          "actual": -2.731,
+          "error": 3.698,
+          "rank_linear": 0.967,
+          "round": 10
+        },
+        {
+          "actual": -2.178,
+          "error": 2.803,
+          "rank_linear": 0.625,
+          "round": 11
+        },
+        {
+          "actual": 1.05,
+          "error": -0.646,
+          "rank_linear": 0.404,
+          "round": 12
+        },
+        {
+          "actual": -4.552,
+          "error": 4.765,
+          "rank_linear": 0.213,
+          "round": 13
+        },
+        {
+          "actual": -2.003,
+          "error": 2.003,
+          "rank_linear": 0.0,
+          "round": 14
+        },
+        {
+          "actual": -1.924,
+          "error": 1.69,
+          "rank_linear": -0.234,
+          "round": 15
+        },
+        {
+          "actual": -3.291,
+          "error": 2.831,
+          "rank_linear": -0.46,
+          "round": 16
+        },
+        {
+          "actual": -3.172,
+          "error": 2.537,
+          "rank_linear": -0.635,
+          "round": 17
+        },
+        {
+          "actual": -3.981,
+          "error": 3.137,
+          "rank_linear": -0.844,
+          "round": 18
+        },
+        {
+          "actual": -2.661,
+          "error": 1.647,
+          "rank_linear": -1.014,
+          "round": 19
+        },
+        {
+          "actual": -1.573,
+          "error": 0.341,
+          "rank_linear": -1.232,
+          "round": 20
+        },
+        {
+          "actual": -2.606,
+          "error": 1.22,
+          "rank_linear": -1.386,
+          "round": 21
+        },
+        {
+          "actual": -2.653,
+          "error": 1.111,
+          "rank_linear": -1.542,
+          "round": 22
+        },
+        {
+          "actual": -2.571,
+          "error": 0.85,
+          "rank_linear": -1.721,
+          "round": 23
+        },
+        {
+          "actual": -5.439,
+          "error": 3.58,
+          "rank_linear": -1.859,
+          "round": 24
+        },
+        {
+          "actual": -2.492,
+          "error": 0.513,
+          "rank_linear": -1.979,
+          "round": 25
+        },
+        {
+          "actual": -3.906,
+          "error": 1.785,
+          "rank_linear": -2.121,
+          "round": 26
+        },
+        {
+          "actual": 0.0,
+          "error": -2.276,
+          "rank_linear": -2.276,
+          "round": 27
+        }
+      ],
+      "season": 2019,
+      "within_round_sd": {
+        "1": 4.134,
+        "10": 3.868,
+        "11": 4.053,
+        "12": 3.245,
+        "13": 2.419,
+        "14": 3.731,
+        "15": 2.5,
+        "16": 2.928,
+        "17": 4.153,
+        "18": 3.209,
+        "19": 3.39,
+        "2": 4.748,
+        "20": 3.49,
+        "21": 2.588,
+        "22": 3.175,
+        "23": 2.865,
+        "24": 4.799,
+        "25": 1.982,
+        "26": 3.321,
+        "3": 4.119,
+        "4": 3.562,
+        "5": 2.453,
+        "6": 2.297,
+        "7": 4.294,
+        "8": 3.619,
+        "9": 4.331
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 137,
+        "pool": 1299,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 113,
+        "share_of_pool_above_replacement": 0.1055,
+        "share_of_rostered_spots_below_replacement": 0.452
+      },
+      "curve": [
+        {
+          "max_realized_value": 4.644,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.94,
+          "min_realized_value": -0.832,
+          "picks": 8,
+          "round": 1
+        },
+        {
+          "max_realized_value": 4.103,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.144,
+          "min_realized_value": -3.709,
+          "picks": 9,
+          "round": 2
+        },
+        {
+          "max_realized_value": 3.454,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.896,
+          "min_realized_value": -2.542,
+          "picks": 8,
+          "round": 3
+        },
+        {
+          "max_realized_value": 3.202,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.936,
+          "min_realized_value": -3.35,
+          "picks": 9,
+          "round": 4
+        },
+        {
+          "max_realized_value": 3.984,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.677,
+          "min_realized_value": -2.521,
+          "picks": 10,
+          "round": 5
+        },
+        {
+          "max_realized_value": 2.164,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.627,
+          "min_realized_value": -3.276,
+          "picks": 9,
+          "round": 6
+        },
+        {
+          "max_realized_value": 1.498,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.009,
+          "min_realized_value": -4.278,
+          "picks": 10,
+          "round": 7
+        },
+        {
+          "max_realized_value": 1.866,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.142,
+          "min_realized_value": -1.485,
+          "picks": 9,
+          "round": 8
+        },
+        {
+          "max_realized_value": 1.876,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.08,
+          "min_realized_value": -4.698,
+          "picks": 9,
+          "round": 9
+        },
+        {
+          "max_realized_value": 2.51,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.055,
+          "min_realized_value": -3.525,
+          "picks": 10,
+          "round": 10
+        },
+        {
+          "max_realized_value": 1.852,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.83,
+          "min_realized_value": -3.763,
+          "picks": 9,
+          "round": 11
+        },
+        {
+          "max_realized_value": -0.885,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.759,
+          "min_realized_value": -4.629,
+          "picks": 7,
+          "round": 12
+        },
+        {
+          "max_realized_value": 2.715,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.791,
+          "min_realized_value": -4.181,
+          "picks": 9,
+          "round": 13
+        },
+        {
+          "max_realized_value": 0.617,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.492,
+          "min_realized_value": -4.854,
+          "picks": 8,
+          "round": 14
+        },
+        {
+          "max_realized_value": 0.18,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.45,
+          "min_realized_value": -3.718,
+          "picks": 9,
+          "round": 15
+        },
+        {
+          "max_realized_value": -0.904,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.611,
+          "min_realized_value": -3.853,
+          "picks": 10,
+          "round": 16
+        },
+        {
+          "max_realized_value": 1.738,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.29,
+          "min_realized_value": -3.341,
+          "picks": 7,
+          "round": 17
+        },
+        {
+          "max_realized_value": 2.331,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.781,
+          "min_realized_value": -4.698,
+          "picks": 10,
+          "round": 18
+        },
+        {
+          "max_realized_value": 1.711,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.876,
+          "min_realized_value": -3.124,
+          "picks": 8,
+          "round": 19
+        },
+        {
+          "max_realized_value": 0.281,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.494,
+          "min_realized_value": -3.351,
+          "picks": 3,
+          "round": 20
+        },
+        {
+          "max_realized_value": 0.0,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.252,
+          "min_realized_value": -4.698,
+          "picks": 9,
+          "round": 21
+        },
+        {
+          "max_realized_value": 0.839,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.529,
+          "min_realized_value": -4.798,
+          "picks": 8,
+          "round": 22
+        },
+        {
+          "max_realized_value": 0.645,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.287,
+          "min_realized_value": -4.416,
+          "picks": 8,
+          "round": 23
+        },
+        {
+          "max_realized_value": 0.09,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.111,
+          "min_realized_value": -3.23,
+          "picks": 5,
+          "round": 24
+        },
+        {
+          "max_realized_value": 1.755,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.612,
+          "min_realized_value": -0.53,
+          "picks": 2,
+          "round": 25
+        }
+      ],
+      "drafted": 248,
+      "non_keeper_picks": 209,
+      "picks": 249,
+      "pool": 1299,
+      "pool_hitters": 581,
+      "pool_pitchers": 718,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 1.94,
+          "error": 1.281,
+          "rank_linear": 3.221,
+          "round": 1
+        },
+        {
+          "actual": 0.144,
+          "error": 2.065,
+          "rank_linear": 2.209,
+          "round": 2
+        },
+        {
+          "actual": 0.896,
+          "error": 0.936,
+          "rank_linear": 1.832,
+          "round": 3
+        },
+        {
+          "actual": -0.936,
+          "error": 2.505,
+          "rank_linear": 1.569,
+          "round": 4
+        },
+        {
+          "actual": 0.677,
+          "error": 0.532,
+          "rank_linear": 1.209,
+          "round": 5
+        },
+        {
+          "actual": -0.627,
+          "error": 1.605,
+          "rank_linear": 0.978,
+          "round": 6
+        },
+        {
+          "actual": -1.009,
+          "error": 1.846,
+          "rank_linear": 0.837,
+          "round": 7
+        },
+        {
+          "actual": 0.142,
+          "error": 0.475,
+          "rank_linear": 0.617,
+          "round": 8
+        },
+        {
+          "actual": -1.08,
+          "error": 1.584,
+          "rank_linear": 0.504,
+          "round": 9
+        },
+        {
+          "actual": 0.055,
+          "error": 0.307,
+          "rank_linear": 0.362,
+          "round": 10
+        },
+        {
+          "actual": -0.83,
+          "error": 1.111,
+          "rank_linear": 0.281,
+          "round": 11
+        },
+        {
+          "actual": -2.759,
+          "error": 2.957,
+          "rank_linear": 0.198,
+          "round": 12
+        },
+        {
+          "actual": -1.791,
+          "error": 1.881,
+          "rank_linear": 0.09,
+          "round": 13
+        },
+        {
+          "actual": -2.492,
+          "error": 2.492,
+          "rank_linear": 0.0,
+          "round": 14
+        },
+        {
+          "actual": -1.45,
+          "error": 1.384,
+          "rank_linear": -0.066,
+          "round": 15
+        },
+        {
+          "actual": -2.611,
+          "error": 2.436,
+          "rank_linear": -0.175,
+          "round": 16
+        },
+        {
+          "actual": -1.29,
+          "error": 1.034,
+          "rank_linear": -0.256,
+          "round": 17
+        },
+        {
+          "actual": -2.781,
+          "error": 2.456,
+          "rank_linear": -0.325,
+          "round": 18
+        },
+        {
+          "actual": -0.876,
+          "error": 0.451,
+          "rank_linear": -0.425,
+          "round": 19
+        },
+        {
+          "actual": -1.494,
+          "error": 0.993,
+          "rank_linear": -0.501,
+          "round": 20
+        },
+        {
+          "actual": -2.252,
+          "error": 1.659,
+          "rank_linear": -0.593,
+          "round": 21
+        },
+        {
+          "actual": -2.529,
+          "error": 1.868,
+          "rank_linear": -0.661,
+          "round": 22
+        },
+        {
+          "actual": -1.287,
+          "error": 0.558,
+          "rank_linear": -0.729,
+          "round": 23
+        },
+        {
+          "actual": -2.111,
+          "error": 1.339,
+          "rank_linear": -0.772,
+          "round": 24
+        },
+        {
+          "actual": 0.612,
+          "error": -1.465,
+          "rank_linear": -0.853,
+          "round": 25
+        }
+      ],
+      "season": 2020,
+      "within_round_sd": {
+        "1": 2.099,
+        "10": 1.678,
+        "11": 2.241,
+        "12": 1.307,
+        "13": 2.142,
+        "14": 1.72,
+        "15": 1.326,
+        "16": 1.1,
+        "17": 1.581,
+        "18": 1.931,
+        "19": 1.693,
+        "2": 2.631,
+        "20": 1.817,
+        "21": 1.482,
+        "22": 1.852,
+        "23": 1.879,
+        "24": 1.352,
+        "25": 1.616,
+        "3": 1.777,
+        "4": 2.022,
+        "5": 2.392,
+        "6": 1.743,
+        "7": 2.021,
+        "8": 1.092,
+        "9": 2.434
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 140,
+        "pool": 1497,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 110,
+        "share_of_pool_above_replacement": 0.0935,
+        "share_of_rostered_spots_below_replacement": 0.44
+      },
+      "curve": [
+        {
+          "max_realized_value": 5.943,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 2.774,
+          "min_realized_value": 0.358,
+          "picks": 7,
+          "round": 1
+        },
+        {
+          "max_realized_value": 12.027,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 2.487,
+          "min_realized_value": -5.283,
+          "picks": 8,
+          "round": 2
+        },
+        {
+          "max_realized_value": 7.486,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 3.955,
+          "min_realized_value": 1.432,
+          "picks": 7,
+          "round": 3
+        },
+        {
+          "max_realized_value": 6.25,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.033,
+          "min_realized_value": -7.188,
+          "picks": 10,
+          "round": 4
+        },
+        {
+          "max_realized_value": 3.418,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.134,
+          "min_realized_value": -5.914,
+          "picks": 10,
+          "round": 5
+        },
+        {
+          "max_realized_value": 5.223,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.566,
+          "min_realized_value": 0.13,
+          "picks": 9,
+          "round": 6
+        },
+        {
+          "max_realized_value": 3.22,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.671,
+          "min_realized_value": -3.358,
+          "picks": 9,
+          "round": 7
+        },
+        {
+          "max_realized_value": 4.591,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.711,
+          "min_realized_value": -7.513,
+          "picks": 10,
+          "round": 8
+        },
+        {
+          "max_realized_value": 2.327,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.931,
+          "min_realized_value": -5.917,
+          "picks": 9,
+          "round": 9
+        },
+        {
+          "max_realized_value": 5.058,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.284,
+          "min_realized_value": -6.969,
+          "picks": 10,
+          "round": 10
+        },
+        {
+          "max_realized_value": 2.463,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.965,
+          "min_realized_value": -9.951,
+          "picks": 7,
+          "round": 11
+        },
+        {
+          "max_realized_value": 2.889,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.271,
+          "min_realized_value": -6.926,
+          "picks": 7,
+          "round": 12
+        },
+        {
+          "max_realized_value": 1.478,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.758,
+          "min_realized_value": -7.35,
+          "picks": 10,
+          "round": 13
+        },
+        {
+          "max_realized_value": 2.087,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.974,
+          "min_realized_value": -7.062,
+          "picks": 7,
+          "round": 14
+        },
+        {
+          "max_realized_value": 2.597,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.283,
+          "min_realized_value": -7.206,
+          "picks": 7,
+          "round": 15
+        },
+        {
+          "max_realized_value": 0.355,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.611,
+          "min_realized_value": -7.532,
+          "picks": 9,
+          "round": 16
+        },
+        {
+          "max_realized_value": 1.18,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.792,
+          "min_realized_value": -2.979,
+          "picks": 8,
+          "round": 17
+        },
+        {
+          "max_realized_value": 4.533,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.617,
+          "min_realized_value": -7.501,
+          "picks": 9,
+          "round": 18
+        },
+        {
+          "max_realized_value": -1.187,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.397,
+          "min_realized_value": -8.982,
+          "picks": 9,
+          "round": 19
+        },
+        {
+          "max_realized_value": 3.356,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.432,
+          "min_realized_value": -10.468,
+          "picks": 8,
+          "round": 20
+        },
+        {
+          "max_realized_value": 2.006,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.633,
+          "min_realized_value": -5.85,
+          "picks": 8,
+          "round": 21
+        },
+        {
+          "max_realized_value": -0.121,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.739,
+          "min_realized_value": -7.614,
+          "picks": 9,
+          "round": 22
+        },
+        {
+          "max_realized_value": 5.849,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.486,
+          "min_realized_value": -10.796,
+          "picks": 8,
+          "round": 23
+        },
+        {
+          "max_realized_value": 0.958,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.835,
+          "min_realized_value": -7.077,
+          "picks": 6,
+          "round": 24
+        },
+        {
+          "max_realized_value": -1.324,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.682,
+          "min_realized_value": -5.199,
+          "picks": 3,
+          "round": 25
+        }
+      ],
+      "drafted": 249,
+      "non_keeper_picks": 209,
+      "picks": 249,
+      "pool": 1497,
+      "pool_hitters": 689,
+      "pool_pitchers": 808,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 2.774,
+          "error": 3.142,
+          "rank_linear": 5.916,
+          "round": 1
+        },
+        {
+          "actual": 2.487,
+          "error": 2.194,
+          "rank_linear": 4.681,
+          "round": 2
+        },
+        {
+          "actual": 3.955,
+          "error": -0.4,
+          "rank_linear": 3.555,
+          "round": 3
+        },
+        {
+          "actual": -0.033,
+          "error": 3.071,
+          "rank_linear": 3.038,
+          "round": 4
+        },
+        {
+          "actual": -0.134,
+          "error": 2.731,
+          "rank_linear": 2.597,
+          "round": 5
+        },
+        {
+          "actual": 1.566,
+          "error": 0.834,
+          "rank_linear": 2.4,
+          "round": 6
+        },
+        {
+          "actual": -0.671,
+          "error": 2.508,
+          "rank_linear": 1.837,
+          "round": 7
+        },
+        {
+          "actual": -2.711,
+          "error": 4.189,
+          "rank_linear": 1.478,
+          "round": 8
+        },
+        {
+          "actual": -1.931,
+          "error": 3.159,
+          "rank_linear": 1.228,
+          "round": 9
+        },
+        {
+          "actual": -2.284,
+          "error": 3.223,
+          "rank_linear": 0.939,
+          "round": 10
+        },
+        {
+          "actual": -2.965,
+          "error": 3.528,
+          "rank_linear": 0.563,
+          "round": 11
+        },
+        {
+          "actual": -1.271,
+          "error": 1.681,
+          "rank_linear": 0.41,
+          "round": 12
+        },
+        {
+          "actual": -1.758,
+          "error": 1.976,
+          "rank_linear": 0.217,
+          "round": 13
+        },
+        {
+          "actual": -1.974,
+          "error": 1.998,
+          "rank_linear": 0.024,
+          "round": 14
+        },
+        {
+          "actual": -3.283,
+          "error": 3.172,
+          "rank_linear": -0.111,
+          "round": 15
+        },
+        {
+          "actual": -2.611,
+          "error": 2.232,
+          "rank_linear": -0.379,
+          "round": 16
+        },
+        {
+          "actual": -0.792,
+          "error": 0.211,
+          "rank_linear": -0.581,
+          "round": 17
+        },
+        {
+          "actual": -1.617,
+          "error": 0.788,
+          "rank_linear": -0.829,
+          "round": 18
+        },
+        {
+          "actual": -4.397,
+          "error": 3.375,
+          "rank_linear": -1.022,
+          "round": 19
+        },
+        {
+          "actual": -3.432,
+          "error": 2.245,
+          "rank_linear": -1.187,
+          "round": 20
+        },
+        {
+          "actual": -2.633,
+          "error": 1.293,
+          "rank_linear": -1.34,
+          "round": 21
+        },
+        {
+          "actual": -3.739,
+          "error": 2.217,
+          "rank_linear": -1.522,
+          "round": 22
+        },
+        {
+          "actual": -3.486,
+          "error": 1.783,
+          "rank_linear": -1.703,
+          "round": 23
+        },
+        {
+          "actual": -3.835,
+          "error": 2.04,
+          "rank_linear": -1.795,
+          "round": 24
+        },
+        {
+          "actual": -2.682,
+          "error": 0.737,
+          "rank_linear": -1.945,
+          "round": 25
+        }
+      ],
+      "season": 2022,
+      "within_round_sd": {
+        "1": 1.873,
+        "10": 4.027,
+        "11": 4.694,
+        "12": 4.015,
+        "13": 3.074,
+        "14": 3.524,
+        "15": 3.133,
+        "16": 2.438,
+        "17": 1.646,
+        "18": 3.73,
+        "19": 2.793,
+        "2": 5.163,
+        "20": 4.977,
+        "21": 2.443,
+        "22": 2.795,
+        "23": 4.778,
+        "24": 3.363,
+        "25": 2.182,
+        "3": 2.147,
+        "4": 3.844,
+        "5": 3.029,
+        "6": 1.632,
+        "7": 2.072,
+        "8": 4.05,
+        "9": 3.085
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 140,
+        "pool": 1461,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 110,
+        "share_of_pool_above_replacement": 0.0958,
+        "share_of_rostered_spots_below_replacement": 0.44
+      },
+      "curve": [
+        {
+          "max_realized_value": 16.072,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 4.16,
+          "min_realized_value": -3.984,
+          "picks": 7,
+          "round": 1
+        },
+        {
+          "max_realized_value": 6.567,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 2.194,
+          "min_realized_value": -0.245,
+          "picks": 9,
+          "round": 2
+        },
+        {
+          "max_realized_value": 8.598,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.662,
+          "min_realized_value": -4.62,
+          "picks": 8,
+          "round": 3
+        },
+        {
+          "max_realized_value": 5.253,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.881,
+          "min_realized_value": -5.604,
+          "picks": 10,
+          "round": 4
+        },
+        {
+          "max_realized_value": 3.568,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.547,
+          "min_realized_value": -2.81,
+          "picks": 10,
+          "round": 5
+        },
+        {
+          "max_realized_value": 2.414,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.519,
+          "min_realized_value": -7.772,
+          "picks": 10,
+          "round": 6
+        },
+        {
+          "max_realized_value": 2.249,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.825,
+          "min_realized_value": -10.858,
+          "picks": 9,
+          "round": 7
+        },
+        {
+          "max_realized_value": 4.754,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.394,
+          "min_realized_value": -7.399,
+          "picks": 8,
+          "round": 8
+        },
+        {
+          "max_realized_value": 2.206,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.785,
+          "min_realized_value": -11.957,
+          "picks": 9,
+          "round": 9
+        },
+        {
+          "max_realized_value": 3.724,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.794,
+          "min_realized_value": -4.492,
+          "picks": 9,
+          "round": 10
+        },
+        {
+          "max_realized_value": 2.119,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.576,
+          "min_realized_value": -3.527,
+          "picks": 8,
+          "round": 11
+        },
+        {
+          "max_realized_value": 1.97,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.579,
+          "min_realized_value": -6.396,
+          "picks": 9,
+          "round": 12
+        },
+        {
+          "max_realized_value": 2.715,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.42,
+          "min_realized_value": -5.229,
+          "picks": 9,
+          "round": 13
+        },
+        {
+          "max_realized_value": 1.388,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.12,
+          "min_realized_value": -4.38,
+          "picks": 8,
+          "round": 14
+        },
+        {
+          "max_realized_value": 3.458,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.44,
+          "min_realized_value": -4.625,
+          "picks": 10,
+          "round": 15
+        },
+        {
+          "max_realized_value": 2.799,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.068,
+          "min_realized_value": -9.441,
+          "picks": 10,
+          "round": 16
+        },
+        {
+          "max_realized_value": 1.762,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.78,
+          "min_realized_value": -7.983,
+          "picks": 8,
+          "round": 17
+        },
+        {
+          "max_realized_value": 4.502,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.868,
+          "min_realized_value": -10.613,
+          "picks": 7,
+          "round": 18
+        },
+        {
+          "max_realized_value": 3.017,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.543,
+          "min_realized_value": -9.896,
+          "picks": 7,
+          "round": 19
+        },
+        {
+          "max_realized_value": 5.36,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.013,
+          "min_realized_value": -5.596,
+          "picks": 3,
+          "round": 20
+        },
+        {
+          "max_realized_value": 0.251,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.906,
+          "min_realized_value": -7.926,
+          "picks": 9,
+          "round": 21
+        },
+        {
+          "max_realized_value": 4.079,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.937,
+          "min_realized_value": -6.711,
+          "picks": 6,
+          "round": 22
+        },
+        {
+          "max_realized_value": 1.809,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.361,
+          "min_realized_value": -7.679,
+          "picks": 8,
+          "round": 23
+        },
+        {
+          "max_realized_value": 1.171,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.726,
+          "min_realized_value": -5.766,
+          "picks": 5,
+          "round": 24
+        },
+        {
+          "max_realized_value": 0.563,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.033,
+          "min_realized_value": -2.996,
+          "picks": 3,
+          "round": 25
+        }
+      ],
+      "drafted": 248,
+      "non_keeper_picks": 208,
+      "picks": 248,
+      "pool": 1461,
+      "pool_hitters": 655,
+      "pool_pitchers": 806,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 4.16,
+          "error": 2.407,
+          "rank_linear": 6.567,
+          "round": 1
+        },
+        {
+          "actual": 2.194,
+          "error": 2.41,
+          "rank_linear": 4.604,
+          "round": 2
+        },
+        {
+          "actual": 1.662,
+          "error": 1.944,
+          "rank_linear": 3.606,
+          "round": 3
+        },
+        {
+          "actual": 0.881,
+          "error": 2.057,
+          "rank_linear": 2.938,
+          "round": 4
+        },
+        {
+          "actual": 0.547,
+          "error": 1.908,
+          "rank_linear": 2.455,
+          "round": 5
+        },
+        {
+          "actual": -0.519,
+          "error": 2.656,
+          "rank_linear": 2.137,
+          "round": 6
+        },
+        {
+          "actual": -1.825,
+          "error": 3.678,
+          "rank_linear": 1.853,
+          "round": 7
+        },
+        {
+          "actual": -1.394,
+          "error": 2.975,
+          "rank_linear": 1.581,
+          "round": 8
+        },
+        {
+          "actual": -2.785,
+          "error": 4.187,
+          "rank_linear": 1.402,
+          "round": 9
+        },
+        {
+          "actual": -0.794,
+          "error": 1.809,
+          "rank_linear": 1.015,
+          "round": 10
+        },
+        {
+          "actual": -0.576,
+          "error": 1.255,
+          "rank_linear": 0.679,
+          "round": 11
+        },
+        {
+          "actual": -2.579,
+          "error": 3.012,
+          "rank_linear": 0.432,
+          "round": 12
+        },
+        {
+          "actual": -1.42,
+          "error": 1.612,
+          "rank_linear": 0.193,
+          "round": 13
+        },
+        {
+          "actual": -2.12,
+          "error": 2.127,
+          "rank_linear": 0.007,
+          "round": 14
+        },
+        {
+          "actual": -1.44,
+          "error": 1.281,
+          "rank_linear": -0.159,
+          "round": 15
+        },
+        {
+          "actual": -2.068,
+          "error": 1.806,
+          "rank_linear": -0.262,
+          "round": 16
+        },
+        {
+          "actual": -2.78,
+          "error": 2.342,
+          "rank_linear": -0.438,
+          "round": 17
+        },
+        {
+          "actual": -1.868,
+          "error": 1.085,
+          "rank_linear": -0.783,
+          "round": 18
+        },
+        {
+          "actual": -1.543,
+          "error": 0.636,
+          "rank_linear": -0.907,
+          "round": 19
+        },
+        {
+          "actual": -0.013,
+          "error": -1.052,
+          "rank_linear": -1.065,
+          "round": 20
+        },
+        {
+          "actual": -1.906,
+          "error": 0.715,
+          "rank_linear": -1.191,
+          "round": 21
+        },
+        {
+          "actual": -1.937,
+          "error": 0.642,
+          "rank_linear": -1.295,
+          "round": 22
+        },
+        {
+          "actual": -3.361,
+          "error": 1.908,
+          "rank_linear": -1.453,
+          "round": 23
+        },
+        {
+          "actual": -2.726,
+          "error": 1.029,
+          "rank_linear": -1.697,
+          "round": 24
+        },
+        {
+          "actual": -1.033,
+          "error": -0.738,
+          "rank_linear": -1.771,
+          "round": 25
+        }
+      ],
+      "season": 2023,
+      "within_round_sd": {
+        "1": 6.331,
+        "10": 2.813,
+        "11": 2.159,
+        "12": 3.015,
+        "13": 2.753,
+        "14": 1.913,
+        "15": 2.639,
+        "16": 3.825,
+        "17": 2.896,
+        "18": 5.316,
+        "19": 4.664,
+        "2": 2.44,
+        "20": 5.481,
+        "21": 2.542,
+        "22": 4.127,
+        "23": 3.016,
+        "24": 2.745,
+        "25": 1.808,
+        "3": 5.363,
+        "4": 3.609,
+        "5": 2.03,
+        "6": 3.401,
+        "7": 4.58,
+        "8": 4.565,
+        "9": 4.831
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 142,
+        "pool": 1457,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 108,
+        "share_of_pool_above_replacement": 0.0975,
+        "share_of_rostered_spots_below_replacement": 0.432
+      },
+      "curve": [
+        {
+          "max_realized_value": 15.851,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 5.998,
+          "min_realized_value": -3.026,
+          "picks": 9,
+          "round": 1
+        },
+        {
+          "max_realized_value": 5.516,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.642,
+          "min_realized_value": -2.041,
+          "picks": 9,
+          "round": 2
+        },
+        {
+          "max_realized_value": 3.982,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.171,
+          "min_realized_value": -2.998,
+          "picks": 7,
+          "round": 3
+        },
+        {
+          "max_realized_value": 9.882,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.373,
+          "min_realized_value": -7.014,
+          "picks": 9,
+          "round": 4
+        },
+        {
+          "max_realized_value": 3.724,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.14,
+          "min_realized_value": -8.222,
+          "picks": 9,
+          "round": 5
+        },
+        {
+          "max_realized_value": 4.401,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.276,
+          "min_realized_value": -6.681,
+          "picks": 9,
+          "round": 6
+        },
+        {
+          "max_realized_value": 5.081,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.044,
+          "min_realized_value": -11.447,
+          "picks": 9,
+          "round": 7
+        },
+        {
+          "max_realized_value": 4.301,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.508,
+          "min_realized_value": -8.552,
+          "picks": 10,
+          "round": 8
+        },
+        {
+          "max_realized_value": 3.335,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.894,
+          "min_realized_value": -7.673,
+          "picks": 8,
+          "round": 9
+        },
+        {
+          "max_realized_value": 3.458,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.531,
+          "min_realized_value": -8.677,
+          "picks": 10,
+          "round": 10
+        },
+        {
+          "max_realized_value": 2.328,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.761,
+          "min_realized_value": -3.756,
+          "picks": 10,
+          "round": 11
+        },
+        {
+          "max_realized_value": 3.25,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.422,
+          "min_realized_value": -8.014,
+          "picks": 9,
+          "round": 12
+        },
+        {
+          "max_realized_value": 5.994,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.727,
+          "min_realized_value": -7.723,
+          "picks": 8,
+          "round": 13
+        },
+        {
+          "max_realized_value": 3.537,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.137,
+          "min_realized_value": -9.609,
+          "picks": 9,
+          "round": 14
+        },
+        {
+          "max_realized_value": 2.008,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.3,
+          "min_realized_value": -9.604,
+          "picks": 8,
+          "round": 15
+        },
+        {
+          "max_realized_value": 1.59,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.84,
+          "min_realized_value": -8.407,
+          "picks": 8,
+          "round": 16
+        },
+        {
+          "max_realized_value": 1.166,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.035,
+          "min_realized_value": -6.675,
+          "picks": 9,
+          "round": 17
+        },
+        {
+          "max_realized_value": 1.635,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.535,
+          "min_realized_value": -9.255,
+          "picks": 9,
+          "round": 18
+        },
+        {
+          "max_realized_value": 2.37,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.701,
+          "min_realized_value": -5.502,
+          "picks": 7,
+          "round": 19
+        },
+        {
+          "max_realized_value": -1.868,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -5.567,
+          "min_realized_value": -7.875,
+          "picks": 5,
+          "round": 20
+        },
+        {
+          "max_realized_value": -0.386,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.901,
+          "min_realized_value": -4.228,
+          "picks": 8,
+          "round": 21
+        },
+        {
+          "max_realized_value": 0.543,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.165,
+          "min_realized_value": -8.309,
+          "picks": 7,
+          "round": 22
+        },
+        {
+          "max_realized_value": 0.794,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -5.061,
+          "min_realized_value": -10.034,
+          "picks": 8,
+          "round": 23
+        },
+        {
+          "max_realized_value": -3.69,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -6.495,
+          "min_realized_value": -9.233,
+          "picks": 6,
+          "round": 24
+        },
+        {
+          "max_realized_value": -2.077,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.302,
+          "min_realized_value": -6.526,
+          "picks": 2,
+          "round": 25
+        }
+      ],
+      "drafted": 250,
+      "non_keeper_picks": 210,
+      "picks": 250,
+      "pool": 1457,
+      "pool_hitters": 653,
+      "pool_pitchers": 804,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 5.998,
+          "error": 0.352,
+          "rank_linear": 6.35,
+          "round": 1
+        },
+        {
+          "actual": 1.642,
+          "error": 2.461,
+          "rank_linear": 4.103,
+          "round": 2
+        },
+        {
+          "actual": -0.171,
+          "error": 3.753,
+          "rank_linear": 3.582,
+          "round": 3
+        },
+        {
+          "actual": 1.373,
+          "error": 1.707,
+          "rank_linear": 3.08,
+          "round": 4
+        },
+        {
+          "actual": -2.14,
+          "error": 4.593,
+          "rank_linear": 2.453,
+          "round": 5
+        },
+        {
+          "actual": -0.276,
+          "error": 2.484,
+          "rank_linear": 2.208,
+          "round": 6
+        },
+        {
+          "actual": -2.044,
+          "error": 3.534,
+          "rank_linear": 1.49,
+          "round": 7
+        },
+        {
+          "actual": -0.508,
+          "error": 1.792,
+          "rank_linear": 1.284,
+          "round": 8
+        },
+        {
+          "actual": -0.894,
+          "error": 1.954,
+          "rank_linear": 1.06,
+          "round": 9
+        },
+        {
+          "actual": -1.531,
+          "error": 2.427,
+          "rank_linear": 0.896,
+          "round": 10
+        },
+        {
+          "actual": -0.761,
+          "error": 1.461,
+          "rank_linear": 0.7,
+          "round": 11
+        },
+        {
+          "actual": -2.422,
+          "error": 2.928,
+          "rank_linear": 0.506,
+          "round": 12
+        },
+        {
+          "actual": -1.727,
+          "error": 1.955,
+          "rank_linear": 0.228,
+          "round": 13
+        },
+        {
+          "actual": -2.137,
+          "error": 2.169,
+          "rank_linear": 0.032,
+          "round": 14
+        },
+        {
+          "actual": -2.3,
+          "error": 2.237,
+          "rank_linear": -0.063,
+          "round": 15
+        },
+        {
+          "actual": -1.84,
+          "error": 1.511,
+          "rank_linear": -0.329,
+          "round": 16
+        },
+        {
+          "actual": -2.035,
+          "error": 1.519,
+          "rank_linear": -0.516,
+          "round": 17
+        },
+        {
+          "actual": -3.535,
+          "error": 2.739,
+          "rank_linear": -0.796,
+          "round": 18
+        },
+        {
+          "actual": -1.701,
+          "error": 0.696,
+          "rank_linear": -1.005,
+          "round": 19
+        },
+        {
+          "actual": -5.567,
+          "error": 4.391,
+          "rank_linear": -1.176,
+          "round": 20
+        },
+        {
+          "actual": -1.901,
+          "error": 0.601,
+          "rank_linear": -1.3,
+          "round": 21
+        },
+        {
+          "actual": -2.165,
+          "error": 0.695,
+          "rank_linear": -1.47,
+          "round": 22
+        },
+        {
+          "actual": -5.061,
+          "error": 3.436,
+          "rank_linear": -1.625,
+          "round": 23
+        },
+        {
+          "actual": -6.495,
+          "error": 4.666,
+          "rank_linear": -1.829,
+          "round": 24
+        },
+        {
+          "actual": -4.302,
+          "error": 2.39,
+          "rank_linear": -1.912,
+          "round": 25
+        }
+      ],
+      "season": 2024,
+      "within_round_sd": {
+        "1": 5.803,
+        "10": 4.056,
+        "11": 1.932,
+        "12": 4.216,
+        "13": 4.762,
+        "14": 4.774,
+        "15": 4.073,
+        "16": 3.512,
+        "17": 2.716,
+        "18": 3.339,
+        "19": 2.628,
+        "2": 2.101,
+        "20": 2.884,
+        "21": 1.194,
+        "22": 2.987,
+        "23": 3.89,
+        "24": 2.284,
+        "25": 3.146,
+        "3": 2.64,
+        "4": 5.782,
+        "5": 3.483,
+        "6": 3.73,
+        "7": 5.45,
+        "8": 3.82,
+        "9": 3.3
+      }
+    },
+    {
+      "concentration": {
+        "above_replacement": 140,
+        "pool": 1475,
+        "roster_spots": 250,
+        "rostered_spots_below_replacement": 110,
+        "share_of_pool_above_replacement": 0.0949,
+        "share_of_rostered_spots_below_replacement": 0.44
+      },
+      "curve": [
+        {
+          "max_realized_value": 9.467,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 4.633,
+          "min_realized_value": -8.13,
+          "picks": 7,
+          "round": 1
+        },
+        {
+          "max_realized_value": 5.125,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 1.103,
+          "min_realized_value": -3.525,
+          "picks": 10,
+          "round": 2
+        },
+        {
+          "max_realized_value": 4.895,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.776,
+          "min_realized_value": -7.628,
+          "picks": 10,
+          "round": 3
+        },
+        {
+          "max_realized_value": 4.604,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.57,
+          "min_realized_value": -4.534,
+          "picks": 7,
+          "round": 4
+        },
+        {
+          "max_realized_value": 7.743,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.629,
+          "min_realized_value": -6.037,
+          "picks": 9,
+          "round": 5
+        },
+        {
+          "max_realized_value": 3.252,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.365,
+          "min_realized_value": -9.288,
+          "picks": 9,
+          "round": 6
+        },
+        {
+          "max_realized_value": 2.451,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.715,
+          "min_realized_value": -10.566,
+          "picks": 9,
+          "round": 7
+        },
+        {
+          "max_realized_value": 5.031,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.791,
+          "min_realized_value": -7.628,
+          "picks": 6,
+          "round": 8
+        },
+        {
+          "max_realized_value": 4.386,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.125,
+          "min_realized_value": -7.628,
+          "picks": 10,
+          "round": 9
+        },
+        {
+          "max_realized_value": 8.37,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.348,
+          "min_realized_value": -5.918,
+          "picks": 10,
+          "round": 10
+        },
+        {
+          "max_realized_value": 2.391,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.14,
+          "min_realized_value": -7.731,
+          "picks": 10,
+          "round": 11
+        },
+        {
+          "max_realized_value": 2.682,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.457,
+          "min_realized_value": -3.615,
+          "picks": 9,
+          "round": 12
+        },
+        {
+          "max_realized_value": 5.705,
+          "mean_board_value": 0.0,
+          "mean_realized_value": 0.387,
+          "min_realized_value": -7.628,
+          "picks": 10,
+          "round": 13
+        },
+        {
+          "max_realized_value": 3.074,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.915,
+          "min_realized_value": -3.346,
+          "picks": 7,
+          "round": 14
+        },
+        {
+          "max_realized_value": -0.231,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.898,
+          "min_realized_value": -6.51,
+          "picks": 6,
+          "round": 15
+        },
+        {
+          "max_realized_value": 1.384,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.295,
+          "min_realized_value": -7.862,
+          "picks": 8,
+          "round": 16
+        },
+        {
+          "max_realized_value": 0.927,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -1.126,
+          "min_realized_value": -5.079,
+          "picks": 8,
+          "round": 17
+        },
+        {
+          "max_realized_value": -0.48,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -4.741,
+          "min_realized_value": -6.815,
+          "picks": 8,
+          "round": 18
+        },
+        {
+          "max_realized_value": 3.797,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.004,
+          "min_realized_value": -5.691,
+          "picks": 8,
+          "round": 19
+        },
+        {
+          "max_realized_value": 1.188,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.856,
+          "min_realized_value": -3.639,
+          "picks": 9,
+          "round": 20
+        },
+        {
+          "max_realized_value": 2.545,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -3.141,
+          "min_realized_value": -9.062,
+          "picks": 9,
+          "round": 21
+        },
+        {
+          "max_realized_value": 1.192,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.873,
+          "min_realized_value": -7.279,
+          "picks": 9,
+          "round": 22
+        },
+        {
+          "max_realized_value": 2.77,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -0.729,
+          "min_realized_value": -5.822,
+          "picks": 6,
+          "round": 23
+        },
+        {
+          "max_realized_value": -0.488,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -2.456,
+          "min_realized_value": -4.888,
+          "picks": 6,
+          "round": 24
+        },
+        {
+          "max_realized_value": -4.7,
+          "mean_board_value": 0.0,
+          "mean_realized_value": -7.309,
+          "min_realized_value": -9.599,
+          "picks": 3,
+          "round": 25
+        }
+      ],
+      "drafted": 249,
+      "non_keeper_picks": 209,
+      "picks": 249,
+      "pool": 1475,
+      "pool_hitters": 668,
+      "pool_pitchers": 807,
+      "rank_linear_vs_actual": [
+        {
+          "actual": 4.633,
+          "error": 1.968,
+          "rank_linear": 6.601,
+          "round": 1
+        },
+        {
+          "actual": 1.103,
+          "error": 3.728,
+          "rank_linear": 4.831,
+          "round": 2
+        },
+        {
+          "actual": -0.776,
+          "error": 4.858,
+          "rank_linear": 4.082,
+          "round": 3
+        },
+        {
+          "actual": 0.57,
+          "error": 2.799,
+          "rank_linear": 3.369,
+          "round": 4
+        },
+        {
+          "actual": 0.629,
+          "error": 2.135,
+          "rank_linear": 2.764,
+          "round": 5
+        },
+        {
+          "actual": -1.365,
+          "error": 3.749,
+          "rank_linear": 2.384,
+          "round": 6
+        },
+        {
+          "actual": -1.715,
+          "error": 3.633,
+          "rank_linear": 1.917,
+          "round": 7
+        },
+        {
+          "actual": -0.791,
+          "error": 2.274,
+          "rank_linear": 1.483,
+          "round": 8
+        },
+        {
+          "actual": -0.125,
+          "error": 1.317,
+          "rank_linear": 1.192,
+          "round": 9
+        },
+        {
+          "actual": -0.348,
+          "error": 1.275,
+          "rank_linear": 0.927,
+          "round": 10
+        },
+        {
+          "actual": -1.14,
+          "error": 1.867,
+          "rank_linear": 0.727,
+          "round": 11
+        },
+        {
+          "actual": -0.457,
+          "error": 0.883,
+          "rank_linear": 0.426,
+          "round": 12
+        },
+        {
+          "actual": 0.387,
+          "error": -0.253,
+          "rank_linear": 0.134,
+          "round": 13
+        },
+        {
+          "actual": -0.915,
+          "error": 0.916,
+          "rank_linear": 0.001,
+          "round": 14
+        },
+        {
+          "actual": -1.898,
+          "error": 1.667,
+          "rank_linear": -0.231,
+          "round": 15
+        },
+        {
+          "actual": -3.295,
+          "error": 2.897,
+          "rank_linear": -0.398,
+          "round": 16
+        },
+        {
+          "actual": -1.126,
+          "error": 0.564,
+          "rank_linear": -0.562,
+          "round": 17
+        },
+        {
+          "actual": -4.741,
+          "error": 4.044,
+          "rank_linear": -0.697,
+          "round": 18
+        },
+        {
+          "actual": -2.004,
+          "error": 1.123,
+          "rank_linear": -0.881,
+          "round": 19
+        },
+        {
+          "actual": -0.856,
+          "error": -0.103,
+          "rank_linear": -0.959,
+          "round": 20
+        },
+        {
+          "actual": -3.141,
+          "error": 2.003,
+          "rank_linear": -1.138,
+          "round": 21
+        },
+        {
+          "actual": -2.873,
+          "error": 1.559,
+          "rank_linear": -1.314,
+          "round": 22
+        },
+        {
+          "actual": -0.729,
+          "error": -0.76,
+          "rank_linear": -1.489,
+          "round": 23
+        },
+        {
+          "actual": -2.456,
+          "error": 0.807,
+          "rank_linear": -1.649,
+          "round": 24
+        },
+        {
+          "actual": -7.309,
+          "error": 5.579,
+          "rank_linear": -1.73,
+          "round": 25
+        }
+      ],
+      "season": 2025,
+      "within_round_sd": {
+        "1": 5.962,
+        "10": 3.77,
+        "11": 2.879,
+        "12": 2.015,
+        "13": 3.816,
+        "14": 2.247,
+        "15": 2.385,
+        "16": 3.136,
+        "17": 1.844,
+        "18": 2.161,
+        "19": 3.321,
+        "2": 2.811,
+        "20": 1.629,
+        "21": 3.986,
+        "22": 3.286,
+        "23": 2.978,
+        "24": 1.746,
+        "25": 2.465,
+        "3": 4.237,
+        "4": 3.452,
+        "5": 3.609,
+        "6": 3.762,
+        "7": 3.649,
+        "8": 5.271,
+        "9": 4.358
+      }
+    }
+  ],
+  "generated_at": "2026-08-18T03:33:15+00:00",
+  "method": {
+    "curve": "mean realized SGP per round, EXCLUDING keepers",
+    "pool": "each season's own resolved draftees",
+    "rank_linear": "expectedValueAtRound's assumption (value of the player ranked round x 10) evaluated on the same season's REALIZED board -- a test of the shape, not a measurement of the app's projected values"
+  },
+  "pooled_curve": [
+    {
+      "max": 5.998,
+      "mean": 2.467,
+      "min": 0.033,
+      "range": 5.965,
+      "round": 1,
+      "sd_across_seasons": 1.867,
+      "seasons": 14
+    },
+    {
+      "max": 2.656,
+      "mean": 1.035,
+      "min": -2.212,
+      "range": 4.868,
+      "round": 2,
+      "sd_across_seasons": 1.263,
+      "seasons": 14
+    },
+    {
+      "max": 3.955,
+      "mean": 0.349,
+      "min": -1.864,
+      "range": 5.819,
+      "round": 3,
+      "sd_across_seasons": 1.598,
+      "seasons": 14
+    },
+    {
+      "max": 2.226,
+      "mean": 0.175,
+      "min": -1.674,
+      "range": 3.9,
+      "round": 4,
+      "sd_across_seasons": 1.263,
+      "seasons": 14
+    },
+    {
+      "max": 1.391,
+      "mean": -0.318,
+      "min": -2.553,
+      "range": 3.944,
+      "round": 5,
+      "sd_across_seasons": 1.182,
+      "seasons": 14
+    },
+    {
+      "max": 2.3,
+      "mean": -0.357,
+      "min": -3.036,
+      "range": 5.336,
+      "round": 6,
+      "sd_across_seasons": 1.46,
+      "seasons": 14
+    },
+    {
+      "max": 2.209,
+      "mean": -1.06,
+      "min": -2.343,
+      "range": 4.552,
+      "round": 7,
+      "sd_across_seasons": 1.094,
+      "seasons": 14
+    },
+    {
+      "max": 0.341,
+      "mean": -0.891,
+      "min": -2.711,
+      "range": 3.052,
+      "round": 8,
+      "sd_across_seasons": 0.94,
+      "seasons": 14
+    },
+    {
+      "max": 0.662,
+      "mean": -1.419,
+      "min": -3.442,
+      "range": 4.104,
+      "round": 9,
+      "sd_across_seasons": 1.228,
+      "seasons": 14
+    },
+    {
+      "max": 0.607,
+      "mean": -1.616,
+      "min": -4.04,
+      "range": 4.647,
+      "round": 10,
+      "sd_across_seasons": 1.373,
+      "seasons": 14
+    },
+    {
+      "max": 0.885,
+      "mean": -1.384,
+      "min": -3.597,
+      "range": 4.482,
+      "round": 11,
+      "sd_across_seasons": 1.291,
+      "seasons": 14
+    },
+    {
+      "max": 1.05,
+      "mean": -1.641,
+      "min": -3.115,
+      "range": 4.165,
+      "round": 12,
+      "sd_across_seasons": 1.166,
+      "seasons": 14
+    },
+    {
+      "max": 0.387,
+      "mean": -1.984,
+      "min": -4.552,
+      "range": 4.939,
+      "round": 13,
+      "sd_across_seasons": 1.4,
+      "seasons": 14
+    },
+    {
+      "max": -0.678,
+      "mean": -2.197,
+      "min": -4.49,
+      "range": 3.812,
+      "round": 14,
+      "sd_across_seasons": 1.056,
+      "seasons": 14
+    },
+    {
+      "max": -0.093,
+      "mean": -2.766,
+      "min": -4.621,
+      "range": 4.528,
+      "round": 15,
+      "sd_across_seasons": 1.33,
+      "seasons": 14
+    },
+    {
+      "max": 0.097,
+      "mean": -2.347,
+      "min": -4.163,
+      "range": 4.26,
+      "round": 16,
+      "sd_across_seasons": 1.133,
+      "seasons": 14
+    },
+    {
+      "max": 0.088,
+      "mean": -2.457,
+      "min": -5.79,
+      "range": 5.878,
+      "round": 17,
+      "sd_across_seasons": 1.625,
+      "seasons": 13
+    },
+    {
+      "max": -0.923,
+      "mean": -2.494,
+      "min": -4.741,
+      "range": 3.818,
+      "round": 18,
+      "sd_across_seasons": 1.077,
+      "seasons": 13
+    },
+    {
+      "max": -0.876,
+      "mean": -2.643,
+      "min": -4.633,
+      "range": 3.757,
+      "round": 19,
+      "sd_across_seasons": 1.132,
+      "seasons": 12
+    },
+    {
+      "max": -0.013,
+      "mean": -2.346,
+      "min": -5.567,
+      "range": 5.554,
+      "round": 20,
+      "sd_across_seasons": 1.789,
+      "seasons": 11
+    },
+    {
+      "max": -0.831,
+      "mean": -2.277,
+      "min": -4.081,
+      "range": 3.25,
+      "round": 21,
+      "sd_across_seasons": 0.897,
+      "seasons": 10
+    },
+    {
+      "max": -1.937,
+      "mean": -2.767,
+      "min": -3.739,
+      "range": 1.802,
+      "round": 22,
+      "sd_across_seasons": 0.562,
+      "seasons": 10
+    },
+    {
+      "max": -0.509,
+      "mean": -2.716,
+      "min": -5.061,
+      "range": 4.552,
+      "round": 23,
+      "sd_across_seasons": 1.458,
+      "seasons": 10
+    },
+    {
+      "max": -2.111,
+      "mean": -3.274,
+      "min": -6.495,
+      "range": 4.384,
+      "round": 24,
+      "sd_across_seasons": 1.525,
+      "seasons": 10
+    },
+    {
+      "max": 0.612,
+      "mean": -3.19,
+      "min": -7.309,
+      "range": 7.921,
+      "round": 25,
+      "sd_across_seasons": 2.176,
+      "seasons": 10
+    }
+  ],
+  "rank_linear_error_by_round": [
+    {
+      "mean_error": 3.188,
+      "round": 1,
+      "sd": 1.472,
+      "seasons": 14
+    },
+    {
+      "mean_error": 3.297,
+      "round": 2,
+      "sd": 1.171,
+      "seasons": 14
+    },
+    {
+      "mean_error": 3.166,
+      "round": 3,
+      "sd": 1.677,
+      "seasons": 14
+    },
+    {
+      "mean_error": 2.779,
+      "round": 4,
+      "sd": 1.114,
+      "seasons": 14
+    },
+    {
+      "mean_error": 2.833,
+      "round": 5,
+      "sd": 1.253,
+      "seasons": 14
+    },
+    {
+      "mean_error": 2.538,
+      "round": 6,
+      "sd": 1.398,
+      "seasons": 14
+    },
+    {
+      "mean_error": 2.887,
+      "round": 7,
+      "sd": 1.068,
+      "seasons": 14
+    },
+    {
+      "mean_error": 2.417,
+      "round": 8,
+      "sd": 1.006,
+      "seasons": 14
+    },
+    {
+      "mean_error": 2.627,
+      "round": 9,
+      "sd": 1.261,
+      "seasons": 14
+    },
+    {
+      "mean_error": 2.548,
+      "round": 10,
+      "sd": 1.374,
+      "seasons": 14
+    },
+    {
+      "mean_error": 2.043,
+      "round": 11,
+      "sd": 1.243,
+      "seasons": 14
+    },
+    {
+      "mean_error": 2.082,
+      "round": 12,
+      "sd": 1.135,
+      "seasons": 14
+    },
+    {
+      "mean_error": 2.178,
+      "round": 13,
+      "sd": 1.408,
+      "seasons": 14
+    },
+    {
+      "mean_error": 2.199,
+      "round": 14,
+      "sd": 1.05,
+      "seasons": 14
+    },
+    {
+      "mean_error": 2.611,
+      "round": 15,
+      "sd": 1.329,
+      "seasons": 14
+    },
+    {
+      "mean_error": 1.967,
+      "round": 16,
+      "sd": 1.075,
+      "seasons": 14
+    },
+    {
+      "mean_error": 1.921,
+      "round": 17,
+      "sd": 1.558,
+      "seasons": 13
+    },
+    {
+      "mean_error": 1.776,
+      "round": 18,
+      "sd": 1.13,
+      "seasons": 13
+    },
+    {
+      "mean_error": 1.78,
+      "round": 19,
+      "sd": 1.078,
+      "seasons": 12
+    },
+    {
+      "mean_error": 1.324,
+      "round": 20,
+      "sd": 1.708,
+      "seasons": 11
+    },
+    {
+      "mean_error": 1.117,
+      "round": 21,
+      "sd": 0.857,
+      "seasons": 10
+    },
+    {
+      "mean_error": 1.468,
+      "round": 22,
+      "sd": 0.582,
+      "seasons": 10
+    },
+    {
+      "mean_error": 1.245,
+      "round": 23,
+      "sd": 1.378,
+      "seasons": 10
+    },
+    {
+      "mean_error": 1.648,
+      "round": 24,
+      "sd": 1.393,
+      "seasons": 10
+    },
+    {
+      "mean_error": 1.452,
+      "round": 25,
+      "sd": 2.043,
+      "seasons": 10
+    }
+  ],
+  "season_correlations": {
+    "by_pair": [
+      {
+        "a": 2010,
+        "b": 2011,
+        "rounds": 16,
+        "spearman": 0.556
+      },
+      {
+        "a": 2010,
+        "b": 2012,
+        "rounds": 16,
+        "spearman": 0.053
+      },
+      {
+        "a": 2010,
+        "b": 2013,
+        "rounds": 16,
+        "spearman": 0.444
+      },
+      {
+        "a": 2010,
+        "b": 2014,
+        "rounds": 16,
+        "spearman": 0.429
+      },
+      {
+        "a": 2010,
+        "b": 2016,
+        "rounds": 16,
+        "spearman": 0.444
+      },
+      {
+        "a": 2010,
+        "b": 2017,
+        "rounds": 16,
+        "spearman": 0.556
+      },
+      {
+        "a": 2010,
+        "b": 2018,
+        "rounds": 16,
+        "spearman": 0.697
+      },
+      {
+        "a": 2010,
+        "b": 2019,
+        "rounds": 16,
+        "spearman": 0.588
+      },
+      {
+        "a": 2010,
+        "b": 2020,
+        "rounds": 16,
+        "spearman": 0.671
+      },
+      {
+        "a": 2010,
+        "b": 2022,
+        "rounds": 16,
+        "spearman": 0.603
+      },
+      {
+        "a": 2010,
+        "b": 2023,
+        "rounds": 16,
+        "spearman": 0.724
+      },
+      {
+        "a": 2010,
+        "b": 2024,
+        "rounds": 16,
+        "spearman": 0.612
+      },
+      {
+        "a": 2010,
+        "b": 2025,
+        "rounds": 16,
+        "spearman": 0.794
+      },
+      {
+        "a": 2011,
+        "b": 2012,
+        "rounds": 18,
+        "spearman": 0.247
+      },
+      {
+        "a": 2011,
+        "b": 2013,
+        "rounds": 18,
+        "spearman": 0.699
+      },
+      {
+        "a": 2011,
+        "b": 2014,
+        "rounds": 18,
+        "spearman": 0.628
+      },
+      {
+        "a": 2011,
+        "b": 2016,
+        "rounds": 18,
+        "spearman": 0.647
+      },
+      {
+        "a": 2011,
+        "b": 2017,
+        "rounds": 18,
+        "spearman": 0.816
+      },
+      {
+        "a": 2011,
+        "b": 2018,
+        "rounds": 18,
+        "spearman": 0.375
+      },
+      {
+        "a": 2011,
+        "b": 2019,
+        "rounds": 18,
+        "spearman": 0.686
+      },
+      {
+        "a": 2011,
+        "b": 2020,
+        "rounds": 18,
+        "spearman": 0.684
+      },
+      {
+        "a": 2011,
+        "b": 2022,
+        "rounds": 18,
+        "spearman": 0.416
+      },
+      {
+        "a": 2011,
+        "b": 2023,
+        "rounds": 18,
+        "spearman": 0.684
+      },
+      {
+        "a": 2011,
+        "b": 2024,
+        "rounds": 18,
+        "spearman": 0.645
+      },
+      {
+        "a": 2011,
+        "b": 2025,
+        "rounds": 18,
+        "spearman": 0.476
+      },
+      {
+        "a": 2012,
+        "b": 2013,
+        "rounds": 19,
+        "spearman": 0.382
+      },
+      {
+        "a": 2012,
+        "b": 2014,
+        "rounds": 19,
+        "spearman": 0.389
+      },
+      {
+        "a": 2012,
+        "b": 2016,
+        "rounds": 19,
+        "spearman": 0.512
+      },
+      {
+        "a": 2012,
+        "b": 2017,
+        "rounds": 19,
+        "spearman": 0.277
+      },
+      {
+        "a": 2012,
+        "b": 2018,
+        "rounds": 19,
+        "spearman": 0.275
+      },
+      {
+        "a": 2012,
+        "b": 2019,
+        "rounds": 19,
+        "spearman": 0.454
+      },
+      {
+        "a": 2012,
+        "b": 2020,
+        "rounds": 19,
+        "spearman": 0.23
+      },
+      {
+        "a": 2012,
+        "b": 2022,
+        "rounds": 19,
+        "spearman": 0.463
+      },
+      {
+        "a": 2012,
+        "b": 2023,
+        "rounds": 19,
+        "spearman": 0.275
+      },
+      {
+        "a": 2012,
+        "b": 2024,
+        "rounds": 19,
+        "spearman": 0.337
+      },
+      {
+        "a": 2012,
+        "b": 2025,
+        "rounds": 19,
+        "spearman": 0.144
+      },
+      {
+        "a": 2013,
+        "b": 2014,
+        "rounds": 20,
+        "spearman": 0.571
+      },
+      {
+        "a": 2013,
+        "b": 2016,
+        "rounds": 20,
+        "spearman": 0.666
+      },
+      {
+        "a": 2013,
+        "b": 2017,
+        "rounds": 20,
+        "spearman": 0.845
+      },
+      {
+        "a": 2013,
+        "b": 2018,
+        "rounds": 20,
+        "spearman": 0.565
+      },
+      {
+        "a": 2013,
+        "b": 2019,
+        "rounds": 20,
+        "spearman": 0.579
+      },
+      {
+        "a": 2013,
+        "b": 2020,
+        "rounds": 20,
+        "spearman": 0.424
+      },
+      {
+        "a": 2013,
+        "b": 2022,
+        "rounds": 20,
+        "spearman": 0.817
+      },
+      {
+        "a": 2013,
+        "b": 2023,
+        "rounds": 20,
+        "spearman": 0.325
+      },
+      {
+        "a": 2013,
+        "b": 2024,
+        "rounds": 20,
+        "spearman": 0.553
+      },
+      {
+        "a": 2013,
+        "b": 2025,
+        "rounds": 20,
+        "spearman": 0.424
+      },
+      {
+        "a": 2014,
+        "b": 2016,
+        "rounds": 25,
+        "spearman": 0.577
+      },
+      {
+        "a": 2014,
+        "b": 2017,
+        "rounds": 25,
+        "spearman": 0.563
+      },
+      {
+        "a": 2014,
+        "b": 2018,
+        "rounds": 25,
+        "spearman": 0.503
+      },
+      {
+        "a": 2014,
+        "b": 2019,
+        "rounds": 25,
+        "spearman": 0.656
+      },
+      {
+        "a": 2014,
+        "b": 2020,
+        "rounds": 25,
+        "spearman": 0.582
+      },
+      {
+        "a": 2014,
+        "b": 2022,
+        "rounds": 25,
+        "spearman": 0.516
+      },
+      {
+        "a": 2014,
+        "b": 2023,
+        "rounds": 25,
+        "spearman": 0.528
+      },
+      {
+        "a": 2014,
+        "b": 2024,
+        "rounds": 25,
+        "spearman": 0.485
+      },
+      {
+        "a": 2014,
+        "b": 2025,
+        "rounds": 25,
+        "spearman": 0.525
+      },
+      {
+        "a": 2016,
+        "b": 2017,
+        "rounds": 25,
+        "spearman": 0.686
+      },
+      {
+        "a": 2016,
+        "b": 2018,
+        "rounds": 25,
+        "spearman": 0.485
+      },
+      {
+        "a": 2016,
+        "b": 2019,
+        "rounds": 25,
+        "spearman": 0.515
+      },
+      {
+        "a": 2016,
+        "b": 2020,
+        "rounds": 25,
+        "spearman": 0.435
+      },
+      {
+        "a": 2016,
+        "b": 2022,
+        "rounds": 25,
+        "spearman": 0.612
+      },
+      {
+        "a": 2016,
+        "b": 2023,
+        "rounds": 25,
+        "spearman": 0.618
+      },
+      {
+        "a": 2016,
+        "b": 2024,
+        "rounds": 25,
+        "spearman": 0.708
+      },
+      {
+        "a": 2016,
+        "b": 2025,
+        "rounds": 25,
+        "spearman": 0.487
+      },
+      {
+        "a": 2017,
+        "b": 2018,
+        "rounds": 27,
+        "spearman": 0.679
+      },
+      {
+        "a": 2017,
+        "b": 2019,
+        "rounds": 27,
+        "spearman": 0.563
+      },
+      {
+        "a": 2017,
+        "b": 2020,
+        "rounds": 25,
+        "spearman": 0.419
+      },
+      {
+        "a": 2017,
+        "b": 2022,
+        "rounds": 25,
+        "spearman": 0.759
+      },
+      {
+        "a": 2017,
+        "b": 2023,
+        "rounds": 25,
+        "spearman": 0.438
+      },
+      {
+        "a": 2017,
+        "b": 2024,
+        "rounds": 25,
+        "spearman": 0.683
+      },
+      {
+        "a": 2017,
+        "b": 2025,
+        "rounds": 25,
+        "spearman": 0.593
+      },
+      {
+        "a": 2018,
+        "b": 2019,
+        "rounds": 27,
+        "spearman": 0.39
+      },
+      {
+        "a": 2018,
+        "b": 2020,
+        "rounds": 25,
+        "spearman": 0.554
+      },
+      {
+        "a": 2018,
+        "b": 2022,
+        "rounds": 25,
+        "spearman": 0.722
+      },
+      {
+        "a": 2018,
+        "b": 2023,
+        "rounds": 25,
+        "spearman": 0.529
+      },
+      {
+        "a": 2018,
+        "b": 2024,
+        "rounds": 25,
+        "spearman": 0.664
+      },
+      {
+        "a": 2018,
+        "b": 2025,
+        "rounds": 25,
+        "spearman": 0.578
+      },
+      {
+        "a": 2019,
+        "b": 2020,
+        "rounds": 25,
+        "spearman": 0.543
+      },
+      {
+        "a": 2019,
+        "b": 2022,
+        "rounds": 25,
+        "spearman": 0.563
+      },
+      {
+        "a": 2019,
+        "b": 2023,
+        "rounds": 25,
+        "spearman": 0.625
+      },
+      {
+        "a": 2019,
+        "b": 2024,
+        "rounds": 25,
+        "spearman": 0.432
+      },
+      {
+        "a": 2019,
+        "b": 2025,
+        "rounds": 25,
+        "spearman": 0.542
+      },
+      {
+        "a": 2020,
+        "b": 2022,
+        "rounds": 25,
+        "spearman": 0.387
+      },
+      {
+        "a": 2020,
+        "b": 2023,
+        "rounds": 25,
+        "spearman": 0.705
+      },
+      {
+        "a": 2020,
+        "b": 2024,
+        "rounds": 25,
+        "spearman": 0.571
+      },
+      {
+        "a": 2020,
+        "b": 2025,
+        "rounds": 25,
+        "spearman": 0.464
+      },
+      {
+        "a": 2022,
+        "b": 2023,
+        "rounds": 25,
+        "spearman": 0.472
+      },
+      {
+        "a": 2022,
+        "b": 2024,
+        "rounds": 25,
+        "spearman": 0.568
+      },
+      {
+        "a": 2022,
+        "b": 2025,
+        "rounds": 25,
+        "spearman": 0.527
+      },
+      {
+        "a": 2023,
+        "b": 2024,
+        "rounds": 25,
+        "spearman": 0.556
+      },
+      {
+        "a": 2023,
+        "b": 2025,
+        "rounds": 25,
+        "spearman": 0.405
+      },
+      {
+        "a": 2024,
+        "b": 2025,
+        "rounds": 25,
+        "spearman": 0.492
+      }
+    ],
+    "max_spearman": 0.845,
+    "mean_spearman": 0.534,
+    "min_spearman": 0.053,
+    "pairs": 91
+  },
+  "seasons": [
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "sgp_denominators": {
+    "ERA": 0.084556,
+    "K": 75.925926,
+    "OBP": 0.003522,
+    "QS": 5.833333,
+    "R": 18.777778,
+    "RBI": 19.962963,
+    "SB": 11.074074,
+    "SVHD": 7.777778,
+    "TB": 52.407407,
+    "WHIP": 0.012333
+  },
+  "shape_fits": {
+    "best": "logarithmic",
+    "fits": {
+      "linear": {
+        "formula": "0.767 + -0.1763 * round",
+        "params": {
+          "intercept": 0.7671,
+          "slope": -0.1763
+        },
+        "rmse": 0.5638
+      },
+      "logarithmic": {
+        "formula": "2.372 + -1.6797 * ln(round)",
+        "params": {
+          "intercept": 2.3725,
+          "slope": -1.6797
+        },
+        "rmse": 0.2209
+      },
+      "quadratic": {
+        "params": {
+          "a": 0.00977,
+          "b": -0.4303,
+          "c": 1.9103
+        },
+        "rmse": 0.3352
+      }
+    },
+    "n": 25,
+    "rmse_spread": 0.3429,
+    "shapes_separable": true
+  },
+  "stability": {
+    "between_over_within": 0.405,
+    "max_between_season_sd": 2.176,
+    "mean_between_season_sd": 1.315,
+    "mean_within_round_sd": 3.25,
+    "rounds": 25,
+    "seasons": 14,
+    "worst_round": 25
+  }
+}
