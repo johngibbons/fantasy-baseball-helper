@@ -37,7 +37,11 @@ Row = tuple
 _PICK_LABELS = {"#", "pick", "rank"}
 _OWNER_LABELS = {"owner", "manager", "team"}
 _PLAYER_LABELS = {"player"}
-_POSITION_LABELS = {"position", "pos", "elig. pos.", "elig. pos"}
+# Matched exactly, never by prefix: the 2024 sheet carries both
+# "Position (Eligible)" and "Position (Rank)", and a prefix match would take
+# whichever came first.
+_POSITION_LABELS = {"position", "pos", "elig. pos.", "elig. pos",
+                    "position (eligible)"}
 _MLB_TEAM_LABELS = {"mlb team"}
 _NOTES_LABELS = {
     "notes",
