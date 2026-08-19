@@ -1,7 +1,7 @@
 # Multi-Season Backtest: Keeper Outcomes, 2016–2025
 
-**Status:** Phases 0–4 complete. Phases 5–6 (ADP replication, regenerated
-projections) are unblocked but not run.
+**Status:** Phases 0–5 complete. Phase 6 (regenerated projections) is unblocked
+but not run.
 **Plan:** `docs/superpowers/plans/2026-08-17-multi-season-backtest.md`
 **Builds on:** `RETROSPECTIVE_2026.md`
 
@@ -27,6 +27,14 @@ right-skewed, so an ordinary pick clears its round's mean about half the time.
 Keepers clear it 73.3% of the time — **21 points above the null, far outside the
 confidence interval.** Keeping is a real edge, worth **+2.33 SGP per decision**
 (CI +1.93 to +2.75) over letting the player go and drafting that round normally.
+
+Phase 5 then tested whether the 2026 ADP findings replicate. **Two of three do,
+and the third reverses**: the residual-spread law holds across six seasons
+(σ = 11.13 + 0.161 × adp against 2026's 6.55 + 0.158), but per-manager
+reach/wait does not survive multi-season measurement — a manager varies more
+between his own seasons (30.5 picks) than managers differ from each other
+(28.2). That contradicts `RETROSPECTIVE_2026.md` recommendation 5 and is the
+second finding here that changes what should ship.
 
 Phase 4 adds the answer the keeper model actually needs:
 
@@ -278,6 +286,99 @@ the pre- and post-universal-DH eras, not through the 60-game 2020 season.
 
 ---
 
+## Phase 5 — does the 2026 ADP work replicate?
+
+Five seasons carry both a draft and an ESPN top-300 sheet: 2017, 2020, 2023,
+2024, 2025. The ranking stands in for draft-day ADP, and is better than a
+generic ADP feed in one respect — it is the list this league actually drafted
+from.
+
+**Two of the three 2026 findings replicate strongly. The third reverses.**
+
+### Residual spread by band — replicates
+
+| ADP band | n | measured σ (pooled) | 2026 σ |
+|---|---|---|---|
+| 0–50 | 139 | **11.2** | 6.5 |
+| 50–100 | 195 | **21.5** | 17.1 |
+| 100–150 | 219 | **40.6** | 31.9 |
+| 150–200 | 183 | **41.3** | 40.3 |
+| 200+ | 212 | **44.5** | 37.8 |
+
+Same shape, and the fitted slope is nearly identical:
+
+- **2017–2025 pooled:** σ = 11.13 + **0.1607** × adp
+- **2026:** σ = 6.55 + **0.1580** × adp
+
+Uncertainty grows about fourfold from the top of the board to the deep rounds.
+The slope replicating to three decimals across six seasons and two independent
+measurements is about as strong as this dataset gets.
+
+`variable_py` — the `10 + 0.1 × adp` formula sitting switched off in
+`config.py` behind `USE_VARIABLE_SIGMA` — is the **best-fitting model in all
+five seasons**, as it was in 2026. The case for re-opening that rejection is
+now six seasons deep rather than one.
+
+### The keeper adjustment undershoots by the same amount — replicates
+
+Raw residuals run −15 to −25 picks: with ~40 players off the board, everyone
+else goes markedly earlier than their bare rank. Subtracting keepers ranked
+above each player removes nearly all of it:
+
+| Season | Raw mean | Keeper-adjusted mean |
+|---|---|---|
+| 2020 | −25.3 | **+7.4** |
+| 2024 | −20.7 | **+7.8** |
+| 2025 | −20.1 | **+9.6** |
+| 2023 | −20.5 | **+11.2** |
+| 2017 | −15.3 | +20.7 |
+| *2026* | *−38.7* | *+9.2* |
+
+Four of five seasons land between +7.4 and +11.2 against 2026's +9.2. The
+adjustment is directionally right and slightly undershooting, by a consistent
+and now well-measured margin.
+
+### Manager reach/wait — does NOT replicate
+
+This is the one to act on, because it points the opposite way from
+`RETROSPECTIVE_2026.md` recommendation 5.
+
+| | picks |
+|---|---|
+| Spread between managers (pooled 2017–2025) | 28.2 |
+| Mean spread *within* a manager across seasons | **30.5** |
+
+A manager varies as much from year to year as managers differ from each other.
+The identities do not carry either: Tim Riker was 2026's hardest reacher at
+−42.5, and sits mid-pack at +2.2 across 2017–2025; Harris Cook was 2026's
+biggest waiter and is also mid-pack here.
+
+**So the 2026 per-manager residuals should not be fed into
+`draft_engine._opponent_pick`.** They measured one season of a quantity that
+moves by ~30 picks a season. The 46-pick spread that looked like a clean signal
+in 2026 is within the range a single manager covers between two seasons. The
+underlying model change — that opponents are not uniform noise around ADP — may
+still be right, but per-manager constants estimated from one season are not the
+way to express it.
+
+### Market versus realized
+
+"Board versus market" cannot be reproduced before 2026, because it needs a
+projection board and none exists. The answerable question is how well the
+preseason market predicted realized value — the bar any board must clear:
+
+| Season | 2017 | 2020 | 2023 | 2024 | 2025 |
+|---|---|---|---|---|---|
+| Spearman ρ | 0.47 | 0.35 | 0.46 | 0.38 | 0.45 |
+
+The market lands around ρ ≈ 0.40–0.47, with 2020's short season the worst. For
+scale, `RETROSPECTIVE_2026.md` measured THE BAT X at ρ = 0.741 for hitters and
+0.610 for pitchers against realized value — but over a different pool and
+against a per-pool board rather than a single mixed ranking, so the two are not
+directly comparable and the gap should not be read as the app's edge.
+
+---
+
 ## The data, and what Phase 0 found
 
 `backend/scripts/history_import.py` extracts the 72-sheet workbook into
@@ -416,6 +517,10 @@ Full detail in `keeper_history_crosscheck.json`, reproducible with
 # Phases 3 and 4
 .venv/bin/python -m backend.scripts.history_keepers
 .venv/bin/python -m backend.scripts.history_value_curve
+
+# Phase 5 — market baseline (needs the ranking names resolved first)
+.venv/bin/python -m backend.scripts.history_resolve_rankings
+.venv/bin/python -m backend.scripts.history_market
 ```
 
 Artifacts land in `backend/data/fixtures/league_history/`. The two backfills are
@@ -448,13 +553,6 @@ Every analysis step is deterministic and can be re-run to byte-identical output
   slots. Neither season contributes a keeper row.
 
 ## What is now unblocked
-
-**Phase 5** has the data but not the resolution. The ESPN top-300 sheets for
-2017, 2020, 2021, 2023, 2024, 2025 and 2026 are parsed into
-`rankings_YYYY.json`, but only draft and keeper names have been resolved to
-`mlb_id` — the ~2,000 ranking names are still raw strings. `resolve_season`
-takes any name list, so this is straightforward, but it is real work rather
-than none.
 
 **Phase 6** remains the one carrying real risk, and the plan's warning stands:
 **a regenerated projection scoped to its own season produces a spectacular
