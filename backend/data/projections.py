@@ -854,7 +854,7 @@ def _age_tier(age: Optional[int]) -> str:
     return "older"
 
 
-def generate_projections_from_stats(season: int = 2025):
+def generate_projections_from_stats(season: int = 2025, active_only: bool = True):
     """Generate simple projections based on recent historical stats.
 
     Uses a weighted average of last 3 seasons (if available) with age-adjusted
@@ -862,9 +862,24 @@ def generate_projections_from_stats(season: int = 2025):
     (breakouts sustain), older players do the same (declines accelerate), and
     a small counting-stat multiplier nudges projections in the expected
     direction of the aging curve.
+
+    Only the three prior seasons are ever read, so the output for `season`
+    cannot contain information from `season` itself. That is load-bearing for
+    the multi-season backtest and is enforced by
+    tests/backend/analysis/test_projection_scoping.py.
+
+    `active_only` restricts the player universe to today's active roster, which
+    is right for the live app and wrong for a backtest: projecting 2018 over
+    only players still active in 2026 is projecting over the players who turned
+    out to have long careers. Pass False when generating for a historical
+    season.
     """
     conn = get_connection()
     seasons_back = [season - 1, season - 2, season - 3]
+    # Applied as a SQL fragment rather than a parameter so it can vanish
+    # entirely; `is_active = ?` with a wildcard would still exclude NULLs.
+    active_clause = "AND is_active = 1" if active_only else ""
+    active_clause_p = "AND p.is_active = 1" if active_only else ""
 
     # Pre-load birth dates for age lookup
     birth_dates: dict[int, str] = {}
@@ -873,14 +888,14 @@ def generate_projections_from_stats(season: int = 2025):
 
     # Generate hitter projections — includes two-way players (pitchers with batting stats)
     hitter_ids = conn.execute(
-        "SELECT mlb_id FROM players WHERE player_type = 'hitter' AND is_active = 1"
+        f"SELECT mlb_id FROM players WHERE player_type = 'hitter' {active_clause}"
     ).fetchall()
     # Also find pitchers who have batting stats (two-way players like Ohtani)
     twp_hitter_ids = conn.execute(
         """SELECT DISTINCT bs.mlb_id FROM batting_stats bs
            JOIN players p ON bs.mlb_id = p.mlb_id
-           WHERE p.player_type = 'pitcher' AND p.is_active = 1
-             AND bs.season IN (?, ?, ?)""",
+           WHERE p.player_type = 'pitcher' {active_clause_p}
+             AND bs.season IN (?, ?, ?)""".format(active_clause_p=active_clause_p),
         (*seasons_back,),
     ).fetchall()
     all_hitter_ids = {h["mlb_id"] for h in hitter_ids} | {h["mlb_id"] for h in twp_hitter_ids}
@@ -961,14 +976,14 @@ def generate_projections_from_stats(season: int = 2025):
 
     # Generate pitcher projections — includes two-way players (hitters with pitching stats)
     pitcher_ids = conn.execute(
-        "SELECT mlb_id FROM players WHERE player_type = 'pitcher' AND is_active = 1"
+        f"SELECT mlb_id FROM players WHERE player_type = 'pitcher' {active_clause}"
     ).fetchall()
     # Also find hitters who have pitching stats (two-way players like Ohtani)
     twp_pitcher_ids = conn.execute(
         """SELECT DISTINCT ps.mlb_id FROM pitching_stats ps
            JOIN players p ON ps.mlb_id = p.mlb_id
-           WHERE p.player_type = 'hitter' AND p.is_active = 1
-             AND ps.season IN (?, ?, ?)""",
+           WHERE p.player_type = 'hitter' {active_clause_p}
+             AND ps.season IN (?, ?, ?)""".format(active_clause_p=active_clause_p),
         (*seasons_back,),
     ).fetchall()
     all_pitcher_ids = {p["mlb_id"] for p in pitcher_ids} | {p["mlb_id"] for p in twp_pitcher_ids}
