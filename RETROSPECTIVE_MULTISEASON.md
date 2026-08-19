@@ -1,7 +1,6 @@
 # Multi-Season Backtest: Keeper Outcomes, 2016–2025
 
-**Status:** Phases 0–5 complete. Phase 6 (regenerated projections) is unblocked
-but not run.
+**Status:** Phases 0–6 complete — every phase in the plan.
 **Plan:** `docs/superpowers/plans/2026-08-17-multi-season-backtest.md`
 **Builds on:** `RETROSPECTIVE_2026.md`
 
@@ -35,6 +34,14 @@ reach/wait does not survive multi-season measurement — a manager varies more
 between his own seasons (30.5 picks) than managers differ from each other
 (28.2). That contradicts `RETROSPECTIVE_2026.md` recommendation 5 and is the
 second finding here that changes what should ship.
+
+Phase 6 then split the 2026 over-dispersion finding in two. Over twelve seasons
+of regenerated projections, **pitchers over-disperse in every single season**
+(mean slope 0.699 against 2026's 0.722 from a completely different forecaster),
+which points at the valuation engine rather than any one projection source.
+**Hitters do not** — mean 0.885, and above 1 in two seasons. Shrinkage should
+be applied per pool, confidently for pitchers and cautiously for hitters,
+rather than as one constant for both.
 
 Phase 4 adds the answer the keeper model actually needs:
 
@@ -379,6 +386,68 @@ directly comparable and the gap should not be read as the app's edge.
 
 ---
 
+## Phase 6 — does the engine over-disperse in every season?
+
+The 2026 retrospective's largest measured effect was that the board spreads
+players ~25% further apart than reality: a calibration slope of 0.759 for
+hitters and 0.722 for pitchers, from one season. Twelve seasons of regenerated
+projections say **yes for pitchers, emphatically; for hitters, weakly.**
+
+| Pool | Mean slope (ex-2020) | Seasons below 1 | 2026 (THE BAT X) |
+|---|---|---|---|
+| **Pitchers** | **0.699** (range 0.625–0.823) | **11 / 11** | 0.722 |
+| Hitters | 0.885 (range 0.804–1.049) | 9 / 11 | 0.759 |
+
+**Read the caveat before the numbers.** No archived preseason projections exist
+before 2026, so these are regenerated with `generate_projections_from_stats` —
+the app's own weighted, age-adjusted three-season average. That model scored
+0.639 rank correlation for hitters in 2026 against THE BAT X's 0.741. **These
+are the trend model's slopes, not THE BAT X's**, and this is not a replication
+of the 2026 figure.
+
+What it *is* good for is the thing the plan wanted separated: telling
+"the projections over-disperse" apart from "the SGP conversion over-disperses".
+
+**For pitchers the answer is now fairly clear.** A completely different
+projection model, over twelve seasons, lands at 0.699 against THE BAT X's 0.722
+in 2026 — same direction, near-identical magnitude, every single season below
+1. Two unrelated forecasters producing the same dispersion error points at the
+shared component: the valuation engine, not the forecast. Shrinkage for
+pitchers is well supported.
+
+**For hitters it is not.** The trend model averages 0.885 and *exceeds* 1 in
+2022 and 2023 — no over-dispersion at all in those years. THE BAT X's 0.759 in
+2026 is well outside this model's usual range, which is consistent with a good
+part of the 2026 hitter figure being specific to that source and season rather
+than structural. The shrinkage recommendation should be applied to pitchers
+with confidence and to hitters cautiously, ideally re-derived per pool rather
+than using one shrinkage constant for both.
+
+**2020 is excluded from the means** and reported separately: over 60 games the
+slope collapses to 0.316 for hitters and 0.232 for pitchers. That is the sample
+size, not the model.
+
+Two further limits worth carrying:
+
+- **The pool is wider than the app's board** — 1,000–1,700 hitters against the
+  ~660 THE BAT X covers. A wider pool contains more easy-to-rank bad players,
+  which inflates rank correlation and can flatten a regression slope. The
+  cross-model comparison above is therefore directional, not exact.
+- **The trend model is not the shipped board.** `RETROSPECTIVE_2026.md`
+  recommends retiring `trend` from valuation precisely because it is worse.
+  Nothing here argues for its return; it is used only as an independent second
+  opinion on dispersion.
+
+Lookahead — the trap that would make all of this meaningless — is guarded by
+`tests/backend/analysis/test_projection_scoping.py`, which generates a season
+with and without its own and later seasons present and requires identical
+output. The scoping was already correct. The test did catch a second, subtler
+leak: the generator selected on `is_active = 1`, i.e. today's roster, which
+would have run every historical backtest over only the players who turned out
+to have long careers.
+
+---
+
 ## The data, and what Phase 0 found
 
 `backend/scripts/history_import.py` extracts the 72-sheet workbook into
@@ -521,6 +590,10 @@ Full detail in `keeper_history_crosscheck.json`, reproducible with
 # Phase 5 — market baseline (needs the ranking names resolved first)
 .venv/bin/python -m backend.scripts.history_resolve_rankings
 .venv/bin/python -m backend.scripts.history_market
+
+# Phase 6 — regenerated projections (excludes 2026: its trend rows feed the
+# Layer D comparison in RETROSPECTIVE_2026.md)
+.venv/bin/python -m backend.scripts.history_valuation
 ```
 
 Artifacts land in `backend/data/fixtures/league_history/`. The two backfills are
@@ -552,13 +625,24 @@ Every analysis step is deterministic and can be re-run to byte-identical output
 - **2021 has no draft or keeper sheet**, and 2015's draft is only its keeper
   slots. Neither season contributes a keeper row.
 
-## What is now unblocked
+## What to do next
 
-**Phase 6** remains the one carrying real risk, and the plan's warning stands:
-**a regenerated projection scoped to its own season produces a spectacular
-backtest that means nothing, and looks entirely normal.** Write the failing
-test first.
+Every phase in the plan is complete. Three things follow from it, in order of
+confidence:
 
-**Acting on Phase 4** is the nearer-term work. Replacing `expectedValueAtRound`
-with the fitted curve needs the +2.2 SGP bias re-derived on the projected board
-the app builds, not carried across from realized values — see the caveat above.
+1. **Replace `expectedValueAtRound` with the fitted curve.** The app understates
+   every keeper surplus it shows, because the rank-linear baseline is too high
+   at every round. Re-derive the level on the *projected* board rather than
+   carrying the +2.2 SGP across from realized values. Best after the season
+   closes 2026-09-27, when `RETROSPECTIVE_2026.md` wants its final re-run.
+2. **Apply shrinkage per pool, not globally.** Phase 6 supports it strongly for
+   pitchers and weakly for hitters; one constant for both would over-shrink
+   hitters.
+3. **Re-open `USE_VARIABLE_SIGMA`.** The residual-spread law now holds across
+   six seasons. But the 2026 caveat stands: it was rejected on *simulated draft
+   outcomes*, a different question from availability-model calibration, so the
+   simulation experiment needs re-running rather than the flag simply flipping.
+
+And one thing not to do: **do not feed the 2026 per-manager ADP residuals into
+the opponent model.** Phase 5 shows managers vary more between their own seasons
+than they differ from each other.
