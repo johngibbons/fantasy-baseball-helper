@@ -43,19 +43,12 @@ which points at the valuation engine rather than any one projection source.
 be applied per pool, confidently for pitchers and cautiously for hitters,
 rather than as one constant for both.
 
-Phase 4 adds the answer the keeper model actually needs:
-
-**`expectedValueAtRound` overestimates every round, by about 2.2 SGP.** Its
-rank-linear assumption — round R is worth the player ranked R×10 — is a fine
-description of a sorted board, but "what round R returns" is not "the R×10-th
-best player". It is about 2 SGP worse, because drafting does not sort players
-correctly. Since the app computes keeper surplus as *player value minus
-`expectedValueAtRound`*, an inflated baseline means **the app understates every
-keeper surplus** — which is the same direction as the Phase 3 finding that
-keeping wins far more often than it loses.
-
-The curve is stable enough to replace it with: a fitted logarithmic curve,
-`value ≈ 2.37 − 1.68 × ln(round)`.
+Phase 4 measured the value-at-pick curve. **The curve is stable enough to fit**
+— a logarithmic shape, `value ≈ 2.37 − 1.68 × ln(round)` — and
+`expectedValueAtRound` overstates the baseline in every season, so the app
+understates keeper surplus. But **the size of that bias is much smaller than a
+first reading suggests, and the two numbers involved must not be confused**;
+see [the correction below](#a-correction-two-different-errors).
 
 Three more results, all with the sample to support them:
 
@@ -229,7 +222,7 @@ than using a per-round lookup table.
 0.34). Steep early, flattening late — the shape a value curve is usually
 assumed to have, now measured rather than assumed.
 
-### `expectedValueAtRound` is biased high at every round
+### <a name="a-correction-two-different-errors"></a>`expectedValueAtRound` is biased high — but by how much depends on which question you ask
 
 The rank-linear assumption evaluated against what rounds actually returned:
 
@@ -243,25 +236,50 @@ The rank-linear assumption evaluated against what rounds actually returned:
 | 25 | −3.19 | +1.45 |
 
 The error is positive at **every** round, averaging **+2.2 SGP** and largest
-early. The assumption is not badly shaped — it is uniformly too high.
+early.
 
-The reason is worth stating, because it is not a modelling error. "The player
-ranked R×10" and "what round R returns" are different things: the first assumes
-the draft sorts players correctly, and it does not. The gap between them *is*
-the cost of collective drafting error, and it is about 2 SGP per pick.
+**That +2.2 is not the app's bias, and an earlier draft of this document said
+it was.** The correction matters, because acting on the wrong figure would
+overshoot by roughly a factor of five.
 
-For keeper decisions only the second matters, and the app currently uses the
-first. Because surplus is *player value minus `expectedValueAtRound`*, the
-inflated baseline means the app **understates keeper surplus across the board** —
-consistent with keepers beating their round 73% of the time.
+Two different quantities are in play:
 
-**One caveat, and it is important.** The app applies rank-linear to *projected*
-values; this measures it on *realized* ones. The 2026 retrospective found the
-assumption holds within ~0.5 SGP in board terms for the first eight rounds, so
-the shape is not the problem — the level is. That is the same conclusion from
-the other direction, but the +2.2 SGP figure is a realized-value quantity and
-should not be pasted into the app as a constant without re-deriving it on the
-board the app actually builds.
+| | What it compares | Size |
+|---|---|---|
+| **Realized-units gap** | "the R×10-th best player" vs *what round R actually returned* | **+2.2 SGP** |
+| **Board-units gap** | "the R×10-th best player" vs *the mean projected value of round R* | **+0.26 SGP** (2026, THE BAT X) |
+
+The app computes surplus as *projected player value minus
+`expectedValueAtRound(projected board)`* — both terms in projected units. So
+the quantity that governs it is the **board-units** gap, and on the 2026 board
+that is +0.26 SGP over rounds 1–8 (+0.68 over all 25). Small.
+
+The realized-units gap is a real and interesting number, but it measures
+something else entirely: the distance between "the Nth best player" and "what
+teams actually got with the Nth pick" is **the cost of collective drafting
+error**, about 2 SGP per pick. It is a fact about the league, not a bug in the
+app.
+
+Measured on Phase 6's regenerated boards, the board-units error is positive in
+all eleven seasons — so the *direction* holds — but its size depends on the
+projection model:
+
+| Board | Rounds 1–8 error |
+|---|---|
+| THE BAT X (2026) | **+0.26** |
+| Trend model (2013–2025, pooled) | **+1.47** |
+
+The trend model is the weaker forecaster (ρ 0.639 against THE BAT X's 0.741 in
+2026), and its board is shaped differently, so the gap is wider. The shipped
+board uses a commercial source, which puts the honest estimate nearer the low
+end.
+
+**What this means for shipping.** Replacing `expectedValueAtRound` with the
+fitted curve is a *real but modest* improvement, not the large one this document
+previously claimed, and the correction has to be derived on the board the app
+actually builds. A curve fitted to realized values would deflate the baseline
+by ~2 SGP while player values stayed in projected units — a unit mismatch that
+would systematically **overstate** surplus and be worse than the status quo.
 
 ### Value above replacement is a league constant
 
@@ -630,18 +648,24 @@ Every analysis step is deterministic and can be re-run to byte-identical output
 Every phase in the plan is complete. Three things follow from it, in order of
 confidence:
 
-1. **Replace `expectedValueAtRound` with the fitted curve.** The app understates
-   every keeper surplus it shows, because the rank-linear baseline is too high
-   at every round. Re-derive the level on the *projected* board rather than
-   carrying the +2.2 SGP across from realized values. Best after the season
-   closes 2026-09-27, when `RETROSPECTIVE_2026.md` wants its final re-run.
-2. **Apply shrinkage per pool, not globally.** Phase 6 supports it strongly for
-   pitchers and weakly for hitters; one constant for both would over-shrink
-   hitters.
-3. **Re-open `USE_VARIABLE_SIGMA`.** The residual-spread law now holds across
-   six seasons. But the 2026 caveat stands: it was rejected on *simulated draft
-   outcomes*, a different question from availability-model calibration, so the
-   simulation experiment needs re-running rather than the flag simply flipping.
+1. **Apply shrinkage per pool, not globally.** Phase 6's clearest result:
+   pitchers over-disperse in 11 of 11 seasons at 0.699, closely matching 2026's
+   0.722 from an unrelated forecaster, so the effect is in the engine rather
+   than the source. Hitters average 0.885 and exceed 1 twice. One shrinkage
+   constant for both pools would over-shrink hitters.
+2. **Re-open `USE_VARIABLE_SIGMA`.** The residual-spread law now holds across
+   six seasons (σ = 11.13 + 0.161 × adp against 2026's 6.55 + 0.158). But the
+   2026 caveat stands: it was rejected on *simulated draft outcomes*, a
+   different question from availability-model calibration, so the simulation
+   experiment needs re-running rather than the flag simply flipping.
+3. **Replace `expectedValueAtRound` with the fitted curve — modest, and easy to
+   get backwards.** The baseline is too high in every season, so the app does
+   understate keeper surplus, but on the shipped board the bias is ~0.26 SGP
+   over the early rounds, not the 2.2 an earlier draft of this document
+   reported. Derive the correction on the projected board. Fitting the curve to
+   *realized* values would deflate the baseline while player values stayed
+   projected — a unit mismatch that overstates surplus and is worse than doing
+   nothing.
 
 And one thing not to do: **do not feed the 2026 per-manager ADP residuals into
 the opponent model.** Phase 5 shows managers vary more between their own seasons

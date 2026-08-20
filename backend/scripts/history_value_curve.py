@@ -42,6 +42,11 @@ from backend.analysis.history.value_curve import (
     stability,
 )
 from backend.analysis.retro.keeper_eval import NUM_TEAMS, value_at_pick_curve
+from backend.analysis.zscores import (
+    ValuationConfig,
+    compute_hitter_sgp,
+    compute_pitcher_sgp,
+)
 from backend.analysis.zscores import _compute_sgp_denominators
 from backend.database import get_connection
 
@@ -70,6 +75,50 @@ def roster_positions(season: int) -> dict[int, str]:
                 positions.setdefault(person["mlb_id"],
                                      person.get("primary_position") or "")
     return positions
+
+
+TREND_HITTER_COLS = """p.mlb_id, p.full_name, p.primary_position, p.team,
+    p.eligible_positions, pr.proj_pa, pr.proj_runs, pr.proj_total_bases,
+    pr.proj_rbi, pr.proj_stolen_bases, pr.proj_obp, pr.proj_hits, pr.proj_walks,
+    pr.proj_hbp, pr.proj_sac_flies, pr.proj_at_bats"""
+TREND_PITCHER_COLS = """p.mlb_id, p.full_name, p.primary_position, p.team,
+    pr.proj_ip, pr.proj_pitcher_strikeouts, pr.proj_quality_starts, pr.proj_era,
+    pr.proj_whip, pr.proj_saves, pr.proj_holds, pr.proj_hits_allowed,
+    pr.proj_walks_allowed, pr.proj_earned_runs"""
+
+
+def projected_board(conn, season: int, denominators: dict[str, float]
+                    ) -> dict[int, float] | None:
+    """The season's PROJECTED board, from Phase 6's regenerated trend model.
+
+    This is the board-relative comparison, and it is the one that governs the
+    app. `expectedValueAtRound` is subtracted from a *projected* player value,
+    so the error that matters is how far rank-linear sits from the mean
+    projected value of a round -- not from what the round realized. Those are
+    very different numbers, and confusing them inverts the conclusion.
+    """
+    from backend.analysis.zscores import PITCHER_CATEGORY_NORMALIZER
+
+    hitters = [dict(r) for r in conn.execute(
+        f"""SELECT {TREND_HITTER_COLS} FROM projections pr
+            JOIN players p ON pr.mlb_id = p.mlb_id
+            WHERE pr.season = ? AND pr.source = 'trend'
+              AND pr.player_type = 'hitter'""", (season,)).fetchall()]
+    pitchers = [dict(r) for r in conn.execute(
+        f"""SELECT {TREND_PITCHER_COLS} FROM projections pr
+            JOIN players p ON pr.mlb_id = p.mlb_id
+            WHERE pr.season = ? AND pr.source = 'trend'
+              AND pr.player_type = 'pitcher'""", (season,)).fetchall()]
+    if len(hitters) < 50 or len(pitchers) < 50:
+        return None
+
+    config = ValuationConfig(sgp_denominators=denominators)
+    values = {r["mlb_id"]: float(r["total_zscore"])
+              for r in compute_hitter_sgp(hitters, config=config)}
+    for row in compute_pitcher_sgp(pitchers, config=config):
+        values[row["mlb_id"]] = (float(row["total_zscore"])
+                                 * PITCHER_CATEGORY_NORMALIZER)
+    return values
 
 
 def analyse_season(conn, season: int, denominators: dict[str, float]) -> dict | None:
@@ -139,9 +188,36 @@ def analyse_season(conn, season: int, denominators: dict[str, float]) -> dict | 
             "error": round(predicted - entry["mean_realized_value"], 3),
         })
 
+    # ── the board-relative version of the same assumption ──
+    projected = projected_board(conn, season, denominators)
+    board_assumption = []
+    if projected:
+        board_rows, by_round_proj = [], {}
+        for pick in open_picks:
+            index = pick_index_for_round(pick.get("round"))
+            if index is None or pick["mlb_id"] not in projected:
+                continue
+            value = projected[pick["mlb_id"]]
+            board_rows.append({"pick_index": index, "board_value": 0.0,
+                               "realized_value": value})
+            by_round_proj.setdefault(pick["round"], []).append(value)
+        proj_curve = value_at_pick_curve(board_rows)
+        sorted_projected = sorted(projected.values(), reverse=True)
+        for entry in proj_curve:
+            predicted = rank_linear_prediction(entry["round"], sorted_projected)
+            if predicted is None:
+                continue
+            board_assumption.append({
+                "round": entry["round"],
+                "rank_linear": round(predicted, 3),
+                "actual": entry["mean_realized_value"],
+                "error": round(predicted - entry["mean_realized_value"], 3),
+            })
+
     return {
         "season": season,
         "picks": len(resolved),
+        "rank_linear_vs_projected_board": board_assumption,
         "non_keeper_picks": len(open_picks),
         "pool": len(pool_hitters) + len(pool_pitchers),
         "pool_hitters": len(pool_hitters),
