@@ -17,6 +17,7 @@ from backend.analysis.zscores import (
     _resolve_denominators,
     compute_hitter_sgp,
     compute_pitcher_sgp,
+    shrink_toward_mean,
 )
 
 # Denominators pinned so the arithmetic below is exact and independent of
@@ -301,3 +302,75 @@ class TestSlotAssignmentDeterminism:
             "hitter board differs between hash seeds — slot assignment has "
             "become order-dependent again"
         )
+
+
+class TestCalibrationShrinkage:
+    """Per-pool shrinkage for the board's measured over-dispersion.
+
+    Regressing realized value on projected value gives a slope below 1 -- the
+    board spreads players further apart than the season does. Shrinkage pulls
+    values back toward the pool mean by that slope, separately per pool because
+    pitchers over-disperse markedly more than hitters.
+    """
+
+    def test_default_is_off_and_reproduces_the_shipped_board(self):
+        rows = [hitter(mlb_id=i, r=100 - i) for i in range(1, 30)]
+        plain = compute_hitter_sgp(rows, config=config())
+        explicit_off = compute_hitter_sgp(rows, config=config(hitter_shrinkage=1.0))
+
+        assert [p["total_zscore"] for p in plain] == [
+            p["total_zscore"] for p in explicit_off]
+
+    def test_it_compresses_spread_toward_the_mean(self):
+        values = [{"total_zscore": v} for v in (10.0, 6.0, 2.0, -2.0, -6.0)]
+        shrink_toward_mean(values, 0.5)
+
+        # Mean is 2.0; every distance from it should have halved.
+        assert [v["total_zscore"] for v in values] == [6.0, 4.0, 2.0, 0.0, -2.0]
+
+    def test_the_pool_mean_is_unchanged(self):
+        values = [{"total_zscore": v} for v in (9.0, 4.0, 1.0, -3.0)]
+        before = sum(v["total_zscore"] for v in values) / len(values)
+        shrink_toward_mean(values, 0.7)
+        after = sum(v["total_zscore"] for v in values) / len(values)
+
+        assert after == pytest.approx(before, abs=1e-6)
+
+    def test_within_pool_order_is_preserved(self):
+        """The property that decides what this change can and cannot do.
+
+        The transform is monotonic, so hitters rank against hitters exactly as
+        before. Shrinkage does not reorder a pool — it rescales one, which is
+        why applying it *per pool* is the point.
+        """
+        rows = [hitter(mlb_id=i, r=100 - i, tb=300 - 2 * i) for i in range(1, 40)]
+        plain = compute_hitter_sgp(rows, config=config(apply_replacement=True))
+        shrunk = compute_hitter_sgp(
+            rows, config=config(apply_replacement=True, hitter_shrinkage=0.6))
+
+        assert ([p["mlb_id"] for p in plain] == [p["mlb_id"] for p in shrunk])
+
+    def test_pools_can_be_shrunk_by_different_amounts(self):
+        """Per-pool is the whole point: one factor for both would miss that
+        pitchers over-disperse more than hitters."""
+        hitters = [hitter(mlb_id=i, r=100 - i) for i in range(1, 30)]
+        pitchers = [pitcher(mlb_id=100 + i, k=250 - 4 * i) for i in range(1, 30)]
+
+        h = compute_hitter_sgp(hitters, config=config(hitter_shrinkage=0.88))
+        p = compute_pitcher_sgp(pitchers, config=config(pitcher_shrinkage=0.72))
+
+        def spread(board):
+            values = [r["total_zscore"] for r in board]
+            return max(values) - min(values)
+
+        h_plain = spread(compute_hitter_sgp(hitters, config=config()))
+        p_plain = spread(compute_pitcher_sgp(pitchers, config=config()))
+
+        assert spread(h) == pytest.approx(0.88 * h_plain, rel=0.02)
+        assert spread(p) == pytest.approx(0.72 * p_plain, rel=0.02)
+
+    def test_empty_and_noop_inputs_are_safe(self):
+        shrink_toward_mean([], 0.5)
+        rows = [{"total_zscore": 3.0}]
+        shrink_toward_mean(rows, 1.0)
+        assert rows[0]["total_zscore"] == 3.0

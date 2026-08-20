@@ -118,6 +118,11 @@ class ValuationConfig:
     streaming_era_threshold: float = STREAM_ERA_THRESHOLD
     streaming_whip_threshold: float = STREAM_WHIP_THRESHOLD
     pitcher_normalizer: float = PITCHER_CATEGORY_NORMALIZER
+    # Calibration shrinkage, applied per pool. 1.0 is off and reproduces the
+    # shipped board exactly; see `shrink_toward_mean` for what the numbers mean
+    # and RETROSPECTIVE_MULTISEASON.md for where they come from.
+    hitter_shrinkage: float = 1.0
+    pitcher_shrinkage: float = 1.0
 
 
 DEFAULT_CONFIG = ValuationConfig()
@@ -139,6 +144,75 @@ def _resolve_denominators(
             )
         return config.sgp_denominators
     return _compute_sgp_denominators(categories)
+
+
+# Calibration slopes measured by regressing realized value on projected value.
+# A slope below 1 means the board spreads players further apart than the season
+# does, and the correction is to pull values back toward the pool mean by that
+# factor.
+#
+# **Both must come from the same board measurement.** What moves hitters
+# against pitchers on the combined board is the *ratio* of the two factors, not
+# either one alone, so mixing a hitter slope measured on one projection model
+# with a pitcher slope from another makes that ratio an artifact of the
+# difference between the models. Pairing the trend model's hitter slope (0.885)
+# with THE BAT X's pitcher slope (0.722) gives a ratio of 1.22 and moves 13
+# pitchers out of the top 100; the two values measured on the same 2026 board
+# give 1.05 and move 3. The second is a calibration correction; the first is
+# mostly a comparison of two forecasters.
+#
+# So these are both THE BAT X, 2026 -- the only pair measured on one board.
+# The 2013-2025 multi-season work is what gives confidence that the pitcher
+# effect is structural (below 1 in 11 of 11 seasons, on an unrelated model)
+# and that the hitter effect is weaker and less stable. It is evidence about
+# the numbers, not a source for them.
+RECOMMENDED_PITCHER_SHRINKAGE = 0.722
+RECOMMENDED_HITTER_SHRINKAGE = 0.759
+
+
+def shrink_toward_mean(results: list[dict], factor: float,
+                       key: str = "total_zscore") -> None:
+    """Pull each value toward the pool mean by `factor`, in place.
+
+        adjusted = mean + factor * (value - mean)
+
+    The board is over-dispersed: regressing realized value on projected value
+    gives a slope below 1, so the spread between players is wider than the
+    season delivers. This is the correction, and `factor` is that slope.
+
+    **This does not change the order within a pool.** The transform is
+    monotonic, so hitters rank against hitters exactly as before. What it
+    changes is the scale, and therefore:
+
+      - how hitters interleave with pitchers on the combined board, which is
+        the point of applying it per pool -- pitchers over-disperse markedly
+        more than hitters, and a single factor for both would miss that;
+      - the size of every value *difference*, which is what keeper surplus,
+        VONA and urgency are computed from.
+
+    Evidence for the factors differs sharply by pool, and the defaults in
+    `ValuationConfig` are 1.0 -- off -- so this never changes a board unless a
+    caller asks for it:
+
+      Pitchers: 0.722 measured on THE BAT X in 2026, and 0.699 pooled over
+        2013-2025 on a completely unrelated projection model, below 1 in every
+        one of eleven seasons. Two independent forecasters agreeing that
+        closely points at the valuation engine rather than the source.
+
+      Hitters: 0.759 on THE BAT X in 2026, but 0.885 over 2013-2025 on the
+        trend model, and above 1.0 in two of those seasons. The effect is real
+        on average and much weaker, and a factor chosen from one source may not
+        transfer. Apply cautiously.
+
+    Both factors must be measured on the same board -- see the comment on
+    RECOMMENDED_PITCHER_SHRINKAGE for why mixing sources corrupts the ratio
+    that does the work.
+    """
+    if factor == 1.0 or not results:
+        return
+    mean = sum(float(r[key]) for r in results) / len(results)
+    for row in results:
+        row[key] = round(mean + factor * (float(row[key]) - mean), 3)
 
 
 def _classify_pitcher(position: str, proj_ip: float, proj_qs: float) -> str:
@@ -573,6 +647,10 @@ def compute_hitter_sgp(rows: list[dict],
             p["replacement_adj"] = round(-repl_z, 3)
             p["total_zscore"] = round(p["total_zscore"] - repl_z, 3)
 
+    # Applied last, because the calibration slope was measured on the finished
+    # board -- post-replacement total_zscore against realized total_zscore.
+    shrink_toward_mean(results, config.hitter_shrinkage)
+
     results.sort(key=lambda x: x["total_zscore"], reverse=True)
     return results
 
@@ -845,8 +923,13 @@ def compute_pitcher_sgp(rows: list[dict],
             p["replacement_adj"] = round(-repl_z, 3)
             p["total_zscore"] = round(p["total_zscore"] - repl_z, 3)
 
-    # Combine and sort
+    # Combine and sort. Shrinkage is applied over the combined SP+RP board
+    # because that is the pool the calibration slope was measured on; applying
+    # it to each sub-pool separately would re-anchor SPs and RPs to different
+    # means and quietly rebalance them against each other.
     results = sp_results + rp_results
+    shrink_toward_mean(results, config.pitcher_shrinkage)
+
     results.sort(key=lambda x: x["total_zscore"], reverse=True)
     return results
 

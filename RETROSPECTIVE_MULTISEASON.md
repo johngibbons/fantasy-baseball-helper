@@ -648,11 +648,26 @@ Every analysis step is deterministic and can be re-run to byte-identical output
 Every phase in the plan is complete. Three things follow from it, in order of
 confidence:
 
-1. **Apply shrinkage per pool, not globally.** Phase 6's clearest result:
+1. **Apply shrinkage per pool, not globally.** Implemented behind
+   `ValuationConfig.hitter_shrinkage` / `pitcher_shrinkage`, defaulting to 1.0
+   so no board changes until a caller opts in. Phase 6's clearest result:
    pitchers over-disperse in 11 of 11 seasons at 0.699, closely matching 2026's
    0.722 from an unrelated forecaster, so the effect is in the engine rather
-   than the source. Hitters average 0.885 and exceed 1 twice. One shrinkage
-   constant for both pools would over-shrink hitters.
+   than the source. Hitters average 0.885 and exceed 1 twice.
+
+   **The two factors must be measured on the same board.** What rebalances
+   hitters against pitchers is the *ratio* of the factors, so pairing the trend
+   model's hitter slope with THE BAT X's pitcher slope measures the gap between
+   two forecasters, not calibration. That mistake gives a ratio of 1.22 and
+   moves 13 pitchers out of the top 100; the pair measured on the same 2026
+   board gives 1.05 and moves 3. Recommended values are therefore both from
+   THE BAT X 2026 — hitters 0.759, pitchers 0.722 — with the multi-season work
+   serving as evidence *about* those numbers rather than a source for them.
+
+   Note what shrinkage cannot do: the transform is monotonic, so it never
+   reorders a pool. Hitters rank against hitters exactly as before. It changes
+   the hitter/pitcher interleave and the size of every value difference, which
+   is what keeper surplus, VONA and urgency are built from.
 2. **Re-open `USE_VARIABLE_SIGMA`.** The residual-spread law now holds across
    six seasons (σ = 11.13 + 0.161 × adp against 2026's 6.55 + 0.158). But the
    2026 caveat stands: it was rejected on *simulated draft outcomes*, a
