@@ -121,7 +121,7 @@ Category win rates and draft composition are virtually identical across all thre
 
 ## 6. Opponent ADP sigma should vary by draft position
 
-**Status**: Investigated — no change, variable sigma hurts
+**Status**: **Reversed 2026-08-23** — variable sigma helps. See the re-run below.
 
 **Problem**: The opponent model and availability predictor both use a fixed sigma of 18 picks. In reality, early picks have less variance (consensus top 10) and late picks have much more (personal preference dominates).
 
@@ -136,7 +136,43 @@ Category win rates and draft composition are virtually identical across all thre
 
 Variable sigma is significantly worse (−0.12 wins, ~2.9 SE). Tighter sigma for early picks makes the simulated opponents more "correct" (closer to consensus), reducing exploitable variance. Higher sigma for late picks adds noise to our VONA/availability estimates. The fixed sigma=18 is a better model for our purposes — it represents realistic opponent variance across the full draft.
 
-**Conclusion**: No change. Keep fixed sigma=18.
+**Original conclusion**: No change. Keep fixed sigma=18.
+
+### Re-run 2026-08-23 — this conclusion is overturned
+
+Two things changed since the original sweep. The multi-season backtest measured
+what ADP residual spread actually is, and it is far steeper than the formula
+tested here — `σ = 11.13 + 0.161 × ADP` pooled over 2017–2025, and
+`σ = 6.55 + 0.158 × ADP` in 2026. Two independent measurements agreeing on a
+slope near 0.16 against the 0.1 tested. And the scoring model itself changed:
+the Optuna coefficients landed 2026-04-02, after the original sweep, which is
+visible in the baseline moving from 8.89 wins to 9.33.
+
+Re-run with `sweep_adp_sigma.py` (200 drafts per candidate, seed 42, **paired
+on seed** so candidates are compared draft-by-draft rather than mean-to-mean):
+
+| Sigma model | Wins | SE | vs fixed |
+|---|---|---|---|
+| Fixed 18 (shipped) | 9.326 | 0.023 | — |
+| `10 + 0.100 × ADP` (rejected above) | 9.423 | 0.022 | **+0.098** |
+| `11.13 + 0.161 × ADP` (measured 2017–2025) | **9.440** | 0.022 | **+0.114** |
+| `6.55 + 0.158 × ADP` (measured 2026) | 9.419 | 0.021 | **+0.093** |
+
+All three variable models beat fixed sigma, outside a 95% paired interval.
+Even the formula rejected above now wins, which says the original result was
+about the scoring model of the time rather than about sigma.
+
+**But the three variable models are within 0.021 of each other — about one
+standard error.** This experiment separates *variable from fixed*; it does not
+separate the coefficient choices from one another. So the actionable finding is
+to turn the flag on, not to prefer particular coefficients. The measured pair is
+the defensible default because it rests on independent evidence, not because
+the simulation prefers it.
+
+**Revised conclusion**: enable `USE_VARIABLE_SIGMA`. Effect is small (~+0.11
+wins on ~9.4, a bit over 1%) but consistent and independently motivated.
+
+**Raw output**: `backend/data/fixtures/league_history/adp_sigma_sweep_2026-08-23.txt`
 
 **Infrastructure added**: `USE_VARIABLE_SIGMA` config flag, `variable_adp_sigma()` helper in `scoring_model.py`, `--variable-sigma` CLI flag. Available for future experimentation with different formulas.
 

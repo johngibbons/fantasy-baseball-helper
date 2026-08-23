@@ -47,8 +47,15 @@ class SimConfig:
     # Slot scarcity: use 1/remaining_capacity instead of binary roster fit
     USE_SLOT_SCARCITY: bool = False
 
-    # Variable ADP sigma: sigma = 10 + 0.1 * ADP instead of fixed 18
+    # Variable ADP sigma: sigma = intercept + slope * ADP instead of fixed 18.
+    # The defaults are the pair SCORING_IMPROVEMENTS.md section 6 tested and
+    # rejected. The multi-season backtest measured sigma = 11.13 + 0.161 * ADP
+    # over 2017-2025 and 6.55 + 0.158 * ADP in 2026 -- roughly the same slope
+    # from two independent measurements, and much steeper than 0.1 -- so the
+    # coefficients are swept rather than assumed. See sweep_adp_sigma.py.
     USE_VARIABLE_SIGMA: bool = False
+    ADP_SIGMA_INTERCEPT: float = 10.0
+    ADP_SIGMA_SLOPE: float = 0.1
 
     # Window VONA: use availability-weighted replacement instead of literal next-best
     USE_WINDOW_VONA: bool = False

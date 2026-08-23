@@ -1,0 +1,17 @@
+  fixed 18 (shipped)                           mean= 9.326 (809.3s)
+  10 + 0.100*adp (rejected in SI section 6)    mean= 9.423 (265.4s)
+  11.13 + 0.161*adp (measured 2017-2025)       mean= 9.440 (262.6s)
+  6.55 + 0.158*adp (measured 2026)             mean= 9.419 (261.4s)
+
+200 drafts per candidate, seed=42
+
+  candidate                                       wins     sd     se  vs shipped
+  fixed 18 (shipped)                             9.326  0.328  0.023            
+  10 + 0.100*adp (rejected in SI section 6)      9.423  0.309  0.022    +0.098 *
+  11.13 + 0.161*adp (measured 2017-2025)         9.440  0.310  0.022    +0.114 *
+  6.55 + 0.158*adp (measured 2026)               9.419  0.303  0.021    +0.093 *
+
+  * = outside a 95% paired interval; ns = inside it, i.e. no effect.
+  Paired on seed, so the comparison is draft-by-draft rather than mean-vs-mean.
+
+[exited with code 0]
