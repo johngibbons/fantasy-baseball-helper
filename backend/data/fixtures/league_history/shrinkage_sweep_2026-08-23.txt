@@ -1,0 +1,16 @@
+  off (shipped)                            mean= 9.323 (391.1s)
+  per-pool 0.759H / 0.722P (recommended)   mean= 9.329 (414.1s)
+  uniform 0.74 both pools                  mean= 9.319 (375.8s)
+  pitchers only 1.0H / 0.722P              mean= 9.336 (389.5s)
+  mixed sources 0.88H / 0.72P (the trap)   mean= 9.321 (376.5s)
+
+300 drafts per candidate, seed=42, season=2026
+
+  candidate                                   wins     se    vs off  paired se
+  off (shipped)                              9.323  0.020                     
+  per-pool 0.759H / 0.722P (recommended)     9.329  0.018 +0.006  ns     0.0252
+  uniform 0.74 both pools                    9.319  0.020 -0.004  ns     0.0285
+  pitchers only 1.0H / 0.722P                9.336  0.018 +0.013  ns     0.0259
+  mixed sources 0.88H / 0.72P (the trap)     9.321  0.020 -0.001  ns     0.0264
+
+  * = outside a 95% paired interval; ns = inside it, i.e. no effect.

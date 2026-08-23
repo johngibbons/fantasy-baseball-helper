@@ -50,9 +50,30 @@ def _normal_cdf(x: float) -> float:
     return 0.5 * (1.0 + sign * y)
 
 
-def variable_adp_sigma(adp: float) -> float:
-    """Compute ADP-dependent sigma: tighter for consensus picks, wider for late rounds."""
-    return 10.0 + 0.1 * adp
+# Default coefficients of the availability model's ADP-dependent sigma. These
+# are the pair SCORING_IMPROVEMENTS.md section 6 tested and rejected; the
+# multi-season backtest measured a markedly steeper slope, so they are now
+# parameters rather than constants. See RETROSPECTIVE_MULTISEASON.md.
+DEFAULT_SIGMA_INTERCEPT = 10.0
+DEFAULT_SIGMA_SLOPE = 0.1
+
+
+def variable_adp_sigma(adp: float,
+                       intercept: float = DEFAULT_SIGMA_INTERCEPT,
+                       slope: float = DEFAULT_SIGMA_SLOPE) -> float:
+    """ADP-dependent sigma: tighter for consensus picks, wider for late rounds.
+
+    Measured spread by ADP band, pooled over six seasons, is far steeper than
+    the shipped 10 + 0.1 * adp:
+
+        2026 alone:  sigma = 6.55  + 0.158 * adp
+        2017-2025:   sigma = 11.13 + 0.161 * adp
+
+    The shipped pair understates uncertainty in the middle rounds by roughly a
+    factor of two, which is why the coefficients are now swept rather than
+    assumed.
+    """
+    return intercept + slope * adp
 
 
 def compute_availability(espn_adp: float, current_pick: int, picks_until_mine: int, sigma: float = 18.0) -> float:
@@ -472,6 +493,8 @@ def _window_vona_at_position(
     current_pick: int,
     picks_until_mine: int,
     adp_sigma: float,
+    sigma_intercept: float = DEFAULT_SIGMA_INTERCEPT,
+    sigma_slope: float = DEFAULT_SIGMA_SLOPE,
 ) -> float:
     """Compute window VONA at a single position."""
     pos_players = available_by_position.get(pos, [])
@@ -493,7 +516,8 @@ def _window_vona_at_position(
     for mid, val, adp in pos_players:
         if mid == mlb_id:
             continue
-        sigma = variable_adp_sigma(adp) if adp_sigma < 0 else adp_sigma
+        sigma = (variable_adp_sigma(adp, sigma_intercept, sigma_slope)
+                 if adp_sigma < 0 else adp_sigma)
         p_avail = compute_availability(adp, current_pick, picks_until_mine, sigma)
         alternatives.append((val, p_avail))
 
@@ -530,6 +554,8 @@ def compute_window_vona(
     current_pick: int,
     picks_until_mine: int,
     adp_sigma: float,
+    sigma_intercept: float = DEFAULT_SIGMA_INTERCEPT,
+    sigma_slope: float = DEFAULT_SIGMA_SLOPE,
 ) -> float:
     """Compute window VONA: max across all eligible positions.
 
@@ -540,7 +566,10 @@ def compute_window_vona(
     """
     positions = [player.pitcher_role()] if player.player_type == "pitcher" else player.get_positions()
     return max(
-        (_window_vona_at_position(player.mlb_id, pos, available_by_position, current_pick, picks_until_mine, adp_sigma) for pos in positions),
+        (_window_vona_at_position(player.mlb_id, pos, available_by_position,
+                                  current_pick, picks_until_mine, adp_sigma,
+                                  sigma_intercept, sigma_slope)
+         for pos in positions),
         default=0.0,
     )
 
@@ -596,7 +625,8 @@ def full_player_score(
 
     if config.USE_WINDOW_VONA:
         vona = compute_window_vona(
-            player, available_by_position, current_pick, picks_until_mine, effective_sigma,
+            player, available_by_position, current_pick, picks_until_mine,
+            effective_sigma, config.ADP_SIGMA_INTERCEPT, config.ADP_SIGMA_SLOPE,
         )
     else:
         vona = compute_vona(player, available_by_position)
@@ -641,7 +671,9 @@ def full_player_score(
             avail_adp = player.blended_adp - count_kept_below_adp(player.blended_adp, keeper_adps_sorted)
         else:
             avail_adp = player.blended_adp
-        avail_sigma = variable_adp_sigma(avail_adp) if config.USE_VARIABLE_SIGMA else config.ADP_SIGMA
+        avail_sigma = (variable_adp_sigma(avail_adp, config.ADP_SIGMA_INTERCEPT,
+                                          config.ADP_SIGMA_SLOPE)
+                       if config.USE_VARIABLE_SIGMA else config.ADP_SIGMA)
         avail = compute_availability(avail_adp, current_pick, picks_until_mine, avail_sigma)
         score *= 1 - avail * config.AVAILABILITY_DISCOUNT
 

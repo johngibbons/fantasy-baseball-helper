@@ -17,6 +17,7 @@ from backend.analysis.zscores import (
     _resolve_denominators,
     compute_hitter_sgp,
     compute_pitcher_sgp,
+    shrink_toward_mean,
 )
 
 # Denominators pinned so the arithmetic below is exact and independent of
@@ -226,3 +227,150 @@ class TestEmptyInput:
     def test_empty_row_lists_return_empty_results(self):
         assert compute_hitter_sgp([], config=config()) == []
         assert compute_pitcher_sgp([], config=config()) == []
+
+
+class TestSlotAssignmentDeterminism:
+    """The board must not depend on Python's per-process string hash seed.
+
+    `_eligible_slots` used to return `list(set(...))`, and both the greedy
+    replacement-level assignment and `_best_slot` break ties by list position.
+    That made replacement levels — and therefore every hitter's total_zscore
+    and the whole board ordering — differ between processes on identical data.
+    It surfaced as a multi-season backtest artifact that would not reproduce:
+    two consecutive runs disagreed on 23 players.
+    """
+
+    def test_eligible_slots_order_is_deterministic(self):
+        slots = _eligible_slots("2B/3B/SS/OF", "2B")
+        assert slots == ["2B", "3B", "SS", "OF", "UTIL"]
+        # Repeated calls in-process must also agree.
+        assert all(_eligible_slots("2B/3B/SS/OF", "2B") == slots for _ in range(5))
+
+    def test_eligible_slots_preserves_listed_order_and_dedupes(self):
+        # LF/CF/RF all map to OF; UTIL is appended once, last.
+        assert _eligible_slots("LF/CF/RF", "LF") == ["OF", "UTIL"]
+        assert _eligible_slots("DH/1B", "DH") == ["UTIL", "1B"]
+
+    def test_best_slot_breaks_ties_without_relying_on_order(self):
+        """Equal replacement levels must resolve to the same slot every time."""
+        levels = {"1B": 1.0, "OF": 1.0, "UTIL": 1.0}
+        chosen = {_best_slot("1B/OF", "1B", levels) for _ in range(20)}
+        assert len(chosen) == 1
+
+    def test_board_is_identical_across_hash_seeds(self):
+        """End-to-end guard: same input, different PYTHONHASHSEED.
+
+        Broader but blunter than the two order tests above, which are what
+        actually pin the bug — this one only bites when a tie-break happens to
+        move a replacement level, and a synthetic pool does not reliably
+        produce that. It stays because it is cheap and would catch a
+        reintroduction through some path other than `_eligible_slots`.
+        """
+        import json
+        import pathlib
+        import subprocess
+        import sys
+
+        script = (
+            "import json;"
+            "from backend.analysis.zscores import compute_hitter_sgp, ValuationConfig;"
+            "elig=['1B/OF','OF/3B','SS/2B','C/1B','2B/3B/SS','OF','C','SS/OF'];"
+            "rows=[{'mlb_id':i,'full_name':f'P{i}','primary_position':'1B',"
+            "'eligible_positions':elig[i%len(elig)],'team':'X',"
+            "'proj_pa':600,'proj_runs':120-i*0.4,'proj_total_bases':300-i,"
+            "'proj_rbi':110-i*0.3,'proj_stolen_bases':30-i*0.1,'proj_obp':.360-i*0.0008,"
+            "'proj_hits':170-i*0.5,'proj_walks':60,'proj_hbp':5,'proj_sac_flies':5,"
+            "'proj_at_bats':550} for i in range(160)];"
+            "cfg=ValuationConfig(sgp_denominators=" + json.dumps(DENOMS) + ");"
+            "out=compute_hitter_sgp(rows,config=cfg);"
+            "print(json.dumps([(r['mlb_id'],r['total_zscore'],r['replacement_adj'])"
+            " for r in out]))"
+        )
+
+        results = []
+        for seed in ("0", "1", "12345", "99999"):
+            proc = subprocess.run(
+                [sys.executable, "-c", script],
+                capture_output=True, text=True,
+                env={"PYTHONHASHSEED": seed, "PATH": "/usr/bin:/bin"},
+                cwd=str(pathlib.Path(__file__).resolve().parents[3]),
+            )
+            assert proc.returncode == 0, proc.stderr
+            results.append(proc.stdout.strip())
+
+        assert len(set(results)) == 1, (
+            "hitter board differs between hash seeds — slot assignment has "
+            "become order-dependent again"
+        )
+
+
+class TestCalibrationShrinkage:
+    """Per-pool shrinkage for the board's measured over-dispersion.
+
+    Regressing realized value on projected value gives a slope below 1 -- the
+    board spreads players further apart than the season does. Shrinkage pulls
+    values back toward the pool mean by that slope, separately per pool because
+    pitchers over-disperse markedly more than hitters.
+    """
+
+    def test_default_is_off_and_reproduces_the_shipped_board(self):
+        rows = [hitter(mlb_id=i, r=100 - i) for i in range(1, 30)]
+        plain = compute_hitter_sgp(rows, config=config())
+        explicit_off = compute_hitter_sgp(rows, config=config(hitter_shrinkage=1.0))
+
+        assert [p["total_zscore"] for p in plain] == [
+            p["total_zscore"] for p in explicit_off]
+
+    def test_it_compresses_spread_toward_the_mean(self):
+        values = [{"total_zscore": v} for v in (10.0, 6.0, 2.0, -2.0, -6.0)]
+        shrink_toward_mean(values, 0.5)
+
+        # Mean is 2.0; every distance from it should have halved.
+        assert [v["total_zscore"] for v in values] == [6.0, 4.0, 2.0, 0.0, -2.0]
+
+    def test_the_pool_mean_is_unchanged(self):
+        values = [{"total_zscore": v} for v in (9.0, 4.0, 1.0, -3.0)]
+        before = sum(v["total_zscore"] for v in values) / len(values)
+        shrink_toward_mean(values, 0.7)
+        after = sum(v["total_zscore"] for v in values) / len(values)
+
+        assert after == pytest.approx(before, abs=1e-6)
+
+    def test_within_pool_order_is_preserved(self):
+        """The property that decides what this change can and cannot do.
+
+        The transform is monotonic, so hitters rank against hitters exactly as
+        before. Shrinkage does not reorder a pool — it rescales one, which is
+        why applying it *per pool* is the point.
+        """
+        rows = [hitter(mlb_id=i, r=100 - i, tb=300 - 2 * i) for i in range(1, 40)]
+        plain = compute_hitter_sgp(rows, config=config(apply_replacement=True))
+        shrunk = compute_hitter_sgp(
+            rows, config=config(apply_replacement=True, hitter_shrinkage=0.6))
+
+        assert ([p["mlb_id"] for p in plain] == [p["mlb_id"] for p in shrunk])
+
+    def test_pools_can_be_shrunk_by_different_amounts(self):
+        """Per-pool is the whole point: one factor for both would miss that
+        pitchers over-disperse more than hitters."""
+        hitters = [hitter(mlb_id=i, r=100 - i) for i in range(1, 30)]
+        pitchers = [pitcher(mlb_id=100 + i, k=250 - 4 * i) for i in range(1, 30)]
+
+        h = compute_hitter_sgp(hitters, config=config(hitter_shrinkage=0.88))
+        p = compute_pitcher_sgp(pitchers, config=config(pitcher_shrinkage=0.72))
+
+        def spread(board):
+            values = [r["total_zscore"] for r in board]
+            return max(values) - min(values)
+
+        h_plain = spread(compute_hitter_sgp(hitters, config=config()))
+        p_plain = spread(compute_pitcher_sgp(pitchers, config=config()))
+
+        assert spread(h) == pytest.approx(0.88 * h_plain, rel=0.02)
+        assert spread(p) == pytest.approx(0.72 * p_plain, rel=0.02)
+
+    def test_empty_and_noop_inputs_are_safe(self):
+        shrink_toward_mean([], 0.5)
+        rows = [{"total_zscore": 3.0}]
+        shrink_toward_mean(rows, 1.0)
+        assert rows[0]["total_zscore"] == 3.0

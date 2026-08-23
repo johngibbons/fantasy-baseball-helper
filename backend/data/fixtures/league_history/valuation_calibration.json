@@ -1,0 +1,2321 @@
+{
+  "by_season": [
+    {
+      "hitters": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 168,
+            "mean_error": -2.5667,
+            "mean_projected": 0.5563,
+            "mean_realized": -2.0104
+          },
+          {
+            "bucket": 2,
+            "count": 169,
+            "mean_error": -0.1399,
+            "mean_projected": -6.6793,
+            "mean_realized": -6.8192
+          },
+          {
+            "bucket": 3,
+            "count": 169,
+            "mean_error": 1.0012,
+            "mean_projected": -9.946,
+            "mean_realized": -8.9449
+          },
+          {
+            "bucket": 4,
+            "count": 169,
+            "mean_error": 0.4235,
+            "mean_projected": -10.9007,
+            "mean_realized": -10.4772
+          },
+          {
+            "bucket": 5,
+            "count": 169,
+            "mean_error": 0.1295,
+            "mean_projected": -11.3946,
+            "mean_realized": -11.2652
+          },
+          {
+            "bucket": 6,
+            "count": 168,
+            "mean_error": -0.4021,
+            "mean_projected": -11.456,
+            "mean_realized": -11.8581
+          },
+          {
+            "bucket": 7,
+            "count": 169,
+            "mean_error": -0.4074,
+            "mean_projected": -11.456,
+            "mean_realized": -11.8634
+          },
+          {
+            "bucket": 8,
+            "count": 169,
+            "mean_error": -0.3631,
+            "mean_projected": -11.4602,
+            "mean_realized": -11.8233
+          },
+          {
+            "bucket": 9,
+            "count": 169,
+            "mean_error": -0.2381,
+            "mean_projected": -11.4696,
+            "mean_realized": -11.7076
+          },
+          {
+            "bucket": 10,
+            "count": 169,
+            "mean_error": -0.1863,
+            "mean_projected": -11.5127,
+            "mean_realized": -11.699
+          }
+        ],
+        "kendall_tau": 0.5398344341679091,
+        "n": 1688,
+        "ols_intercept": -2.1241294580317245,
+        "ols_slope": 0.8067588300113042,
+        "pearson": 0.7739329015844904,
+        "r_squared": 0.5989721361549885,
+        "spearman": 0.6838754505746447,
+        "spearman_ci": [
+          0.6517795809745583,
+          0.7153881626309329
+        ],
+        "top_n_precision": {
+          "100": 0.51,
+          "200": 0.69,
+          "25": 0.32,
+          "50": 0.38
+        }
+      },
+      "pitchers": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 96,
+            "mean_error": -2.2357,
+            "mean_projected": 0.2288,
+            "mean_realized": -2.0069
+          },
+          {
+            "bucket": 2,
+            "count": 96,
+            "mean_error": -1.1109,
+            "mean_projected": -2.3167,
+            "mean_realized": -3.4276
+          },
+          {
+            "bucket": 3,
+            "count": 96,
+            "mean_error": -0.64,
+            "mean_projected": -3.6796,
+            "mean_realized": -4.3196
+          },
+          {
+            "bucket": 4,
+            "count": 96,
+            "mean_error": -0.4186,
+            "mean_projected": -4.7257,
+            "mean_realized": -5.1443
+          },
+          {
+            "bucket": 5,
+            "count": 96,
+            "mean_error": -0.533,
+            "mean_projected": -5.4096,
+            "mean_realized": -5.9426
+          },
+          {
+            "bucket": 6,
+            "count": 96,
+            "mean_error": -0.4219,
+            "mean_projected": -5.7463,
+            "mean_realized": -6.1682
+          },
+          {
+            "bucket": 7,
+            "count": 96,
+            "mean_error": -0.2359,
+            "mean_projected": -5.9216,
+            "mean_realized": -6.1575
+          },
+          {
+            "bucket": 8,
+            "count": 96,
+            "mean_error": -0.4484,
+            "mean_projected": -6.0025,
+            "mean_realized": -6.451
+          },
+          {
+            "bucket": 9,
+            "count": 96,
+            "mean_error": -0.2127,
+            "mean_projected": -6.0793,
+            "mean_realized": -6.292
+          },
+          {
+            "bucket": 10,
+            "count": 96,
+            "mean_error": -0.0704,
+            "mean_projected": -6.2581,
+            "mean_realized": -6.3284
+          }
+        ],
+        "kendall_tau": 0.3970342555063358,
+        "n": 960,
+        "ols_intercept": -1.9333639063897445,
+        "ols_slope": 0.7167071362776823,
+        "pearson": 0.642561680313333,
+        "r_squared": 0.41288551300709386,
+        "spearman": 0.5400464983053036,
+        "spearman_ci": [
+          0.4880195653849876,
+          0.5881403464724454
+        ],
+        "top_n_precision": {
+          "100": 0.45,
+          "200": 0.605,
+          "25": 0.32,
+          "50": 0.38
+        }
+      },
+      "pool": {
+        "hitters": 1688,
+        "pitchers": 960
+      },
+      "season": 2013
+    },
+    {
+      "hitters": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 171,
+            "mean_error": -1.7544,
+            "mean_projected": 0.6243,
+            "mean_realized": -1.13
+          },
+          {
+            "bucket": 2,
+            "count": 172,
+            "mean_error": -0.0884,
+            "mean_projected": -6.3733,
+            "mean_realized": -6.4617
+          },
+          {
+            "bucket": 3,
+            "count": 171,
+            "mean_error": 0.971,
+            "mean_projected": -9.5569,
+            "mean_realized": -8.586
+          },
+          {
+            "bucket": 4,
+            "count": 172,
+            "mean_error": 0.6769,
+            "mean_projected": -10.5716,
+            "mean_realized": -9.8947
+          },
+          {
+            "bucket": 5,
+            "count": 172,
+            "mean_error": 0.4972,
+            "mean_projected": -10.8984,
+            "mean_realized": -10.4012
+          },
+          {
+            "bucket": 6,
+            "count": 171,
+            "mean_error": 0.0165,
+            "mean_projected": -10.967,
+            "mean_realized": -10.9505
+          },
+          {
+            "bucket": 7,
+            "count": 172,
+            "mean_error": -0.0235,
+            "mean_projected": -10.967,
+            "mean_realized": -10.9905
+          },
+          {
+            "bucket": 8,
+            "count": 171,
+            "mean_error": 0.0566,
+            "mean_projected": -10.9714,
+            "mean_realized": -10.9148
+          },
+          {
+            "bucket": 9,
+            "count": 172,
+            "mean_error": 0.032,
+            "mean_projected": -10.9807,
+            "mean_realized": -10.9487
+          },
+          {
+            "bucket": 10,
+            "count": 172,
+            "mean_error": 0.1025,
+            "mean_projected": -11.0226,
+            "mean_realized": -10.9201
+          }
+        ],
+        "kendall_tau": 0.5367428335133875,
+        "n": 1716,
+        "ols_intercept": -1.5242736335662517,
+        "ols_slope": 0.8284481318617989,
+        "pearson": 0.7979988496868771,
+        "r_squared": 0.6368021641015792,
+        "spearman": 0.6759889527234877,
+        "spearman_ci": [
+          0.6412089566095954,
+          0.7049847617941057
+        ],
+        "top_n_precision": {
+          "100": 0.54,
+          "200": 0.685,
+          "25": 0.36,
+          "50": 0.42
+        }
+      },
+      "pitchers": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 97,
+            "mean_error": -1.787,
+            "mean_projected": 0.0772,
+            "mean_realized": -1.7098
+          },
+          {
+            "bucket": 2,
+            "count": 98,
+            "mean_error": -1.0269,
+            "mean_projected": -2.4231,
+            "mean_realized": -3.4499
+          },
+          {
+            "bucket": 3,
+            "count": 97,
+            "mean_error": -0.6183,
+            "mean_projected": -3.9556,
+            "mean_realized": -4.5739
+          },
+          {
+            "bucket": 4,
+            "count": 98,
+            "mean_error": 0.2767,
+            "mean_projected": -4.8863,
+            "mean_realized": -4.6096
+          },
+          {
+            "bucket": 5,
+            "count": 97,
+            "mean_error": 0.2175,
+            "mean_projected": -5.4926,
+            "mean_realized": -5.2751
+          },
+          {
+            "bucket": 6,
+            "count": 98,
+            "mean_error": -0.1704,
+            "mean_projected": -5.7998,
+            "mean_realized": -5.9703
+          },
+          {
+            "bucket": 7,
+            "count": 97,
+            "mean_error": -0.4032,
+            "mean_projected": -5.9225,
+            "mean_realized": -6.3257
+          },
+          {
+            "bucket": 8,
+            "count": 98,
+            "mean_error": -0.2535,
+            "mean_projected": -5.9977,
+            "mean_realized": -6.2512
+          },
+          {
+            "bucket": 9,
+            "count": 97,
+            "mean_error": 0.203,
+            "mean_projected": -6.1353,
+            "mean_realized": -5.9323
+          },
+          {
+            "bucket": 10,
+            "count": 98,
+            "mean_error": 0.7891,
+            "mean_projected": -6.6485,
+            "mean_realized": -5.8594
+          }
+        ],
+        "kendall_tau": 0.37042809420576833,
+        "n": 975,
+        "ols_intercept": -1.6846723442394103,
+        "ols_slope": 0.7016507401656081,
+        "pearson": 0.6143572317366689,
+        "r_squared": 0.37743480818714303,
+        "spearman": 0.5022554529824146,
+        "spearman_ci": [
+          0.44669329858115486,
+          0.5525294085882364
+        ],
+        "top_n_precision": {
+          "100": 0.52,
+          "200": 0.57,
+          "25": 0.4,
+          "50": 0.42
+        }
+      },
+      "pool": {
+        "hitters": 1716,
+        "pitchers": 975
+      },
+      "season": 2014
+    },
+    {
+      "hitters": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 172,
+            "mean_error": -1.6416,
+            "mean_projected": 0.455,
+            "mean_realized": -1.1866
+          },
+          {
+            "bucket": 2,
+            "count": 173,
+            "mean_error": 0.1081,
+            "mean_projected": -6.3442,
+            "mean_realized": -6.2362
+          },
+          {
+            "bucket": 3,
+            "count": 173,
+            "mean_error": 0.3725,
+            "mean_projected": -9.5748,
+            "mean_realized": -9.2024
+          },
+          {
+            "bucket": 4,
+            "count": 172,
+            "mean_error": 0.7058,
+            "mean_projected": -10.4412,
+            "mean_realized": -9.7354
+          },
+          {
+            "bucket": 5,
+            "count": 173,
+            "mean_error": 0.2777,
+            "mean_projected": -10.7469,
+            "mean_realized": -10.4693
+          },
+          {
+            "bucket": 6,
+            "count": 173,
+            "mean_error": -0.2334,
+            "mean_projected": -10.775,
+            "mean_realized": -11.0084
+          },
+          {
+            "bucket": 7,
+            "count": 172,
+            "mean_error": -0.2337,
+            "mean_projected": -10.775,
+            "mean_realized": -11.0087
+          },
+          {
+            "bucket": 8,
+            "count": 173,
+            "mean_error": -0.0966,
+            "mean_projected": -10.7797,
+            "mean_realized": -10.8764
+          },
+          {
+            "bucket": 9,
+            "count": 173,
+            "mean_error": -0.0538,
+            "mean_projected": -10.791,
+            "mean_realized": -10.8448
+          },
+          {
+            "bucket": 10,
+            "count": 173,
+            "mean_error": 0.0138,
+            "mean_projected": -10.8355,
+            "mean_realized": -10.8217
+          }
+        ],
+        "kendall_tau": 0.49805669015211007,
+        "n": 1727,
+        "ols_intercept": -1.4176338327732667,
+        "ols_slope": 0.852165419652084,
+        "pearson": 0.7809199771247977,
+        "r_squared": 0.6098360106725946,
+        "spearman": 0.6324030484877885,
+        "spearman_ci": [
+          0.5969715116363322,
+          0.6658254830015403
+        ],
+        "top_n_precision": {
+          "100": 0.55,
+          "200": 0.66,
+          "25": 0.28,
+          "50": 0.42
+        }
+      },
+      "pitchers": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 100,
+            "mean_error": -1.8065,
+            "mean_projected": 0.1821,
+            "mean_realized": -1.6245
+          },
+          {
+            "bucket": 2,
+            "count": 101,
+            "mean_error": -1.4303,
+            "mean_projected": -2.2506,
+            "mean_realized": -3.6809
+          },
+          {
+            "bucket": 3,
+            "count": 100,
+            "mean_error": -0.7683,
+            "mean_projected": -3.693,
+            "mean_realized": -4.4613
+          },
+          {
+            "bucket": 4,
+            "count": 101,
+            "mean_error": -0.6477,
+            "mean_projected": -4.7395,
+            "mean_realized": -5.3871
+          },
+          {
+            "bucket": 5,
+            "count": 101,
+            "mean_error": -0.5966,
+            "mean_projected": -5.4266,
+            "mean_realized": -6.0232
+          },
+          {
+            "bucket": 6,
+            "count": 100,
+            "mean_error": -0.3158,
+            "mean_projected": -5.7887,
+            "mean_realized": -6.1045
+          },
+          {
+            "bucket": 7,
+            "count": 101,
+            "mean_error": -0.4616,
+            "mean_projected": -5.9056,
+            "mean_realized": -6.3672
+          },
+          {
+            "bucket": 8,
+            "count": 100,
+            "mean_error": -0.4292,
+            "mean_projected": -5.9688,
+            "mean_realized": -6.3981
+          },
+          {
+            "bucket": 9,
+            "count": 101,
+            "mean_error": -0.0918,
+            "mean_projected": -6.0629,
+            "mean_realized": -6.1548
+          },
+          {
+            "bucket": 10,
+            "count": 101,
+            "mean_error": 0.2993,
+            "mean_projected": -6.3887,
+            "mean_realized": -6.0894
+          }
+        ],
+        "kendall_tau": 0.37812968503319455,
+        "n": 1006,
+        "ols_intercept": -1.8411520587363,
+        "ols_slope": 0.7358332805995235,
+        "pearson": 0.6542565699163817,
+        "r_squared": 0.42805165927874944,
+        "spearman": 0.5090681685016217,
+        "spearman_ci": [
+          0.4557306699375572,
+          0.563655995197935
+        ],
+        "top_n_precision": {
+          "100": 0.53,
+          "200": 0.585,
+          "25": 0.36,
+          "50": 0.44
+        }
+      },
+      "pool": {
+        "hitters": 1727,
+        "pitchers": 1006
+      },
+      "season": 2015
+    },
+    {
+      "hitters": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 176,
+            "mean_error": -2.1272,
+            "mean_projected": 0.3952,
+            "mean_realized": -1.732
+          },
+          {
+            "bucket": 2,
+            "count": 177,
+            "mean_error": -1.0118,
+            "mean_projected": -6.3515,
+            "mean_realized": -7.3632
+          },
+          {
+            "bucket": 3,
+            "count": 177,
+            "mean_error": -0.6022,
+            "mean_projected": -9.5697,
+            "mean_realized": -10.1719
+          },
+          {
+            "bucket": 4,
+            "count": 176,
+            "mean_error": -0.8874,
+            "mean_projected": -10.4289,
+            "mean_realized": -11.3163
+          },
+          {
+            "bucket": 5,
+            "count": 177,
+            "mean_error": -1.1154,
+            "mean_projected": -10.7894,
+            "mean_realized": -11.9048
+          },
+          {
+            "bucket": 6,
+            "count": 177,
+            "mean_error": -1.5629,
+            "mean_projected": -10.815,
+            "mean_realized": -12.3779
+          },
+          {
+            "bucket": 7,
+            "count": 176,
+            "mean_error": -1.5637,
+            "mean_projected": -10.815,
+            "mean_realized": -12.3787
+          },
+          {
+            "bucket": 8,
+            "count": 177,
+            "mean_error": -1.4429,
+            "mean_projected": -10.8182,
+            "mean_realized": -12.2612
+          },
+          {
+            "bucket": 9,
+            "count": 177,
+            "mean_error": -1.4169,
+            "mean_projected": -10.8291,
+            "mean_realized": -12.246
+          },
+          {
+            "bucket": 10,
+            "count": 177,
+            "mean_error": -1.3904,
+            "mean_projected": -10.8728,
+            "mean_realized": -12.2633
+          }
+        ],
+        "kendall_tau": 0.5312332872239072,
+        "n": 1767,
+        "ols_intercept": -1.8090545704710004,
+        "ols_slope": 0.94530738702137,
+        "pearson": 0.8146074893766972,
+        "r_squared": 0.6635853617486057,
+        "spearman": 0.6696646894357529,
+        "spearman_ci": [
+          0.635192755911498,
+          0.7026059584623496
+        ],
+        "top_n_precision": {
+          "100": 0.63,
+          "200": 0.695,
+          "25": 0.52,
+          "50": 0.54
+        }
+      },
+      "pitchers": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 104,
+            "mean_error": -1.7863,
+            "mean_projected": 0.1029,
+            "mean_realized": -1.6833
+          },
+          {
+            "bucket": 2,
+            "count": 105,
+            "mean_error": -1.4032,
+            "mean_projected": -2.5848,
+            "mean_realized": -3.988
+          },
+          {
+            "bucket": 3,
+            "count": 104,
+            "mean_error": -0.9636,
+            "mean_projected": -3.9937,
+            "mean_realized": -4.9573
+          },
+          {
+            "bucket": 4,
+            "count": 105,
+            "mean_error": -0.2241,
+            "mean_projected": -4.9114,
+            "mean_realized": -5.1354
+          },
+          {
+            "bucket": 5,
+            "count": 104,
+            "mean_error": -0.2312,
+            "mean_projected": -5.5149,
+            "mean_realized": -5.7461
+          },
+          {
+            "bucket": 6,
+            "count": 105,
+            "mean_error": -0.3802,
+            "mean_projected": -5.7867,
+            "mean_realized": -6.1669
+          },
+          {
+            "bucket": 7,
+            "count": 104,
+            "mean_error": -0.5663,
+            "mean_projected": -5.8888,
+            "mean_realized": -6.4551
+          },
+          {
+            "bucket": 8,
+            "count": 105,
+            "mean_error": -0.5058,
+            "mean_projected": -5.9502,
+            "mean_realized": -6.4561
+          },
+          {
+            "bucket": 9,
+            "count": 104,
+            "mean_error": 0.1012,
+            "mean_projected": -6.0826,
+            "mean_realized": -5.9814
+          },
+          {
+            "bucket": 10,
+            "count": 105,
+            "mean_error": 0.5482,
+            "mean_projected": -6.5895,
+            "mean_realized": -6.0413
+          }
+        ],
+        "kendall_tau": 0.3482811965287711,
+        "n": 1045,
+        "ols_intercept": -1.9221458291205875,
+        "ols_slope": 0.7073898640920672,
+        "pearson": 0.6261734956725716,
+        "r_squared": 0.3920932466828082,
+        "spearman": 0.46894288974442555,
+        "spearman_ci": [
+          0.41303971708589343,
+          0.5257409319597687
+        ],
+        "top_n_precision": {
+          "100": 0.53,
+          "200": 0.575,
+          "25": 0.36,
+          "50": 0.46
+        }
+      },
+      "pool": {
+        "hitters": 1767,
+        "pitchers": 1045
+      },
+      "season": 2016
+    },
+    {
+      "hitters": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 180,
+            "mean_error": -2.4395,
+            "mean_projected": 0.3905,
+            "mean_realized": -2.049
+          },
+          {
+            "bucket": 2,
+            "count": 181,
+            "mean_error": -0.4352,
+            "mean_projected": -6.8669,
+            "mean_realized": -7.3022
+          },
+          {
+            "bucket": 3,
+            "count": 181,
+            "mean_error": 0.157,
+            "mean_projected": -10.064,
+            "mean_realized": -9.9071
+          },
+          {
+            "bucket": 4,
+            "count": 180,
+            "mean_error": -0.1728,
+            "mean_projected": -10.84,
+            "mean_realized": -11.0128
+          },
+          {
+            "bucket": 5,
+            "count": 181,
+            "mean_error": -0.559,
+            "mean_projected": -11.1299,
+            "mean_realized": -11.6889
+          },
+          {
+            "bucket": 6,
+            "count": 181,
+            "mean_error": -1.0929,
+            "mean_projected": -11.145,
+            "mean_realized": -12.2379
+          },
+          {
+            "bucket": 7,
+            "count": 180,
+            "mean_error": -1.0924,
+            "mean_projected": -11.145,
+            "mean_realized": -12.2374
+          },
+          {
+            "bucket": 8,
+            "count": 181,
+            "mean_error": -1.0087,
+            "mean_projected": -11.1493,
+            "mean_realized": -12.1579
+          },
+          {
+            "bucket": 9,
+            "count": 181,
+            "mean_error": -0.9338,
+            "mean_projected": -11.1594,
+            "mean_realized": -12.0932
+          },
+          {
+            "bucket": 10,
+            "count": 181,
+            "mean_error": -0.9643,
+            "mean_projected": -11.2001,
+            "mean_realized": -12.1644
+          }
+        ],
+        "kendall_tau": 0.4740322709354922,
+        "n": 1807,
+        "ols_intercept": -1.9795775941167257,
+        "ols_slope": 0.8806484754101425,
+        "pearson": 0.7828227030230043,
+        "r_squared": 0.6128113843682428,
+        "spearman": 0.6008105744177393,
+        "spearman_ci": [
+          0.5646534463641337,
+          0.6371044317057396
+        ],
+        "top_n_precision": {
+          "100": 0.51,
+          "200": 0.675,
+          "25": 0.4,
+          "50": 0.44
+        }
+      },
+      "pitchers": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 109,
+            "mean_error": -1.5128,
+            "mean_projected": 0.0996,
+            "mean_realized": -1.4132
+          },
+          {
+            "bucket": 2,
+            "count": 110,
+            "mean_error": -1.0461,
+            "mean_projected": -2.5795,
+            "mean_realized": -3.6257
+          },
+          {
+            "bucket": 3,
+            "count": 109,
+            "mean_error": -0.0186,
+            "mean_projected": -4.0623,
+            "mean_realized": -4.0809
+          },
+          {
+            "bucket": 4,
+            "count": 110,
+            "mean_error": 0.5854,
+            "mean_projected": -4.9487,
+            "mean_realized": -4.3633
+          },
+          {
+            "bucket": 5,
+            "count": 110,
+            "mean_error": 0.4108,
+            "mean_projected": -5.5387,
+            "mean_realized": -5.1278
+          },
+          {
+            "bucket": 6,
+            "count": 109,
+            "mean_error": 0.544,
+            "mean_projected": -5.8451,
+            "mean_realized": -5.3011
+          },
+          {
+            "bucket": 7,
+            "count": 110,
+            "mean_error": 0.2584,
+            "mean_projected": -5.9891,
+            "mean_realized": -5.7307
+          },
+          {
+            "bucket": 8,
+            "count": 109,
+            "mean_error": 0.2704,
+            "mean_projected": -6.0442,
+            "mean_realized": -5.7738
+          },
+          {
+            "bucket": 9,
+            "count": 110,
+            "mean_error": 0.4408,
+            "mean_projected": -6.1093,
+            "mean_realized": -5.6685
+          },
+          {
+            "bucket": 10,
+            "count": 110,
+            "mean_error": 0.595,
+            "mean_projected": -6.2741,
+            "mean_realized": -5.6791
+          }
+        ],
+        "kendall_tau": 0.4056687582670124,
+        "n": 1096,
+        "ols_intercept": -1.531416030707419,
+        "ols_slope": 0.6650413974366713,
+        "pearson": 0.6455317818601856,
+        "r_squared": 0.416711281391586,
+        "spearman": 0.5436672664671189,
+        "spearman_ci": [
+          0.49710309731498215,
+          0.5909683118750071
+        ],
+        "top_n_precision": {
+          "100": 0.5,
+          "200": 0.55,
+          "25": 0.32,
+          "50": 0.46
+        }
+      },
+      "pool": {
+        "hitters": 1807,
+        "pitchers": 1096
+      },
+      "season": 2017
+    },
+    {
+      "hitters": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 183,
+            "mean_error": -2.0966,
+            "mean_projected": 0.272,
+            "mean_realized": -1.8246
+          },
+          {
+            "bucket": 2,
+            "count": 183,
+            "mean_error": 0.151,
+            "mean_projected": -6.8853,
+            "mean_realized": -6.7343
+          },
+          {
+            "bucket": 3,
+            "count": 183,
+            "mean_error": 0.893,
+            "mean_projected": -10.355,
+            "mean_realized": -9.462
+          },
+          {
+            "bucket": 4,
+            "count": 184,
+            "mean_error": 0.8507,
+            "mean_projected": -11.1956,
+            "mean_realized": -10.3449
+          },
+          {
+            "bucket": 5,
+            "count": 183,
+            "mean_error": 0.3079,
+            "mean_projected": -11.4702,
+            "mean_realized": -11.1623
+          },
+          {
+            "bucket": 6,
+            "count": 183,
+            "mean_error": -0.0243,
+            "mean_projected": -11.494,
+            "mean_realized": -11.5183
+          },
+          {
+            "bucket": 7,
+            "count": 184,
+            "mean_error": -0.0237,
+            "mean_projected": -11.494,
+            "mean_realized": -11.5177
+          },
+          {
+            "bucket": 8,
+            "count": 183,
+            "mean_error": 0.007,
+            "mean_projected": -11.4973,
+            "mean_realized": -11.4903
+          },
+          {
+            "bucket": 9,
+            "count": 183,
+            "mean_error": 0.0398,
+            "mean_projected": -11.5069,
+            "mean_realized": -11.467
+          },
+          {
+            "bucket": 10,
+            "count": 184,
+            "mean_error": 0.1489,
+            "mean_projected": -11.5495,
+            "mean_realized": -11.4006
+          }
+        ],
+        "kendall_tau": 0.4956002893148154,
+        "n": 1833,
+        "ols_intercept": -1.7623607561709858,
+        "ols_slope": 0.8160340381118121,
+        "pearson": 0.7815859271234816,
+        "r_squared": 0.610876561477472,
+        "spearman": 0.6251396519561143,
+        "spearman_ci": [
+          0.5910852610727929,
+          0.6570610030286411
+        ],
+        "top_n_precision": {
+          "100": 0.52,
+          "200": 0.665,
+          "25": 0.36,
+          "50": 0.42
+        }
+      },
+      "pitchers": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 113,
+            "mean_error": -1.6591,
+            "mean_projected": -0.078,
+            "mean_realized": -1.7372
+          },
+          {
+            "bucket": 2,
+            "count": 113,
+            "mean_error": -0.9852,
+            "mean_projected": -2.5218,
+            "mean_realized": -3.507
+          },
+          {
+            "bucket": 3,
+            "count": 114,
+            "mean_error": 0.1698,
+            "mean_projected": -3.8599,
+            "mean_realized": -3.6901
+          },
+          {
+            "bucket": 4,
+            "count": 113,
+            "mean_error": -0.0389,
+            "mean_projected": -4.7878,
+            "mean_realized": -4.8267
+          },
+          {
+            "bucket": 5,
+            "count": 114,
+            "mean_error": 0.4107,
+            "mean_projected": -5.3219,
+            "mean_realized": -4.9112
+          },
+          {
+            "bucket": 6,
+            "count": 113,
+            "mean_error": 0.209,
+            "mean_projected": -5.6002,
+            "mean_realized": -5.3912
+          },
+          {
+            "bucket": 7,
+            "count": 113,
+            "mean_error": 0.0506,
+            "mean_projected": -5.7066,
+            "mean_realized": -5.656
+          },
+          {
+            "bucket": 8,
+            "count": 114,
+            "mean_error": 0.2017,
+            "mean_projected": -5.7627,
+            "mean_realized": -5.561
+          },
+          {
+            "bucket": 9,
+            "count": 113,
+            "mean_error": 0.2369,
+            "mean_projected": -5.8446,
+            "mean_realized": -5.6077
+          },
+          {
+            "bucket": 10,
+            "count": 114,
+            "mean_error": 0.5263,
+            "mean_projected": -6.0332,
+            "mean_realized": -5.5069
+          }
+        ],
+        "kendall_tau": 0.3607152234113913,
+        "n": 1134,
+        "ols_intercept": -1.5561938064250591,
+        "ols_slope": 0.6772519672266787,
+        "pearson": 0.6183814898357133,
+        "r_squared": 0.38239566697143634,
+        "spearman": 0.49723919109283576,
+        "spearman_ci": [
+          0.4534651573706951,
+          0.5428236970983676
+        ],
+        "top_n_precision": {
+          "100": 0.43,
+          "200": 0.53,
+          "25": 0.44,
+          "50": 0.38
+        }
+      },
+      "pool": {
+        "hitters": 1833,
+        "pitchers": 1134
+      },
+      "season": 2018
+    },
+    {
+      "hitters": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 183,
+            "mean_error": -3.0731,
+            "mean_projected": 0.3531,
+            "mean_realized": -2.72
+          },
+          {
+            "bucket": 2,
+            "count": 184,
+            "mean_error": -0.8307,
+            "mean_projected": -6.5308,
+            "mean_realized": -7.3615
+          },
+          {
+            "bucket": 3,
+            "count": 183,
+            "mean_error": 0.2716,
+            "mean_projected": -10.1625,
+            "mean_realized": -9.8909
+          },
+          {
+            "bucket": 4,
+            "count": 184,
+            "mean_error": 0.2709,
+            "mean_projected": -11.0469,
+            "mean_realized": -10.776
+          },
+          {
+            "bucket": 5,
+            "count": 184,
+            "mean_error": -1.1054,
+            "mean_projected": -11.2319,
+            "mean_realized": -12.3373
+          },
+          {
+            "bucket": 6,
+            "count": 183,
+            "mean_error": -1.4474,
+            "mean_projected": -11.241,
+            "mean_realized": -12.6884
+          },
+          {
+            "bucket": 7,
+            "count": 184,
+            "mean_error": -1.4232,
+            "mean_projected": -11.2412,
+            "mean_realized": -12.6644
+          },
+          {
+            "bucket": 8,
+            "count": 183,
+            "mean_error": -1.2957,
+            "mean_projected": -11.2458,
+            "mean_realized": -12.5415
+          },
+          {
+            "bucket": 9,
+            "count": 184,
+            "mean_error": -1.3433,
+            "mean_projected": -11.2549,
+            "mean_realized": -12.5982
+          },
+          {
+            "bucket": 10,
+            "count": 184,
+            "mean_error": -1.1876,
+            "mean_projected": -11.3,
+            "mean_realized": -12.4877
+          }
+        ],
+        "kendall_tau": 0.5173083669546892,
+        "n": 1836,
+        "ols_intercept": -2.5225342642723323,
+        "ols_slope": 0.851819740699482,
+        "pearson": 0.7538259009308009,
+        "r_squared": 0.5682534889141337,
+        "spearman": 0.663389748287511,
+        "spearman_ci": [
+          0.628569684741912,
+          0.6934568303284505
+        ],
+        "top_n_precision": {
+          "100": 0.53,
+          "200": 0.625,
+          "25": 0.44,
+          "50": 0.54
+        }
+      },
+      "pitchers": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 116,
+            "mean_error": -1.9131,
+            "mean_projected": 0.0051,
+            "mean_realized": -1.908
+          },
+          {
+            "bucket": 2,
+            "count": 117,
+            "mean_error": -1.1949,
+            "mean_projected": -2.4349,
+            "mean_realized": -3.6299
+          },
+          {
+            "bucket": 3,
+            "count": 116,
+            "mean_error": -0.6113,
+            "mean_projected": -3.7562,
+            "mean_realized": -4.3675
+          },
+          {
+            "bucket": 4,
+            "count": 117,
+            "mean_error": -0.4913,
+            "mean_projected": -4.6473,
+            "mean_realized": -5.1386
+          },
+          {
+            "bucket": 5,
+            "count": 117,
+            "mean_error": 0.0045,
+            "mean_projected": -5.2527,
+            "mean_realized": -5.2482
+          },
+          {
+            "bucket": 6,
+            "count": 116,
+            "mean_error": 0.1919,
+            "mean_projected": -5.5408,
+            "mean_realized": -5.3489
+          },
+          {
+            "bucket": 7,
+            "count": 117,
+            "mean_error": -0.0432,
+            "mean_projected": -5.6622,
+            "mean_realized": -5.7054
+          },
+          {
+            "bucket": 8,
+            "count": 116,
+            "mean_error": -0.2126,
+            "mean_projected": -5.7187,
+            "mean_realized": -5.9313
+          },
+          {
+            "bucket": 9,
+            "count": 117,
+            "mean_error": -0.0081,
+            "mean_projected": -5.7783,
+            "mean_realized": -5.7864
+          },
+          {
+            "bucket": 10,
+            "count": 117,
+            "mean_error": 0.0751,
+            "mean_projected": -5.9298,
+            "mean_realized": -5.8547
+          }
+        ],
+        "kendall_tau": 0.3864868712051539,
+        "n": 1166,
+        "ols_intercept": -1.9349317265631854,
+        "ols_slope": 0.6612977726320655,
+        "pearson": 0.6230689192562519,
+        "r_squared": 0.3882148781431535,
+        "spearman": 0.5234790795051874,
+        "spearman_ci": [
+          0.4751357199181194,
+          0.5687774599347556
+        ],
+        "top_n_precision": {
+          "100": 0.45,
+          "200": 0.565,
+          "25": 0.28,
+          "50": 0.38
+        }
+      },
+      "pool": {
+        "hitters": 1836,
+        "pitchers": 1166
+      },
+      "season": 2019
+    },
+    {
+      "hitters": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 182,
+            "mean_error": -1.4012,
+            "mean_projected": 0.4578,
+            "mean_realized": -0.9434
+          },
+          {
+            "bucket": 2,
+            "count": 182,
+            "mean_error": 3.7833,
+            "mean_projected": -6.6642,
+            "mean_realized": -2.8809
+          },
+          {
+            "bucket": 3,
+            "count": 182,
+            "mean_error": 6.1417,
+            "mean_projected": -9.8073,
+            "mean_realized": -3.6656
+          },
+          {
+            "bucket": 4,
+            "count": 183,
+            "mean_error": 6.6138,
+            "mean_projected": -10.8436,
+            "mean_realized": -4.2298
+          },
+          {
+            "bucket": 5,
+            "count": 182,
+            "mean_error": 6.9222,
+            "mean_projected": -11.4568,
+            "mean_realized": -4.5346
+          },
+          {
+            "bucket": 6,
+            "count": 182,
+            "mean_error": 6.8112,
+            "mean_projected": -11.512,
+            "mean_realized": -4.7008
+          },
+          {
+            "bucket": 7,
+            "count": 183,
+            "mean_error": 6.8123,
+            "mean_projected": -11.512,
+            "mean_realized": -4.6997
+          },
+          {
+            "bucket": 8,
+            "count": 182,
+            "mean_error": 6.8171,
+            "mean_projected": -11.5158,
+            "mean_realized": -4.6987
+          },
+          {
+            "bucket": 9,
+            "count": 182,
+            "mean_error": 6.8429,
+            "mean_projected": -11.5243,
+            "mean_realized": -4.6814
+          },
+          {
+            "bucket": 10,
+            "count": 183,
+            "mean_error": 6.89,
+            "mean_projected": -11.5688,
+            "mean_realized": -4.6788
+          }
+        ],
+        "kendall_tau": 0.5892814150474287,
+        "n": 1823,
+        "ols_intercept": -0.9429920570839324,
+        "ols_slope": 0.3156350231292647,
+        "pearson": 0.761813986896348,
+        "r_squared": 0.580360550630909,
+        "spearman": 0.7177711610146263,
+        "spearman_ci": [
+          0.6914850940218442,
+          0.7420448053731192
+        ],
+        "top_n_precision": {
+          "100": 0.45,
+          "200": 0.665,
+          "25": 0.4,
+          "50": 0.5
+        }
+      },
+      "pitchers": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 120,
+            "mean_error": -1.4153,
+            "mean_projected": 0.0543,
+            "mean_realized": -1.361
+          },
+          {
+            "bucket": 2,
+            "count": 121,
+            "mean_error": 0.248,
+            "mean_projected": -2.361,
+            "mean_realized": -2.113
+          },
+          {
+            "bucket": 3,
+            "count": 120,
+            "mean_error": 1.4445,
+            "mean_projected": -3.7,
+            "mean_realized": -2.2554
+          },
+          {
+            "bucket": 4,
+            "count": 121,
+            "mean_error": 2.1594,
+            "mean_projected": -4.4901,
+            "mean_realized": -2.3307
+          },
+          {
+            "bucket": 5,
+            "count": 120,
+            "mean_error": 2.5357,
+            "mean_projected": -4.9827,
+            "mean_realized": -2.447
+          },
+          {
+            "bucket": 6,
+            "count": 121,
+            "mean_error": 2.7476,
+            "mean_projected": -5.2673,
+            "mean_realized": -2.5197
+          },
+          {
+            "bucket": 7,
+            "count": 120,
+            "mean_error": 2.7658,
+            "mean_projected": -5.3954,
+            "mean_realized": -2.6296
+          },
+          {
+            "bucket": 8,
+            "count": 121,
+            "mean_error": 2.7328,
+            "mean_projected": -5.4512,
+            "mean_realized": -2.7184
+          },
+          {
+            "bucket": 9,
+            "count": 120,
+            "mean_error": 2.7742,
+            "mean_projected": -5.5112,
+            "mean_realized": -2.737
+          },
+          {
+            "bucket": 10,
+            "count": 121,
+            "mean_error": 2.9014,
+            "mean_projected": -5.6342,
+            "mean_realized": -2.7328
+          }
+        ],
+        "kendall_tau": 0.1933955286316477,
+        "n": 1205,
+        "ols_intercept": -1.392405423902149,
+        "ols_slope": 0.2321333251934662,
+        "pearson": 0.41524507588566306,
+        "r_squared": 0.17242847304729014,
+        "spearman": 0.26208699108357825,
+        "spearman_ci": [
+          0.2026540773741217,
+          0.3206119131536486
+        ],
+        "top_n_precision": {
+          "100": 0.39,
+          "200": 0.41,
+          "25": 0.28,
+          "50": 0.32
+        }
+      },
+      "pool": {
+        "hitters": 1823,
+        "pitchers": 1205
+      },
+      "season": 2020
+    },
+    {
+      "hitters": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 139,
+            "mean_error": -2.3632,
+            "mean_projected": 1.6527,
+            "mean_realized": -0.7104
+          },
+          {
+            "bucket": 2,
+            "count": 139,
+            "mean_error": -2.1059,
+            "mean_projected": -4.0041,
+            "mean_realized": -6.11
+          },
+          {
+            "bucket": 3,
+            "count": 139,
+            "mean_error": -1.8617,
+            "mean_projected": -5.9952,
+            "mean_realized": -7.8569
+          },
+          {
+            "bucket": 4,
+            "count": 139,
+            "mean_error": -2.0115,
+            "mean_projected": -6.6882,
+            "mean_realized": -8.6997
+          },
+          {
+            "bucket": 5,
+            "count": 140,
+            "mean_error": -1.8834,
+            "mean_projected": -7.3326,
+            "mean_realized": -9.216
+          },
+          {
+            "bucket": 6,
+            "count": 139,
+            "mean_error": -3.0193,
+            "mean_projected": -7.649,
+            "mean_realized": -10.6682
+          },
+          {
+            "bucket": 7,
+            "count": 139,
+            "mean_error": -3.066,
+            "mean_projected": -7.651,
+            "mean_realized": -10.717
+          },
+          {
+            "bucket": 8,
+            "count": 139,
+            "mean_error": -3.0633,
+            "mean_projected": -7.6536,
+            "mean_realized": -10.7169
+          },
+          {
+            "bucket": 9,
+            "count": 139,
+            "mean_error": -2.9911,
+            "mean_projected": -7.6652,
+            "mean_realized": -10.6563
+          },
+          {
+            "bucket": 10,
+            "count": 140,
+            "mean_error": -2.6571,
+            "mean_projected": -7.743,
+            "mean_realized": -10.4001
+          }
+        ],
+        "kendall_tau": 0.6349892603729734,
+        "n": 1392,
+        "ols_intercept": -2.3382055236858603,
+        "ols_slope": 1.0269492504537132,
+        "pearson": 0.7537198435265006,
+        "r_squared": 0.5680936025256127,
+        "spearman": 0.7821843801024756,
+        "spearman_ci": [
+          0.7562290726408031,
+          0.8053221868000657
+        ],
+        "top_n_precision": {
+          "100": 0.59,
+          "200": 0.66,
+          "25": 0.4,
+          "50": 0.46
+        }
+      },
+      "pitchers": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 102,
+            "mean_error": -2.5428,
+            "mean_projected": 0.0883,
+            "mean_realized": -2.4545
+          },
+          {
+            "bucket": 2,
+            "count": 103,
+            "mean_error": -1.9568,
+            "mean_projected": -2.2334,
+            "mean_realized": -4.1902
+          },
+          {
+            "bucket": 3,
+            "count": 102,
+            "mean_error": -1.4211,
+            "mean_projected": -3.1758,
+            "mean_realized": -4.5969
+          },
+          {
+            "bucket": 4,
+            "count": 103,
+            "mean_error": -1.3981,
+            "mean_projected": -3.6066,
+            "mean_realized": -5.0047
+          },
+          {
+            "bucket": 5,
+            "count": 103,
+            "mean_error": -1.2869,
+            "mean_projected": -3.8982,
+            "mean_realized": -5.1851
+          },
+          {
+            "bucket": 6,
+            "count": 102,
+            "mean_error": -1.5854,
+            "mean_projected": -4.0387,
+            "mean_realized": -5.6241
+          },
+          {
+            "bucket": 7,
+            "count": 103,
+            "mean_error": -1.307,
+            "mean_projected": -4.1158,
+            "mean_realized": -5.4228
+          },
+          {
+            "bucket": 8,
+            "count": 102,
+            "mean_error": -1.32,
+            "mean_projected": -4.2025,
+            "mean_realized": -5.5225
+          },
+          {
+            "bucket": 9,
+            "count": 103,
+            "mean_error": -1.2372,
+            "mean_projected": -4.3357,
+            "mean_realized": -5.5729
+          },
+          {
+            "bucket": 10,
+            "count": 103,
+            "mean_error": -0.2794,
+            "mean_projected": -4.82,
+            "mean_realized": -5.0994
+          }
+        ],
+        "kendall_tau": 0.24411049786798705,
+        "n": 1026,
+        "ols_intercept": -2.5601991522613408,
+        "ols_slope": 0.6717780329322036,
+        "pearson": 0.48652943352865596,
+        "r_squared": 0.23671088968971477,
+        "spearman": 0.33381438623310883,
+        "spearman_ci": [
+          0.27246086712199297,
+          0.39243326497863423
+        ],
+        "top_n_precision": {
+          "100": 0.37,
+          "200": 0.46,
+          "25": 0.2,
+          "50": 0.42
+        }
+      },
+      "pool": {
+        "hitters": 1392,
+        "pitchers": 1026
+      },
+      "season": 2022
+    },
+    {
+      "hitters": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 98,
+            "mean_error": -2.092,
+            "mean_projected": 2.8126,
+            "mean_realized": 0.7206
+          },
+          {
+            "bucket": 2,
+            "count": 98,
+            "mean_error": -1.7758,
+            "mean_projected": -2.2049,
+            "mean_realized": -3.9807
+          },
+          {
+            "bucket": 3,
+            "count": 98,
+            "mean_error": -1.2372,
+            "mean_projected": -5.22,
+            "mean_realized": -6.4572
+          },
+          {
+            "bucket": 4,
+            "count": 99,
+            "mean_error": -1.8261,
+            "mean_projected": -6.9569,
+            "mean_realized": -8.783
+          },
+          {
+            "bucket": 5,
+            "count": 98,
+            "mean_error": -1.8272,
+            "mean_projected": -7.7085,
+            "mean_realized": -9.5356
+          },
+          {
+            "bucket": 6,
+            "count": 98,
+            "mean_error": -2.4901,
+            "mean_projected": -7.9787,
+            "mean_realized": -10.4688
+          },
+          {
+            "bucket": 7,
+            "count": 99,
+            "mean_error": -2.7146,
+            "mean_projected": -8.1139,
+            "mean_realized": -10.8285
+          },
+          {
+            "bucket": 8,
+            "count": 98,
+            "mean_error": -2.0779,
+            "mean_projected": -8.5027,
+            "mean_realized": -10.5806
+          },
+          {
+            "bucket": 9,
+            "count": 98,
+            "mean_error": -3.0173,
+            "mean_projected": -8.8345,
+            "mean_realized": -11.8518
+          },
+          {
+            "bucket": 10,
+            "count": 99,
+            "mean_error": -2.7376,
+            "mean_projected": -8.8517,
+            "mean_realized": -11.5893
+          }
+        ],
+        "kendall_tau": 0.5914288166883764,
+        "n": 983,
+        "ols_intercept": -1.8792490812833156,
+        "ols_slope": 1.0488652768650906,
+        "pearson": 0.7695954843599483,
+        "r_squared": 0.5922772095472235,
+        "spearman": 0.7500653020580592,
+        "spearman_ci": [
+          0.7150339793659243,
+          0.779103806009108
+        ],
+        "top_n_precision": {
+          "100": 0.62,
+          "200": 0.68,
+          "25": 0.52,
+          "50": 0.48
+        }
+      },
+      "pitchers": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 114,
+            "mean_error": -1.6721,
+            "mean_projected": -0.0575,
+            "mean_realized": -1.7296
+          },
+          {
+            "bucket": 2,
+            "count": 115,
+            "mean_error": -0.8041,
+            "mean_projected": -2.6367,
+            "mean_realized": -3.4408
+          },
+          {
+            "bucket": 3,
+            "count": 114,
+            "mean_error": -0.7261,
+            "mean_projected": -3.7362,
+            "mean_realized": -4.4623
+          },
+          {
+            "bucket": 4,
+            "count": 115,
+            "mean_error": -0.7326,
+            "mean_projected": -4.3275,
+            "mean_realized": -5.0601
+          },
+          {
+            "bucket": 5,
+            "count": 114,
+            "mean_error": -0.4413,
+            "mean_projected": -4.7311,
+            "mean_realized": -5.1723
+          },
+          {
+            "bucket": 6,
+            "count": 115,
+            "mean_error": -0.9399,
+            "mean_projected": -4.9137,
+            "mean_realized": -5.8536
+          },
+          {
+            "bucket": 7,
+            "count": 114,
+            "mean_error": -0.8699,
+            "mean_projected": -4.9895,
+            "mean_realized": -5.8593
+          },
+          {
+            "bucket": 8,
+            "count": 115,
+            "mean_error": -0.7962,
+            "mean_projected": -5.05,
+            "mean_realized": -5.8463
+          },
+          {
+            "bucket": 9,
+            "count": 114,
+            "mean_error": -0.9204,
+            "mean_projected": -5.1254,
+            "mean_realized": -6.0458
+          },
+          {
+            "bucket": 10,
+            "count": 115,
+            "mean_error": -0.3045,
+            "mean_projected": -5.3387,
+            "mean_realized": -5.6432
+          }
+        ],
+        "kendall_tau": 0.40236131929070185,
+        "n": 1145,
+        "ols_intercept": -1.5462892999499636,
+        "ols_slope": 0.8225798141871766,
+        "pearson": 0.6444798795381568,
+        "r_squared": 0.4153543151295168,
+        "spearman": 0.5452418739072035,
+        "spearman_ci": [
+          0.49341903053139247,
+          0.5906714037863728
+        ],
+        "top_n_precision": {
+          "100": 0.51,
+          "200": 0.58,
+          "25": 0.32,
+          "50": 0.42
+        }
+      },
+      "pool": {
+        "hitters": 983,
+        "pitchers": 1145
+      },
+      "season": 2023
+    },
+    {
+      "hitters": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 101,
+            "mean_error": -1.8374,
+            "mean_projected": 2.524,
+            "mean_realized": 0.6866
+          },
+          {
+            "bucket": 2,
+            "count": 101,
+            "mean_error": -1.6662,
+            "mean_projected": -2.6622,
+            "mean_realized": -4.3284
+          },
+          {
+            "bucket": 3,
+            "count": 102,
+            "mean_error": 0.1,
+            "mean_projected": -6.4514,
+            "mean_realized": -6.3514
+          },
+          {
+            "bucket": 4,
+            "count": 101,
+            "mean_error": 0.9122,
+            "mean_projected": -8.9236,
+            "mean_realized": -8.0114
+          },
+          {
+            "bucket": 5,
+            "count": 102,
+            "mean_error": 1.2922,
+            "mean_projected": -10.2017,
+            "mean_realized": -8.9095
+          },
+          {
+            "bucket": 6,
+            "count": 101,
+            "mean_error": 1.4819,
+            "mean_projected": -10.7984,
+            "mean_realized": -9.3165
+          },
+          {
+            "bucket": 7,
+            "count": 101,
+            "mean_error": 0.357,
+            "mean_projected": -10.963,
+            "mean_realized": -10.6061
+          },
+          {
+            "bucket": 8,
+            "count": 102,
+            "mean_error": 0.3749,
+            "mean_projected": -11.1398,
+            "mean_realized": -10.7649
+          },
+          {
+            "bucket": 9,
+            "count": 101,
+            "mean_error": -0.1037,
+            "mean_projected": -11.177,
+            "mean_realized": -11.2807
+          },
+          {
+            "bucket": 10,
+            "count": 102,
+            "mean_error": -0.0406,
+            "mean_projected": -11.1914,
+            "mean_realized": -11.232
+          }
+        ],
+        "kendall_tau": 0.5894858898272899,
+        "n": 1014,
+        "ols_intercept": -1.5028161170844558,
+        "ols_slope": 0.803676159674356,
+        "pearson": 0.7531945983011906,
+        "r_squared": 0.5673021029100919,
+        "spearman": 0.7444752000994205,
+        "spearman_ci": [
+          0.7116850493950286,
+          0.7756972108782079
+        ],
+        "top_n_precision": {
+          "100": 0.61,
+          "200": 0.655,
+          "25": 0.28,
+          "50": 0.48
+        }
+      },
+      "pitchers": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 113,
+            "mean_error": -2.2819,
+            "mean_projected": -0.0359,
+            "mean_realized": -2.3179
+          },
+          {
+            "bucket": 2,
+            "count": 113,
+            "mean_error": -1.084,
+            "mean_projected": -2.4896,
+            "mean_realized": -3.5735
+          },
+          {
+            "bucket": 3,
+            "count": 113,
+            "mean_error": -0.7248,
+            "mean_projected": -3.6928,
+            "mean_realized": -4.4176
+          },
+          {
+            "bucket": 4,
+            "count": 113,
+            "mean_error": -0.2147,
+            "mean_projected": -4.6031,
+            "mean_realized": -4.8178
+          },
+          {
+            "bucket": 5,
+            "count": 113,
+            "mean_error": -0.1028,
+            "mean_projected": -5.1529,
+            "mean_realized": -5.2557
+          },
+          {
+            "bucket": 6,
+            "count": 113,
+            "mean_error": -0.0131,
+            "mean_projected": -5.5148,
+            "mean_realized": -5.5278
+          },
+          {
+            "bucket": 7,
+            "count": 113,
+            "mean_error": -0.1996,
+            "mean_projected": -5.6502,
+            "mean_realized": -5.8498
+          },
+          {
+            "bucket": 8,
+            "count": 113,
+            "mean_error": -0.2865,
+            "mean_projected": -5.7165,
+            "mean_realized": -6.003
+          },
+          {
+            "bucket": 9,
+            "count": 113,
+            "mean_error": 0.0049,
+            "mean_projected": -5.7836,
+            "mean_realized": -5.7786
+          },
+          {
+            "bucket": 10,
+            "count": 114,
+            "mean_error": -0.0148,
+            "mean_projected": -5.9125,
+            "mean_realized": -5.9274
+          }
+        ],
+        "kendall_tau": 0.3866903794978486,
+        "n": 1131,
+        "ols_intercept": -2.1633549289655902,
+        "ols_slope": 0.6248059779543668,
+        "pearson": 0.577231669362682,
+        "r_squared": 0.33319640011522855,
+        "spearman": 0.5254579986244463,
+        "spearman_ci": [
+          0.47752570826219687,
+          0.570153745431371
+        ],
+        "top_n_precision": {
+          "100": 0.47,
+          "200": 0.505,
+          "25": 0.24,
+          "50": 0.3
+        }
+      },
+      "pool": {
+        "hitters": 1014,
+        "pitchers": 1131
+      },
+      "season": 2024
+    },
+    {
+      "hitters": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 118,
+            "mean_error": -1.8176,
+            "mean_projected": 2.0697,
+            "mean_realized": 0.2521
+          },
+          {
+            "bucket": 2,
+            "count": 119,
+            "mean_error": -1.0916,
+            "mean_projected": -3.9326,
+            "mean_realized": -5.0243
+          },
+          {
+            "bucket": 3,
+            "count": 119,
+            "mean_error": -0.591,
+            "mean_projected": -7.3171,
+            "mean_realized": -7.9081
+          },
+          {
+            "bucket": 4,
+            "count": 118,
+            "mean_error": -0.1492,
+            "mean_projected": -9.2048,
+            "mean_realized": -9.3539
+          },
+          {
+            "bucket": 5,
+            "count": 119,
+            "mean_error": 0.6812,
+            "mean_projected": -10.1935,
+            "mean_realized": -9.5123
+          },
+          {
+            "bucket": 6,
+            "count": 119,
+            "mean_error": 0.0604,
+            "mean_projected": -10.6025,
+            "mean_realized": -10.5422
+          },
+          {
+            "bucket": 7,
+            "count": 118,
+            "mean_error": -0.1495,
+            "mean_projected": -10.8729,
+            "mean_realized": -11.0224
+          },
+          {
+            "bucket": 8,
+            "count": 119,
+            "mean_error": -0.6969,
+            "mean_projected": -10.926,
+            "mean_realized": -11.6229
+          },
+          {
+            "bucket": 9,
+            "count": 119,
+            "mean_error": -0.7017,
+            "mean_projected": -10.926,
+            "mean_realized": -11.6277
+          },
+          {
+            "bucket": 10,
+            "count": 119,
+            "mean_error": -0.2737,
+            "mean_projected": -10.9465,
+            "mean_realized": -11.2201
+          }
+        ],
+        "kendall_tau": 0.5546339153508064,
+        "n": 1187,
+        "ols_intercept": -1.5459769281358875,
+        "ols_slope": 0.8705090941507697,
+        "pearson": 0.7765501221105219,
+        "r_squared": 0.6030300921498664,
+        "spearman": 0.6998547122110446,
+        "spearman_ci": [
+          0.6662893397729643,
+          0.7324207635227451
+        ],
+        "top_n_precision": {
+          "100": 0.6,
+          "200": 0.7,
+          "25": 0.52,
+          "50": 0.58
+        }
+      },
+      "pitchers": {
+        "deciles": [
+          {
+            "bucket": 1,
+            "count": 132,
+            "mean_error": -1.8051,
+            "mean_projected": -0.2949,
+            "mean_realized": -2.1
+          },
+          {
+            "bucket": 2,
+            "count": 133,
+            "mean_error": -1.3678,
+            "mean_projected": -2.6681,
+            "mean_realized": -4.0358
+          },
+          {
+            "bucket": 3,
+            "count": 133,
+            "mean_error": -0.4041,
+            "mean_projected": -3.8756,
+            "mean_realized": -4.2797
+          },
+          {
+            "bucket": 4,
+            "count": 133,
+            "mean_error": -0.7487,
+            "mean_projected": -4.5573,
+            "mean_realized": -5.306
+          },
+          {
+            "bucket": 5,
+            "count": 133,
+            "mean_error": -0.0759,
+            "mean_projected": -5.0524,
+            "mean_realized": -5.1283
+          },
+          {
+            "bucket": 6,
+            "count": 132,
+            "mean_error": -0.2985,
+            "mean_projected": -5.3448,
+            "mean_realized": -5.6433
+          },
+          {
+            "bucket": 7,
+            "count": 133,
+            "mean_error": -0.3657,
+            "mean_projected": -5.4673,
+            "mean_realized": -5.833
+          },
+          {
+            "bucket": 8,
+            "count": 133,
+            "mean_error": -0.4674,
+            "mean_projected": -5.5183,
+            "mean_realized": -5.9858
+          },
+          {
+            "bucket": 9,
+            "count": 133,
+            "mean_error": -0.4682,
+            "mean_projected": -5.5784,
+            "mean_realized": -6.0466
+          },
+          {
+            "bucket": 10,
+            "count": 133,
+            "mean_error": -0.2304,
+            "mean_projected": -5.6905,
+            "mean_realized": -5.9209
+          }
+        ],
+        "kendall_tau": 0.3813578388226902,
+        "n": 1328,
+        "ols_intercept": -1.9294698365434892,
+        "ols_slope": 0.7034503701236765,
+        "pearson": 0.6078836375289751,
+        "r_squared": 0.36952251677545844,
+        "spearman": 0.5125634329602851,
+        "spearman_ci": [
+          0.46755756720380925,
+          0.5565180887429805
+        ],
+        "top_n_precision": {
+          "100": 0.46,
+          "200": 0.52,
+          "25": 0.28,
+          "50": 0.3
+        }
+      },
+      "pool": {
+        "hitters": 1187,
+        "pitchers": 1328
+      },
+      "season": 2025
+    }
+  ],
+  "caveat": "These are the TREND model's calibration slopes, not THE BAT X's. No archived preseason projections exist before 2026, so projections are regenerated from the app's own three-season weighted average, which scored 0.639 rank correlation for hitters in 2026 against THE BAT X's 0.741. Not a clean replication of the 2026 slope of 0.759/0.722 and must never be reported as one.",
+  "generated_at": "2026-08-19T17:35:58+00:00",
+  "hitters": {
+    "max_slope": 1.0489,
+    "mean_slope": 0.8372,
+    "mean_spearman": 0.6871,
+    "min_slope": 0.3156,
+    "seasons": 12,
+    "seasons_below_one": 10
+  },
+  "hitters_excluding_2020": {
+    "max_slope": 1.0489,
+    "mean_slope": 0.8847,
+    "mean_spearman": 0.6844,
+    "min_slope": 0.8037,
+    "seasons": 11,
+    "seasons_below_one": 9
+  },
+  "pitchers": {
+    "max_slope": 0.8226,
+    "mean_slope": 0.66,
+    "mean_spearman": 0.4803,
+    "min_slope": 0.2321,
+    "seasons": 12,
+    "seasons_below_one": 12
+  },
+  "pitchers_excluding_2020": {
+    "max_slope": 0.8226,
+    "mean_slope": 0.6989,
+    "mean_spearman": 0.5002,
+    "min_slope": 0.6248,
+    "seasons": 11,
+    "seasons_below_one": 11
+  },
+  "projection_source": "trend",
+  "seasons": [
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2022,
+    2023,
+    2024,
+    2025
+  ]
+}

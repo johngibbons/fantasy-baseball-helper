@@ -1,0 +1,775 @@
+{
+  "absent_from_workbook": [
+    {
+      "curated": {
+        "manager": "Tim Riker",
+        "round_cost": 15,
+        "seasons_kept": 3
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Gunnar Henderson",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "David Rotatori",
+        "round_cost": 15,
+        "seasons_kept": 3
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Michael Harris II",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Jess Barron",
+        "round_cost": 15,
+        "seasons_kept": 3
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Spencer Strider",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Tim Riker",
+        "round_cost": 8,
+        "seasons_kept": 3
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Julio Rodriguez",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Russell Berry",
+        "round_cost": 14,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Zac Gallen",
+      "season": 2022
+    },
+    {
+      "curated": {
+        "manager": "Russell Berry",
+        "round_cost": 15,
+        "seasons_kept": 2
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Tyler Glasnow",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Jess Barron",
+        "round_cost": 4,
+        "seasons_kept": 2
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Bryce Harper",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Harris Cook",
+        "round_cost": 17,
+        "seasons_kept": 2
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "CJ Abrams",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Harris Cook",
+        "round_cost": 8,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Bobby Witt Jr.",
+      "season": 2023
+    },
+    {
+      "curated": {
+        "manager": "Harris Cook",
+        "round_cost": 15,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Fernando Tatis Jr.",
+      "season": 2022
+    },
+    {
+      "curated": {
+        "manager": "Harris Cook",
+        "round_cost": 15,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Fernando Tatis Jr.",
+      "season": 2023
+    },
+    {
+      "curated": {
+        "manager": "Eric Mercado",
+        "round_cost": 15,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Vladimir Guerrero Jr.",
+      "season": 2022
+    },
+    {
+      "curated": {
+        "manager": "Eric Mercado",
+        "round_cost": 15,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Vladimir Guerrero Jr.",
+      "season": 2023
+    },
+    {
+      "curated": {
+        "manager": "Harris Cook",
+        "round_cost": 25,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Spencer Schwellenbach",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Russell Berry",
+        "round_cost": 25,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Mark Vientos",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Russell Berry",
+        "round_cost": 19,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Ezequiel Tovar",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "John Gibbons",
+        "round_cost": 24,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Jordan Westburg",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "John Gibbons",
+        "round_cost": 23,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Luis Gil",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Bryan Lewis",
+        "round_cost": 8,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Chris Sale",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Bryan Lewis",
+        "round_cost": 1,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Mookie Betts",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Bryan Lewis",
+        "round_cost": 4,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Francisco Lindor",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Tim Riker",
+        "round_cost": 14,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Bryce Miller",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Jess Barron",
+        "round_cost": 1,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Shohei Ohtani (2025)",
+      "season": 2025
+    },
+    {
+      "curated": {
+        "manager": "Jess Barron",
+        "round_cost": 1,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Shohei Ohtani (2025)",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Eric Mercado",
+        "round_cost": 14,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Kodai Senga",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Eric Mercado",
+        "round_cost": 24,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Shane Baz",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Matt Wayne",
+        "round_cost": 4,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Elly De La Cruz",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "Matt Wayne",
+        "round_cost": 24,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Jarren Duran",
+      "season": 2026
+    },
+    {
+      "curated": {
+        "manager": "David Rotatori",
+        "round_cost": 25,
+        "seasons_kept": 1
+      },
+      "note": "curated entry has no matching row in the workbook's keeper sheet for that season",
+      "player_name": "Jack Flaherty",
+      "season": 2026
+    }
+  ],
+  "checked_at": "2026-08-18T02:44:53+00:00",
+  "curated_entries": 107,
+  "disagreements": [
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": null
+      },
+      "fields": {
+        "manager": {
+          "curated": "Russell Berry",
+          "workbook": "Chris Herbst"
+        }
+      },
+      "player_name": "Zac Gallen",
+      "season": 2023
+    },
+    {
+      "doctrine_check": {
+        "curated": true,
+        "workbook": true
+      },
+      "fields": {
+        "manager": {
+          "curated": "Russell Berry",
+          "workbook": "Chris Herbst"
+        }
+      },
+      "player_name": "Zac Gallen",
+      "season": 2024
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": null
+      },
+      "fields": {
+        "manager": {
+          "curated": "Russell Berry",
+          "workbook": "Chris Herbst"
+        }
+      },
+      "player_name": "Tyler Glasnow",
+      "season": 2023
+    },
+    {
+      "doctrine_check": {
+        "curated": true,
+        "workbook": true
+      },
+      "fields": {
+        "manager": {
+          "curated": "Russell Berry",
+          "workbook": "Chris Herbst"
+        }
+      },
+      "player_name": "Tyler Glasnow",
+      "season": 2024
+    },
+    {
+      "doctrine_check": {
+        "curated": true,
+        "workbook": true
+      },
+      "fields": {
+        "manager": {
+          "curated": "Russell Berry",
+          "workbook": "Chris Herbst"
+        }
+      },
+      "player_name": "Tyler Glasnow",
+      "season": 2025
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": null
+      },
+      "fields": {
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Ketel Marte",
+      "season": 2022
+    },
+    {
+      "doctrine_check": {
+        "curated": false,
+        "workbook": true
+      },
+      "fields": {
+        "round_cost": {
+          "curated": 14,
+          "workbook": 9
+        },
+        "seasons_kept": {
+          "curated": 2,
+          "workbook": 3
+        }
+      },
+      "player_name": "Ketel Marte",
+      "season": 2026
+    },
+    {
+      "doctrine_check": {
+        "curated": false,
+        "workbook": true
+      },
+      "fields": {
+        "round_cost": {
+          "curated": 18,
+          "workbook": 19
+        }
+      },
+      "player_name": "Tarik Skubal",
+      "season": 2025
+    },
+    {
+      "doctrine_check": {
+        "curated": false,
+        "workbook": true
+      },
+      "fields": {
+        "round_cost": {
+          "curated": 19,
+          "workbook": 14
+        },
+        "seasons_kept": {
+          "curated": 2,
+          "workbook": 3
+        }
+      },
+      "player_name": "Tarik Skubal",
+      "season": 2026
+    },
+    {
+      "doctrine_check": {
+        "curated": false,
+        "workbook": true
+      },
+      "fields": {
+        "round_cost": {
+          "curated": 20,
+          "workbook": 15
+        },
+        "seasons_kept": {
+          "curated": 2,
+          "workbook": 3
+        }
+      },
+      "player_name": "Paul Skenes",
+      "season": 2026
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": null
+      },
+      "fields": {
+        "manager": {
+          "curated": "Russell Berry",
+          "workbook": "Chris Herbst"
+        }
+      },
+      "player_name": "Fernando Tatis Jr.",
+      "season": 2024
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": null
+      },
+      "fields": {
+        "manager": {
+          "curated": "Eric Mercado",
+          "workbook": "Eric Mercardo"
+        }
+      },
+      "player_name": "Adolis Garcia",
+      "season": 2023
+    },
+    {
+      "doctrine_check": {
+        "curated": true,
+        "workbook": true
+      },
+      "fields": {
+        "manager": {
+          "curated": "Eric Mercado",
+          "workbook": "Eric Mercardo"
+        }
+      },
+      "player_name": "Adolis Garcia",
+      "season": 2024
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": null
+      },
+      "fields": {
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Bo Bichette",
+      "season": 2022
+    },
+    {
+      "doctrine_check": {
+        "curated": true,
+        "workbook": true
+      },
+      "fields": {
+        "seasons_kept": {
+          "curated": 2,
+          "workbook": 3
+        }
+      },
+      "player_name": "Bo Bichette",
+      "season": 2023
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": null
+      },
+      "fields": {
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Shohei Ohtani",
+      "season": 2022
+    },
+    {
+      "doctrine_check": {
+        "curated": true,
+        "workbook": true
+      },
+      "fields": {
+        "manager": {
+          "curated": "Eric Mercado",
+          "workbook": "Eric Mercardo"
+        },
+        "seasons_kept": {
+          "curated": 2,
+          "workbook": 3
+        }
+      },
+      "player_name": "Shohei Ohtani",
+      "season": 2023
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": null
+      },
+      "fields": {
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Yordan Alvarez",
+      "season": 2022
+    },
+    {
+      "doctrine_check": {
+        "curated": true,
+        "workbook": true
+      },
+      "fields": {
+        "seasons_kept": {
+          "curated": 2,
+          "workbook": 3
+        }
+      },
+      "player_name": "Yordan Alvarez",
+      "season": 2023
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": true
+      },
+      "fields": {
+        "round_cost": {
+          "curated": 17,
+          "workbook": 12
+        },
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Bryan Woo",
+      "season": 2026
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": false
+      },
+      "fields": {
+        "manager": {
+          "curated": "Russell Berry",
+          "workbook": "Matt Wayne"
+        },
+        "round_cost": {
+          "curated": 23,
+          "workbook": 17
+        },
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Cristopher Sanchez",
+      "season": 2026
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": true
+      },
+      "fields": {
+        "round_cost": {
+          "curated": 12,
+          "workbook": 7
+        },
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Jackson Chourio",
+      "season": 2026
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": true
+      },
+      "fields": {
+        "round_cost": {
+          "curated": 25,
+          "workbook": 16
+        },
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Lawrence Butler",
+      "season": 2026
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": false
+      },
+      "fields": {
+        "manager": {
+          "curated": "Tim Riker",
+          "workbook": "Russell Berry"
+        },
+        "round_cost": {
+          "curated": 25,
+          "workbook": 16
+        },
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Jackson Merrill",
+      "season": 2026
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": true
+      },
+      "fields": {
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Aaron Judge",
+      "season": 2026
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": true
+      },
+      "fields": {
+        "manager": {
+          "curated": "Eric Mercado",
+          "workbook": "David Rotatori"
+        },
+        "round_cost": {
+          "curated": 25,
+          "workbook": 20
+        },
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Mason Miller",
+      "season": 2026
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": true
+      },
+      "fields": {
+        "round_cost": {
+          "curated": 23,
+          "workbook": 18
+        },
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Garrett Crochet",
+      "season": 2026
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": true
+      },
+      "fields": {
+        "round_cost": {
+          "curated": 25,
+          "workbook": 20
+        },
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "James Wood",
+      "season": 2026
+    },
+    {
+      "doctrine_check": {
+        "curated": null,
+        "workbook": true
+      },
+      "fields": {
+        "round_cost": {
+          "curated": 17,
+          "workbook": 12
+        },
+        "seasons_kept": {
+          "curated": 1,
+          "workbook": 2
+        }
+      },
+      "player_name": "Hunter Brown",
+      "season": 2026
+    }
+  ],
+  "doctrine_verdicts": {
+    "both": 7,
+    "curated": 0,
+    "neither": 2,
+    "workbook": 12
+  },
+  "workbook_keeper_rows": 440
+}

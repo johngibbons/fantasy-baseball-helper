@@ -1,0 +1,5 @@
+# Per-season MLB roster snapshots, fetched by history_resolve.py and cached so
+# the network work happens once. Regenerable from the API and ~5 MB, so this is
+# a cache rather than a fixture — the reviewable output of name resolution is
+# resolution_YYYY.json, which is committed.
+_rosters/

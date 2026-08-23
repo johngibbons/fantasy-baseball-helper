@@ -1,0 +1,309 @@
+{
+  "by_season": {
+    "2010": {
+      "by_method": {
+        "ambiguous_exact:2": 1,
+        "exact": 150,
+        "exact_adjacent_season": 1,
+        "exact_by_position": 1,
+        "last_plus_first": 3
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 0.9936,
+      "names": 156,
+      "resolved": 155,
+      "roster_size": 1249,
+      "unresolved": [
+        "Francisco Rodriguez"
+      ]
+    },
+    "2011": {
+      "by_method": {
+        "ambiguous_exact:2": 1,
+        "exact": 154,
+        "exact_adjacent_season": 1,
+        "exact_by_position": 1,
+        "last_plus_first": 10,
+        "unresolved": 1
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 0.9881,
+      "names": 168,
+      "resolved": 166,
+      "roster_size": 1295,
+      "unresolved": [
+        "Francisco Rodriguez",
+        "Leo Nunez"
+      ]
+    },
+    "2012": {
+      "by_method": {
+        "ambiguous_exact:2": 1,
+        "exact": 159,
+        "exact_adjacent_season": 4,
+        "exact_by_position": 1,
+        "fuzzy_global": 2,
+        "last_plus_first": 13
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 0.9944,
+      "names": 180,
+      "resolved": 179,
+      "roster_size": 1284,
+      "unresolved": [
+        "Chris Carpenter"
+      ]
+    },
+    "2013": {
+      "by_method": {
+        "exact": 175,
+        "exact_adjacent_season": 2,
+        "fuzzy_global": 1,
+        "last_plus_first": 10,
+        "last_plus_first_adjacent_season": 1,
+        "unresolved": 1
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 0.9947,
+      "names": 190,
+      "resolved": 189,
+      "roster_size": 1304,
+      "unresolved": [
+        "Ryan Madson"
+      ]
+    },
+    "2014": {
+      "by_method": {
+        "exact": 184,
+        "exact_adjacent_season": 6,
+        "fuzzy": 1,
+        "last_plus_first": 7,
+        "unresolved": 2
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 0.99,
+      "names": 200,
+      "resolved": 198,
+      "roster_size": 1320,
+      "unresolved": [
+        "Elvis Andrews",
+        "Hin-Jin Ryu"
+      ]
+    },
+    "2015": {
+      "by_method": {
+        "exact": 39,
+        "last_plus_first": 2
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 1.0,
+      "names": 41,
+      "resolved": 41,
+      "roster_size": 1348,
+      "unresolved": []
+    },
+    "2016": {
+      "by_method": {
+        "ambiguous_exact:2": 1,
+        "exact": 239,
+        "exact_adjacent_season": 1,
+        "last_plus_first": 10
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 0.996,
+      "names": 251,
+      "resolved": 250,
+      "roster_size": 1353,
+      "unresolved": [
+        "Matt Duffy"
+      ]
+    },
+    "2017": {
+      "by_method": {
+        "exact": 238,
+        "exact_adjacent_season": 3,
+        "exact_by_position": 1,
+        "fuzzy": 1,
+        "last_plus_first": 10
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 1.0,
+      "names": 253,
+      "resolved": 253,
+      "roster_size": 1358,
+      "unresolved": []
+    },
+    "2018": {
+      "by_method": {
+        "exact": 241,
+        "exact_adjacent_season": 3,
+        "exact_by_position": 1,
+        "fuzzy": 1,
+        "last_plus_first": 5,
+        "unresolved": 1
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 0.996,
+      "names": 252,
+      "resolved": 251,
+      "roster_size": 1379,
+      "unresolved": [
+        "Felipe Rivero"
+      ]
+    },
+    "2019": {
+      "by_method": {
+        "exact": 243,
+        "exact_adjacent_season": 2,
+        "exact_by_position": 1,
+        "last_plus_first": 5,
+        "unresolved": 1
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 0.996,
+      "names": 252,
+      "resolved": 251,
+      "roster_size": 1410,
+      "unresolved": [
+        "Forrest Whitley"
+      ]
+    },
+    "2020": {
+      "by_method": {
+        "exact": 233,
+        "exact_adjacent_season": 14,
+        "exact_by_position": 1,
+        "last_plus_first": 3,
+        "unresolved": 1
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 0.996,
+      "names": 252,
+      "resolved": 251,
+      "roster_size": 1289,
+      "unresolved": [
+        "MacKenzie Gore"
+      ]
+    },
+    "2022": {
+      "by_method": {
+        "ambiguous_exact:2": 1,
+        "exact": 244,
+        "exact_adjacent_season": 3,
+        "exact_by_position": 2,
+        "last_plus_first": 2,
+        "last_plus_first_adjacent_season": 1,
+        "surname_only_adjacent_season": 1
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 0.9961,
+      "names": 254,
+      "resolved": 253,
+      "roster_size": 1495,
+      "unresolved": [
+        "Luis Garcia"
+      ]
+    },
+    "2023": {
+      "by_method": {
+        "ambiguous_exact:2": 1,
+        "exact": 242,
+        "exact_adjacent_season": 5,
+        "exact_by_position": 1,
+        "fuzzy_global": 1,
+        "last_plus_first": 1,
+        "unresolved": 1
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 0.9921,
+      "names": 252,
+      "resolved": 250,
+      "roster_size": 1457,
+      "unresolved": [
+        "Andrew Painter",
+        "Luis Garcia"
+      ]
+    },
+    "2024": {
+      "by_method": {
+        "exact": 246,
+        "exact_adjacent_season": 3,
+        "exact_by_position": 1,
+        "last_plus_first": 1
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 1.0,
+      "names": 251,
+      "resolved": 251,
+      "roster_size": 1454,
+      "unresolved": []
+    },
+    "2025": {
+      "by_method": {
+        "ambiguous_exact:2": 1,
+        "exact": 243,
+        "exact_adjacent_season": 5,
+        "exact_by_position": 1,
+        "last_plus_first": 1
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 0.996,
+      "names": 251,
+      "resolved": 250,
+      "roster_size": 1470,
+      "unresolved": [
+        "Max Muncy"
+      ]
+    },
+    "2026": {
+      "by_method": {
+        "exact": 39,
+        "last_plus_first": 1
+      },
+      "floor": 0.9,
+      "included": true,
+      "match_rate": 1.0,
+      "names": 40,
+      "resolved": 40,
+      "roster_size": 1393,
+      "unresolved": []
+    }
+  },
+  "excluded_seasons": [],
+  "floor": 0.9,
+  "included_seasons": [
+    2010,
+    2011,
+    2012,
+    2013,
+    2014,
+    2015,
+    2016,
+    2017,
+    2018,
+    2019,
+    2020,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+  ],
+  "resolved_at": "2026-08-18T02:44:44+00:00",
+  "source": "https://statsapi.mlb.com/api/v1/sports/1/players"
+}

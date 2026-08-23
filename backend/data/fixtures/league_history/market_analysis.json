@@ -1,0 +1,1553 @@
+{
+  "by_season": [
+    {
+      "by_adp_bucket": [
+        {
+          "adp_bucket": "0-50",
+          "mean_adp": 34.1,
+          "mean_residual": 12.73,
+          "n": 22,
+          "sigma": 13.53
+        },
+        {
+          "adp_bucket": "50-100",
+          "mean_adp": 75.2,
+          "mean_residual": 25.1,
+          "n": 42,
+          "sigma": 28.85
+        },
+        {
+          "adp_bucket": "100-150",
+          "mean_adp": 125.2,
+          "mean_residual": 34.88,
+          "n": 40,
+          "sigma": 36.17
+        },
+        {
+          "adp_bucket": "150-200",
+          "mean_adp": 173.9,
+          "mean_residual": 42.52,
+          "n": 40,
+          "sigma": 40.93
+        },
+        {
+          "adp_bucket": "200+",
+          "mean_adp": 241.0,
+          "mean_residual": -10.09,
+          "n": 47,
+          "sigma": 46.27
+        }
+      ],
+      "keepers_with_a_rank": 40,
+      "linear_sigma_fit": {
+        "intercept": 14.012,
+        "note": "sigma = intercept + slope * adp, fitted on bucket sigmas",
+        "slope": 0.14735
+      },
+      "manager_bias": [
+        {
+          "biggest_reach": {
+            "name": "Lance McCullers Jr.",
+            "residual": -108.0
+          },
+          "manager": "Bryan Lewis",
+          "mean_residual": 35.95,
+          "picks": 20,
+          "sigma": 55.49,
+          "team_id": 6
+        },
+        {
+          "biggest_reach": {
+            "name": "Michael Pineda",
+            "residual": -23.0
+          },
+          "manager": "Chris Herbst",
+          "mean_residual": 34.11,
+          "picks": 18,
+          "sigma": 32.35,
+          "team_id": 9
+        },
+        {
+          "biggest_reach": {
+            "name": "Garrett Richards",
+            "residual": -78.0
+          },
+          "manager": "David Rotatori",
+          "mean_residual": 11.56,
+          "picks": 18,
+          "sigma": 42.39,
+          "team_id": 12
+        },
+        {
+          "biggest_reach": {
+            "name": "Dylan Bundy",
+            "residual": -80.0
+          },
+          "manager": "Eric Mercado",
+          "mean_residual": 22.22,
+          "picks": 18,
+          "sigma": 42.92,
+          "team_id": 15
+        },
+        {
+          "biggest_reach": {
+            "name": "James Paxton",
+            "residual": -90.0
+          },
+          "manager": "Harris Cook",
+          "mean_residual": 16.17,
+          "picks": 18,
+          "sigma": 40.56,
+          "team_id": 16
+        },
+        {
+          "biggest_reach": {
+            "name": "H\u00e9ctor Neris",
+            "residual": -37.0
+          },
+          "manager": "Jason McComb",
+          "mean_residual": 19.18,
+          "picks": 22,
+          "sigma": 28.39,
+          "team_id": 18
+        },
+        {
+          "biggest_reach": {
+            "name": "Jim Johnson",
+            "residual": -35.0
+          },
+          "manager": "Jess Barron",
+          "mean_residual": 28.35,
+          "picks": 20,
+          "sigma": 27.12,
+          "team_id": 19
+        },
+        {
+          "biggest_reach": {
+            "name": "Steven Matz",
+            "residual": -30.0
+          },
+          "manager": "John Gibbons",
+          "mean_residual": 23.5,
+          "picks": 20,
+          "sigma": 35.96,
+          "team_id": 20
+        },
+        {
+          "biggest_reach": {
+            "name": "Cam Bedrosian",
+            "residual": -120.0
+          },
+          "manager": "Matt Wayne",
+          "mean_residual": 7.25,
+          "picks": 20,
+          "sigma": 43.93,
+          "team_id": 25
+        },
+        {
+          "biggest_reach": {
+            "name": "Tyler Glasnow",
+            "residual": -118.0
+          },
+          "manager": "Tim Riker",
+          "mean_residual": 7.06,
+          "picks": 17,
+          "sigma": 56.14,
+          "team_id": 37
+        }
+      ],
+      "market_vs_realized": {
+        "n": 300,
+        "spearman": 0.4711
+      },
+      "non_keeper_picks_with_a_rank": 191,
+      "ranked_players": 300,
+      "season": 2017,
+      "sheet": "2017 ESPN Top 300",
+      "sigma_model_comparison": {
+        "best": "variable_py",
+        "mean_abs_error": {
+          "flat_18": 16.938,
+          "variable_py": 10.162,
+          "variable_ts": 24.033
+        },
+        "per_bucket": [
+          {
+            "adp_bucket": "0-50",
+            "flat_18": 18.0,
+            "measured_sigma": 13.53,
+            "variable_py": 13.41,
+            "variable_ts": 6.82
+          },
+          {
+            "adp_bucket": "50-100",
+            "flat_18": 18.0,
+            "measured_sigma": 28.85,
+            "variable_py": 17.52,
+            "variable_ts": 7.8
+          },
+          {
+            "adp_bucket": "100-150",
+            "flat_18": 18.0,
+            "measured_sigma": 36.17,
+            "variable_py": 22.52,
+            "variable_ts": 9.0
+          },
+          {
+            "adp_bucket": "150-200",
+            "flat_18": 18.0,
+            "measured_sigma": 40.93,
+            "variable_py": 27.39,
+            "variable_ts": 10.17
+          },
+          {
+            "adp_bucket": "200+",
+            "flat_18": 18.0,
+            "measured_sigma": 46.27,
+            "variable_py": 34.1,
+            "variable_ts": 11.78
+          }
+        ]
+      },
+      "snapshot_date": null,
+      "summary": {
+        "keeper_adjusted": {
+          "mean": 20.71,
+          "sigma": 41.46
+        },
+        "n": 191,
+        "raw": {
+          "mean": -15.28,
+          "sigma": 41.71
+        }
+      }
+    },
+    {
+      "by_adp_bucket": [
+        {
+          "adp_bucket": "0-50",
+          "mean_adp": 26.8,
+          "mean_residual": 4.61,
+          "n": 28,
+          "sigma": 8.68
+        },
+        {
+          "adp_bucket": "50-100",
+          "mean_adp": 74.8,
+          "mean_residual": 10.36,
+          "n": 36,
+          "sigma": 18.26
+        },
+        {
+          "adp_bucket": "100-150",
+          "mean_adp": 124.0,
+          "mean_residual": 30.34,
+          "n": 44,
+          "sigma": 45.3
+        },
+        {
+          "adp_bucket": "150-200",
+          "mean_adp": 173.2,
+          "mean_residual": 4.86,
+          "n": 37,
+          "sigma": 35.67
+        },
+        {
+          "adp_bucket": "200+",
+          "mean_adp": 242.4,
+          "mean_residual": -14.63,
+          "n": 43,
+          "sigma": 50.57
+        }
+      ],
+      "keepers_with_a_rank": 40,
+      "linear_sigma_fit": {
+        "intercept": 7.48,
+        "note": "sigma = intercept + slope * adp, fitted on bucket sigmas",
+        "slope": 0.18883
+      },
+      "manager_bias": [
+        {
+          "biggest_reach": {
+            "name": "Dylan Bundy",
+            "residual": -51.0
+          },
+          "manager": "Bryan Lewis",
+          "mean_residual": 10.24,
+          "picks": 21,
+          "sigma": 38.78,
+          "team_id": 6
+        },
+        {
+          "biggest_reach": {
+            "name": "James Paxton",
+            "residual": -78.0
+          },
+          "manager": "Chris Herbst",
+          "mean_residual": 6.3,
+          "picks": 20,
+          "sigma": 35.11,
+          "team_id": 9
+        },
+        {
+          "biggest_reach": {
+            "name": "Lance McCullers Jr.",
+            "residual": -90.0
+          },
+          "manager": "David Rotatori",
+          "mean_residual": -14.53,
+          "picks": 19,
+          "sigma": 41.25,
+          "team_id": 12
+        },
+        {
+          "biggest_reach": {
+            "name": "Brendan McKay",
+            "residual": -96.0
+          },
+          "manager": "Eric Mercado",
+          "mean_residual": 2.26,
+          "picks": 19,
+          "sigma": 47.57,
+          "team_id": 15
+        },
+        {
+          "biggest_reach": {
+            "name": "Giovanny Gallegos",
+            "residual": -56.0
+          },
+          "manager": "Harris Cook",
+          "mean_residual": 4.95,
+          "picks": 19,
+          "sigma": 38.53,
+          "team_id": 16
+        },
+        {
+          "biggest_reach": {
+            "name": "Max Fried",
+            "residual": -28.0
+          },
+          "manager": "Jason McComb",
+          "mean_residual": 19.48,
+          "picks": 21,
+          "sigma": 40.73,
+          "team_id": 18
+        },
+        {
+          "biggest_reach": {
+            "name": "Julio Ur\u00edas",
+            "residual": -111.0
+          },
+          "manager": "Jess Barron",
+          "mean_residual": 17.5,
+          "picks": 16,
+          "sigma": 52.85,
+          "team_id": 19
+        },
+        {
+          "biggest_reach": {
+            "name": "Andrew Heaney",
+            "residual": -102.0
+          },
+          "manager": "John Gibbons",
+          "mean_residual": -4.24,
+          "picks": 17,
+          "sigma": 29.64,
+          "team_id": 20
+        },
+        {
+          "biggest_reach": {
+            "name": "Zac Gallen",
+            "residual": -55.0
+          },
+          "manager": "Matt Wayne",
+          "mean_residual": 13.0,
+          "picks": 18,
+          "sigma": 31.36,
+          "team_id": 25
+        },
+        {
+          "biggest_reach": {
+            "name": "David Price",
+            "residual": -46.0
+          },
+          "manager": "Tim Riker",
+          "mean_residual": 18.61,
+          "picks": 18,
+          "sigma": 36.6,
+          "team_id": 37
+        }
+      ],
+      "market_vs_realized": {
+        "n": 299,
+        "spearman": 0.3462
+      },
+      "non_keeper_picks_with_a_rank": 188,
+      "ranked_players": 299,
+      "season": 2020,
+      "sheet": "ESPN300",
+      "sigma_model_comparison": {
+        "best": "variable_py",
+        "mean_abs_error": {
+          "flat_18": 17.424,
+          "variable_py": 10.472,
+          "variable_ts": 22.618
+        },
+        "per_bucket": [
+          {
+            "adp_bucket": "0-50",
+            "flat_18": 18.0,
+            "measured_sigma": 8.68,
+            "variable_py": 12.68,
+            "variable_ts": 6.64
+          },
+          {
+            "adp_bucket": "50-100",
+            "flat_18": 18.0,
+            "measured_sigma": 18.26,
+            "variable_py": 17.48,
+            "variable_ts": 7.8
+          },
+          {
+            "adp_bucket": "100-150",
+            "flat_18": 18.0,
+            "measured_sigma": 45.3,
+            "variable_py": 22.4,
+            "variable_ts": 8.98
+          },
+          {
+            "adp_bucket": "150-200",
+            "flat_18": 18.0,
+            "measured_sigma": 35.67,
+            "variable_py": 27.32,
+            "variable_ts": 10.16
+          },
+          {
+            "adp_bucket": "200+",
+            "flat_18": 18.0,
+            "measured_sigma": 50.57,
+            "variable_py": 34.24,
+            "variable_ts": 11.82
+          }
+        ]
+      },
+      "snapshot_date": null,
+      "summary": {
+        "keeper_adjusted": {
+          "mean": 7.38,
+          "sigma": 40.05
+        },
+        "n": 188,
+        "raw": {
+          "mean": -25.32,
+          "sigma": 41.6
+        }
+      }
+    },
+    {
+      "by_adp_bucket": [
+        {
+          "adp_bucket": "0-50",
+          "mean_adp": 29.7,
+          "mean_residual": 5.03,
+          "n": 29,
+          "sigma": 5.18
+        },
+        {
+          "adp_bucket": "50-100",
+          "mean_adp": 75.8,
+          "mean_residual": 9.05,
+          "n": 39,
+          "sigma": 11.51
+        },
+        {
+          "adp_bucket": "100-150",
+          "mean_adp": 124.5,
+          "mean_residual": 24.64,
+          "n": 45,
+          "sigma": 36.6
+        },
+        {
+          "adp_bucket": "150-200",
+          "mean_adp": 174.9,
+          "mean_residual": 15.32,
+          "n": 40,
+          "sigma": 33.5
+        },
+        {
+          "adp_bucket": "200+",
+          "mean_adp": 236.3,
+          "mean_residual": -1.45,
+          "n": 40,
+          "sigma": 37.9
+        }
+      ],
+      "keepers_with_a_rank": 40,
+      "linear_sigma_fit": {
+        "intercept": 3.469,
+        "note": "sigma = intercept + slope * adp, fitted on bucket sigmas",
+        "slope": 0.16741
+      },
+      "manager_bias": [
+        {
+          "biggest_reach": {
+            "name": "Merrill Kelly",
+            "residual": -57.0
+          },
+          "manager": "Bryan Lewis",
+          "mean_residual": 21.44,
+          "picks": 18,
+          "sigma": 47.72,
+          "team_id": 6
+        },
+        {
+          "biggest_reach": {
+            "name": "Alex Cobb",
+            "residual": -33.0
+          },
+          "manager": "Chris Herbst",
+          "mean_residual": 3.1,
+          "picks": 20,
+          "sigma": 12.97,
+          "team_id": 9
+        },
+        {
+          "biggest_reach": {
+            "name": "Michael Kopech",
+            "residual": -80.0
+          },
+          "manager": "David Rotatori",
+          "mean_residual": -6.21,
+          "picks": 19,
+          "sigma": 29.39,
+          "team_id": 12
+        },
+        {
+          "biggest_reach": {
+            "name": "Jos\u00e9 Berr\u00edos",
+            "residual": -18.0
+          },
+          "manager": "Eric Mercado",
+          "mean_residual": 17.12,
+          "picks": 16,
+          "sigma": 29.39,
+          "team_id": 15
+        },
+        {
+          "biggest_reach": {
+            "name": "Masataka Yoshida",
+            "residual": -45.0
+          },
+          "manager": "Harris Cook",
+          "mean_residual": 12.0,
+          "picks": 20,
+          "sigma": 27.95,
+          "team_id": 16
+        },
+        {
+          "biggest_reach": {
+            "name": "Brandon Drury",
+            "residual": -32.0
+          },
+          "manager": "Jason McComb",
+          "mean_residual": 6.8,
+          "picks": 20,
+          "sigma": 16.42,
+          "team_id": 18
+        },
+        {
+          "biggest_reach": {
+            "name": "Dustin May",
+            "residual": -2.0
+          },
+          "manager": "Jess Barron",
+          "mean_residual": 22.9,
+          "picks": 20,
+          "sigma": 23.52,
+          "team_id": 19
+        },
+        {
+          "biggest_reach": {
+            "name": "Brandon Nimmo",
+            "residual": -57.0
+          },
+          "manager": "John Gibbons",
+          "mean_residual": 19.63,
+          "picks": 19,
+          "sigma": 39.58,
+          "team_id": 20
+        },
+        {
+          "biggest_reach": {
+            "name": "Justin Steele",
+            "residual": -27.0
+          },
+          "manager": "Matt Wayne",
+          "mean_residual": 23.38,
+          "picks": 21,
+          "sigma": 29.3,
+          "team_id": 25
+        },
+        {
+          "biggest_reach": {
+            "name": "Jordan Walker",
+            "residual": -85.0
+          },
+          "manager": "Tim Riker",
+          "mean_residual": -6.95,
+          "picks": 20,
+          "sigma": 24.14,
+          "team_id": 37
+        }
+      ],
+      "market_vs_realized": {
+        "n": 299,
+        "spearman": 0.4636
+      },
+      "non_keeper_picks_with_a_rank": 193,
+      "ranked_players": 299,
+      "season": 2023,
+      "sheet": "ESPN300 2.25.23",
+      "sigma_model_comparison": {
+        "best": "variable_py",
+        "mean_abs_error": {
+          "flat_18": 14.662,
+          "variable_py": 7.658,
+          "variable_ts": 16.473
+        },
+        "per_bucket": [
+          {
+            "adp_bucket": "0-50",
+            "flat_18": 18.0,
+            "measured_sigma": 5.18,
+            "variable_py": 12.97,
+            "variable_ts": 6.71
+          },
+          {
+            "adp_bucket": "50-100",
+            "flat_18": 18.0,
+            "measured_sigma": 11.51,
+            "variable_py": 17.58,
+            "variable_ts": 7.82
+          },
+          {
+            "adp_bucket": "100-150",
+            "flat_18": 18.0,
+            "measured_sigma": 36.6,
+            "variable_py": 22.45,
+            "variable_ts": 8.99
+          },
+          {
+            "adp_bucket": "150-200",
+            "flat_18": 18.0,
+            "measured_sigma": 33.5,
+            "variable_py": 27.49,
+            "variable_ts": 10.2
+          },
+          {
+            "adp_bucket": "200+",
+            "flat_18": 18.0,
+            "measured_sigma": 37.9,
+            "variable_py": 33.63,
+            "variable_ts": 11.67
+          }
+        ]
+      },
+      "snapshot_date": "2023-02-25",
+      "summary": {
+        "keeper_adjusted": {
+          "mean": 11.21,
+          "sigma": 30.71
+        },
+        "n": 193,
+        "raw": {
+          "mean": -20.46,
+          "sigma": 31.52
+        }
+      }
+    },
+    {
+      "by_adp_bucket": [
+        {
+          "adp_bucket": "0-50",
+          "mean_adp": 26.4,
+          "mean_residual": 6.9,
+          "n": 30,
+          "sigma": 20.39
+        },
+        {
+          "adp_bucket": "50-100",
+          "mean_adp": 76.5,
+          "mean_residual": 22.05,
+          "n": 39,
+          "sigma": 24.98
+        },
+        {
+          "adp_bucket": "100-150",
+          "mean_adp": 124.1,
+          "mean_residual": 20.33,
+          "n": 45,
+          "sigma": 48.18
+        },
+        {
+          "adp_bucket": "150-200",
+          "mean_adp": 172.6,
+          "mean_residual": 17.16,
+          "n": 31,
+          "sigma": 59.24
+        },
+        {
+          "adp_bucket": "200+",
+          "mean_adp": 240.9,
+          "mean_residual": -29.73,
+          "n": 37,
+          "sigma": 48.11
+        }
+      ],
+      "keepers_with_a_rank": 38,
+      "linear_sigma_fit": {
+        "intercept": 19.353,
+        "note": "sigma = intercept + slope * adp, fitted on bucket sigmas",
+        "slope": 0.16258
+      },
+      "manager_bias": [
+        {
+          "biggest_reach": {
+            "name": "Josh Lowe",
+            "residual": -40.0
+          },
+          "manager": "Bryan Lewis",
+          "mean_residual": 14.55,
+          "picks": 20,
+          "sigma": 30.02,
+          "team_id": 6
+        },
+        {
+          "biggest_reach": {
+            "name": "Jordan Walker",
+            "residual": -97.0
+          },
+          "manager": "Chris Herbst",
+          "mean_residual": -5.71,
+          "picks": 17,
+          "sigma": 42.87,
+          "team_id": 9
+        },
+        {
+          "biggest_reach": {
+            "name": "Oneil Cruz",
+            "residual": -82.0
+          },
+          "manager": "David Rotatori",
+          "mean_residual": -6.29,
+          "picks": 17,
+          "sigma": 39.94,
+          "team_id": 12
+        },
+        {
+          "biggest_reach": {
+            "name": "Gleyber Torres",
+            "residual": -34.0
+          },
+          "manager": "Eric Mercado",
+          "mean_residual": 18.87,
+          "picks": 15,
+          "sigma": 43.38,
+          "team_id": 15
+        },
+        {
+          "biggest_reach": {
+            "name": "Josh Jung",
+            "residual": -107.0
+          },
+          "manager": "Harris Cook",
+          "mean_residual": -2.57,
+          "picks": 21,
+          "sigma": 47.1,
+          "team_id": 16
+        },
+        {
+          "biggest_reach": {
+            "name": "Dansby Swanson",
+            "residual": -30.0
+          },
+          "manager": "Jason McComb",
+          "mean_residual": 49.43,
+          "picks": 21,
+          "sigma": 41.3,
+          "team_id": 18
+        },
+        {
+          "biggest_reach": {
+            "name": "Reynaldo L\u00f3pez",
+            "residual": -113.0
+          },
+          "manager": "Jess Barron",
+          "mean_residual": -8.16,
+          "picks": 19,
+          "sigma": 42.98,
+          "team_id": 19
+        },
+        {
+          "biggest_reach": {
+            "name": "Jackson Chourio",
+            "residual": -115.0
+          },
+          "manager": "John Gibbons",
+          "mean_residual": 27.0,
+          "picks": 20,
+          "sigma": 51.02,
+          "team_id": 20
+        },
+        {
+          "biggest_reach": {
+            "name": "Triston McKenzie",
+            "residual": -114.0
+          },
+          "manager": "Matt Wayne",
+          "mean_residual": -15.79,
+          "picks": 19,
+          "sigma": 55.43,
+          "team_id": 25
+        },
+        {
+          "biggest_reach": {
+            "name": "Bryce Miller",
+            "residual": -48.0
+          },
+          "manager": "Tim Riker",
+          "mean_residual": -1.92,
+          "picks": 13,
+          "sigma": 28.27,
+          "team_id": 37
+        }
+      ],
+      "market_vs_realized": {
+        "n": 300,
+        "spearman": 0.3841
+      },
+      "non_keeper_picks_with_a_rank": 182,
+      "ranked_players": 300,
+      "season": 2024,
+      "sheet": "ESPN300 2.26.24",
+      "sigma_model_comparison": {
+        "best": "variable_py",
+        "mean_abs_error": {
+          "flat_18": 22.18,
+          "variable_py": 17.37,
+          "variable_ts": 31.106
+        },
+        "per_bucket": [
+          {
+            "adp_bucket": "0-50",
+            "flat_18": 18.0,
+            "measured_sigma": 20.39,
+            "variable_py": 12.64,
+            "variable_ts": 6.63
+          },
+          {
+            "adp_bucket": "50-100",
+            "flat_18": 18.0,
+            "measured_sigma": 24.98,
+            "variable_py": 17.65,
+            "variable_ts": 7.84
+          },
+          {
+            "adp_bucket": "100-150",
+            "flat_18": 18.0,
+            "measured_sigma": 48.18,
+            "variable_py": 22.41,
+            "variable_ts": 8.98
+          },
+          {
+            "adp_bucket": "150-200",
+            "flat_18": 18.0,
+            "measured_sigma": 59.24,
+            "variable_py": 27.26,
+            "variable_ts": 10.14
+          },
+          {
+            "adp_bucket": "200+",
+            "flat_18": 18.0,
+            "measured_sigma": 48.11,
+            "variable_py": 34.09,
+            "variable_ts": 11.78
+          }
+        ]
+      },
+      "snapshot_date": "2024-02-26",
+      "summary": {
+        "keeper_adjusted": {
+          "mean": 7.77,
+          "sigma": 46.8
+        },
+        "n": 182,
+        "raw": {
+          "mean": -20.68,
+          "sigma": 48.93
+        }
+      }
+    },
+    {
+      "by_adp_bucket": [
+        {
+          "adp_bucket": "0-50",
+          "mean_adp": 28.0,
+          "mean_residual": 4.67,
+          "n": 30,
+          "sigma": 8.38
+        },
+        {
+          "adp_bucket": "50-100",
+          "mean_adp": 73.4,
+          "mean_residual": 16.31,
+          "n": 39,
+          "sigma": 23.66
+        },
+        {
+          "adp_bucket": "100-150",
+          "mean_adp": 123.9,
+          "mean_residual": 20.27,
+          "n": 45,
+          "sigma": 36.96
+        },
+        {
+          "adp_bucket": "150-200",
+          "mean_adp": 175.3,
+          "mean_residual": 21.06,
+          "n": 35,
+          "sigma": 36.9
+        },
+        {
+          "adp_bucket": "200+",
+          "mean_adp": 245.0,
+          "mean_residual": -12.73,
+          "n": 45,
+          "sigma": 39.63
+        }
+      ],
+      "keepers_with_a_rank": 40,
+      "linear_sigma_fit": {
+        "intercept": 11.524,
+        "note": "sigma = intercept + slope * adp, fitted on bucket sigmas",
+        "slope": 0.13617
+      },
+      "manager_bias": [
+        {
+          "biggest_reach": {
+            "name": "Nick Castellanos",
+            "residual": -25.0
+          },
+          "manager": "Bryan Lewis",
+          "mean_residual": 16.48,
+          "picks": 21,
+          "sigma": 30.21,
+          "team_id": 6
+        },
+        {
+          "biggest_reach": {
+            "name": "Carlos Rod\u00f3n",
+            "residual": -58.0
+          },
+          "manager": "Chris Herbst",
+          "mean_residual": 16.0,
+          "picks": 20,
+          "sigma": 47.29,
+          "team_id": 9
+        },
+        {
+          "biggest_reach": {
+            "name": "Bo Bichette",
+            "residual": -61.0
+          },
+          "manager": "David Rotatori",
+          "mean_residual": 0.61,
+          "picks": 18,
+          "sigma": 39.19,
+          "team_id": 12
+        },
+        {
+          "biggest_reach": {
+            "name": "Eugenio Su\u00e1rez",
+            "residual": -36.0
+          },
+          "manager": "Eric Mercado",
+          "mean_residual": 13.42,
+          "picks": 19,
+          "sigma": 26.84,
+          "team_id": 15
+        },
+        {
+          "biggest_reach": {
+            "name": "Brandon Pfaadt",
+            "residual": -63.0
+          },
+          "manager": "Harris Cook",
+          "mean_residual": -0.45,
+          "picks": 20,
+          "sigma": 31.44,
+          "team_id": 16
+        },
+        {
+          "biggest_reach": {
+            "name": "Masyn Winn",
+            "residual": -21.0
+          },
+          "manager": "Jason McComb",
+          "mean_residual": 30.1,
+          "picks": 21,
+          "sigma": 29.0,
+          "team_id": 18
+        },
+        {
+          "biggest_reach": {
+            "name": "Nathan Eovaldi",
+            "residual": -46.0
+          },
+          "manager": "Jess Barron",
+          "mean_residual": 14.52,
+          "picks": 21,
+          "sigma": 35.48,
+          "team_id": 19
+        },
+        {
+          "biggest_reach": {
+            "name": "Ryan Pepiot",
+            "residual": -71.0
+          },
+          "manager": "John Gibbons",
+          "mean_residual": 1.86,
+          "picks": 21,
+          "sigma": 23.42,
+          "team_id": 20
+        },
+        {
+          "biggest_reach": {
+            "name": "Spencer Arrighetti",
+            "residual": -65.0
+          },
+          "manager": "Matt Wayne",
+          "mean_residual": 3.5,
+          "picks": 16,
+          "sigma": 34.83,
+          "team_id": 25
+        },
+        {
+          "biggest_reach": {
+            "name": "Drew Rasmussen",
+            "residual": -90.0
+          },
+          "manager": "Tim Riker",
+          "mean_residual": -6.06,
+          "picks": 17,
+          "sigma": 37.71,
+          "team_id": 37
+        }
+      ],
+      "market_vs_realized": {
+        "n": 299,
+        "spearman": 0.4509
+      },
+      "non_keeper_picks_with_a_rank": 194,
+      "ranked_players": 299,
+      "season": 2025,
+      "sheet": "ESPN 300 2.2.25",
+      "sigma_model_comparison": {
+        "best": "variable_py",
+        "mean_abs_error": {
+          "flat_18": 14.954,
+          "variable_py": 7.962,
+          "variable_ts": 20.007
+        },
+        "per_bucket": [
+          {
+            "adp_bucket": "0-50",
+            "flat_18": 18.0,
+            "measured_sigma": 8.38,
+            "variable_py": 12.8,
+            "variable_ts": 6.67
+          },
+          {
+            "adp_bucket": "50-100",
+            "flat_18": 18.0,
+            "measured_sigma": 23.66,
+            "variable_py": 17.34,
+            "variable_ts": 7.76
+          },
+          {
+            "adp_bucket": "100-150",
+            "flat_18": 18.0,
+            "measured_sigma": 36.96,
+            "variable_py": 22.39,
+            "variable_ts": 8.97
+          },
+          {
+            "adp_bucket": "150-200",
+            "flat_18": 18.0,
+            "measured_sigma": 36.9,
+            "variable_py": 27.53,
+            "variable_ts": 10.21
+          },
+          {
+            "adp_bucket": "200+",
+            "flat_18": 18.0,
+            "measured_sigma": 39.63,
+            "variable_py": 34.5,
+            "variable_ts": 11.88
+          }
+        ]
+      },
+      "snapshot_date": "2025-02-02",
+      "summary": {
+        "keeper_adjusted": {
+          "mean": 9.55,
+          "sigma": 34.78
+        },
+        "n": 194,
+        "raw": {
+          "mean": -20.11,
+          "sigma": 36.65
+        }
+      }
+    }
+  ],
+  "generated_at": "2026-08-19T17:02:43+00:00",
+  "manager_tendency_pooled": [
+    {
+      "by_season": [
+        {
+          "mean_residual": 11.56,
+          "picks": 18,
+          "season": 2017
+        },
+        {
+          "mean_residual": -14.53,
+          "picks": 19,
+          "season": 2020
+        },
+        {
+          "mean_residual": -6.21,
+          "picks": 19,
+          "season": 2023
+        },
+        {
+          "mean_residual": -6.29,
+          "picks": 17,
+          "season": 2024
+        },
+        {
+          "mean_residual": 0.61,
+          "picks": 18,
+          "season": 2025
+        }
+      ],
+      "manager": "David Rotatori",
+      "mean_residual": -3.1,
+      "picks": 91,
+      "season_spread": 26.09,
+      "seasons": 5
+    },
+    {
+      "by_season": [
+        {
+          "mean_residual": 7.06,
+          "picks": 17,
+          "season": 2017
+        },
+        {
+          "mean_residual": 18.61,
+          "picks": 18,
+          "season": 2020
+        },
+        {
+          "mean_residual": -6.95,
+          "picks": 20,
+          "season": 2023
+        },
+        {
+          "mean_residual": -1.92,
+          "picks": 13,
+          "season": 2024
+        },
+        {
+          "mean_residual": -6.06,
+          "picks": 17,
+          "season": 2025
+        }
+      ],
+      "manager": "Tim Riker",
+      "mean_residual": 2.21,
+      "picks": 85,
+      "season_spread": 25.56,
+      "seasons": 5
+    },
+    {
+      "by_season": [
+        {
+          "mean_residual": 16.17,
+          "picks": 18,
+          "season": 2017
+        },
+        {
+          "mean_residual": 4.95,
+          "picks": 19,
+          "season": 2020
+        },
+        {
+          "mean_residual": 12.0,
+          "picks": 20,
+          "season": 2023
+        },
+        {
+          "mean_residual": -2.57,
+          "picks": 21,
+          "season": 2024
+        },
+        {
+          "mean_residual": -0.45,
+          "picks": 20,
+          "season": 2025
+        }
+      ],
+      "manager": "Harris Cook",
+      "mean_residual": 5.74,
+      "picks": 98,
+      "season_spread": 18.74,
+      "seasons": 5
+    },
+    {
+      "by_season": [
+        {
+          "mean_residual": 7.25,
+          "picks": 20,
+          "season": 2017
+        },
+        {
+          "mean_residual": 13.0,
+          "picks": 18,
+          "season": 2020
+        },
+        {
+          "mean_residual": 23.38,
+          "picks": 21,
+          "season": 2023
+        },
+        {
+          "mean_residual": -15.79,
+          "picks": 19,
+          "season": 2024
+        },
+        {
+          "mean_residual": 3.5,
+          "picks": 16,
+          "season": 2025
+        }
+      ],
+      "manager": "Matt Wayne",
+      "mean_residual": 6.66,
+      "picks": 94,
+      "season_spread": 39.17,
+      "seasons": 5
+    },
+    {
+      "by_season": [
+        {
+          "mean_residual": 34.11,
+          "picks": 18,
+          "season": 2017
+        },
+        {
+          "mean_residual": 6.3,
+          "picks": 20,
+          "season": 2020
+        },
+        {
+          "mean_residual": 3.1,
+          "picks": 20,
+          "season": 2023
+        },
+        {
+          "mean_residual": -5.71,
+          "picks": 17,
+          "season": 2024
+        },
+        {
+          "mean_residual": 16.0,
+          "picks": 20,
+          "season": 2025
+        }
+      ],
+      "manager": "Chris Herbst",
+      "mean_residual": 10.79,
+      "picks": 95,
+      "season_spread": 39.82,
+      "seasons": 5
+    },
+    {
+      "by_season": [
+        {
+          "mean_residual": 23.5,
+          "picks": 20,
+          "season": 2017
+        },
+        {
+          "mean_residual": -4.24,
+          "picks": 17,
+          "season": 2020
+        },
+        {
+          "mean_residual": 19.63,
+          "picks": 19,
+          "season": 2023
+        },
+        {
+          "mean_residual": 27.0,
+          "picks": 20,
+          "season": 2024
+        },
+        {
+          "mean_residual": 1.86,
+          "picks": 21,
+          "season": 2025
+        }
+      ],
+      "manager": "John Gibbons",
+      "mean_residual": 13.92,
+      "picks": 97,
+      "season_spread": 31.24,
+      "seasons": 5
+    },
+    {
+      "by_season": [
+        {
+          "mean_residual": 22.22,
+          "picks": 18,
+          "season": 2017
+        },
+        {
+          "mean_residual": 2.26,
+          "picks": 19,
+          "season": 2020
+        },
+        {
+          "mean_residual": 17.12,
+          "picks": 16,
+          "season": 2023
+        },
+        {
+          "mean_residual": 18.87,
+          "picks": 15,
+          "season": 2024
+        },
+        {
+          "mean_residual": 13.42,
+          "picks": 19,
+          "season": 2025
+        }
+      ],
+      "manager": "Eric Mercado",
+      "mean_residual": 14.42,
+      "picks": 87,
+      "season_spread": 19.96,
+      "seasons": 5
+    },
+    {
+      "by_season": [
+        {
+          "mean_residual": 28.35,
+          "picks": 20,
+          "season": 2017
+        },
+        {
+          "mean_residual": 17.5,
+          "picks": 16,
+          "season": 2020
+        },
+        {
+          "mean_residual": 22.9,
+          "picks": 20,
+          "season": 2023
+        },
+        {
+          "mean_residual": -8.16,
+          "picks": 19,
+          "season": 2024
+        },
+        {
+          "mean_residual": 14.52,
+          "picks": 21,
+          "season": 2025
+        }
+      ],
+      "manager": "Jess Barron",
+      "mean_residual": 15.16,
+      "picks": 96,
+      "season_spread": 36.51,
+      "seasons": 5
+    },
+    {
+      "by_season": [
+        {
+          "mean_residual": 35.95,
+          "picks": 20,
+          "season": 2017
+        },
+        {
+          "mean_residual": 10.24,
+          "picks": 21,
+          "season": 2020
+        },
+        {
+          "mean_residual": 21.44,
+          "picks": 18,
+          "season": 2023
+        },
+        {
+          "mean_residual": 14.55,
+          "picks": 20,
+          "season": 2024
+        },
+        {
+          "mean_residual": 16.48,
+          "picks": 21,
+          "season": 2025
+        }
+      ],
+      "manager": "Bryan Lewis",
+      "mean_residual": 19.57,
+      "picks": 100,
+      "season_spread": 25.71,
+      "seasons": 5
+    },
+    {
+      "by_season": [
+        {
+          "mean_residual": 19.18,
+          "picks": 22,
+          "season": 2017
+        },
+        {
+          "mean_residual": 19.48,
+          "picks": 21,
+          "season": 2020
+        },
+        {
+          "mean_residual": 6.8,
+          "picks": 20,
+          "season": 2023
+        },
+        {
+          "mean_residual": 49.43,
+          "picks": 21,
+          "season": 2024
+        },
+        {
+          "mean_residual": 30.1,
+          "picks": 21,
+          "season": 2025
+        }
+      ],
+      "manager": "Jason McComb",
+      "mean_residual": 25.12,
+      "picks": 105,
+      "season_spread": 42.63,
+      "seasons": 5
+    }
+  ],
+  "manager_tendency_stability": {
+    "between_manager_spread": 28.22,
+    "mean_within_manager_season_spread": 30.54,
+    "ratio_within_over_between": 1.08,
+    "separable": false
+  },
+  "market_vs_realized": [
+    {
+      "n": 300,
+      "season": 2017,
+      "spearman": 0.4711
+    },
+    {
+      "n": 299,
+      "season": 2020,
+      "spearman": 0.3462
+    },
+    {
+      "n": 299,
+      "season": 2023,
+      "spearman": 0.4636
+    },
+    {
+      "n": 300,
+      "season": 2024,
+      "spearman": 0.3841
+    },
+    {
+      "n": 299,
+      "season": 2025,
+      "spearman": 0.4509
+    }
+  ],
+  "method": {
+    "board_vs_market": "NOT computed \u2014 no projection board exists before 2026. `market_vs_realized` answers the answerable question instead.",
+    "market": "ESPN preseason rank as a stand-in for draft-day ADP; every rank in a top-300 sheet is genuine, so the synthetic-tail filter used on ADP exports is disabled"
+  },
+  "pooled_linear_sigma_fit": {
+    "intercept": 11.132,
+    "note": "sigma = intercept + slope * adp, fitted on bucket sigmas",
+    "slope": 0.1607
+  },
+  "seasons": [
+    2017,
+    2020,
+    2023,
+    2024,
+    2025
+  ],
+  "sigma_by_band_pooled": [
+    {
+      "adp_bucket": "0-50",
+      "max_sigma": 20.39,
+      "mean_adp": 29.0,
+      "mean_sigma": 11.23,
+      "min_sigma": 5.18,
+      "n": 139,
+      "seasons": 5
+    },
+    {
+      "adp_bucket": "50-100",
+      "max_sigma": 28.85,
+      "mean_adp": 75.1,
+      "mean_sigma": 21.45,
+      "min_sigma": 11.51,
+      "n": 195,
+      "seasons": 5
+    },
+    {
+      "adp_bucket": "100-150",
+      "max_sigma": 48.18,
+      "mean_adp": 124.3,
+      "mean_sigma": 40.64,
+      "min_sigma": 36.17,
+      "n": 219,
+      "seasons": 5
+    },
+    {
+      "adp_bucket": "150-200",
+      "max_sigma": 59.24,
+      "mean_adp": 174.0,
+      "mean_sigma": 41.25,
+      "min_sigma": 33.5,
+      "n": 183,
+      "seasons": 5
+    },
+    {
+      "adp_bucket": "200+",
+      "max_sigma": 50.57,
+      "mean_adp": 241.1,
+      "mean_sigma": 44.5,
+      "min_sigma": 37.9,
+      "n": 212,
+      "seasons": 5
+    }
+  ]
+}
