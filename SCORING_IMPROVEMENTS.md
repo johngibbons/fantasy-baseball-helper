@@ -225,3 +225,57 @@ Scaling BPA urgency is significantly worse (−0.32 wins, ~7.6 SE). Suppressing 
 **Infrastructure added**: `SCALE_BPA_URGENCY` config flag, `--scale-bpa-urgency` CLI flag.
 
 **Files**: `backend/simulation/scoring_model.py`, `backend/simulation/config.py`
+
+---
+
+## 9. Per-pool calibration shrinkage
+
+**Status**: Investigated — well calibrated, but no effect on drafts. Not enabled.
+
+**Problem**: The multi-season backtest measured that the board over-disperses —
+regressing realized value on projected value gives a slope below 1 — and that it
+does so far more for pitchers (0.699–0.722, below 1 in every one of eleven
+seasons, on two unrelated projection models) than for hitters (0.759–0.885,
+above 1 in two seasons). See `RETROSPECTIVE_MULTISEASON.md`.
+
+**Proposed fix**: pull values toward their pool mean by the measured slope,
+separately per pool. Implemented as `ValuationConfig.hitter_shrinkage` /
+`pitcher_shrinkage`, shipped at 1.0 (off).
+
+**Sweep results** (`sweep_shrinkage.py`, 300 drafts per candidate, seed 42,
+paired on seed):
+
+| Shrinkage | Wins | vs off | paired SE |
+|---|---|---|---|
+| Off (shipped) | 9.323 | — | — |
+| Per-pool 0.759H / 0.722P | 9.329 | +0.006 | 0.025 |
+| Uniform 0.74 both pools | 9.319 | −0.004 | 0.029 |
+| Pitchers only 1.0H / 0.722P | 9.336 | +0.013 | 0.026 |
+| Mixed sources 0.88H / 0.72P | 9.321 | −0.001 | 0.026 |
+
+Every candidate sits inside its 95% paired interval. **No effect**, and not a
+power problem — the intervals are ±0.05 wins against candidate differences of
+±0.013.
+
+**Why this is not a contradiction.** Shrinkage is a monotonic transform, so it
+never reorders a pool: hitters rank against hitters exactly as before. All it
+can change is how hitters interleave with pitchers, and the size of value
+*differences*. At the properly-paired constants that moves three pitchers out of
+the top 100 — a real change, and evidently too small for the draft engine to
+care about, since ADP-driven availability and positional need dominate its
+decisions.
+
+**What the sweep does not cover**: keeper selection. Within a pool, shrinkage
+scales every surplus by the same factor, so it cannot flip a keep/pass decision.
+Across pools it can change which four of a manager's candidates look best. That
+is untested here.
+
+**Conclusion**: keep the capability, leave it off. The calibration finding
+stands as a measurement — the board really does over-disperse, and pitchers
+much more than hitters — but acting on it does not measurably improve drafts.
+Contrast section 6, where a similarly-motivated calibration fix *did* show up in
+draft outcomes.
+
+**Raw output**: `backend/data/fixtures/league_history/shrinkage_sweep_2026-08-23.txt`
+
+**Files**: `backend/analysis/zscores.py`, `sweep_shrinkage.py`

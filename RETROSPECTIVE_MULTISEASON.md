@@ -648,7 +648,12 @@ Every analysis step is deterministic and can be re-run to byte-identical output
 Every phase in the plan is complete. Three things follow from it, in order of
 confidence:
 
-1. **Apply shrinkage per pool, not globally.** Implemented behind
+1. **Per-pool shrinkage: built, measured, and left off.** A draft sweep found
+   no effect (300 paired drafts, every candidate inside its interval — see
+   `SCORING_IMPROVEMENTS.md` §9). The calibration finding below stands as a
+   measurement; acting on it does not improve drafts, because shrinkage never
+   reorders a pool and the cross-pool rebalance is too small for the engine to
+   notice. Implemented behind
    `ValuationConfig.hitter_shrinkage` / `pitcher_shrinkage`, defaulting to 1.0
    so no board changes until a caller opts in. Phase 6's clearest result:
    pitchers over-disperse in 11 of 11 seasons at 0.699, closely matching 2026's
