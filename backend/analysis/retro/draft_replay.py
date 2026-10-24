@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from backend.analysis.retro.valuation import ols, spearman
 from backend.simulation.player_pool import ALL_CAT_KEYS, Player
 from backend.simulation.roster import RosterState
 from backend.simulation.scoring_model import compute_rank, win_prob_from_rank
@@ -267,6 +268,12 @@ def compare_predicted_to_actual(
     evaluate_draft. If that quantity does not track what teams actually won,
     every coefficient tuned against it inherits the error — which is the
     concern SCORING_MODEL.md raises about the opponent model being ADP-only.
+
+    Both sides average exactly 0.5 per category — rank-based probabilities by
+    construction, real matchups because one side wins — so mean error is zero
+    by definition. What can be wrong is the order (Spearman across teams) and
+    the spread (OLS slope of actual on predicted; below 1, the model separates
+    teams more than the weekly results do).
     """
     per_team = []
     for team_id, prediction in sorted(predicted.items()):
@@ -295,6 +302,24 @@ def compare_predicted_to_actual(
             "mean_actual": round(sum(a for _, a in pairs) / len(pairs), 4),
             "mean_error": round(
                 sum(p - a for p, a in pairs) / len(pairs), 4),
+            "spearman": _rounded(spearman([p for p, _ in pairs],
+                                          [a for _, a in pairs])),
+            "actual_range": [round(min(a for _, a in pairs), 4),
+                             round(max(a for _, a in pairs), 4)],
         }
 
-    return {"per_team": per_team, "by_category": by_category}
+    predicted_wins = [row["predicted_wins"] for row in per_team]
+    actual_wins = [row["actual_wins"] for row in per_team]
+    fit = ols(predicted_wins, actual_wins)
+    teams = {
+        "n": len(per_team),
+        "spearman": _rounded(spearman(predicted_wins, actual_wins)),
+        "ols_slope": _rounded(fit.slope),
+        "r_squared": _rounded(fit.r_squared),
+    }
+
+    return {"per_team": per_team, "by_category": by_category, "teams": teams}
+
+
+def _rounded(value: float | None) -> float | None:
+    return None if value is None else round(value, 4)
