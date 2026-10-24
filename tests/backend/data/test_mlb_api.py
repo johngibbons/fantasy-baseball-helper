@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 
+from backend.data import mlb_api
 from backend.data.mlb_api import (
     count_quality_starts,
+    get_pitching_stats,
     parse_innings_pitched,
 )
 
@@ -62,3 +66,60 @@ class TestCountQualityStarts:
         assert count_quality_starts([{"stat": {}}]) == 0
         assert count_quality_starts([{}]) == 0
         assert count_quality_starts([game(earned="n/a")]) == 0
+
+
+class _FakeResponse:
+    def __init__(self, payload):
+        self._payload = payload
+
+    def raise_for_status(self):
+        pass
+
+    def json(self):
+        return self._payload
+
+
+class _FakeClient:
+    def __init__(self, payload):
+        self._payload = payload
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        return False
+
+    async def get(self, url, params=None):
+        return _FakeResponse(self._payload)
+
+
+class TestGetPitchingStats:
+    def test_season_innings_are_parsed_as_thirds(self, monkeypatch):
+        """The season line uses the same notation as the game log: "64.1" is
+        64 and one third. Reading it as a float stored 64.1, and the retro
+        then disagreed with rows written by the history backfill."""
+        payload = {"stats": [{"splits": [{"stat": {
+            "inningsPitched": "64.1", "gamesPlayed": 58, "era": "2.10",
+            "whip": "0.98", "strikeOuts": 70,
+        }}]}]}
+        monkeypatch.setattr(mlb_api.httpx, "AsyncClient",
+                            lambda: _FakeClient(payload))
+        stats = asyncio.run(get_pitching_stats(686973, 2026))
+        assert stats["innings_pitched"] == pytest.approx(64 + 1 / 3)
+
+    def test_failed_game_log_is_an_error_not_zero_quality_starts(self, monkeypatch):
+        """A starter whose game log could not be fetched must not come back
+        with QS = 0 — the refresh would store it as if he never had one."""
+        payload = {"stats": [{"splits": [{"stat": {
+            "inningsPitched": "150.0", "gamesStarted": 26,
+        }}]}]}
+        monkeypatch.setattr(mlb_api.httpx, "AsyncClient",
+                            lambda: _FakeClient(payload))
+
+        async def unreachable(mlb_id, season):
+            raise ConnectionError("All connection attempts failed")
+
+        monkeypatch.setattr(mlb_api, "get_pitching_game_log", unreachable)
+        with pytest.raises(ConnectionError):
+            asyncio.run(get_pitching_stats(656302, 2026,
+                                           include_quality_starts=True))
