@@ -56,6 +56,10 @@ def value_map(board: dict, normalizer: float) -> dict[int, float]:
     return values
 
 
+# What a counterfactual strategy assigns a player it has no value for.
+UNRANKED = float("-inf")
+
+
 def counterfactual_drafts(context: DraftContext,
                           strategies: dict[str, dict[int, float]]) -> dict:
     """Re-run the draft with every team following one strategy.
@@ -64,6 +68,10 @@ def counterfactual_drafts(context: DraftContext,
     highest-valued player still available. Because all ten teams follow the same
     rule, the comparison is like-for-like: the difference between strategies is
     the ordering they impose, not who happened to pick first.
+
+    A player missing from a strategy's map ranks below everyone in it. ADP is
+    scored as -adp, so a default of 0 would rank the 74 players with no ADP
+    above the first overall pick.
     """
     pool = draftable_pool(context)
     keeper_by_team: dict[int, list[int]] = {}
@@ -83,7 +91,7 @@ def counterfactual_drafts(context: DraftContext,
                 continue
             if not available:
                 break
-            chosen = max(available, key=lambda p: values.get(p, 0.0))
+            chosen = max(available, key=lambda p: values.get(p, UNRANKED))
             available.discard(chosen)
             rosters.setdefault(slot["team_id"], []).append(chosen)
 
@@ -124,7 +132,7 @@ def solo_counterfactual(context: DraftContext, my_team_id: int,
         if team_id == my_team_id:
             if not available:
                 continue
-            chosen = max(available, key=lambda p: values.get(p, 0.0))
+            chosen = max(available, key=lambda p: values.get(p, UNRANKED))
             my_roster.append(chosen)
             available.discard(chosen)
         else:

@@ -19,6 +19,7 @@ from backend.analysis.retro.draft_replay import (
     summarize_by_team,
     team_category_totals,
 )
+from backend.scripts.retro_draft import counterfactual_drafts, solo_counterfactual
 from backend.simulation.config import SimConfig
 from backend.simulation.player_pool import ALL_CAT_KEYS, load_players_from_rows
 
@@ -233,6 +234,27 @@ class TestCompareToActual:
     def test_teams_without_actuals_are_skipped(self):
         predicted = {1: {"cat_win_probs": {"zscore_r": 0.8}, "expected_wins": 0.8}}
         assert compare_predicted_to_actual(predicted, {})["per_team"] == []
+
+
+class TestCounterfactualStrategies:
+    """A strategy only ranks the players it has a value for. ADP is scored as
+    -adp, so anyone without an ADP must rank last, not at 0 — above pick one."""
+
+    def test_league_wide_adp_follow_skips_players_with_no_adp(self):
+        ctx = context(adp={2: 1.0, 3: 2.0, 4: 3.0})   # 5 has no ADP
+        result = counterfactual_drafts(
+            ctx, {"adp": {m: -a for m, a in ctx.adp.items()}})
+        drafted = [p for roster in result["adp"]["rosters"].values()
+                   for p in roster]
+        assert 5 not in drafted
+        assert result["adp"]["rosters"] == {"100": [1, 3], "200": [2, 4]}
+
+    def test_solo_adp_follow_skips_players_with_no_adp(self):
+        ctx = context(adp={2: 1.0, 3: 2.0, 4: 3.0})
+        result = solo_counterfactual(
+            ctx, 100, {m: -a for m, a in ctx.adp.items()})
+        # Team 100 keeps 1 and picks at slot 3, after team 200 took 2.
+        assert result["roster"] == [1, 3]
 
 
 class TestFrozenLayerBArtifacts:
