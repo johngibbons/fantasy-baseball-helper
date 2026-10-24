@@ -11,14 +11,14 @@
 **The keeper model works, and now we know it rather than suspect it.**
 
 The 2026 retrospective measured keepers on 40 decisions and found the surplus
-sign agreed with the outcome 70% of the time — on that sample, barely
+sign agreed with the outcome 68% of the time — on that sample, barely
 distinguishable from a coin flip. Extending the same evaluation across nine
 seasons takes the sample to **360 decisions**, and the result holds:
 
 | | 2026 alone | 2016–2025 |
 |---|---|---|
 | Keeper decisions | 40 | **360** |
-| Beat what their round returned | 70% | **73.3%** (95% CI 68.9–77.8) |
+| Beat what their round returned | 67.5% | **73.3%** (95% CI 68.9–77.8) |
 | Control: ordinary picks beating their round | not measured | **51.9%** (n=1,848) |
 
 The control is what makes the headline readable. Value within a round is
@@ -37,11 +37,12 @@ second finding here that changes what should ship.
 
 Phase 6 then split the 2026 over-dispersion finding in two. Over twelve seasons
 of regenerated projections, **pitchers over-disperse in every single season**
-(mean slope 0.699 against 2026's 0.722 from a completely different forecaster),
+(mean slope 0.699 against 2026's 0.748 from a completely different forecaster),
 which points at the valuation engine rather than any one projection source.
-**Hitters do not** — mean 0.885, and above 1 in two seasons. Shrinkage should
-be applied per pool, confidently for pitchers and cautiously for hitters,
-rather than as one constant for both.
+**Hitters do not** on the trend model — mean 0.885, and above 1 in two seasons —
+though on THE BAT X's full 2026 season they over-disperse exactly as much as
+pitchers (0.745). So whether the pools need different corrections depends on
+the forecaster, and on the shipped one they do not.
 
 Phase 4 measured the value-at-pick curve. **The curve is stable enough to fit**
 — a logarithmic shape, `value ≈ 2.37 − 1.68 × ln(round)` — and
@@ -54,9 +55,9 @@ Three more results, all with the sample to support them:
 
 1. **Value above replacement is a league constant.** Between 134 and 142
    players cleared replacement in *every* season from 2010 to 2025, while the
-   league rosters 250. 2026's 139 sits mid-range. The 2026 retrospective's
-   "44% of rostered spots hold below-replacement players" holds at 44.7%
-   (range 43.2–46.4, sd 0.9).
+   league rosters 250. 2026's final 142 sits at the top of that range. The
+   2026 retrospective's "about 44% of rostered spots hold below-replacement
+   players" holds at 44.7% (range 43.2–46.4, sd 0.9).
 2. **Multi-season keepers hold up.** Year 3 keepers beat their round 77.1% of
    the time at a mean cost of round 7.8, against 74.5% for year 1 at round
    15.6, with essentially identical surplus. Paying five rounds more per season
@@ -269,7 +270,7 @@ projection model:
 | THE BAT X (2026) | **+0.26** |
 | Trend model (2013–2025, pooled) | **+1.47** |
 
-The trend model is the weaker forecaster (ρ 0.639 against THE BAT X's 0.741 in
+The trend model is the weaker forecaster (ρ 0.627 against THE BAT X's 0.740 in
 2026), and its board is shaped differently, so the gap is wider. The shipped
 board uses a commercial source, which puts the honest estimate nearer the low
 end.
@@ -291,7 +292,7 @@ would systematically **overstate** surplus and be worse than the status quo.
 | 2020 | 1,299 | 137 | 45.2% |
 | 2022 | 1,497 | 140 | 44.0% |
 | 2025 | 1,475 | 140 | 44.0% |
-| *2026 (retrospective)* | *1,358* | *139* | *44%* |
+| *2026 (retrospective)* | *1,358* | *142* | *43.2%* |
 
 Across fourteen seasons the count above replacement sits between **134 and
 142**, and the share of rostered spots holding below-replacement players is
@@ -397,8 +398,8 @@ preseason market predicted realized value — the bar any board must clear:
 | Spearman ρ | 0.47 | 0.35 | 0.46 | 0.38 | 0.45 |
 
 The market lands around ρ ≈ 0.40–0.47, with 2020's short season the worst. For
-scale, `RETROSPECTIVE_2026.md` measured THE BAT X at ρ = 0.741 for hitters and
-0.610 for pitchers against realized value — but over a different pool and
+scale, `RETROSPECTIVE_2026.md` measured THE BAT X at ρ = 0.740 for hitters and
+0.607 for pitchers against realized value — but over a different pool and
 against a per-pool board rather than a single mixed ranking, so the two are not
 directly comparable and the gap should not be read as the app's edge.
 
@@ -407,19 +408,20 @@ directly comparable and the gap should not be read as the app's edge.
 ## Phase 6 — does the engine over-disperse in every season?
 
 The 2026 retrospective's largest measured effect was that the board spreads
-players ~25% further apart than reality: a calibration slope of 0.759 for
-hitters and 0.722 for pitchers, from one season. Twelve seasons of regenerated
-projections say **yes for pitchers, emphatically; for hitters, weakly.**
+players ~25% further apart than reality: a calibration slope of 0.745 for
+hitters and 0.748 for pitchers over the full season (0.759 and 0.722 at 77%).
+Twelve seasons of regenerated projections say **yes for pitchers, emphatically;
+for hitters, weakly.**
 
 | Pool | Mean slope (ex-2020) | Seasons below 1 | 2026 (THE BAT X) |
 |---|---|---|---|
-| **Pitchers** | **0.699** (range 0.625–0.823) | **11 / 11** | 0.722 |
-| Hitters | 0.885 (range 0.804–1.049) | 9 / 11 | 0.759 |
+| **Pitchers** | **0.699** (range 0.625–0.823) | **11 / 11** | 0.748 |
+| Hitters | 0.885 (range 0.804–1.049) | 9 / 11 | 0.745 |
 
 **Read the caveat before the numbers.** No archived preseason projections exist
 before 2026, so these are regenerated with `generate_projections_from_stats` —
 the app's own weighted, age-adjusted three-season average. That model scored
-0.639 rank correlation for hitters in 2026 against THE BAT X's 0.741. **These
+0.627 rank correlation for hitters in 2026 against THE BAT X's 0.740. **These
 are the trend model's slopes, not THE BAT X's**, and this is not a replication
 of the 2026 figure.
 
@@ -427,19 +429,18 @@ What it *is* good for is the thing the plan wanted separated: telling
 "the projections over-disperse" apart from "the SGP conversion over-disperses".
 
 **For pitchers the answer is now fairly clear.** A completely different
-projection model, over twelve seasons, lands at 0.699 against THE BAT X's 0.722
-in 2026 — same direction, near-identical magnitude, every single season below
-1. Two unrelated forecasters producing the same dispersion error points at the
+projection model, over twelve seasons, lands at 0.699 against THE BAT X's 0.748
+in 2026 — same direction, similar magnitude, every single season below 1. Two unrelated forecasters producing the same dispersion error points at the
 shared component: the valuation engine, not the forecast. Shrinkage for
 pitchers is well supported.
 
 **For hitters it is not.** The trend model averages 0.885 and *exceeds* 1 in
-2022 and 2023 — no over-dispersion at all in those years. THE BAT X's 0.759 in
-2026 is well outside this model's usual range, which is consistent with a good
-part of the 2026 hitter figure being specific to that source and season rather
-than structural. The shrinkage recommendation should be applied to pitchers
-with confidence and to hitters cautiously, ideally re-derived per pool rather
-than using one shrinkage constant for both.
+2022 and 2023 — no over-dispersion at all in those years. THE BAT X's 0.745 in
+2026 is below this model's lowest season, which is consistent with a good part
+of the 2026 hitter figure being specific to that source and season rather than
+structural. On THE BAT X itself the two pools match over the full season, so
+the per-pool distinction this section motivated does not show up on the board
+the app uses.
 
 **2020 is excluded from the means** and reported separately: over 60 games the
 slope collapses to 0.316 for hitters and 0.232 for pitchers. That is the sample
@@ -632,8 +633,9 @@ Every analysis step is deterministic and can be re-run to byte-identical output
 - **Quality starts are derived, not reported.** MLB's season endpoint does not
   expose them. They come from game logs, and one transient DNS failure during
   the first backfill silently zeroed a pitcher's QS before the season was
-  re-run — worth watching for, since a zero in one of four pitcher categories
-  is invisible in aggregate.
+  re-run. That failure mode is now closed — a failed game-log fetch fails the
+  row instead of storing zero — and every 15+ start season with zero QS in the
+  backfill was re-derived from its game log and is genuine.
 - **Realized value ≠ what a manager could have known.** The 73.3% says keeping
   worked, not that it was predictable. The prior-season baseline at 71.7% is the
   closest available answer to the predictability question, and it is a weak
@@ -656,18 +658,21 @@ confidence:
    notice. Implemented behind
    `ValuationConfig.hitter_shrinkage` / `pitcher_shrinkage`, defaulting to 1.0
    so no board changes until a caller opts in. Phase 6's clearest result:
-   pitchers over-disperse in 11 of 11 seasons at 0.699, closely matching 2026's
-   0.722 from an unrelated forecaster, so the effect is in the engine rather
-   than the source. Hitters average 0.885 and exceed 1 twice.
+   pitchers over-disperse in 11 of 11 seasons at 0.699, close to 2026's 0.748
+   from an unrelated forecaster, so the effect is in the engine rather than the
+   source. Hitters average 0.885 and exceed 1 twice.
 
    **The two factors must be measured on the same board.** What rebalances
    hitters against pitchers is the *ratio* of the factors, so pairing the trend
    model's hitter slope with THE BAT X's pitcher slope measures the gap between
    two forecasters, not calibration. That mistake gives a ratio of 1.22 and
    moves 13 pitchers out of the top 100; the pair measured on the same 2026
-   board gives 1.05 and moves 3. Recommended values are therefore both from
-   THE BAT X 2026 — hitters 0.759, pitchers 0.722 — with the multi-season work
-   serving as evidence *about* those numbers rather than a source for them.
+   board at 77% of the season gave 1.05 and moved 3. Over the full season that
+   pair is hitters 0.745, pitchers 0.748 — a ratio of 1.00, so per-pool
+   shrinkage on THE BAT X no longer rebalances anything, which is one more
+   reason the sweep found no effect. The recommended constants in `zscores.py`
+   are the final pair, with the multi-season work serving as evidence *about*
+   those numbers rather than a source for them.
 
    Note what shrinkage cannot do: the transform is monotonic, so it never
    reorders a pool. Hitters rank against hitters exactly as before. It changes
