@@ -236,9 +236,12 @@ def main() -> int:
         ]
         print(f"Refreshing {args.season} actuals for {len(targets)} players...")
         # QS is one of the ten scored categories but is not exposed by the
-        # season-stats endpoint, so it has to be derived from game logs.
+        # season-stats endpoint, so it has to be derived from game logs. That
+        # doubles the calls per starter, and at the default concurrency of 12
+        # the MLB API drops enough connections to fail the run (14 of 1,358
+        # on the final 2026 pull; 0 at 4).
         state = asyncio.run(refresh_actuals_for_players(
-            targets, args.season, include_quality_starts=True))
+            targets, args.season, concurrency=4, include_quality_starts=True))
         print(f"  {state['done']} fetched, "
               f"{state.get('no_stats', 0)} with no {args.season} stats, "
               f"{state['errors']} failed (status={state['status']})")

@@ -220,19 +220,15 @@ async def get_pitching_stats(mlb_id: int, season: int = 2025,
 
     s = splits[0].get("stat", {})
 
-    ip_str = s.get("inningsPitched", "0")
-    try:
-        ip = float(ip_str)
-    except (ValueError, TypeError):
-        ip = 0.0
+    ip = parse_innings_pitched(s.get("inningsPitched"))
 
     quality_starts = 0
     if include_quality_starts and s.get("gamesStarted"):
-        try:
-            quality_starts = count_quality_starts(
-                await get_pitching_game_log(mlb_id, season))
-        except Exception as e:
-            logger.warning(f"Quality-start derivation failed for {mlb_id}: {e}")
+        # Let a failed game-log fetch propagate. Swallowing it stored a real
+        # starter with zero QS, indistinguishable from never having one; the
+        # caller retries and, failing that, refuses to build on the row.
+        quality_starts = count_quality_starts(
+            await get_pitching_game_log(mlb_id, season))
 
     def _safe_float(val, default=0.0):
         try:
