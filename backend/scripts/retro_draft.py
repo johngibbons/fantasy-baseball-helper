@@ -6,7 +6,9 @@ Usage:
 Requires the boards from retro_expost.py and the frozen draft state from
 retro_snapshot.py. Emits:
   draft_decisions.json   — per-pick regret, by team and by round
-  team_evaluations.json  — predicted category wins per team from actual rosters
+  team_evaluations.json  — predicted category wins per team from actual rosters,
+                           compared with real weekly results once
+                           retro_league_results.py has written them
   counterfactuals.json   — what other drafting strategies would have produced
 
 Values: realized value is raw ex-post SGP (pace-adjusted). Board value is the
@@ -152,7 +154,9 @@ def main() -> int:
     parser.add_argument("--dir", type=Path, default=None)
     parser.add_argument("--actual-win-rates", type=Path, default=None,
                         help="JSON of {team_id: {cat: win_rate}} from ESPN "
-                             "weekly results, for validating the team model.")
+                             "weekly results, for validating the team model. "
+                             "Defaults to actual_win_rates.json in the retro "
+                             "directory, written by retro_league_results.py.")
     args = parser.parse_args()
 
     out_dir = args.dir or (REPO_ROOT / "backend" / "data" / "fixtures"
@@ -238,9 +242,10 @@ def main() -> int:
             for team_id, value in sorted(predicted.items())
         },
     }
-    if args.actual_win_rates and args.actual_win_rates.exists():
+    win_rates_path = args.actual_win_rates or out_dir / "actual_win_rates.json"
+    if win_rates_path.exists():
         actual = {int(k): v for k, v in
-                  json.loads(args.actual_win_rates.read_text()).items()}
+                  json.loads(win_rates_path.read_text()).items()}
         evaluation["comparison"] = compare_predicted_to_actual(predicted, actual)
     _write_json(out_dir / "team_evaluations.json", evaluation)
 
@@ -298,11 +303,22 @@ def main() -> int:
         value = solo[label]["team_total"]
         print(f"  {label:<22} {value:8.1f}   ({value - solo['actual']:+.1f})")
 
-    print("\nPredicted expected weekly category wins from actual rosters:")
+    comparison = evaluation.get("comparison")
+    actual_wins = ({row["team_id"]: row["actual_wins"]
+                    for row in comparison["per_team"]} if comparison else {})
+    print("\nPredicted expected weekly category wins from actual rosters"
+          + (" (actual):" if comparison else ":"))
     for team_id, value in sorted(predicted.items(),
                                  key=lambda kv: -kv[1]["expected_wins"]):
         marker = " <- you" if team_id == my_team else ""
-        print(f"  team {team_id:>2}: {value['expected_wins']:.2f}{marker}")
+        actual_note = (f"  ({actual_wins[team_id]:.2f})"
+                       if team_id in actual_wins else "")
+        print(f"  team {team_id:>2}: {value['expected_wins']:.2f}"
+              f"{actual_note}{marker}")
+    if comparison:
+        teams = comparison["teams"]
+        print(f"  across teams: spearman={teams['spearman']:.3f} "
+              f"slope={teams['ols_slope']:.3f}")
 
     print(f"\nArtifacts written to {out_dir}")
     return 0

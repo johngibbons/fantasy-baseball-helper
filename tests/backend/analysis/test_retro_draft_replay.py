@@ -235,6 +235,21 @@ class TestCompareToActual:
         predicted = {1: {"cat_win_probs": {"zscore_r": 0.8}, "expected_wins": 0.8}}
         assert compare_predicted_to_actual(predicted, {})["per_team"] == []
 
+    def test_a_model_that_overstates_the_gaps_has_a_slope_below_one(self):
+        """Right order, three times the spread: what rank-based win
+        probabilities do when real weeks are noisy."""
+        predicted = {
+            team: {"cat_win_probs": {"zscore_r": p}, "expected_wins": p}
+            for team, p in ((1, 1.0), (2, 0.5), (3, 0.0))
+        }
+        actual = {1: {"zscore_r": 2 / 3}, 2: {"zscore_r": 0.5},
+                  3: {"zscore_r": 1 / 3}}
+        result = compare_predicted_to_actual(predicted, actual)
+        assert result["teams"]["spearman"] == pytest.approx(1.0)
+        assert result["teams"]["ols_slope"] == pytest.approx(1 / 3, abs=1e-3)
+        assert result["by_category"]["zscore_r"]["spearman"] == pytest.approx(1.0)
+        assert result["by_category"]["zscore_r"]["mean_error"] == pytest.approx(0.0)
+
 
 class TestCounterfactualStrategies:
     """A strategy only ranks the players it has a value for. ADP is scored as

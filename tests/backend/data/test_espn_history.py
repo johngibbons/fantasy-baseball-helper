@@ -5,7 +5,9 @@ from __future__ import annotations
 from unittest.mock import patch, MagicMock
 from backend.data.espn_history import (
     fetch_season_matchup_history,
+    parse_category_win_rates,
     parse_matchup_response,
+    parse_standings,
     MatchupRecord,
     ESPN_STAT_ID_TO_CAT,
 )
@@ -112,3 +114,64 @@ def test_espn_stat_id_map_covers_all_ten_cats():
         "R", "TB", "RBI", "SB", "OBP",
         "K", "QS", "ERA", "WHIP", "SVHD",
     }
+
+
+def _side(team_id, results):
+    """A matchup side whose ten categories carry the given results in order."""
+    return {
+        "teamId": team_id,
+        "cumulativeScore": {"scoreByStat": {
+            stat_id: {"score": 1.0, "result": result}
+            for stat_id, result in zip(ESPN_STAT_ID_TO_CAT, results)
+        }},
+    }
+
+
+class TestParseCategoryWinRates:
+    def test_ties_count_half_and_both_sides_are_scored(self):
+        home = ["WIN"] * 6 + ["TIE"] * 2 + ["LOSS"] * 2
+        away = ["LOSS"] * 6 + ["TIE"] * 2 + ["WIN"] * 2
+        response = {"schedule": [{
+            "matchupPeriodId": 1, "playoffTierType": "NONE",
+            "home": _side(1, home), "away": _side(2, away),
+        }]}
+        rates = parse_category_win_rates(response)
+        cats = list(ESPN_STAT_ID_TO_CAT.values())
+        assert rates[1][cats[0]] == 1.0
+        assert rates[1][cats[6]] == 0.5
+        assert rates[2][cats[9]] == 1.0
+        assert sum(rates[1].values()) + sum(rates[2].values()) == 10.0
+
+    def test_rates_are_shares_of_regular_season_weeks(self):
+        """Playoff weeks are left out: only some teams play them."""
+        response = {"schedule": [
+            {"matchupPeriodId": 1, "playoffTierType": "NONE",
+             "home": _side(1, ["WIN"] * 10), "away": _side(2, ["LOSS"] * 10)},
+            {"matchupPeriodId": 2, "playoffTierType": "NONE",
+             "home": _side(1, ["LOSS"] * 10), "away": _side(2, ["WIN"] * 10)},
+            {"matchupPeriodId": 3, "playoffTierType": "WINNERS_BRACKET",
+             "home": _side(1, ["WIN"] * 10), "away": _side(2, ["LOSS"] * 10)},
+        ]}
+        rates = parse_category_win_rates(response)
+        assert set(rates[1].values()) == {0.5}
+
+    def test_undecided_matchups_are_skipped(self):
+        response = {"schedule": [{
+            "matchupPeriodId": 1, "playoffTierType": "NONE",
+            "home": _side(1, [None] * 10), "away": _side(2, [None] * 10),
+        }]}
+        assert parse_category_win_rates(response) == {}
+
+
+class TestParseStandings:
+    def test_orders_by_final_rank_and_keeps_the_category_record(self):
+        response = {"teams": [
+            {"id": 8, "playoffSeed": 6, "rankCalculatedFinal": 3,
+             "record": {"overall": {"wins": 89, "losses": 86, "ties": 5}}},
+            {"id": 1, "playoffSeed": 1, "rankCalculatedFinal": 1,
+             "record": {"overall": {"wins": 102, "losses": 73, "ties": 5}}},
+        ]}
+        standings = parse_standings(response)
+        assert [row["team_id"] for row in standings] == [1, 8]
+        assert standings[1] == {"team_id": 8, "wins": 89, "losses": 86,
+                                "ties": 5, "playoff_seed": 6, "final_rank": 3}
