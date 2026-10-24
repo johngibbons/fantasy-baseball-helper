@@ -1,11 +1,11 @@
 {
-  "as_of": "2026-08-15",
+  "as_of": "2026-09-27",
   "config": {
     "apply_playing_time_discount": true,
     "streaming_bonus": 0.7
   },
   "expost_source": "actual",
-  "git_sha": "7b1ddfdd252868f035360cb51f69d73d9cc6dbd2",
+  "git_sha": "29ab7acea67ecdd2a24a0b62d9a86cdf48a230c4",
   "hitters": [
     {
       "eligible_positions": "DH/SP",
@@ -26474,7 +26474,7 @@
   ],
   "preseason_source": "thebatx",
   "season": 2026,
-  "season_elapsed_fraction": 0.7688,
+  "season_elapsed_fraction": 1.0,
   "sgp_denominators": {
     "ERA": 0.084556,
     "K": 75.925926,

@@ -1,29 +1,201 @@
 {
-  "as_of": "2026-08-15",
+  "as_of": "2026-09-27",
+  "comparison": {
+    "by_category": {
+      "zscore_era": {
+        "actual_range": [
+          0.3889,
+          0.6111
+        ],
+        "mean_actual": 0.5,
+        "mean_error": 0.0,
+        "mean_predicted": 0.5,
+        "spearman": 0.1683
+      },
+      "zscore_k": {
+        "actual_range": [
+          0.1111,
+          0.8056
+        ],
+        "mean_actual": 0.5,
+        "mean_error": -0.0,
+        "mean_predicted": 0.5,
+        "spearman": 0.4182
+      },
+      "zscore_obp": {
+        "actual_range": [
+          0.3333,
+          0.6667
+        ],
+        "mean_actual": 0.5,
+        "mean_error": -0.0,
+        "mean_predicted": 0.5,
+        "spearman": 0.673
+      },
+      "zscore_qs": {
+        "actual_range": [
+          0.1389,
+          0.6944
+        ],
+        "mean_actual": 0.5,
+        "mean_error": -0.0,
+        "mean_predicted": 0.5,
+        "spearman": 0.8693
+      },
+      "zscore_r": {
+        "actual_range": [
+          0.1667,
+          0.6667
+        ],
+        "mean_actual": 0.5,
+        "mean_error": -0.0,
+        "mean_predicted": 0.5,
+        "spearman": 0.7112
+      },
+      "zscore_rbi": {
+        "actual_range": [
+          0.25,
+          0.6944
+        ],
+        "mean_actual": 0.5,
+        "mean_error": 0.0,
+        "mean_predicted": 0.5,
+        "spearman": 0.2242
+      },
+      "zscore_sb": {
+        "actual_range": [
+          0.1111,
+          0.7778
+        ],
+        "mean_actual": 0.5,
+        "mean_error": -0.0,
+        "mean_predicted": 0.5,
+        "spearman": 0.9573
+      },
+      "zscore_svhd": {
+        "actual_range": [
+          0.0556,
+          0.8056
+        ],
+        "mean_actual": 0.5,
+        "mean_error": -0.0,
+        "mean_predicted": 0.5,
+        "spearman": 0.5289
+      },
+      "zscore_tb": {
+        "actual_range": [
+          0.1667,
+          0.7222
+        ],
+        "mean_actual": 0.5,
+        "mean_error": -0.0,
+        "mean_predicted": 0.5,
+        "spearman": 0.7026
+      },
+      "zscore_whip": {
+        "actual_range": [
+          0.3889,
+          0.6111
+        ],
+        "mean_actual": 0.5,
+        "mean_error": -0.0,
+        "mean_predicted": 0.5,
+        "spearman": 0.8124
+      }
+    },
+    "per_team": [
+      {
+        "actual_wins": 5.806,
+        "error": -0.917,
+        "predicted_wins": 4.889,
+        "team_id": 1
+      },
+      {
+        "actual_wins": 5.583,
+        "error": 1.194,
+        "predicted_wins": 6.778,
+        "team_id": 2
+      },
+      {
+        "actual_wins": 5.667,
+        "error": 1.778,
+        "predicted_wins": 7.444,
+        "team_id": 3
+      },
+      {
+        "actual_wins": 5.389,
+        "error": -0.056,
+        "predicted_wins": 5.333,
+        "team_id": 4
+      },
+      {
+        "actual_wins": 4.389,
+        "error": 2.056,
+        "predicted_wins": 6.444,
+        "team_id": 5
+      },
+      {
+        "actual_wins": 5.806,
+        "error": 0.417,
+        "predicted_wins": 6.222,
+        "team_id": 6
+      },
+      {
+        "actual_wins": 4.861,
+        "error": -0.528,
+        "predicted_wins": 4.333,
+        "team_id": 7
+      },
+      {
+        "actual_wins": 5.083,
+        "error": -1.306,
+        "predicted_wins": 3.778,
+        "team_id": 8
+      },
+      {
+        "actual_wins": 3.722,
+        "error": -1.833,
+        "predicted_wins": 1.889,
+        "team_id": 9
+      },
+      {
+        "actual_wins": 3.694,
+        "error": -0.806,
+        "predicted_wins": 2.889,
+        "team_id": 10
+      }
+    ],
+    "teams": {
+      "n": 10,
+      "ols_slope": 0.3298,
+      "r_squared": 0.5263,
+      "spearman": 0.6018
+    }
+  },
   "note": "Category win probabilities implied by each team's actual roster valued on realized production.",
   "predicted": {
     "1": {
       "cat_win_probs": {
         "zscore_era": 0.6667,
-        "zscore_k": 0.8889,
+        "zscore_k": 0.7778,
         "zscore_obp": 0.1111,
-        "zscore_qs": 0.8889,
+        "zscore_qs": 0.7778,
         "zscore_r": 0.1111,
-        "zscore_rbi": 0.5556,
+        "zscore_rbi": 0.2222,
         "zscore_sb": 0.5556,
         "zscore_svhd": 0.7778,
-        "zscore_tb": 0.4444,
-        "zscore_whip": 0.4444
+        "zscore_tb": 0.2222,
+        "zscore_whip": 0.6667
       },
-      "expected_wins": 5.444,
+      "expected_wins": 4.889,
       "roster_size": 25
     },
     "10": {
       "cat_win_probs": {
         "zscore_era": 0.0,
         "zscore_k": 0.0,
-        "zscore_obp": 0.2222,
-        "zscore_qs": 0.0,
+        "zscore_obp": 0.4444,
+        "zscore_qs": 0.1111,
         "zscore_r": 0.5556,
         "zscore_rbi": 0.7778,
         "zscore_sb": 0.1111,
@@ -31,67 +203,67 @@
         "zscore_tb": 0.5556,
         "zscore_whip": 0.0
       },
-      "expected_wins": 2.556,
+      "expected_wins": 2.889,
       "roster_size": 25
     },
     "2": {
       "cat_win_probs": {
         "zscore_era": 1.0,
-        "zscore_k": 0.7778,
-        "zscore_obp": 0.4444,
-        "zscore_qs": 0.7778,
+        "zscore_k": 1.0,
+        "zscore_obp": 0.3333,
+        "zscore_qs": 0.8889,
         "zscore_r": 0.3333,
         "zscore_rbi": 0.1111,
         "zscore_sb": 0.8889,
-        "zscore_svhd": 0.8889,
-        "zscore_tb": 0.2222,
+        "zscore_svhd": 1.0,
+        "zscore_tb": 0.3333,
         "zscore_whip": 0.8889
       },
-      "expected_wins": 6.333,
+      "expected_wins": 6.778,
       "roster_size": 25
     },
     "3": {
       "cat_win_probs": {
-        "zscore_era": 0.7778,
-        "zscore_k": 1.0,
+        "zscore_era": 0.8889,
+        "zscore_k": 0.8889,
         "zscore_obp": 0.7778,
         "zscore_qs": 1.0,
-        "zscore_r": 0.4444,
-        "zscore_rbi": 0.2222,
+        "zscore_r": 0.7778,
+        "zscore_rbi": 0.6667,
         "zscore_sb": 1.0,
         "zscore_svhd": 0.0,
-        "zscore_tb": 0.3333,
+        "zscore_tb": 0.4444,
         "zscore_whip": 1.0
       },
-      "expected_wins": 6.556,
+      "expected_wins": 7.444,
       "roster_size": 25
     },
     "4": {
       "cat_win_probs": {
         "zscore_era": 0.1111,
         "zscore_k": 0.5556,
-        "zscore_obp": 0.8889,
-        "zscore_qs": 0.4444,
-        "zscore_r": 0.7778,
-        "zscore_rbi": 0.6667,
+        "zscore_obp": 0.6667,
+        "zscore_qs": 0.5556,
+        "zscore_r": 0.6667,
+        "zscore_rbi": 0.5556,
         "zscore_sb": 0.7778,
         "zscore_svhd": 0.2222,
         "zscore_tb": 0.8889,
-        "zscore_whip": 0.5556
+        "zscore_whip": 0.3333
       },
-      "expected_wins": 5.889,
+      "expected_wins": 5.333,
       "roster_size": 25
     },
     "5": {
       "cat_win_probs": {
-        "zscore_era": 0.4444,
-        "zscore_k": 0.1111,
-        "zscore_obp": 0.6667,
-        "zscore_qs": 0.1111,
+        "zscore_era": 0.3333,
+        "zscore_k": 0.2222,
+        "zscore_obp": 0.8889,
+        "zscore_qs": 0.0,
         "zscore_r": 1.0,
         "zscore_rbi": 1.0,
         "zscore_sb": 0.3333,
-        "zscore_svhd": 1.0,
+        "zscore_svhd": 0.8889,
         "zscore_tb": 1.0,
         "zscore_whip": 0.7778
       },
@@ -100,34 +272,34 @@
     },
     "6": {
       "cat_win_probs": {
-        "zscore_era": 0.8889,
-        "zscore_k": 0.3333,
+        "zscore_era": 0.7778,
+        "zscore_k": 0.1111,
         "zscore_obp": 1.0,
-        "zscore_qs": 0.5556,
+        "zscore_qs": 0.4444,
         "zscore_r": 0.8889,
-        "zscore_rbi": 0.3333,
+        "zscore_rbi": 0.4444,
         "zscore_sb": 0.6667,
         "zscore_svhd": 0.6667,
-        "zscore_tb": 0.6667,
-        "zscore_whip": 0.3333
+        "zscore_tb": 0.7778,
+        "zscore_whip": 0.4444
       },
-      "expected_wins": 6.333,
+      "expected_wins": 6.222,
       "roster_size": 25
     },
     "7": {
       "cat_win_probs": {
         "zscore_era": 0.5556,
-        "zscore_k": 0.2222,
-        "zscore_obp": 0.3333,
+        "zscore_k": 0.3333,
+        "zscore_obp": 0.2222,
         "zscore_qs": 0.2222,
-        "zscore_r": 0.6667,
+        "zscore_r": 0.4444,
         "zscore_rbi": 0.8889,
         "zscore_sb": 0.2222,
         "zscore_svhd": 0.5556,
-        "zscore_tb": 0.7778,
+        "zscore_tb": 0.6667,
         "zscore_whip": 0.2222
       },
-      "expected_wins": 4.667,
+      "expected_wins": 4.333,
       "roster_size": 25
     },
     "8": {
@@ -137,18 +309,18 @@
         "zscore_obp": 0.5556,
         "zscore_qs": 0.6667,
         "zscore_r": 0.2222,
-        "zscore_rbi": 0.4444,
+        "zscore_rbi": 0.3333,
         "zscore_sb": 0.4444,
         "zscore_svhd": 0.4444,
         "zscore_tb": 0.1111,
         "zscore_whip": 0.1111
       },
-      "expected_wins": 3.889,
+      "expected_wins": 3.778,
       "roster_size": 25
     },
     "9": {
       "cat_win_probs": {
-        "zscore_era": 0.3333,
+        "zscore_era": 0.4444,
         "zscore_k": 0.4444,
         "zscore_obp": 0.0,
         "zscore_qs": 0.3333,
@@ -157,7 +329,7 @@
         "zscore_sb": 0.0,
         "zscore_svhd": 0.1111,
         "zscore_tb": 0.0,
-        "zscore_whip": 0.6667
+        "zscore_whip": 0.5556
       },
       "expected_wins": 1.889,
       "roster_size": 25
@@ -165,5 +337,5 @@
   },
   "preseason_source": "thebatx",
   "season": 2026,
-  "season_elapsed_fraction": 0.7688
+  "season_elapsed_fraction": 1.0
 }
