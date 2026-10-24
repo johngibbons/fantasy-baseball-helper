@@ -70,6 +70,13 @@ POSITION_TO_SLOT = {
 # The pitcher discount is intentionally lighter than the hitting cluster
 # discount because pitchers already face a structural disadvantage from
 # contributing to only 4 of 5 pitching categories per player.
+#
+# Measured since, on league 77166 (fixtures/category_weights_<season>.json):
+# 2025 and 2026 agree, and several correlations above are off (K-QS ~.64,
+# K-ERA ~.10). Weights derived the same way differ from these by up to 0.09,
+# yet swapping them in ranked 2026 pitchers slightly worse, even scored on a
+# target built with the measured weights. Kept as shipped; see the category
+# weights section of RETROSPECTIVE_2026.md.
 H2H_CATEGORY_WEIGHTS = {
     # Hitting — R/TB/RBI cluster discounted, SB boosted
     "R": 0.92, "TB": 0.95, "RBI": 0.96, "SB": 1.15, "OBP": 1.02,
@@ -156,18 +163,19 @@ def _resolve_denominators(
 # either one alone, so mixing a hitter slope measured on one projection model
 # with a pitcher slope from another makes that ratio an artifact of the
 # difference between the models. Pairing the trend model's hitter slope (0.885)
-# with THE BAT X's pitcher slope (0.722) gives a ratio of 1.22 and moves 13
-# pitchers out of the top 100; the two values measured on the same 2026 board
-# give 1.05 and move 3. The second is a calibration correction; the first is
-# mostly a comparison of two forecasters.
+# with THE BAT X's pitcher slope (0.722 at 77% of 2026) gave a ratio of 1.22
+# and moved 13 pitchers out of the top 100; the two values measured on the same
+# board at that point gave 1.05 and moved 3. The second is a calibration
+# correction; the first is mostly a comparison of two forecasters.
 #
-# So these are both THE BAT X, 2026 -- the only pair measured on one board.
-# The 2013-2025 multi-season work is what gives confidence that the pitcher
-# effect is structural (below 1 in 11 of 11 seasons, on an unrelated model)
-# and that the hitter effect is weaker and less stable. It is evidence about
-# the numbers, not a source for them.
-RECOMMENDED_PITCHER_SHRINKAGE = 0.722
-RECOMMENDED_HITTER_SHRINKAGE = 0.759
+# So these are both THE BAT X over the full 2026 season -- the only pair
+# measured on one board. On final numbers the pools are equally over-dispersed
+# (ratio 1.00), so per-pool factors no longer rebalance hitters against
+# pitchers. The 2013-2025 multi-season work still shows pitchers below 1 in 11
+# of 11 seasons on an unrelated model, with hitters weaker and less stable;
+# that is evidence about the numbers, not a source for them.
+RECOMMENDED_PITCHER_SHRINKAGE = 0.748
+RECOMMENDED_HITTER_SHRINKAGE = 0.745
 
 
 def shrink_toward_mean(results: list[dict], factor: float,
@@ -185,8 +193,9 @@ def shrink_toward_mean(results: list[dict], factor: float,
     changes is the scale, and therefore:
 
       - how hitters interleave with pitchers on the combined board, which is
-        the point of applying it per pool -- pitchers over-disperse markedly
-        more than hitters, and a single factor for both would miss that;
+        the point of applying it per pool -- on the trend model pitchers
+        over-disperse markedly more than hitters, though on THE BAT X 2026 the
+        two pools match;
       - the size of every value *difference*, which is what keeper surplus,
         VONA and urgency are computed from.
 
@@ -194,15 +203,16 @@ def shrink_toward_mean(results: list[dict], factor: float,
     `ValuationConfig` are 1.0 -- off -- so this never changes a board unless a
     caller asks for it:
 
-      Pitchers: 0.722 measured on THE BAT X in 2026, and 0.699 pooled over
-        2013-2025 on a completely unrelated projection model, below 1 in every
-        one of eleven seasons. Two independent forecasters agreeing that
-        closely points at the valuation engine rather than the source.
+      Pitchers: 0.748 measured on THE BAT X over the full 2026 season, and
+        0.699 pooled over 2013-2025 on a completely unrelated projection model,
+        below 1 in every one of eleven seasons. Two independent forecasters
+        agreeing that closely points at the valuation engine rather than the
+        source.
 
-      Hitters: 0.759 on THE BAT X in 2026, but 0.885 over 2013-2025 on the
+      Hitters: 0.745 on THE BAT X in 2026, but 0.885 over 2013-2025 on the
         trend model, and above 1.0 in two of those seasons. The effect is real
-        on average and much weaker, and a factor chosen from one source may not
-        transfer. Apply cautiously.
+        on average and weaker on that model, and a factor chosen from one
+        source may not transfer. Apply cautiously.
 
     Both factors must be measured on the same board -- see the comment on
     RECOMMENDED_PITCHER_SHRINKAGE for why mixing sources corrupts the ratio

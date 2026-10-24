@@ -273,6 +273,14 @@ is untested here.
 **Conclusion**: keep the capability, leave it off. The calibration finding
 stands as a measurement — the board really does over-disperse, and pitchers
 much more than hitters — but acting on it does not measurably improve drafts.
+
+**Update, full 2026 season**: the slopes above were measured at 77% of the
+season. On final actuals THE BAT X gives 0.745 for hitters and 0.748 for
+pitchers — the same correction for both pools, so the per-pool rebalance this
+section tested is gone on the shipped source. "Pitchers much more than hitters"
+now rests on the trend model alone. The "uniform 0.74, both pools" row is
+effectively the final measurement, and it sits inside its interval too. No
+re-run needed; the conclusion is unchanged. See `RETROSPECTIVE_2026.md`.
 Contrast section 6, where a similarly-motivated calibration fix *did* show up in
 draft outcomes.
 
