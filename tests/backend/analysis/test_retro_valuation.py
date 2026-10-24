@@ -237,10 +237,15 @@ class TestFrozenLayerAArtifacts:
         """Mid-season levels are only comparable after pace adjustment."""
         accuracy = self._load("valuation_accuracy.json")
         assert accuracy["expost_board"] == "pace_adjusted"
-        # The uncorrected slope is kept for audit and must be the lower one.
+        # The uncorrected slope is kept for audit. Mid-season it must be the
+        # lower one; once the season is over, pacing is the identity.
+        complete = accuracy["season_elapsed_fraction"] >= 1.0
         for pool in ("hitters", "pitchers"):
             uncorrected = accuracy["partial_season_uncorrected"][pool]["ols_slope"]
-            assert uncorrected < accuracy[pool]["ols_slope"]
+            if complete:
+                assert uncorrected == pytest.approx(accuracy[pool]["ols_slope"])
+            else:
+                assert uncorrected < accuracy[pool]["ols_slope"]
 
     def test_every_ablation_reports_a_paired_interval(self):
         ablations = self._load("ablations.json")

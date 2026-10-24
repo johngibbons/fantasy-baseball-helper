@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-08-15",
+  "as_of": "2026-09-27",
   "by_adp_bucket": [
     {
       "adp_bucket": "0-50",
@@ -1958,7 +1958,7 @@
     }
   ],
   "season": 2026,
-  "season_elapsed_fraction": 0.7688,
+  "season_elapsed_fraction": 1.0,
   "sigma_model_comparison": {
     "best": "variable_py",
     "mean_abs_error": {

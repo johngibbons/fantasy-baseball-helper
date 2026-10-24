@@ -1,0 +1,122 @@
+{
+  "1": {
+    "zscore_era": 0.5,
+    "zscore_k": 0.722222,
+    "zscore_obp": 0.5,
+    "zscore_qs": 0.583333,
+    "zscore_r": 0.472222,
+    "zscore_rbi": 0.694444,
+    "zscore_sb": 0.472222,
+    "zscore_svhd": 0.805556,
+    "zscore_tb": 0.555556,
+    "zscore_whip": 0.5
+  },
+  "10": {
+    "zscore_era": 0.388889,
+    "zscore_k": 0.222222,
+    "zscore_obp": 0.333333,
+    "zscore_qs": 0.194444,
+    "zscore_r": 0.416667,
+    "zscore_rbi": 0.666667,
+    "zscore_sb": 0.111111,
+    "zscore_svhd": 0.416667,
+    "zscore_tb": 0.555556,
+    "zscore_whip": 0.388889
+  },
+  "2": {
+    "zscore_era": 0.555556,
+    "zscore_k": 0.416667,
+    "zscore_obp": 0.5,
+    "zscore_qs": 0.666667,
+    "zscore_r": 0.527778,
+    "zscore_rbi": 0.444444,
+    "zscore_sb": 0.777778,
+    "zscore_svhd": 0.694444,
+    "zscore_tb": 0.388889,
+    "zscore_whip": 0.611111
+  },
+  "3": {
+    "zscore_era": 0.444444,
+    "zscore_k": 0.805556,
+    "zscore_obp": 0.5,
+    "zscore_qs": 0.694444,
+    "zscore_r": 0.583333,
+    "zscore_rbi": 0.638889,
+    "zscore_sb": 0.777778,
+    "zscore_svhd": 0.055556,
+    "zscore_tb": 0.555556,
+    "zscore_whip": 0.611111
+  },
+  "4": {
+    "zscore_era": 0.444444,
+    "zscore_k": 0.583333,
+    "zscore_obp": 0.666667,
+    "zscore_qs": 0.638889,
+    "zscore_r": 0.666667,
+    "zscore_rbi": 0.305556,
+    "zscore_sb": 0.611111,
+    "zscore_svhd": 0.527778,
+    "zscore_tb": 0.5,
+    "zscore_whip": 0.444444
+  },
+  "5": {
+    "zscore_era": 0.5,
+    "zscore_k": 0.111111,
+    "zscore_obp": 0.555556,
+    "zscore_qs": 0.138889,
+    "zscore_r": 0.555556,
+    "zscore_rbi": 0.583333,
+    "zscore_sb": 0.388889,
+    "zscore_svhd": 0.388889,
+    "zscore_tb": 0.611111,
+    "zscore_whip": 0.555556
+  },
+  "6": {
+    "zscore_era": 0.444444,
+    "zscore_k": 0.611111,
+    "zscore_obp": 0.611111,
+    "zscore_qs": 0.472222,
+    "zscore_r": 0.666667,
+    "zscore_rbi": 0.611111,
+    "zscore_sb": 0.611111,
+    "zscore_svhd": 0.5,
+    "zscore_tb": 0.722222,
+    "zscore_whip": 0.555556
+  },
+  "7": {
+    "zscore_era": 0.5,
+    "zscore_k": 0.5,
+    "zscore_obp": 0.388889,
+    "zscore_qs": 0.527778,
+    "zscore_r": 0.611111,
+    "zscore_rbi": 0.333333,
+    "zscore_sb": 0.416667,
+    "zscore_svhd": 0.638889,
+    "zscore_tb": 0.555556,
+    "zscore_whip": 0.388889
+  },
+  "8": {
+    "zscore_era": 0.611111,
+    "zscore_k": 0.555556,
+    "zscore_obp": 0.611111,
+    "zscore_qs": 0.527778,
+    "zscore_r": 0.333333,
+    "zscore_rbi": 0.472222,
+    "zscore_sb": 0.527778,
+    "zscore_svhd": 0.555556,
+    "zscore_tb": 0.388889,
+    "zscore_whip": 0.5
+  },
+  "9": {
+    "zscore_era": 0.611111,
+    "zscore_k": 0.472222,
+    "zscore_obp": 0.333333,
+    "zscore_qs": 0.555556,
+    "zscore_r": 0.166667,
+    "zscore_rbi": 0.25,
+    "zscore_sb": 0.305556,
+    "zscore_svhd": 0.416667,
+    "zscore_tb": 0.166667,
+    "zscore_whip": 0.444444
+  }
+}

@@ -1,407 +1,407 @@
 {
-  "as_of": "2026-08-15",
+  "as_of": "2026-09-27",
   "expost_board": "pace_adjusted",
   "hitters": {
     "biggest_beats": [
       {
         "delta_by_category": {
-          "zscore_obp": 0.558,
-          "zscore_r": 3.176,
-          "zscore_rbi": 3.617,
+          "zscore_obp": 0.759,
+          "zscore_r": 3.209,
+          "zscore_rbi": 3.438,
           "zscore_sb": -0.017,
-          "zscore_tb": 4.415
+          "zscore_tb": 4.408
         },
-        "delta_replacement": -0.323,
-        "delta_total": 11.427,
+        "delta_replacement": -0.269,
+        "delta_total": 11.526,
         "mlb_id": 681198,
         "name": "TJ Rumfield",
         "projected_total": -11.455,
-        "realized_total": -0.028,
+        "realized_total": 0.071,
+        "unexplained": -0.002
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": 0.735,
+          "zscore_r": 3.452,
+          "zscore_rbi": 2.992,
+          "zscore_sb": 0.687,
+          "zscore_tb": 3.03
+        },
+        "delta_replacement": -0.269,
+        "delta_total": 10.628,
+        "mlb_id": 641343,
+        "name": "Jake Bauers",
+        "projected_total": -7.896,
+        "realized_total": 2.732,
         "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.619,
-          "zscore_r": 3.357,
-          "zscore_rbi": 3.109,
-          "zscore_sb": 0.761,
-          "zscore_tb": 3.181
+          "zscore_obp": 0.105,
+          "zscore_r": 2.346,
+          "zscore_rbi": 2.961,
+          "zscore_sb": 2.063,
+          "zscore_tb": 3.121
         },
-        "delta_replacement": -0.323,
-        "delta_total": 10.704,
-        "mlb_id": 641343,
-        "name": "Jake Bauers",
-        "projected_total": -7.896,
-        "realized_total": 2.808,
+        "delta_replacement": -0.211,
+        "delta_total": 10.385,
+        "mlb_id": 664983,
+        "name": "Jake McCarthy",
+        "projected_total": -6.2,
+        "realized_total": 4.185,
         "unexplained": -0.0
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.773,
-          "zscore_r": 3.828,
-          "zscore_rbi": 1.88,
-          "zscore_sb": 1.15,
-          "zscore_tb": 3.118
+          "zscore_obp": 0.639,
+          "zscore_r": 3.482,
+          "zscore_rbi": 2.34,
+          "zscore_sb": 0.775,
+          "zscore_tb": 3.304
         },
-        "delta_replacement": -0.323,
-        "delta_total": 10.426,
+        "delta_replacement": -0.269,
+        "delta_total": 10.272,
         "mlb_id": 805808,
         "name": "Kevin McGonigle",
         "projected_total": -7.391,
-        "realized_total": 3.035,
-        "unexplained": 0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": 0.273,
-          "zscore_r": 3.008,
-          "zscore_rbi": 2.889,
-          "zscore_sb": 0.788,
-          "zscore_tb": 3.201
-        },
-        "delta_replacement": -0.323,
-        "delta_total": 9.837,
-        "mlb_id": 678554,
-        "name": "Curtis Mead",
-        "projected_total": -11.33,
-        "realized_total": -1.493,
+        "realized_total": 2.881,
         "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.217,
-          "zscore_r": 2.636,
-          "zscore_rbi": 3.315,
-          "zscore_sb": 0.741,
-          "zscore_tb": 3.139
+          "zscore_obp": 0.168,
+          "zscore_r": 3.07,
+          "zscore_rbi": 2.676,
+          "zscore_sb": 0.822,
+          "zscore_tb": 3.44
         },
-        "delta_replacement": -0.323,
-        "delta_total": 9.724,
-        "mlb_id": 677649,
-        "name": "Ezequiel Duran",
-        "projected_total": -8.879,
-        "realized_total": 0.845,
+        "delta_replacement": -0.211,
+        "delta_total": 9.964,
+        "mlb_id": 671976,
+        "name": "Tristan Peters",
+        "projected_total": -11.655,
+        "realized_total": -1.691,
         "unexplained": -0.001
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.478,
-          "zscore_r": 2.773,
-          "zscore_rbi": 3.566,
-          "zscore_sb": 0.337,
-          "zscore_tb": 2.948
+          "zscore_obp": 0.184,
+          "zscore_r": 2.61,
+          "zscore_rbi": 3.303,
+          "zscore_sb": 0.771,
+          "zscore_tb": 3.133
         },
-        "delta_replacement": -0.457,
-        "delta_total": 9.645,
-        "mlb_id": 689414,
-        "name": "Liam Hicks",
-        "projected_total": -8.315,
-        "realized_total": 1.33,
+        "delta_replacement": -0.269,
+        "delta_total": 9.732,
+        "mlb_id": 677649,
+        "name": "Ezequiel Duran",
+        "projected_total": -8.879,
+        "realized_total": 0.853,
         "unexplained": -0.0
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.079,
-          "zscore_r": 2.058,
-          "zscore_rbi": 3.161,
-          "zscore_sb": 1.441,
-          "zscore_tb": 2.959
+          "zscore_obp": 0.099,
+          "zscore_r": 3.374,
+          "zscore_rbi": 2.367,
+          "zscore_sb": 1.45,
+          "zscore_tb": 3.026
         },
-        "delta_replacement": -0.278,
-        "delta_total": 9.42,
-        "mlb_id": 664983,
-        "name": "Jake McCarthy",
-        "projected_total": -6.2,
-        "realized_total": 3.22,
+        "delta_replacement": -0.586,
+        "delta_total": 9.729,
+        "mlb_id": 680869,
+        "name": "Zack Gelof",
+        "projected_total": -10.257,
+        "realized_total": -0.528,
+        "unexplained": -0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": -0.144,
+          "zscore_r": 3.065,
+          "zscore_rbi": 2.96,
+          "zscore_sb": 0.398,
+          "zscore_tb": 3.362
+        },
+        "delta_replacement": -0.269,
+        "delta_total": 9.371,
+        "mlb_id": 691723,
+        "name": "Coby Mayo",
+        "projected_total": -11.484,
+        "realized_total": -2.113,
+        "unexplained": -0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": 0.335,
+          "zscore_r": 2.706,
+          "zscore_rbi": 1.756,
+          "zscore_sb": 1.74,
+          "zscore_tb": 2.914
+        },
+        "delta_replacement": -0.211,
+        "delta_total": 9.239,
+        "mlb_id": 701807,
+        "name": "Carson Benge",
+        "projected_total": -6.59,
+        "realized_total": 2.649,
+        "unexplained": -0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": 0.187,
+          "zscore_r": 2.296,
+          "zscore_rbi": 2.361,
+          "zscore_sb": 1.843,
+          "zscore_tb": 2.834
+        },
+        "delta_replacement": -0.586,
+        "delta_total": 8.935,
+        "mlb_id": 683953,
+        "name": "Travis Bazzana",
+        "projected_total": -9.991,
+        "realized_total": -1.056,
         "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": -0.108,
+          "zscore_r": 2.614,
+          "zscore_rbi": 2.817,
+          "zscore_sb": 0.854,
+          "zscore_tb": 3.193
+        },
+        "delta_replacement": -0.586,
+        "delta_total": 8.785,
+        "mlb_id": 665019,
+        "name": "Kody Clemens",
+        "projected_total": -7.978,
+        "realized_total": 0.807,
+        "unexplained": 0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": -0.223,
+          "zscore_r": 2.767,
+          "zscore_rbi": 2.634,
+          "zscore_sb": 1.094,
+          "zscore_tb": 2.61
+        },
+        "delta_replacement": -0.211,
+        "delta_total": 8.671,
+        "mlb_id": 665750,
+        "name": "Leody Taveras",
+        "projected_total": -11.474,
+        "realized_total": -2.803,
+        "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": -0.121,
+          "zscore_r": 2.951,
+          "zscore_rbi": 3.136,
+          "zscore_sb": 0.291,
+          "zscore_tb": 2.996
+        },
+        "delta_replacement": -0.586,
+        "delta_total": 8.666,
+        "mlb_id": 545121,
+        "name": "Ildemaro Vargas",
+        "projected_total": -11.136,
+        "realized_total": -2.47,
+        "unexplained": -0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": 0.392,
+          "zscore_r": 2.247,
+          "zscore_rbi": 3.068,
+          "zscore_sb": 0.244,
+          "zscore_tb": 2.686
+        },
+        "delta_replacement": -0.35,
+        "delta_total": 8.287,
+        "mlb_id": 689414,
+        "name": "Liam Hicks",
+        "projected_total": -8.315,
+        "realized_total": -0.028,
+        "unexplained": 0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": 0.098,
+          "zscore_r": 2.199,
+          "zscore_rbi": 2.512,
+          "zscore_sb": 1.624,
+          "zscore_tb": 2.036
+        },
+        "delta_replacement": -0.211,
+        "delta_total": 8.259,
+        "mlb_id": 680700,
+        "name": "Richie Palacios",
+        "projected_total": -10.753,
+        "realized_total": -2.494,
+        "unexplained": 0.001
       },
       {
         "delta_by_category": {
           "zscore_obp": 0.126,
-          "zscore_r": 2.787,
-          "zscore_rbi": 2.61,
-          "zscore_sb": 0.801,
-          "zscore_tb": 3.232
+          "zscore_r": 1.81,
+          "zscore_rbi": 2.783,
+          "zscore_sb": 0.79,
+          "zscore_tb": 3.07
         },
-        "delta_replacement": -0.278,
-        "delta_total": 9.278,
-        "mlb_id": 671976,
-        "name": "Tristan Peters",
-        "projected_total": -11.655,
-        "realized_total": -2.377,
+        "delta_replacement": -0.586,
+        "delta_total": 7.993,
+        "mlb_id": 691594,
+        "name": "Javier Sanoja",
+        "projected_total": -9.113,
+        "realized_total": -1.12,
         "unexplained": -0.0
       },
       {
         "delta_by_category": {
-          "zscore_obp": -0.114,
-          "zscore_r": 2.856,
-          "zscore_rbi": 2.693,
-          "zscore_sb": 1.303,
-          "zscore_tb": 2.733
+          "zscore_obp": 0.391,
+          "zscore_r": 2.455,
+          "zscore_rbi": 2.225,
+          "zscore_sb": 0.716,
+          "zscore_tb": 2.32
         },
-        "delta_replacement": -0.278,
-        "delta_total": 9.193,
-        "mlb_id": 665750,
-        "name": "Leody Taveras",
-        "projected_total": -11.474,
-        "realized_total": -2.281,
-        "unexplained": -0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": -0.011,
-          "zscore_r": 2.844,
-          "zscore_rbi": 3.417,
-          "zscore_sb": 0.384,
-          "zscore_tb": 3.15
-        },
-        "delta_replacement": -0.64,
-        "delta_total": 9.144,
-        "mlb_id": 545121,
-        "name": "Ildemaro Vargas",
-        "projected_total": -11.136,
-        "realized_total": -1.992,
+        "delta_replacement": -0.211,
+        "delta_total": 7.896,
+        "mlb_id": 669003,
+        "name": "Garrett Mitchell",
+        "projected_total": -7.81,
+        "realized_total": 0.086,
         "unexplained": 0.0
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.309,
-          "zscore_r": 3.142,
-          "zscore_rbi": 2.23,
-          "zscore_sb": 0.581,
-          "zscore_tb": 2.748
+          "zscore_obp": 0.148,
+          "zscore_r": 2.051,
+          "zscore_rbi": 2.449,
+          "zscore_sb": 0.823,
+          "zscore_tb": 2.72
         },
-        "delta_replacement": -0.251,
-        "delta_total": 8.76,
-        "mlb_id": 691720,
-        "name": "Kyle Karros",
-        "projected_total": -9.827,
-        "realized_total": -1.067,
+        "delta_replacement": -0.586,
+        "delta_total": 7.604,
+        "mlb_id": 643289,
+        "name": "Mauricio Dub\u00f3n",
+        "projected_total": -7.638,
+        "realized_total": -0.034,
+        "unexplained": -0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": 0.214,
+          "zscore_r": 2.286,
+          "zscore_rbi": 2.195,
+          "zscore_sb": 0.601,
+          "zscore_tb": 2.427
+        },
+        "delta_replacement": -0.269,
+        "delta_total": 7.455,
+        "mlb_id": 678554,
+        "name": "Curtis Mead",
+        "projected_total": -11.33,
+        "realized_total": -3.875,
         "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.245,
-          "zscore_r": 2.508,
-          "zscore_rbi": 1.695,
-          "zscore_sb": 1.886,
-          "zscore_tb": 2.659
+          "zscore_obp": -0.175,
+          "zscore_r": 2.243,
+          "zscore_rbi": 2.093,
+          "zscore_sb": 0.88,
+          "zscore_tb": 2.437
         },
-        "delta_replacement": -0.278,
-        "delta_total": 8.715,
-        "mlb_id": 701807,
-        "name": "Carson Benge",
-        "projected_total": -6.59,
-        "realized_total": 2.125,
+        "delta_replacement": -0.211,
+        "delta_total": 7.268,
+        "mlb_id": 701675,
+        "name": "Nathan Church",
+        "projected_total": -10.505,
+        "realized_total": -3.237,
+        "unexplained": 0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": 0.208,
+          "zscore_r": 1.91,
+          "zscore_rbi": 2.02,
+          "zscore_sb": 1.454,
+          "zscore_tb": 1.813
+        },
+        "delta_replacement": -0.211,
+        "delta_total": 7.194,
+        "mlb_id": 691023,
+        "name": "Jordan Walker",
+        "projected_total": -1.926,
+        "realized_total": 5.268,
         "unexplained": -0.0
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.032,
-          "zscore_r": 1.885,
-          "zscore_rbi": 1.553,
-          "zscore_sb": 4.033,
-          "zscore_tb": 1.248
+          "zscore_obp": 0.167,
+          "zscore_r": 2.533,
+          "zscore_rbi": 1.834,
+          "zscore_sb": 0.425,
+          "zscore_tb": 2.435
         },
-        "delta_replacement": -0.323,
-        "delta_total": 8.428,
+        "delta_replacement": -0.269,
+        "delta_total": 7.125,
+        "mlb_id": 691720,
+        "name": "Kyle Karros",
+        "projected_total": -9.827,
+        "realized_total": -2.702,
+        "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": 0.08,
+          "zscore_r": 1.766,
+          "zscore_rbi": 0.758,
+          "zscore_sb": 3.402,
+          "zscore_tb": 1.317
+        },
+        "delta_replacement": -0.211,
+        "delta_total": 7.111,
+        "mlb_id": 665923,
+        "name": "Esteury Ruiz",
+        "projected_total": -11.338,
+        "realized_total": -4.227,
+        "unexplained": -0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": -0.151,
+          "zscore_r": 1.649,
+          "zscore_rbi": 1.205,
+          "zscore_sb": 3.718,
+          "zscore_tb": 0.935
+        },
+        "delta_replacement": -0.269,
+        "delta_total": 7.088,
         "mlb_id": 683083,
         "name": "Nasim Nu\u00f1ez",
         "projected_total": -7.824,
-        "realized_total": 0.604,
-        "unexplained": 0.0
+        "realized_total": -0.736,
+        "unexplained": 0.001
       },
       {
         "delta_by_category": {
           "zscore_obp": -0.08,
-          "zscore_r": 1.995,
-          "zscore_rbi": 2.43,
-          "zscore_sb": 1.091,
-          "zscore_tb": 3.213
+          "zscore_r": 1.652,
+          "zscore_rbi": 2.299,
+          "zscore_sb": 0.859,
+          "zscore_tb": 2.41
         },
-        "delta_replacement": -0.251,
-        "delta_total": 8.398,
-        "mlb_id": 669477,
-        "name": "Casey Schmitt",
-        "projected_total": -8.446,
-        "realized_total": -0.048,
-        "unexplained": -0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": 0.145,
-          "zscore_r": 2.446,
-          "zscore_rbi": 3.244,
-          "zscore_sb": -0.171,
-          "zscore_tb": 2.959
-        },
-        "delta_replacement": -0.457,
-        "delta_total": 8.165,
-        "mlb_id": 693307,
-        "name": "Dillon Dingler",
-        "projected_total": -5.621,
-        "realized_total": 2.544,
+        "delta_replacement": -0.211,
+        "delta_total": 6.928,
+        "mlb_id": 682657,
+        "name": "Angel Mart\u00ednez",
+        "projected_total": -9.237,
+        "realized_total": -2.309,
         "unexplained": -0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": -0.218,
-          "zscore_r": 2.493,
-          "zscore_rbi": 2.425,
-          "zscore_sb": 0.897,
-          "zscore_tb": 3.014
-        },
-        "delta_replacement": -0.64,
-        "delta_total": 7.97,
-        "mlb_id": 665019,
-        "name": "Kody Clemens",
-        "projected_total": -7.978,
-        "realized_total": -0.008,
-        "unexplained": -0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": 0.178,
-          "zscore_r": 1.91,
-          "zscore_rbi": 1.872,
-          "zscore_sb": 2.166,
-          "zscore_tb": 2.464
-        },
-        "delta_replacement": -0.64,
-        "delta_total": 7.95,
-        "mlb_id": 683953,
-        "name": "Travis Bazzana",
-        "projected_total": -9.991,
-        "realized_total": -2.041,
-        "unexplained": 0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": 0.235,
-          "zscore_r": 2.007,
-          "zscore_rbi": 0.628,
-          "zscore_sb": 3.653,
-          "zscore_tb": 1.412
-        },
-        "delta_replacement": -0.278,
-        "delta_total": 7.657,
-        "mlb_id": 665923,
-        "name": "Esteury Ruiz",
-        "projected_total": -11.338,
-        "realized_total": -3.681,
-        "unexplained": -0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": -0.302,
-          "zscore_r": 2.478,
-          "zscore_rbi": 2.745,
-          "zscore_sb": 0.253,
-          "zscore_tb": 2.795
-        },
-        "delta_replacement": -0.323,
-        "delta_total": 7.646,
-        "mlb_id": 691723,
-        "name": "Coby Mayo",
-        "projected_total": -11.484,
-        "realized_total": -3.838,
-        "unexplained": -0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": 0.029,
-          "zscore_r": 2.258,
-          "zscore_rbi": 2.754,
-          "zscore_sb": 0.595,
-          "zscore_tb": 2.642
-        },
-        "delta_replacement": -0.64,
-        "delta_total": 7.638,
-        "mlb_id": 643289,
-        "name": "Mauricio Dub\u00f3n",
-        "projected_total": -7.638,
-        "realized_total": 0.0,
-        "unexplained": -0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": 0.346,
-          "zscore_r": 2.015,
-          "zscore_rbi": 2.289,
-          "zscore_sb": 0.883,
-          "zscore_tb": 2.212
-        },
-        "delta_replacement": -0.278,
-        "delta_total": 7.466,
-        "mlb_id": 669003,
-        "name": "Garrett Mitchell",
-        "projected_total": -7.81,
-        "realized_total": -0.344,
-        "unexplained": -0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": 0.344,
-          "zscore_r": 1.746,
-          "zscore_rbi": 2.369,
-          "zscore_sb": 1.33,
-          "zscore_tb": 1.899
-        },
-        "delta_replacement": -0.278,
-        "delta_total": 7.411,
-        "mlb_id": 691023,
-        "name": "Jordan Walker",
-        "projected_total": -1.926,
-        "realized_total": 5.485,
-        "unexplained": 0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": 0.1,
-          "zscore_r": 1.656,
-          "zscore_rbi": 2.883,
-          "zscore_sb": 1.034,
-          "zscore_tb": 1.938
-        },
-        "delta_replacement": -0.251,
-        "delta_total": 7.361,
-        "mlb_id": 701398,
-        "name": "Sal Stewart",
-        "projected_total": -2.22,
-        "realized_total": 5.141,
-        "unexplained": 0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": 0.178,
-          "zscore_r": 2.645,
-          "zscore_rbi": 1.724,
-          "zscore_sb": 0.869,
-          "zscore_tb": 2.465
-        },
-        "delta_replacement": -0.64,
-        "delta_total": 7.241,
-        "mlb_id": 680869,
-        "name": "Zack Gelof",
-        "projected_total": -10.257,
-        "realized_total": -3.016,
-        "unexplained": -0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": 0.321,
-          "zscore_r": 1.972,
-          "zscore_rbi": 1.042,
-          "zscore_sb": 2.072,
-          "zscore_tb": 2.044
-        },
-        "delta_replacement": -0.278,
-        "delta_total": 7.174,
-        "mlb_id": 663968,
-        "name": "Jake Mangum",
-        "projected_total": -8.188,
-        "realized_total": -1.014,
-        "unexplained": 0.001
       }
     ],
     "biggest_misses": [
@@ -413,12 +413,28 @@
           "zscore_sb": -0.727,
           "zscore_tb": -4.169
         },
-        "delta_replacement": -0.251,
-        "delta_total": -12.07,
+        "delta_replacement": -0.269,
+        "delta_total": -12.088,
         "mlb_id": 676059,
         "name": "Jordan Westburg",
         "projected_total": 0.119,
-        "realized_total": -11.951,
+        "realized_total": -11.969,
+        "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": -0.784,
+          "zscore_r": -2.939,
+          "zscore_rbi": -3.799,
+          "zscore_sb": -0.312,
+          "zscore_tb": -3.68
+        },
+        "delta_replacement": -0.211,
+        "delta_total": -11.725,
+        "mlb_id": 592450,
+        "name": "Aaron Judge",
+        "projected_total": 6.899,
+        "realized_total": -4.826,
         "unexplained": -0.0
       },
       {
@@ -429,332 +445,300 @@
           "zscore_sb": -0.727,
           "zscore_tb": -3.716
         },
-        "delta_replacement": -0.278,
-        "delta_total": -11.661,
+        "delta_replacement": -0.211,
+        "delta_total": -11.594,
         "mlb_id": 595777,
         "name": "Jurickson Profar",
         "projected_total": -0.317,
-        "realized_total": -11.978,
+        "realized_total": -11.911,
         "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_obp": -0.287,
-          "zscore_r": -3.057,
-          "zscore_rbi": -3.101,
-          "zscore_sb": -0.665,
-          "zscore_tb": -3.308
+          "zscore_obp": -0.419,
+          "zscore_r": -3.38,
+          "zscore_rbi": -3.125,
+          "zscore_sb": -0.519,
+          "zscore_tb": -3.915
         },
-        "delta_replacement": -0.278,
-        "delta_total": -10.695,
-        "mlb_id": 701350,
-        "name": "Roman Anthony",
-        "projected_total": 0.99,
-        "realized_total": -9.705,
-        "unexplained": 0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": -0.455,
-          "zscore_r": -3.085,
-          "zscore_rbi": -2.706,
-          "zscore_sb": -0.457,
-          "zscore_tb": -3.534
-        },
-        "delta_replacement": -0.278,
-        "delta_total": -10.516,
+        "delta_replacement": -0.211,
+        "delta_total": -11.571,
         "mlb_id": 667670,
         "name": "Brent Rooker",
         "projected_total": 3.381,
-        "realized_total": -7.135,
-        "unexplained": -0.001
+        "realized_total": -8.19,
+        "unexplained": -0.002
       },
       {
         "delta_by_category": {
-          "zscore_obp": -0.66,
-          "zscore_r": -2.404,
-          "zscore_rbi": -3.394,
-          "zscore_sb": -0.156,
-          "zscore_tb": -3.185
+          "zscore_obp": -0.298,
+          "zscore_r": -2.548,
+          "zscore_rbi": -2.693,
+          "zscore_sb": -0.519,
+          "zscore_tb": -2.846
         },
-        "delta_replacement": -0.278,
-        "delta_total": -10.076,
-        "mlb_id": 592450,
-        "name": "Aaron Judge",
-        "projected_total": 6.899,
-        "realized_total": -3.177,
+        "delta_replacement": -0.586,
+        "delta_total": -9.489,
+        "mlb_id": 593871,
+        "name": "Jorge Polanco",
+        "projected_total": -1.574,
+        "realized_total": -11.063,
+        "unexplained": 0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": -0.225,
+          "zscore_r": -2.695,
+          "zscore_rbi": -2.26,
+          "zscore_sb": -0.831,
+          "zscore_tb": -2.9
+        },
+        "delta_replacement": -0.528,
+        "delta_total": -9.438,
+        "mlb_id": 663697,
+        "name": "Jonathan India",
+        "projected_total": -1.433,
+        "realized_total": -10.871,
         "unexplained": 0.001
       },
       {
         "delta_by_category": {
           "zscore_obp": -0.177,
-          "zscore_r": -2.724,
-          "zscore_rbi": -2.308,
-          "zscore_sb": -1.288,
-          "zscore_tb": -2.787
+          "zscore_r": -2.401,
+          "zscore_rbi": -2.404,
+          "zscore_sb": -1.35,
+          "zscore_tb": -2.719
         },
-        "delta_replacement": -0.278,
-        "delta_total": -9.562,
+        "delta_replacement": -0.211,
+        "delta_total": -9.262,
         "mlb_id": 687597,
         "name": "Jordan Beck",
         "projected_total": -0.385,
-        "realized_total": -9.947,
-        "unexplained": 0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": -0.201,
-          "zscore_r": -2.508,
-          "zscore_rbi": -2.082,
-          "zscore_sb": -1.641,
-          "zscore_tb": -2.773
-        },
-        "delta_replacement": -0.323,
-        "delta_total": -9.527,
-        "mlb_id": 596115,
-        "name": "Trevor Story",
-        "projected_total": 1.145,
-        "realized_total": -8.382,
-        "unexplained": 0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": -0.375,
-          "zscore_r": -2.445,
-          "zscore_rbi": -2.669,
-          "zscore_sb": -0.519,
-          "zscore_tb": -2.724
-        },
-        "delta_replacement": -0.64,
-        "delta_total": -9.372,
-        "mlb_id": 593871,
-        "name": "Jorge Polanco",
-        "projected_total": -1.574,
-        "realized_total": -10.946,
+        "realized_total": -9.647,
         "unexplained": -0.0
       },
       {
         "delta_by_category": {
-          "zscore_obp": -0.227,
-          "zscore_r": -2.577,
-          "zscore_rbi": -2.145,
-          "zscore_sb": -0.831,
-          "zscore_tb": -2.818
+          "zscore_obp": -0.306,
+          "zscore_r": -2.646,
+          "zscore_rbi": -2.693,
+          "zscore_sb": -0.727,
+          "zscore_tb": -2.61
         },
-        "delta_replacement": -0.568,
-        "delta_total": -9.165,
-        "mlb_id": 663697,
-        "name": "Jonathan India",
-        "projected_total": -1.433,
-        "realized_total": -10.598,
+        "delta_replacement": -0.211,
+        "delta_total": -9.192,
+        "mlb_id": 701350,
+        "name": "Roman Anthony",
+        "projected_total": 0.99,
+        "realized_total": -8.202,
         "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_obp": -0.094,
-          "zscore_r": -2.033,
-          "zscore_rbi": -2.847,
-          "zscore_sb": -0.695,
-          "zscore_tb": -3.06
+          "zscore_obp": -0.13,
+          "zscore_r": -2.352,
+          "zscore_rbi": -1.875,
+          "zscore_sb": -1.662,
+          "zscore_tb": -2.357
         },
-        "delta_replacement": -0.278,
-        "delta_total": -9.006,
-        "mlb_id": 686668,
-        "name": "Brenton Doyle",
-        "projected_total": 1.395,
-        "realized_total": -7.611,
+        "delta_replacement": -0.269,
+        "delta_total": -8.644,
+        "mlb_id": 596115,
+        "name": "Trevor Story",
+        "projected_total": 1.145,
+        "realized_total": -7.499,
         "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.031,
-          "zscore_r": -2.283,
-          "zscore_rbi": -1.534,
-          "zscore_sb": -2.742,
-          "zscore_tb": -2.117
+          "zscore_obp": 0.044,
+          "zscore_r": -2.465,
+          "zscore_rbi": -2.464,
+          "zscore_sb": -0.388,
+          "zscore_tb": -2.943
         },
-        "delta_replacement": -0.278,
-        "delta_total": -8.921,
+        "delta_replacement": -0.211,
+        "delta_total": -8.427,
+        "mlb_id": 680718,
+        "name": "Addison Barger",
+        "projected_total": -3.303,
+        "realized_total": -11.73,
+        "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": 0.056,
+          "zscore_r": -2.156,
+          "zscore_rbi": -1.347,
+          "zscore_sb": -2.804,
+          "zscore_tb": -1.885
+        },
+        "delta_replacement": -0.211,
+        "delta_total": -8.346,
         "mlb_id": 673357,
         "name": "Luis Robert Jr.",
         "projected_total": 0.598,
-        "realized_total": -8.323,
-        "unexplained": 0.002
+        "realized_total": -7.748,
+        "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_obp": -0.524,
-          "zscore_r": -2.361,
-          "zscore_rbi": -2.263,
-          "zscore_sb": -0.457,
-          "zscore_tb": -2.509
+          "zscore_obp": -0.084,
+          "zscore_r": -2.499,
+          "zscore_rbi": -2.212,
+          "zscore_sb": -0.415,
+          "zscore_tb": -2.502
         },
-        "delta_replacement": -0.457,
-        "delta_total": -8.572,
-        "mlb_id": 663728,
-        "name": "Cal Raleigh",
-        "projected_total": 3.154,
-        "realized_total": -5.418,
+        "delta_replacement": -0.586,
+        "delta_total": -8.298,
+        "mlb_id": 680977,
+        "name": "Brendan Donovan",
+        "projected_total": -1.104,
+        "realized_total": -9.402,
+        "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": -0.135,
+          "zscore_r": -1.911,
+          "zscore_rbi": -2.453,
+          "zscore_sb": -0.727,
+          "zscore_tb": -2.719
+        },
+        "delta_replacement": -0.211,
+        "delta_total": -8.155,
+        "mlb_id": 686668,
+        "name": "Brenton Doyle",
+        "projected_total": 1.395,
+        "realized_total": -6.76,
+        "unexplained": 0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": -0.102,
+          "zscore_r": -2.315,
+          "zscore_rbi": -1.575,
+          "zscore_sb": -1.486,
+          "zscore_tb": -2.251
+        },
+        "delta_replacement": -0.211,
+        "delta_total": -7.94,
+        "mlb_id": 664056,
+        "name": "Harrison Bader",
+        "projected_total": -2.345,
+        "realized_total": -10.285,
+        "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": -0.021,
+          "zscore_r": -2.107,
+          "zscore_rbi": -2.452,
+          "zscore_sb": -0.726,
+          "zscore_tb": -2.411
+        },
+        "delta_replacement": -0.211,
+        "delta_total": -7.929,
+        "mlb_id": 666969,
+        "name": "Adolis Garc\u00eda",
+        "projected_total": -0.468,
+        "realized_total": -8.397,
         "unexplained": -0.001
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.029,
-          "zscore_r": -2.436,
-          "zscore_rbi": -2.435,
-          "zscore_sb": -0.388,
-          "zscore_tb": -2.932
-        },
-        "delta_replacement": -0.251,
-        "delta_total": -8.412,
-        "mlb_id": 680718,
-        "name": "Addison Barger",
-        "projected_total": -3.303,
-        "realized_total": -11.715,
-        "unexplained": 0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": -0.121,
-          "zscore_r": -2.45,
-          "zscore_rbi": -2.182,
-          "zscore_sb": -0.384,
-          "zscore_tb": -2.409
-        },
-        "delta_replacement": -0.64,
-        "delta_total": -8.186,
-        "mlb_id": 680977,
-        "name": "Brendan Donovan",
-        "projected_total": -1.104,
-        "realized_total": -9.29,
-        "unexplained": 0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": -0.41,
-          "zscore_r": -2.208,
-          "zscore_rbi": -2.052,
-          "zscore_sb": -0.674,
-          "zscore_tb": -2.027
-        },
-        "delta_replacement": -0.278,
-        "delta_total": -7.649,
-        "mlb_id": 660670,
-        "name": "Ronald Acu\u00f1a Jr.",
-        "projected_total": 5.369,
-        "realized_total": -2.28,
-        "unexplained": 0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": -0.298,
-          "zscore_r": -2.111,
-          "zscore_rbi": -2.072,
-          "zscore_sb": -0.312,
-          "zscore_tb": -2.305
-        },
-        "delta_replacement": -0.457,
-        "delta_total": -7.554,
-        "mlb_id": 669257,
-        "name": "Will Smith",
-        "projected_total": 0.259,
-        "realized_total": -7.295,
-        "unexplained": 0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": -0.168,
-          "zscore_r": -2.168,
-          "zscore_rbi": -1.372,
-          "zscore_sb": -1.486,
-          "zscore_tb": -2.044
-        },
-        "delta_replacement": -0.278,
-        "delta_total": -7.516,
-        "mlb_id": 664056,
-        "name": "Harrison Bader",
-        "projected_total": -2.345,
-        "realized_total": -9.861,
-        "unexplained": 0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": -0.186,
-          "zscore_r": -1.983,
-          "zscore_rbi": -2.29,
+          "zscore_obp": -0.147,
+          "zscore_r": -2.189,
+          "zscore_rbi": -2.434,
           "zscore_sb": -0.399,
-          "zscore_tb": -2.314
+          "zscore_tb": -2.505
         },
-        "delta_replacement": -0.278,
-        "delta_total": -7.449,
+        "delta_replacement": -0.211,
+        "delta_total": -7.885,
         "mlb_id": 670242,
         "name": "Matt Wallner",
         "projected_total": -2.361,
-        "realized_total": -9.81,
-        "unexplained": 0.001
+        "realized_total": -10.246,
+        "unexplained": 0.0
       },
       {
         "delta_by_category": {
-          "zscore_obp": -0.085,
-          "zscore_r": -1.742,
-          "zscore_rbi": -1.701,
-          "zscore_sb": -1.776,
-          "zscore_tb": -1.771
+          "zscore_obp": -0.073,
+          "zscore_r": -2.009,
+          "zscore_rbi": -1.299,
+          "zscore_sb": -2.077,
+          "zscore_tb": -2.03
         },
-        "delta_replacement": -0.323,
-        "delta_total": -7.4,
-        "mlb_id": 596019,
-        "name": "Francisco Lindor",
-        "projected_total": 2.978,
-        "realized_total": -4.422,
-        "unexplained": -0.002
-      },
-      {
-        "delta_by_category": {
-          "zscore_obp": -0.15,
-          "zscore_r": -1.93,
-          "zscore_rbi": -1.25,
-          "zscore_sb": -1.921,
-          "zscore_tb": -1.811
-        },
-        "delta_replacement": -0.251,
-        "delta_total": -7.312,
+        "delta_replacement": -0.269,
+        "delta_total": -7.756,
         "mlb_id": 672580,
         "name": "Maikel Garcia",
         "projected_total": 2.319,
-        "realized_total": -4.993,
+        "realized_total": -5.437,
         "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.089,
-          "zscore_r": -1.808,
-          "zscore_rbi": -2.14,
-          "zscore_sb": -0.53,
-          "zscore_tb": -2.419
+          "zscore_obp": -0.196,
+          "zscore_r": -2.058,
+          "zscore_rbi": -2.068,
+          "zscore_sb": -0.727,
+          "zscore_tb": -2.429
         },
-        "delta_replacement": -0.457,
-        "delta_total": -7.263,
-        "mlb_id": 682663,
-        "name": "Agust\u00edn Ram\u00edrez",
-        "projected_total": -1.062,
-        "realized_total": -8.325,
-        "unexplained": 0.002
+        "delta_replacement": -0.211,
+        "delta_total": -7.688,
+        "mlb_id": 682622,
+        "name": "Noelvi Marte",
+        "projected_total": -1.042,
+        "realized_total": -8.73,
+        "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.138,
-          "zscore_r": -2.267,
-          "zscore_rbi": -1.63,
-          "zscore_sb": -0.826,
-          "zscore_tb": -2.197
+          "zscore_obp": -0.136,
+          "zscore_r": -2.254,
+          "zscore_rbi": -1.635,
+          "zscore_sb": -0.831,
+          "zscore_tb": -2.194
         },
-        "delta_replacement": -0.278,
-        "delta_total": -7.06,
+        "delta_replacement": -0.269,
+        "delta_total": -7.318,
+        "mlb_id": 656305,
+        "name": "Matt Chapman",
+        "projected_total": 1.161,
+        "realized_total": -6.157,
+        "unexplained": 0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": 0.14,
+          "zscore_r": -2.311,
+          "zscore_rbi": -1.659,
+          "zscore_sb": -0.919,
+          "zscore_tb": -2.262
+        },
+        "delta_replacement": -0.211,
+        "delta_total": -7.223,
         "mlb_id": 678009,
         "name": "Parker Meadows",
         "projected_total": -3.923,
-        "realized_total": -10.983,
+        "realized_total": -11.146,
+        "unexplained": -0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": -0.374,
+          "zscore_r": -2.107,
+          "zscore_rbi": -1.683,
+          "zscore_sb": -0.623,
+          "zscore_tb": -2.012
+        },
+        "delta_replacement": -0.211,
+        "delta_total": -7.01,
+        "mlb_id": 670770,
+        "name": "TJ Friedl",
+        "projected_total": -1.964,
+        "realized_total": -8.974,
         "unexplained": 0.0
       },
       {
@@ -765,555 +749,555 @@
           "zscore_sb": -0.368,
           "zscore_tb": -2.361
         },
-        "delta_replacement": -0.278,
-        "delta_total": -6.977,
+        "delta_replacement": -0.211,
+        "delta_total": -6.91,
         "mlb_id": 666158,
         "name": "Gavin Lux",
         "projected_total": -5.001,
-        "realized_total": -11.978,
+        "realized_total": -11.911,
         "unexplained": 0.0
       },
       {
         "delta_by_category": {
-          "zscore_obp": -0.081,
-          "zscore_r": -1.798,
-          "zscore_rbi": -2.148,
-          "zscore_sb": -0.633,
-          "zscore_tb": -1.997
+          "zscore_obp": -0.014,
+          "zscore_r": -1.96,
+          "zscore_rbi": -2.164,
+          "zscore_sb": 0.104,
+          "zscore_tb": -2.575
         },
-        "delta_replacement": -0.278,
-        "delta_total": -6.935,
-        "mlb_id": 666969,
-        "name": "Adolis Garc\u00eda",
-        "projected_total": -0.468,
-        "realized_total": -7.403,
-        "unexplained": 0.0
+        "delta_replacement": -0.269,
+        "delta_total": -6.877,
+        "mlb_id": 621043,
+        "name": "Carlos Correa",
+        "projected_total": -2.098,
+        "realized_total": -8.975,
+        "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_obp": 0.117,
-          "zscore_r": -1.905,
-          "zscore_rbi": -1.641,
-          "zscore_sb": -0.628,
-          "zscore_tb": -2.099
+          "zscore_obp": 0.034,
+          "zscore_r": -1.871,
+          "zscore_rbi": -1.084,
+          "zscore_sb": -1.825,
+          "zscore_tb": -1.759
         },
-        "delta_replacement": -0.64,
-        "delta_total": -6.796,
-        "mlb_id": 695681,
-        "name": "Christian Moore",
-        "projected_total": -5.114,
-        "realized_total": -11.91,
-        "unexplained": 0.0
+        "delta_replacement": -0.211,
+        "delta_total": -6.716,
+        "mlb_id": 687363,
+        "name": "Victor Scott II",
+        "projected_total": -1.985,
+        "realized_total": -8.701,
+        "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_obp": -0.359,
+          "zscore_r": -1.548,
+          "zscore_rbi": -1.714,
+          "zscore_sb": -0.926,
+          "zscore_tb": -1.899
+        },
+        "delta_replacement": -0.269,
+        "delta_total": -6.715,
+        "mlb_id": 663647,
+        "name": "Ke'Bryan Hayes",
+        "projected_total": -3.371,
+        "realized_total": -10.086,
+        "unexplained": -0.0
       }
     ],
     "mean_abs_delta_by_category": {
-      "zscore_obp": 0.1223,
-      "zscore_r": 0.7448,
-      "zscore_rbi": 0.741,
-      "zscore_sb": 0.3262,
-      "zscore_tb": 0.8129
+      "zscore_obp": 0.1168,
+      "zscore_r": 0.7359,
+      "zscore_rbi": 0.7213,
+      "zscore_sb": 0.3173,
+      "zscore_tb": 0.8038
     },
     "mean_delta_by_category": {
-      "zscore_obp": -0.0002,
-      "zscore_r": 0.1554,
-      "zscore_rbi": 0.1418,
-      "zscore_sb": 0.0478,
-      "zscore_tb": 0.1542
+      "zscore_obp": -0.0003,
+      "zscore_r": 0.1522,
+      "zscore_rbi": 0.1375,
+      "zscore_sb": 0.0393,
+      "zscore_tb": 0.1496
     },
-    "mean_delta_replacement": -0.3625,
-    "mean_unexplained": 0.0001,
+    "mean_delta_replacement": -0.3039,
+    "mean_unexplained": -0.0,
     "n": 660,
     "total_delta_by_category": {
-      "zscore_obp": -0.161,
-      "zscore_r": 102.553,
-      "zscore_rbi": 93.576,
-      "zscore_sb": 31.517,
-      "zscore_tb": 101.801
+      "zscore_obp": -0.178,
+      "zscore_r": 100.434,
+      "zscore_rbi": 90.736,
+      "zscore_sb": 25.92,
+      "zscore_tb": 98.744
     }
   },
   "pitchers": {
     "biggest_beats": [
       {
         "delta_by_category": {
-          "zscore_era": 0.53,
-          "zscore_k": 0.416,
+          "zscore_era": 0.41,
+          "zscore_k": 0.511,
           "zscore_qs": 0.0,
-          "zscore_svhd": 5.224,
-          "zscore_whip": 0.816
+          "zscore_svhd": 5.309,
+          "zscore_whip": 0.703
         },
-        "delta_replacement": -0.748,
-        "delta_total": 6.238,
+        "delta_replacement": -0.968,
+        "delta_total": 5.965,
         "mlb_id": 687330,
         "name": "Kevin Kelly",
         "projected_total": -4.493,
-        "realized_total": 1.745,
+        "realized_total": 1.472,
         "unexplained": 0.0
       },
       {
         "delta_by_category": {
-          "zscore_era": 1.131,
-          "zscore_k": 1.399,
-          "zscore_qs": 2.27,
+          "zscore_era": 1.197,
+          "zscore_k": 1.551,
+          "zscore_qs": 1.787,
           "zscore_svhd": 0.0,
-          "zscore_whip": 1.979
+          "zscore_whip": 1.424
         },
-        "delta_replacement": -0.663,
-        "delta_total": 5.415,
+        "delta_replacement": -0.313,
+        "delta_total": 5.646,
+        "mlb_id": 693645,
+        "name": "Cam Schlittler",
+        "projected_total": -1.436,
+        "realized_total": 4.21,
+        "unexplained": 0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.439,
+          "zscore_k": 0.111,
+          "zscore_qs": -0.126,
+          "zscore_svhd": 4.837,
+          "zscore_whip": 0.847
+        },
+        "delta_replacement": -1.105,
+        "delta_total": 5.003,
+        "mlb_id": 656641,
+        "name": "Jacob Latz",
+        "projected_total": -3.663,
+        "realized_total": 1.34,
+        "unexplained": 0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 1.079,
+          "zscore_k": 1.115,
+          "zscore_qs": 2.016,
+          "zscore_svhd": 0.0,
+          "zscore_whip": 1.744
+        },
+        "delta_replacement": -0.313,
+        "delta_total": 4.94,
         "mlb_id": 694819,
         "name": "Jacob Misiorowski",
         "projected_total": -0.622,
-        "realized_total": 4.793,
+        "realized_total": 4.318,
         "unexplained": -0.701
       },
       {
         "delta_by_category": {
-          "zscore_era": 0.509,
-          "zscore_k": -0.028,
+          "zscore_era": 0.518,
+          "zscore_k": -0.108,
           "zscore_qs": 0.0,
-          "zscore_svhd": 4.958,
-          "zscore_whip": 0.567
+          "zscore_svhd": 4.398,
+          "zscore_whip": 0.531
         },
-        "delta_replacement": -0.748,
-        "delta_total": 5.258,
+        "delta_replacement": -0.968,
+        "delta_total": 4.372,
         "mlb_id": 641329,
         "name": "Bryan Baker",
         "projected_total": -2.011,
-        "realized_total": 3.247,
-        "unexplained": -0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.511,
-          "zscore_k": -0.025,
-          "zscore_qs": -0.126,
-          "zscore_svhd": 4.766,
-          "zscore_whip": 0.953
-        },
-        "delta_replacement": -0.885,
-        "delta_total": 5.194,
-        "mlb_id": 656641,
-        "name": "Jacob Latz",
-        "projected_total": -3.663,
-        "realized_total": 1.531,
-        "unexplained": 0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 1.057,
-          "zscore_k": 1.643,
-          "zscore_qs": 1.705,
-          "zscore_svhd": 0.0,
-          "zscore_whip": 1.35
-        },
-        "delta_replacement": -0.663,
-        "delta_total": 5.091,
-        "mlb_id": 693645,
-        "name": "Cam Schlittler",
-        "projected_total": -1.436,
-        "realized_total": 3.655,
-        "unexplained": -0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.317,
-          "zscore_k": 0.917,
-          "zscore_qs": 0.0,
-          "zscore_svhd": 3.933,
-          "zscore_whip": 0.493
-        },
-        "delta_replacement": -0.748,
-        "delta_total": 4.912,
-        "mlb_id": 656848,
-        "name": "Michael Petersen",
-        "projected_total": -4.807,
-        "realized_total": 0.105,
-        "unexplained": -0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.404,
-          "zscore_k": 1.158,
-          "zscore_qs": 0.0,
-          "zscore_svhd": 2.86,
-          "zscore_whip": 0.44
-        },
-        "delta_replacement": -0.748,
-        "delta_total": 4.113,
-        "mlb_id": 800311,
-        "name": "Didier Fuentes",
-        "projected_total": -4.933,
-        "realized_total": -0.82,
-        "unexplained": -0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.377,
-          "zscore_k": 0.677,
-          "zscore_qs": 0.0,
-          "zscore_svhd": 3.133,
-          "zscore_whip": 0.508
-        },
-        "delta_replacement": -0.748,
-        "delta_total": 3.947,
-        "mlb_id": 666661,
-        "name": "Juan Morillo",
-        "projected_total": -4.548,
-        "realized_total": -0.601,
-        "unexplained": -0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.026,
-          "zscore_k": 0.648,
-          "zscore_qs": 0.0,
-          "zscore_svhd": 3.358,
-          "zscore_whip": 0.066
-        },
-        "delta_replacement": -0.748,
-        "delta_total": 3.35,
-        "mlb_id": 696147,
-        "name": "Sam Bachman",
-        "projected_total": -4.752,
-        "realized_total": -1.402,
-        "unexplained": 0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.075,
-          "zscore_k": 1.206,
-          "zscore_qs": 2.505,
-          "zscore_svhd": 0.0,
-          "zscore_whip": 0.193
-        },
-        "delta_replacement": -0.663,
-        "delta_total": 3.316,
-        "mlb_id": 693821,
-        "name": "Bryce Elder",
-        "projected_total": -3.978,
-        "realized_total": -0.662,
-        "unexplained": 0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.137,
-          "zscore_k": 0.54,
-          "zscore_qs": 0.0,
-          "zscore_svhd": 3.154,
-          "zscore_whip": 0.184
-        },
-        "delta_replacement": -0.748,
-        "delta_total": 3.268,
-        "mlb_id": 666277,
-        "name": "George Soriano",
-        "projected_total": -4.136,
-        "realized_total": -0.868,
+        "realized_total": 2.361,
         "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_era": 1.001,
-          "zscore_k": 0.099,
-          "zscore_qs": 1.91,
-          "zscore_svhd": 0.0,
-          "zscore_whip": 0.906
+          "zscore_era": 0.268,
+          "zscore_k": 0.939,
+          "zscore_qs": 0.0,
+          "zscore_svhd": 3.74,
+          "zscore_whip": 0.359
         },
-        "delta_replacement": -0.663,
-        "delta_total": 3.253,
-        "mlb_id": 607259,
-        "name": "Nick Martinez",
-        "projected_total": -3.534,
-        "realized_total": -0.281,
+        "delta_replacement": -0.968,
+        "delta_total": 4.338,
+        "mlb_id": 656848,
+        "name": "Michael Petersen",
+        "projected_total": -4.807,
+        "realized_total": -0.469,
         "unexplained": 0.0
       },
       {
         "delta_by_category": {
-          "zscore_era": 0.278,
-          "zscore_k": 1.037,
-          "zscore_qs": 2.404,
-          "zscore_svhd": -0.147,
-          "zscore_whip": 0.165
+          "zscore_era": 0.403,
+          "zscore_k": 1.223,
+          "zscore_qs": 0.0,
+          "zscore_svhd": 3.078,
+          "zscore_whip": 0.386
         },
-        "delta_replacement": -0.526,
-        "delta_total": 3.211,
-        "mlb_id": 669372,
-        "name": "J.T. Ginn",
-        "projected_total": -3.895,
-        "realized_total": -0.684,
+        "delta_replacement": -0.968,
+        "delta_total": 4.122,
+        "mlb_id": 800311,
+        "name": "Didier Fuentes",
+        "projected_total": -4.933,
+        "realized_total": -0.811,
+        "unexplained": 0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.716,
+          "zscore_k": 0.403,
+          "zscore_qs": 0.0,
+          "zscore_svhd": 3.371,
+          "zscore_whip": 0.56
+        },
+        "delta_replacement": -0.968,
+        "delta_total": 4.083,
+        "mlb_id": 686973,
+        "name": "Louis Varland",
+        "projected_total": -1.534,
+        "realized_total": 2.549,
+        "unexplained": 0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.424,
+          "zscore_k": 0.791,
+          "zscore_qs": 2.19,
+          "zscore_svhd": 0.0,
+          "zscore_whip": 0.928
+        },
+        "delta_replacement": -0.313,
+        "delta_total": 4.02,
+        "mlb_id": 672282,
+        "name": "Reid Detmers",
+        "projected_total": -2.28,
+        "realized_total": 1.74,
         "unexplained": -0.0
       },
       {
         "delta_by_category": {
-          "zscore_era": 0.771,
-          "zscore_k": 1.321,
-          "zscore_qs": 0.873,
+          "zscore_era": 0.812,
+          "zscore_k": 1.433,
+          "zscore_qs": 1.258,
           "zscore_svhd": 0.0,
-          "zscore_whip": 0.893
+          "zscore_whip": 0.793
         },
-        "delta_replacement": -0.663,
-        "delta_total": 3.195,
+        "delta_replacement": -0.313,
+        "delta_total": 3.982,
         "mlb_id": 800048,
         "name": "Parker Messick",
         "projected_total": -2.427,
-        "realized_total": 0.768,
+        "realized_total": 1.555,
+        "unexplained": -0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.201,
+          "zscore_k": 1.716,
+          "zscore_qs": 2.123,
+          "zscore_svhd": 0.0,
+          "zscore_whip": 0.253
+        },
+        "delta_replacement": -0.313,
+        "delta_total": 3.98,
+        "mlb_id": 671737,
+        "name": "Taj Bradley",
+        "projected_total": -3.444,
+        "realized_total": 0.536,
         "unexplained": -0.0
       },
       {
         "delta_by_category": {
-          "zscore_era": 0.428,
-          "zscore_k": 0.83,
-          "zscore_qs": 1.892,
+          "zscore_era": 0.815,
+          "zscore_k": 0.2,
+          "zscore_qs": 2.194,
           "zscore_svhd": 0.0,
-          "zscore_whip": 0.665
+          "zscore_whip": 0.92
         },
-        "delta_replacement": -0.663,
-        "delta_total": 3.152,
-        "mlb_id": 656492,
-        "name": "Foster Griffin",
-        "projected_total": -2.754,
-        "realized_total": 0.398,
-        "unexplained": 0.0
+        "delta_replacement": -0.313,
+        "delta_total": 3.817,
+        "mlb_id": 607259,
+        "name": "Nick Martinez",
+        "projected_total": -3.534,
+        "realized_total": 0.283,
+        "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_era": 0.97,
-          "zscore_k": 0.395,
-          "zscore_qs": 1.912,
-          "zscore_svhd": 0.0,
-          "zscore_whip": 0.523
-        },
-        "delta_replacement": -0.663,
-        "delta_total": 3.137,
-        "mlb_id": 593958,
-        "name": "Eduardo Rodriguez",
-        "projected_total": -2.208,
-        "realized_total": 0.929,
-        "unexplained": 0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.397,
-          "zscore_k": 0.167,
+          "zscore_era": 0.437,
+          "zscore_k": 0.649,
           "zscore_qs": 0.0,
-          "zscore_svhd": 2.509,
-          "zscore_whip": 0.713
+          "zscore_svhd": 3.563,
+          "zscore_whip": 0.112
         },
-        "delta_replacement": -0.748,
-        "delta_total": 3.037,
-        "mlb_id": 669276,
-        "name": "Dylan Lee",
-        "projected_total": -0.911,
-        "realized_total": 2.126,
-        "unexplained": -0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.053,
-          "zscore_k": 1.601,
-          "zscore_qs": 2.007,
-          "zscore_svhd": 0.0,
-          "zscore_whip": -0.023
-        },
-        "delta_replacement": -0.663,
-        "delta_total": 2.974,
-        "mlb_id": 671737,
-        "name": "Taj Bradley",
-        "projected_total": -3.444,
-        "realized_total": -0.47,
-        "unexplained": -0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.238,
-          "zscore_k": 0.382,
-          "zscore_qs": 0.0,
-          "zscore_svhd": 2.775,
-          "zscore_whip": 0.301
-        },
-        "delta_replacement": -0.748,
-        "delta_total": 2.947,
-        "mlb_id": 676775,
-        "name": "Keaton Winn",
-        "projected_total": -4.707,
-        "realized_total": -1.76,
-        "unexplained": -0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.401,
-          "zscore_k": 0.492,
-          "zscore_qs": 0.0,
-          "zscore_svhd": 1.99,
-          "zscore_whip": 0.65
-        },
-        "delta_replacement": -0.748,
-        "delta_total": 2.785,
-        "mlb_id": 670059,
-        "name": "Colin Holderman",
-        "projected_total": -4.593,
-        "realized_total": -1.808,
-        "unexplained": 0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.579,
-          "zscore_k": -0.084,
-          "zscore_qs": 0.0,
-          "zscore_svhd": 2.788,
-          "zscore_whip": 0.197
-        },
-        "delta_replacement": -0.748,
-        "delta_total": 2.73,
-        "mlb_id": 643511,
-        "name": "Tyler Rogers",
-        "projected_total": -1.232,
-        "realized_total": 1.498,
+        "delta_replacement": -0.968,
+        "delta_total": 3.791,
+        "mlb_id": 687396,
+        "name": "Brent Headrick",
+        "projected_total": -3.418,
+        "realized_total": 0.373,
         "unexplained": -0.002
       },
       {
         "delta_by_category": {
-          "zscore_era": 0.198,
-          "zscore_k": 1.57,
-          "zscore_qs": 1.234,
-          "zscore_svhd": 0.0,
-          "zscore_whip": 0.348
+          "zscore_era": 0.389,
+          "zscore_k": 0.658,
+          "zscore_qs": 0.0,
+          "zscore_svhd": 3.117,
+          "zscore_whip": 0.448
         },
-        "delta_replacement": -0.663,
-        "delta_total": 2.687,
-        "mlb_id": 690986,
-        "name": "Kyle Harrison",
-        "projected_total": -4.273,
-        "realized_total": -1.586,
-        "unexplained": -0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.637,
-          "zscore_k": 0.497,
-          "zscore_qs": 0.993,
-          "zscore_svhd": 0.0,
-          "zscore_whip": 1.222
-        },
-        "delta_replacement": -0.663,
-        "delta_total": 2.685,
-        "mlb_id": 656876,
-        "name": "Drew Rasmussen",
-        "projected_total": -1.027,
-        "realized_total": 1.658,
+        "delta_replacement": -0.968,
+        "delta_total": 3.643,
+        "mlb_id": 666661,
+        "name": "Juan Morillo",
+        "projected_total": -4.548,
+        "realized_total": -0.905,
         "unexplained": -0.001
       },
       {
         "delta_by_category": {
-          "zscore_era": 0.346,
-          "zscore_k": 0.102,
-          "zscore_qs": 0.0,
-          "zscore_svhd": 2.407,
-          "zscore_whip": 0.536
+          "zscore_era": 0.554,
+          "zscore_k": 1.275,
+          "zscore_qs": 1.39,
+          "zscore_svhd": 0.0,
+          "zscore_whip": 0.518
         },
-        "delta_replacement": -0.748,
-        "delta_total": 2.643,
-        "mlb_id": 656945,
-        "name": "Tanner Scott",
-        "projected_total": -0.893,
-        "realized_total": 1.75,
+        "delta_replacement": -0.313,
+        "delta_total": 3.424,
+        "mlb_id": 676917,
+        "name": "Cade Cavalli",
+        "projected_total": -1.872,
+        "realized_total": 1.552,
         "unexplained": -0.0
       },
       {
         "delta_by_category": {
-          "zscore_era": 0.38,
-          "zscore_k": 1.227,
-          "zscore_qs": 1.425,
+          "zscore_era": 0.726,
+          "zscore_k": 0.511,
+          "zscore_qs": 1.176,
           "zscore_svhd": 0.0,
-          "zscore_whip": 0.22
+          "zscore_whip": 1.271
         },
-        "delta_replacement": -0.663,
-        "delta_total": 2.589,
-        "mlb_id": 676917,
-        "name": "Cade Cavalli",
-        "projected_total": -1.872,
-        "realized_total": 0.717,
+        "delta_replacement": -0.313,
+        "delta_total": 3.37,
+        "mlb_id": 656876,
+        "name": "Drew Rasmussen",
+        "projected_total": -1.027,
+        "realized_total": 2.343,
+        "unexplained": -0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.671,
+          "zscore_k": 0.578,
+          "zscore_qs": 1.344,
+          "zscore_svhd": 0.0,
+          "zscore_whip": 0.87
+        },
+        "delta_replacement": -0.313,
+        "delta_total": 3.149,
+        "mlb_id": 608379,
+        "name": "Michael Wacha",
+        "projected_total": -1.45,
+        "realized_total": 1.699,
+        "unexplained": -0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.473,
+          "zscore_k": 1.019,
+          "zscore_qs": 1.306,
+          "zscore_svhd": 0.0,
+          "zscore_whip": 0.599
+        },
+        "delta_replacement": -0.313,
+        "delta_total": 3.084,
+        "mlb_id": 615698,
+        "name": "Cal Quantrill",
+        "projected_total": -4.806,
+        "realized_total": -1.722,
+        "unexplained": 0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.861,
+          "zscore_k": 0.464,
+          "zscore_qs": 1.608,
+          "zscore_svhd": 0.0,
+          "zscore_whip": 0.401
+        },
+        "delta_replacement": -0.313,
+        "delta_total": 3.021,
+        "mlb_id": 593958,
+        "name": "Eduardo Rodriguez",
+        "projected_total": -2.208,
+        "realized_total": 0.813,
         "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.042,
+          "zscore_k": 0.945,
+          "zscore_qs": 2.184,
+          "zscore_svhd": 0.0,
+          "zscore_whip": 0.125
+        },
+        "delta_replacement": -0.313,
+        "delta_total": 2.983,
+        "mlb_id": 693821,
+        "name": "Bryce Elder",
+        "projected_total": -3.978,
+        "realized_total": -0.995,
+        "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.231,
+          "zscore_k": 0.215,
+          "zscore_qs": 0.0,
+          "zscore_svhd": 2.785,
+          "zscore_whip": 0.529
+        },
+        "delta_replacement": -0.968,
+        "delta_total": 2.792,
+        "mlb_id": 670329,
+        "name": "Rico Garcia",
+        "projected_total": -2.765,
+        "realized_total": 0.027,
+        "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.233,
+          "zscore_k": 0.769,
+          "zscore_qs": 1.79,
+          "zscore_svhd": 0.0,
+          "zscore_whip": 0.275
+        },
+        "delta_replacement": -0.313,
+        "delta_total": 2.754,
+        "mlb_id": 656492,
+        "name": "Foster Griffin",
+        "projected_total": -2.754,
+        "realized_total": 0.0,
+        "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.004,
+          "zscore_k": 0.501,
+          "zscore_qs": 0.0,
+          "zscore_svhd": 3.196,
+          "zscore_whip": -0.035
+        },
+        "delta_replacement": -0.968,
+        "delta_total": 2.698,
+        "mlb_id": 666277,
+        "name": "George Soriano",
+        "projected_total": -4.136,
+        "realized_total": -1.438,
+        "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.107,
+          "zscore_k": 0.482,
+          "zscore_qs": 0.0,
+          "zscore_svhd": 2.971,
+          "zscore_whip": 0.039
+        },
+        "delta_replacement": -0.968,
+        "delta_total": 2.631,
+        "mlb_id": 689254,
+        "name": "Mason Fluharty",
+        "projected_total": -4.278,
+        "realized_total": -1.647,
+        "unexplained": -0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.32,
+          "zscore_k": 0.196,
+          "zscore_qs": 0.0,
+          "zscore_svhd": 2.38,
+          "zscore_whip": 0.689
+        },
+        "delta_replacement": -0.968,
+        "delta_total": 2.617,
+        "mlb_id": 805299,
+        "name": "Brandyn Garcia",
+        "projected_total": -3.315,
+        "realized_total": -0.698,
+        "unexplained": 0.0
       }
     ],
     "biggest_misses": [
       {
         "delta_by_category": {
-          "zscore_era": -0.413,
-          "zscore_k": -0.904,
+          "zscore_era": -0.363,
+          "zscore_k": -0.86,
           "zscore_qs": 0.0,
-          "zscore_svhd": -4.528,
-          "zscore_whip": -0.59
+          "zscore_svhd": -4.837,
+          "zscore_whip": -0.476
         },
-        "delta_replacement": -0.748,
-        "delta_total": -7.183,
+        "delta_replacement": -0.968,
+        "delta_total": -7.503,
         "mlb_id": 621242,
         "name": "Edwin D\u00edaz",
         "projected_total": 2.47,
-        "realized_total": -4.713,
-        "unexplained": -0.0
+        "realized_total": -5.033,
+        "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_era": -0.724,
-          "zscore_k": -2.134,
-          "zscore_qs": -1.696,
-          "zscore_svhd": 0.0,
-          "zscore_whip": -0.804
-        },
-        "delta_replacement": -0.663,
-        "delta_total": -6.721,
-        "mlb_id": 676979,
-        "name": "Garrett Crochet",
-        "projected_total": 2.11,
-        "realized_total": -4.611,
-        "unexplained": -0.7
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": -0.596,
-          "zscore_k": -2.217,
-          "zscore_qs": -1.747,
-          "zscore_svhd": 0.0,
-          "zscore_whip": -0.585
-        },
-        "delta_replacement": -0.663,
-        "delta_total": -6.508,
-        "mlb_id": 668881,
-        "name": "Hunter Greene",
-        "projected_total": 1.669,
-        "realized_total": -4.839,
-        "unexplained": -0.7
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": 0.005,
+          "zscore_era": -0.096,
           "zscore_k": -0.752,
           "zscore_qs": 0.0,
           "zscore_svhd": -4.983,
-          "zscore_whip": -0.018
+          "zscore_whip": -0.092
         },
-        "delta_replacement": -0.748,
-        "delta_total": -6.497,
+        "delta_replacement": -0.968,
+        "delta_total": -6.892,
         "mlb_id": 608032,
         "name": "Carlos Est\u00e9vez",
         "projected_total": 0.693,
-        "realized_total": -5.804,
+        "realized_total": -6.199,
         "unexplained": -0.001
       },
       {
         "delta_by_category": {
-          "zscore_era": -0.214,
-          "zscore_k": -1.919,
-          "zscore_qs": -2.184,
+          "zscore_era": -0.663,
+          "zscore_k": -2.284,
+          "zscore_qs": -1.848,
           "zscore_svhd": 0.0,
-          "zscore_whip": -0.296
+          "zscore_whip": -0.764
         },
-        "delta_replacement": -0.885,
-        "delta_total": -6.197,
-        "mlb_id": 601713,
-        "name": "Nick Pivetta",
-        "projected_total": 1.014,
-        "realized_total": -5.183,
+        "delta_replacement": -0.313,
+        "delta_total": -6.571,
+        "mlb_id": 676979,
+        "name": "Garrett Crochet",
+        "projected_total": 2.11,
+        "realized_total": -4.461,
         "unexplained": -0.699
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": -0.531,
+          "zscore_k": -2.351,
+          "zscore_qs": -1.848,
+          "zscore_svhd": 0.0,
+          "zscore_whip": -0.568
+        },
+        "delta_replacement": -0.313,
+        "delta_total": -6.311,
+        "mlb_id": 668881,
+        "name": "Hunter Greene",
+        "projected_total": 1.669,
+        "realized_total": -4.642,
+        "unexplained": -0.7
       },
       {
         "delta_by_category": {
@@ -1323,29 +1307,29 @@
           "zscore_svhd": 0.0,
           "zscore_whip": -0.195
         },
-        "delta_replacement": -0.885,
-        "delta_total": -5.941,
+        "delta_replacement": -1.105,
+        "delta_total": -6.161,
         "mlb_id": 641154,
         "name": "Pablo L\u00f3pez",
         "projected_total": 0.247,
-        "realized_total": -5.694,
+        "realized_total": -5.914,
         "unexplained": -0.7
       },
       {
         "delta_by_category": {
-          "zscore_era": 0.011,
-          "zscore_k": -0.702,
-          "zscore_qs": 0.0,
-          "zscore_svhd": -4.118,
-          "zscore_whip": -0.105
+          "zscore_era": -0.057,
+          "zscore_k": -1.774,
+          "zscore_qs": -2.184,
+          "zscore_svhd": 0.0,
+          "zscore_whip": -0.147
         },
-        "delta_replacement": -0.748,
-        "delta_total": -5.662,
-        "mlb_id": 694037,
-        "name": "Daniel Palencia",
-        "projected_total": 0.968,
-        "realized_total": -4.694,
-        "unexplained": 0.0
+        "delta_replacement": -1.105,
+        "delta_total": -5.967,
+        "mlb_id": 601713,
+        "name": "Nick Pivetta",
+        "projected_total": 1.014,
+        "realized_total": -4.953,
+        "unexplained": -0.7
       },
       {
         "delta_by_category": {
@@ -1355,61 +1339,61 @@
           "zscore_svhd": -3.518,
           "zscore_whip": -0.09
         },
-        "delta_replacement": -0.748,
-        "delta_total": -5.549,
+        "delta_replacement": -0.968,
+        "delta_total": -5.769,
         "mlb_id": 670955,
         "name": "Edwin Uceta",
         "projected_total": -0.145,
-        "realized_total": -5.694,
-        "unexplained": -0.0
+        "realized_total": -5.914,
+        "unexplained": 0.0
       },
       {
         "delta_by_category": {
-          "zscore_era": -0.451,
-          "zscore_k": -1.74,
-          "zscore_qs": -1.192,
-          "zscore_svhd": 0.0,
-          "zscore_whip": -0.631
+          "zscore_era": -0.108,
+          "zscore_k": -0.672,
+          "zscore_qs": 0.0,
+          "zscore_svhd": -3.664,
+          "zscore_whip": -0.168
         },
-        "delta_replacement": -0.663,
-        "delta_total": -5.376,
+        "delta_replacement": -0.968,
+        "delta_total": -5.58,
+        "mlb_id": 664854,
+        "name": "Ryan Helsley",
+        "projected_total": 1.096,
+        "realized_total": -4.484,
+        "unexplained": 0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": -0.042,
+          "zscore_k": -0.631,
+          "zscore_qs": 0.0,
+          "zscore_svhd": -3.811,
+          "zscore_whip": -0.01
+        },
+        "delta_replacement": -0.968,
+        "delta_total": -5.462,
+        "mlb_id": 694037,
+        "name": "Daniel Palencia",
+        "projected_total": 0.968,
+        "realized_total": -4.494,
+        "unexplained": 0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": -0.426,
+          "zscore_k": -1.921,
+          "zscore_qs": -1.344,
+          "zscore_svhd": 0.0,
+          "zscore_whip": -0.597
+        },
+        "delta_replacement": -0.313,
+        "delta_total": -5.3,
         "mlb_id": 666142,
         "name": "Cole Ragans",
         "projected_total": 1.086,
-        "realized_total": -4.29,
+        "realized_total": -4.214,
         "unexplained": -0.699
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": -0.364,
-          "zscore_k": -0.528,
-          "zscore_qs": 0.0,
-          "zscore_svhd": -3.107,
-          "zscore_whip": -0.32
-        },
-        "delta_replacement": -0.748,
-        "delta_total": -5.066,
-        "mlb_id": 676254,
-        "name": "Ryan Walker",
-        "projected_total": 0.173,
-        "realized_total": -4.893,
-        "unexplained": 0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": -0.187,
-          "zscore_k": -1.743,
-          "zscore_qs": -2.016,
-          "zscore_svhd": 0.0,
-          "zscore_whip": -0.218
-        },
-        "delta_replacement": -0.885,
-        "delta_total": -5.048,
-        "mlb_id": 681343,
-        "name": "Shane Smith",
-        "projected_total": -0.93,
-        "realized_total": -5.978,
-        "unexplained": 0.001
       },
       {
         "delta_by_category": {
@@ -1419,61 +1403,45 @@
           "zscore_svhd": 0.0,
           "zscore_whip": -0.029
         },
-        "delta_replacement": -0.885,
-        "delta_total": -5.034,
+        "delta_replacement": -1.105,
+        "delta_total": -5.254,
         "mlb_id": 686752,
         "name": "Ryan Pepiot",
         "projected_total": -0.66,
-        "realized_total": -5.694,
+        "realized_total": -5.914,
         "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_era": -0.279,
-          "zscore_k": -1.776,
-          "zscore_qs": -1.405,
-          "zscore_svhd": 0.0,
-          "zscore_whip": -0.187
+          "zscore_era": -0.329,
+          "zscore_k": -0.551,
+          "zscore_qs": 0.0,
+          "zscore_svhd": -3.078,
+          "zscore_whip": -0.316
         },
-        "delta_replacement": -0.663,
-        "delta_total": -5.01,
-        "mlb_id": 605483,
-        "name": "Blake Snell",
-        "projected_total": -0.031,
-        "realized_total": -5.041,
-        "unexplained": -0.7
+        "delta_replacement": -0.968,
+        "delta_total": -5.241,
+        "mlb_id": 676254,
+        "name": "Ryan Walker",
+        "projected_total": 0.173,
+        "realized_total": -5.068,
+        "unexplained": 0.001
       },
       {
         "delta_by_category": {
-          "zscore_era": -0.101,
-          "zscore_k": -0.587,
-          "zscore_qs": 0.0,
-          "zscore_svhd": -3.312,
+          "zscore_era": -0.147,
+          "zscore_k": -1.787,
+          "zscore_qs": -2.016,
+          "zscore_svhd": 0.0,
           "zscore_whip": -0.168
         },
-        "delta_replacement": -0.748,
-        "delta_total": -4.916,
-        "mlb_id": 664854,
-        "name": "Ryan Helsley",
-        "projected_total": 1.096,
-        "realized_total": -3.82,
-        "unexplained": -0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": -0.851,
-          "zscore_k": -0.949,
-          "zscore_qs": -1.696,
-          "zscore_svhd": 0.0,
-          "zscore_whip": -0.698
-        },
-        "delta_replacement": -0.663,
-        "delta_total": -4.858,
-        "mlb_id": 668678,
-        "name": "Zac Gallen",
-        "projected_total": -0.597,
-        "realized_total": -5.455,
-        "unexplained": -0.001
+        "delta_replacement": -1.105,
+        "delta_total": -5.222,
+        "mlb_id": 681343,
+        "name": "Shane Smith",
+        "projected_total": -0.93,
+        "realized_total": -6.152,
+        "unexplained": 0.001
       },
       {
         "delta_by_category": {
@@ -1483,77 +1451,29 @@
           "zscore_svhd": 0.0,
           "zscore_whip": 0.016
         },
-        "delta_replacement": -0.885,
-        "delta_total": -4.724,
+        "delta_replacement": -1.105,
+        "delta_total": -4.944,
         "mlb_id": 682990,
         "name": "Quinn Priester",
         "projected_total": -0.97,
-        "realized_total": -5.694,
+        "realized_total": -5.914,
         "unexplained": -0.001
       },
       {
         "delta_by_category": {
-          "zscore_era": -0.021,
-          "zscore_k": -0.768,
+          "zscore_era": -0.525,
+          "zscore_k": -0.349,
           "zscore_qs": 0.0,
-          "zscore_svhd": -2.99,
-          "zscore_whip": -0.128
+          "zscore_svhd": -2.492,
+          "zscore_whip": -0.473
         },
-        "delta_replacement": -0.748,
-        "delta_total": -4.655,
-        "mlb_id": 676395,
-        "name": "Robert Garcia",
-        "projected_total": -0.555,
-        "realized_total": -5.21,
-        "unexplained": -0.0
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": -0.625,
-          "zscore_k": -0.184,
-          "zscore_qs": 0.0,
-          "zscore_svhd": -2.404,
-          "zscore_whip": -0.559
-        },
-        "delta_replacement": -0.748,
-        "delta_total": -4.519,
+        "delta_replacement": -0.968,
+        "delta_total": -4.807,
         "mlb_id": 694335,
         "name": "Matt Svanson",
         "projected_total": -1.064,
-        "realized_total": -5.583,
-        "unexplained": 0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": -0.827,
-          "zscore_k": -0.318,
-          "zscore_qs": -0.923,
-          "zscore_svhd": 0.0,
-          "zscore_whip": -1.031
-        },
-        "delta_replacement": -0.663,
-        "delta_total": -4.461,
-        "mlb_id": 642547,
-        "name": "Freddy Peralta",
-        "projected_total": 0.763,
-        "realized_total": -3.698,
-        "unexplained": -0.699
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": -0.162,
-          "zscore_k": -1.355,
-          "zscore_qs": -1.259,
-          "zscore_svhd": 0.0,
-          "zscore_whip": -0.201
-        },
-        "delta_replacement": -0.663,
-        "delta_total": -4.34,
-        "mlb_id": 686613,
-        "name": "Hunter Brown",
-        "projected_total": 1.224,
-        "realized_total": -3.116,
-        "unexplained": -0.7
+        "realized_total": -5.871,
+        "unexplained": -0.0
       },
       {
         "delta_by_category": {
@@ -1563,45 +1483,45 @@
           "zscore_svhd": -2.492,
           "zscore_whip": -0.108
         },
-        "delta_replacement": -0.748,
-        "delta_total": -4.33,
+        "delta_replacement": -0.968,
+        "delta_total": -4.55,
         "mlb_id": 596112,
         "name": "Robert Stephenson",
         "projected_total": -1.364,
-        "realized_total": -5.694,
+        "realized_total": -5.914,
+        "unexplained": 0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": -0.092,
+          "zscore_k": -0.604,
+          "zscore_qs": 0.0,
+          "zscore_svhd": -2.785,
+          "zscore_whip": -0.052
+        },
+        "delta_replacement": -0.968,
+        "delta_total": -4.501,
+        "mlb_id": 669371,
+        "name": "Cole Henry",
+        "projected_total": -1.494,
+        "realized_total": -5.995,
         "unexplained": -0.0
       },
       {
         "delta_by_category": {
-          "zscore_era": -0.125,
-          "zscore_k": -0.544,
+          "zscore_era": -0.221,
+          "zscore_k": -0.51,
           "zscore_qs": 0.0,
-          "zscore_svhd": -2.785,
-          "zscore_whip": -0.076
+          "zscore_svhd": -2.345,
+          "zscore_whip": -0.44
         },
-        "delta_replacement": -0.748,
-        "delta_total": -4.277,
-        "mlb_id": 669371,
-        "name": "Cole Henry",
-        "projected_total": -1.494,
-        "realized_total": -5.771,
-        "unexplained": 0.001
-      },
-      {
-        "delta_by_category": {
-          "zscore_era": -0.783,
-          "zscore_k": 0.036,
-          "zscore_qs": -1.579,
-          "zscore_svhd": 0.0,
-          "zscore_whip": -1.272
-        },
-        "delta_replacement": -0.663,
-        "delta_total": -4.262,
-        "mlb_id": 547179,
-        "name": "Michael Lorenzen",
-        "projected_total": -2.724,
-        "realized_total": -6.986,
-        "unexplained": -0.001
+        "delta_replacement": -0.968,
+        "delta_total": -4.484,
+        "mlb_id": 642207,
+        "name": "Devin Williams",
+        "projected_total": 1.529,
+        "realized_total": -2.955,
+        "unexplained": 0.0
       },
       {
         "delta_by_category": {
@@ -1611,59 +1531,139 @@
           "zscore_svhd": 0.0,
           "zscore_whip": -0.167
         },
-        "delta_replacement": -0.885,
-        "delta_total": -4.255,
+        "delta_replacement": -1.105,
+        "delta_total": -4.475,
         "mlb_id": 605397,
         "name": "Joe Musgrove",
         "projected_total": -1.439,
-        "realized_total": -5.694,
+        "realized_total": -5.914,
         "unexplained": 0.0
       },
       {
         "delta_by_category": {
-          "zscore_era": -0.044,
-          "zscore_k": -1.492,
-          "zscore_qs": -1.965,
+          "zscore_era": -0.61,
+          "zscore_k": -1.155,
+          "zscore_qs": -1.848,
           "zscore_svhd": 0.0,
-          "zscore_whip": -0.053
+          "zscore_whip": -0.537
         },
-        "delta_replacement": -0.663,
-        "delta_total": -4.219,
-        "mlb_id": 579328,
-        "name": "Yusei Kikuchi",
-        "projected_total": -0.948,
-        "realized_total": -5.167,
-        "unexplained": -0.002
+        "delta_replacement": -0.313,
+        "delta_total": -4.463,
+        "mlb_id": 668678,
+        "name": "Zac Gallen",
+        "projected_total": -0.597,
+        "realized_total": -5.06,
+        "unexplained": 0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": -0.247,
+          "zscore_k": -0.161,
+          "zscore_qs": 0.0,
+          "zscore_svhd": -2.931,
+          "zscore_whip": -0.116
+        },
+        "delta_replacement": -0.968,
+        "delta_total": -4.423,
+        "mlb_id": 642701,
+        "name": "Dennis Santana",
+        "projected_total": -0.009,
+        "realized_total": -4.432,
+        "unexplained": 0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": -0.057,
+          "zscore_k": -0.846,
+          "zscore_qs": 0.0,
+          "zscore_svhd": -2.345,
+          "zscore_whip": -0.177
+        },
+        "delta_replacement": -0.968,
+        "delta_total": -4.393,
+        "mlb_id": 554340,
+        "name": "Yimi Garc\u00eda",
+        "projected_total": -1.521,
+        "realized_total": -5.914,
+        "unexplained": 0.0
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": -0.285,
+          "zscore_k": -0.618,
+          "zscore_qs": 0.0,
+          "zscore_svhd": -2.052,
+          "zscore_whip": -0.455
+        },
+        "delta_replacement": -0.968,
+        "delta_total": -4.377,
+        "mlb_id": 664208,
+        "name": "Phil Maton",
+        "projected_total": -0.841,
+        "realized_total": -5.218,
+        "unexplained": 0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": -0.119,
+          "zscore_k": -0.618,
+          "zscore_qs": 0.0,
+          "zscore_svhd": -2.492,
+          "zscore_whip": -0.178
+        },
+        "delta_replacement": -0.968,
+        "delta_total": -4.374,
+        "mlb_id": 669211,
+        "name": "Keegan Akin",
+        "projected_total": -1.516,
+        "realized_total": -5.89,
+        "unexplained": 0.001
+      },
+      {
+        "delta_by_category": {
+          "zscore_era": 0.054,
+          "zscore_k": -0.725,
+          "zscore_qs": 0.0,
+          "zscore_svhd": -2.638,
+          "zscore_whip": -0.03
+        },
+        "delta_replacement": -0.968,
+        "delta_total": -4.308,
+        "mlb_id": 676395,
+        "name": "Robert Garcia",
+        "projected_total": -0.555,
+        "realized_total": -4.863,
+        "unexplained": -0.001
       }
     ],
     "mean_abs_delta_by_category": {
-      "zscore_era": 0.1699,
-      "zscore_k": 0.3619,
-      "zscore_qs": 0.264,
-      "zscore_svhd": 0.4953,
-      "zscore_whip": 0.1971
+      "zscore_era": 0.1549,
+      "zscore_k": 0.3642,
+      "zscore_qs": 0.256,
+      "zscore_svhd": 0.5111,
+      "zscore_whip": 0.1822
     },
     "mean_delta_by_category": {
-      "zscore_era": 0.0041,
-      "zscore_k": -0.0705,
-      "zscore_qs": -0.0196,
-      "zscore_svhd": -0.0498,
-      "zscore_whip": 0.0082
+      "zscore_era": -0.0,
+      "zscore_k": -0.0794,
+      "zscore_qs": -0.0305,
+      "zscore_svhd": -0.0522,
+      "zscore_whip": 0.0003
     },
-    "mean_delta_replacement": -0.7292,
+    "mean_delta_replacement": -0.788,
     "mean_unexplained": -0.0461,
     "n": 698,
     "total_delta_by_category": {
-      "zscore_era": 2.831,
-      "zscore_k": -49.233,
-      "zscore_qs": -13.651,
-      "zscore_svhd": -34.75,
-      "zscore_whip": 5.722
+      "zscore_era": -0.015,
+      "zscore_k": -55.448,
+      "zscore_qs": -21.257,
+      "zscore_svhd": -36.413,
+      "zscore_whip": 0.233
     }
   },
   "preseason_source": "thebatx",
   "season": 2026,
-  "season_elapsed_fraction": 0.7688,
+  "season_elapsed_fraction": 1.0,
   "sgp_denominators": {
     "ERA": 0.084556,
     "K": 75.925926,
@@ -1680,15 +1680,15 @@
     "era_threshold": 4.0,
     "others": {
       "mean_projected": -3.5069,
-      "mean_realized": -4.3154,
+      "mean_realized": -4.4216,
       "n": 564
     },
     "qualifying": {
       "mean_projected": -1.0441,
-      "mean_realized": -2.3448,
+      "mean_realized": -2.3818,
       "n": 134
     },
-    "realized_edge": 1.9706,
+    "realized_edge": 2.0398,
     "whip_threshold": 1.25
   }
 }

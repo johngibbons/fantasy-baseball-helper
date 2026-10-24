@@ -1,0 +1,88 @@
+{
+  "league_id": "77166",
+  "my_team_id": 8,
+  "note": "Wins, losses and ties count categories: each regular-season week decides ten. playoff_seed is the regular-season finish; final_rank includes the playoffs.",
+  "season": 2026,
+  "teams": [
+    {
+      "final_rank": 1,
+      "losses": 73,
+      "playoff_seed": 1,
+      "team_id": 1,
+      "ties": 5,
+      "wins": 102
+    },
+    {
+      "final_rank": 2,
+      "losses": 71,
+      "playoff_seed": 2,
+      "team_id": 6,
+      "ties": 9,
+      "wins": 100
+    },
+    {
+      "final_rank": 3,
+      "losses": 86,
+      "playoff_seed": 6,
+      "team_id": 8,
+      "ties": 5,
+      "wins": 89
+    },
+    {
+      "final_rank": 4,
+      "losses": 75,
+      "playoff_seed": 4,
+      "team_id": 2,
+      "ties": 9,
+      "wins": 96
+    },
+    {
+      "final_rank": 5,
+      "losses": 74,
+      "playoff_seed": 3,
+      "team_id": 3,
+      "ties": 8,
+      "wins": 98
+    },
+    {
+      "final_rank": 6,
+      "losses": 80,
+      "playoff_seed": 5,
+      "team_id": 4,
+      "ties": 6,
+      "wins": 94
+    },
+    {
+      "final_rank": 7,
+      "losses": 95,
+      "playoff_seed": 8,
+      "team_id": 5,
+      "ties": 12,
+      "wins": 73
+    },
+    {
+      "final_rank": 8,
+      "losses": 88,
+      "playoff_seed": 7,
+      "team_id": 7,
+      "ties": 9,
+      "wins": 83
+    },
+    {
+      "final_rank": 9,
+      "losses": 108,
+      "playoff_seed": 10,
+      "team_id": 10,
+      "ties": 11,
+      "wins": 61
+    },
+    {
+      "final_rank": 10,
+      "losses": 107,
+      "playoff_seed": 9,
+      "team_id": 9,
+      "ties": 12,
+      "wins": 61
+    }
+  ]
+}
