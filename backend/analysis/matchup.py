@@ -60,19 +60,23 @@ CATEGORY_SIGMA: dict[str, float] = {
 
 
 # σ_between: spread of teams' typical-period totals around the league mean.
-# Calibrated from 2025 historical league fixture. Used by empirical Bayes
-# shrinkage in the playoff odds simulator.
+# Used by empirical Bayes shrinkage in the playoff odds simulator. Pooled over
+# 2025 and 2026 (sigma_calibration_<season>.json): one season of ten teams is
+# a noisy estimate, and 2026 came out 22-76% wider than 2025 in seven
+# categories. Regenerate with
+#   python3 -m backend.scripts.calibrate_category_sigma --pool-seasons 2025 2026
+# CATEGORY_SIGMA above stays on 2025 alone; 2026 moved it 11% or less.
 CATEGORY_BETWEEN_SIGMA: dict[str, float] = {
-    "R":     2.58118,
-    "TB":    6.90866,
-    "RBI":   2.73608,
-    "SB":    0.96181,
-    "OBP":   0.01043,
-    "K":    12.27056,
-    "QS":    0.98708,
-    "ERA":   0.19278,
-    "WHIP":  0.03557,
-    "SVHD":  0.91842,
+    "R":     3.02199,
+    "TB":    7.00914,
+    "RBI":   2.81132,
+    "SB":    1.31144,
+    "OBP":   0.0116576,
+    "K":    12.0226,
+    "QS":    1.15907,
+    "ERA":   0.240249,
+    "WHIP":  0.0402088,
+    "SVHD":  1.31454,
 }
 
 

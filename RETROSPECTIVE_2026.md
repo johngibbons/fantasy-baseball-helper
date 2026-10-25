@@ -446,17 +446,28 @@ of what we assumed going in.
 
 ## Open questions
 
-Nothing is blocked any more. Two loose ends for whoever picks this up next:
+Nothing is blocked any more. Loose ends for whoever picks this up next:
 
 - **The team model's scale** (slope 0.33, [above](#the-team-model-against-the-real-season))
   matters only if the Optuna coefficients are re-tuned.
-- **A second season of σ.** `sigma_calibration_2026.json` sits beside the 2025
-  fixture that `matchup.py` ships. Within-week σ, which drives in-season win
-  probabilities, moved 11% or less per category. Between-team σ, used only by
-  the playoff-odds shrinkage, came out 22–76% wider in 2026 in seven
-  categories. Two seasons disagreeing that much says the shipped 2025 values
-  are a single, noisy estimate. Averaging the two is a reasonable default
-  before next season. Nothing was changed here.
+- **A second season of σ — between-team σ pooled 2026-10-24.**
+  `sigma_calibration_2026.json` sits beside the 2025 fixture. Within-week σ,
+  which drives in-season win probabilities, moved 11% or less per category and
+  stays on 2025. Between-team σ, used only by the playoff-odds shrinkage, came
+  out 22–76% wider in 2026 in seven categories, so one season was a noisy
+  estimate. `matchup.py` now ships the two pooled
+  (`calibrate_category_sigma --pool-seasons 2025 2026`), and a test ties the
+  constants to both fixtures.
+- **Between-team σ measures observed spread, not true spread.** It is the
+  spread of teams' season averages, and each average carries its own weekly
+  noise: about σ_within²/19 of variance. On the pooled values that noise
+  accounts for 8–32% of the observed variance in eight categories, and all of
+  it in ERA and WHIP. The shrinkage wants the spread of true team means around
+  the projection, which is smaller still. Both errors make σ_between too
+  large, so playoff odds trust a team's observed weeks more than they should,
+  most of all in ERA and WHIP. Pooling raised σ_between in nine categories,
+  which leans the same way. Subtracting the noise term (floored above zero)
+  would correct it; nothing was changed here.
 
 ---
 

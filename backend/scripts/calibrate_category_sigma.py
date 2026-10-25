@@ -7,6 +7,9 @@ Usage:
 
 Prints calibrated σ values and writes a fixture JSON to
 backend/data/fixtures/sigma_calibration_<season>.json for regression testing.
+
+To pool σ_between across seasons already calibrated (what matchup.py ships):
+    python3 -m backend.scripts.calibrate_category_sigma --pool-seasons 2025 2026
 """
 
 from __future__ import annotations
@@ -21,6 +24,7 @@ from backend.analysis.sigma_calibration import (
     CountStatObservation,
     compute_category_sigma,
     compute_between_team_sigma,
+    pool_sigma,
 )
 from backend.data.espn_history import (
     ESPN_STAT_ID_TO_CAT,
@@ -34,6 +38,8 @@ CAT_KINDS: dict[str, str] = {
     "R": "count", "TB": "count", "RBI": "count", "SB": "count", "OBP": "rate",
     "K": "count", "QS": "count", "ERA": "rate", "WHIP": "rate", "SVHD": "count",
 }
+
+FIXTURES_DIR = Path(__file__).resolve().parent.parent / "data" / "fixtures"
 
 # v1 filter: include only typical-length matchup periods (5–9 days inclusive)
 MIN_PERIOD_DAYS = 5
@@ -116,19 +122,52 @@ def write_fixture(
         json.dump(payload, f, indent=2, sort_keys=True)
 
 
+def pooled_between_sigma(seasons: list[int]) -> dict[str, float]:
+    """σ_between pooled across the committed fixtures for *seasons*."""
+    estimates = []
+    for season in seasons:
+        with (FIXTURES_DIR / f"sigma_calibration_{season}.json").open() as f:
+            fixture = json.load(f)
+        n_teams = len({r["team_id"] for r in fixture["records"]})
+        estimates.append((fixture["computed_between_sigma"], n_teams))
+    return pool_sigma(estimates)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--league-id", required=True)
-    parser.add_argument("--season", type=int, required=True)
-    parser.add_argument("--swid", required=True)
-    parser.add_argument("--espn-s2", required=True)
+    parser.add_argument("--league-id")
+    parser.add_argument("--season", type=int)
+    parser.add_argument("--swid")
+    parser.add_argument("--espn-s2")
     parser.add_argument(
         "--fixture",
         type=Path,
         default=None,
         help="Output fixture path (default: backend/data/fixtures/sigma_calibration_<season>.json)",
     )
+    parser.add_argument(
+        "--pool-seasons", type=int, nargs="+", default=None,
+        help="Skip ESPN; pool σ_between across these seasons' committed fixtures",
+    )
     args = parser.parse_args()
+
+    if args.pool_seasons:
+        pooled = pooled_between_sigma(args.pool_seasons)
+        seasons = " and ".join(str(s) for s in args.pool_seasons)
+        print(f"CATEGORY_BETWEEN_SIGMA pooled over {seasons} "
+              "(paste into backend/analysis/matchup.py):")
+        print("CATEGORY_BETWEEN_SIGMA: dict[str, float] = {")
+        for cat in CAT_KEYS:
+            print(f'    "{cat}": {pooled[cat]:.6g},')
+        print("}")
+        return 0
+
+    missing = [flag for flag, value in (("--league-id", args.league_id),
+                                        ("--season", args.season),
+                                        ("--swid", args.swid),
+                                        ("--espn-s2", args.espn_s2)) if value is None]
+    if missing:
+        parser.error(f"required unless --pool-seasons is given: {', '.join(missing)}")
 
     print(f"Fetching {args.season} matchup history for league {args.league_id}...")
     records = fetch_season_matchup_history(
@@ -175,10 +214,7 @@ def main() -> int:
         print(f'    "{cat}": {between_sigma[cat]:.4f},')
     print("}")
 
-    fixture_path = args.fixture or (
-        Path(__file__).resolve().parent.parent
-        / "data" / "fixtures" / f"sigma_calibration_{args.season}.json"
-    )
+    fixture_path = args.fixture or FIXTURES_DIR / f"sigma_calibration_{args.season}.json"
     write_fixture(fixture_path, filtered, sigma, between_sigma)
     print(f"\nFixture written: {fixture_path}")
     return 0

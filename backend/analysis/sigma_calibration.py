@@ -95,3 +95,24 @@ def compute_between_team_sigma(
             values = [team_rates_per_day[tid].get(cat, 0.0) for tid in team_ids]
         out[cat] = _stddev(values)
     return out
+
+
+def pool_sigma(estimates: list[tuple[dict[str, float], int]]) -> dict[str, float]:
+    """Combine per-season σ estimates: sqrt(Σ(n−1)·σ² / Σ(n−1)) per category.
+
+    Each estimate is (cat → σ, sample size). Every season's σ is a sample
+    stddev around that season's own mean, so this is the σ of all samples
+    together with each season centred on itself. Pooling the raw records
+    directly would not work: team IDs repeat across seasons, so each team's
+    two seasons would merge into one.
+    """
+    cats = estimates[0][0].keys() if estimates else []
+    out: dict[str, float] = {}
+    for cat in cats:
+        dof = sum(n - 1 for _, n in estimates if n > 1)
+        if dof <= 0:
+            out[cat] = 0.0
+            continue
+        pooled_var = sum((n - 1) * sigmas[cat] ** 2 for sigmas, n in estimates if n > 1)
+        out[cat] = math.sqrt(pooled_var / dof)
+    return out

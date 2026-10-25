@@ -156,13 +156,49 @@ class TestComputeBetweenTeamSigma:
         assert result["OBP"] == pytest.approx(math.sqrt(0.0018), rel=1e-6)
 
 
+class TestPoolSigma:
+    def test_equal_sizes_average_the_variances(self):
+        from backend.analysis.sigma_calibration import pool_sigma
+        result = pool_sigma([({"R": 3.0}, 10), ({"R": 4.0}, 10)])
+        # sqrt((9 + 16) / 2), not the mean of 3 and 4
+        assert result["R"] == pytest.approx(math.sqrt(12.5), rel=1e-9)
+
+    def test_weights_by_degrees_of_freedom(self):
+        from backend.analysis.sigma_calibration import pool_sigma
+        result = pool_sigma([({"R": 3.0}, 3), ({"R": 6.0}, 5)])
+        # (2 * 9 + 4 * 36) / 6 = 27
+        assert result["R"] == pytest.approx(math.sqrt(27.0), rel=1e-9)
+
+    def test_matches_stddev_of_seasons_centred_on_themselves(self):
+        """Pooling σs equals the stddev of the raw samples, each season de-meaned."""
+        from backend.analysis.sigma_calibration import pool_sigma
+        rng = random.Random(3)
+        seasons = [[rng.gauss(mu, 2.0) for _ in range(10)] for mu in (50.0, 58.0)]
+
+        def sd(xs):
+            m = sum(xs) / len(xs)
+            return math.sqrt(sum((x - m) ** 2 for x in xs) / (len(xs) - 1))
+
+        pooled = pool_sigma([({"R": sd(xs)}, len(xs)) for xs in seasons])
+        squares = sum((x - sum(xs) / len(xs)) ** 2 for xs in seasons for x in xs)
+        dof = sum(len(xs) - 1 for xs in seasons)
+        assert pooled["R"] == pytest.approx(math.sqrt(squares / dof), rel=1e-9)
+
+    def test_single_season_is_unchanged(self):
+        from backend.analysis.sigma_calibration import pool_sigma
+        assert pool_sigma([({"R": 2.5, "ERA": 0.2}, 10)]) == pytest.approx(
+            {"R": 2.5, "ERA": 0.2})
+
+
 import json
 from pathlib import Path
 
 from backend.scripts.calibrate_category_sigma import (
     CAT_KEYS,
     CAT_KINDS,
+    FIXTURES_DIR,
     compute_team_rates_per_day,
+    pooled_between_sigma,
     records_to_observations,
 )
 from backend.data.espn_history import MatchupRecord
@@ -256,14 +292,42 @@ class TestCalibrationFixtureRegression:
                 f"Drift in σ_between_{cat}: stored={stored}, recomputed={recomputed[cat]}"
             )
 
-    def test_matchup_between_sigma_constants_match_fixture(self):
-        from backend.analysis.matchup import CATEGORY_BETWEEN_SIGMA
-        fixture = self._load_fixture()
-        for cat in CAT_KEYS:
-            assert CATEGORY_BETWEEN_SIGMA[cat] == pytest.approx(
-                fixture["computed_between_sigma"][cat], rel=1e-3
-            ), (
-                f"matchup.py CATEGORY_BETWEEN_SIGMA['{cat}'] = {CATEGORY_BETWEEN_SIGMA[cat]} "
-                f"but fixture has {fixture['computed_between_sigma'][cat]}. "
-                f"Re-run backend/scripts/calibrate_category_sigma.py and update."
-            )
+
+
+POOLED_SEASONS = [2025, 2026]
+
+
+@pytest.mark.parametrize("season", POOLED_SEASONS)
+def test_between_sigma_recomputes_from_each_pooled_fixture(season):
+    """Every season that feeds the pooled constants reproduces from its records."""
+    with (FIXTURES_DIR / f"sigma_calibration_{season}.json").open() as f:
+        fixture = json.load(f)
+    records = [
+        MatchupRecord(
+            team_id=r["team_id"],
+            matchup_period_id=r["matchup_period_id"],
+            period_days=r["period_days"],
+            cats=r["cats"],
+        )
+        for r in fixture["records"]
+    ]
+    from backend.analysis.sigma_calibration import compute_between_team_sigma
+    recomputed = compute_between_team_sigma(
+        team_rates_per_day=compute_team_rates_per_day(records),
+        cat_keys=CAT_KEYS,
+        cat_kinds=CAT_KINDS,
+    )
+    for cat in CAT_KEYS:
+        assert recomputed[cat] == pytest.approx(
+            fixture["computed_between_sigma"][cat], rel=1e-6)
+
+
+def test_matchup_between_sigma_constants_are_the_pooled_seasons():
+    from backend.analysis.matchup import CATEGORY_BETWEEN_SIGMA
+    pooled = pooled_between_sigma(POOLED_SEASONS)
+    for cat in CAT_KEYS:
+        assert CATEGORY_BETWEEN_SIGMA[cat] == pytest.approx(pooled[cat], rel=1e-4), (
+            f"matchup.py CATEGORY_BETWEEN_SIGMA['{cat}'] = {CATEGORY_BETWEEN_SIGMA[cat]} "
+            f"but pooling {POOLED_SEASONS} gives {pooled[cat]}. Re-run "
+            f"calibrate_category_sigma --pool-seasons and update."
+        )
