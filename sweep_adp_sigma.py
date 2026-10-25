@@ -1,118 +1,162 @@
-"""Re-open the variable-ADP-sigma question with the measured coefficients.
+"""Does a better-calibrated availability model produce better drafts?
 
 Usage:
     .venv/bin/python sweep_adp_sigma.py --sims 200 --seed 42
-    .venv/bin/python sweep_adp_sigma.py --sims 1000 --seed 42   # tighter
+    .venv/bin/python sweep_adp_sigma.py --sims 200 --modes default   # skip window VONA
 
-SCORING_IMPROVEMENTS.md section 6 tested `sigma = 10 + 0.1 * ADP` against the
-fixed 18 and rejected it: 8.77 wins against 8.89 over 200 sims. That rejection
-stands on its own terms, but it tested one formula, and the multi-season
-backtest since measured the actual residual spread:
+The availability model's sigma is miscalibrated, and that much is settled on
+real data: against the 2026 draft the board's old `6 + adp/250 * 6` was twice
+too confident in the 50-100 band and three to four times from pick 100 on,
+and the multi-season backtest measured the spread as
 
     2026 alone:   sigma = 6.55  + 0.158 * ADP
     2017-2025:    sigma = 11.13 + 0.161 * ADP
 
-Two independent measurements agreeing on a slope of ~0.16 -- roughly **sixty
-percent steeper** than the 0.1 that was tested. At ADP 150 the shipped formula
-says 25 picks of spread where the data says 35. So the rejected experiment used
-a model of ADP noise now known to be wrong, and the question deserves re-asking
-with the right coefficients rather than the flag simply being flipped.
+This asks the different question of whether fixing it changes the drafts.
 
-What this measures is deliberately *not* the same thing the backtest measured.
-The backtest showed the availability model is miscalibrated. This asks whether
-fixing that calibration produces better drafts, which is a different question
-and can perfectly well come back negative: a draft engine can be robust to a
-badly calibrated input, and sigma feeds only availability weighting and the
-opponent model.
+The first version of this sweep let USE_VARIABLE_SIGMA switch the simulated
+opponents' noise as well (flat 18 -> 10 + 0.1 * adp), so every variable
+candidate was scored in a different league from the baseline. That shared
+change, not the coefficients, is the likeliest source of the +0.1 wins it
+reported: the three variable candidates sat within one standard error of
+each other. Opponent noise now has its own setting (OPP_USE_VARIABLE_SIGMA),
+and here it is held fixed within each league while only our model varies.
+
+Two leagues: today's simulated one (flat 18), and one whose opponents stray
+from ADP by the measured amount. Two scoring modes: the simulator's default,
+and window VONA, which is what the live board uses.
+
+Result, 2026-10-24: no candidate differs from the old board formula outside a
+95% paired interval, in any league or mode. The variable sigma shipped on
+calibration grounds; see SCORING_IMPROVEMENTS.md section 6.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import random
 import statistics
 import sys
 import time
+from concurrent.futures import ProcessPoolExecutor
+from pathlib import Path
 
 from backend.simulation.config import SimConfig
-from backend.simulation.draft_engine import simulate_draft
-from backend.simulation.evaluate import compute_streaming_zscores, evaluate_draft
-from backend.simulation.player_pool import load_players
 
-# (label, USE_VARIABLE_SIGMA, intercept, slope)
+# Our availability model: (label, USE_VARIABLE_SIGMA, intercept, slope)
 CANDIDATES = [
-    ("fixed 18 (shipped)", False, 0.0, 0.0),
-    ("10 + 0.100*adp (rejected in SI section 6)", True, 10.0, 0.1),
-    ("11.13 + 0.161*adp (measured 2017-2025)", True, 11.13, 0.161),
-    ("6.55 + 0.158*adp (measured 2026)", True, 6.55, 0.158),
+    ("old board: 6 + 0.024*adp", True, 6.0, 0.024),
+    ("flat 18 (simulator default)", False, 0.0, 0.0),
+    ("measured 2026: 6.55 + 0.158*adp", True, 6.55, 0.158),
+    ("measured 2017-25: 11.13 + 0.161*adp", True, 11.13, 0.161),
 ]
+BASELINE = CANDIDATES[0][0]
+
+# The simulated league: how far opponents stray from ADP.
+LEAGUES = {
+    "flat 18": {"OPP_USE_VARIABLE_SIGMA": False},
+    "measured spread": {"OPP_USE_VARIABLE_SIGMA": True,
+                        "OPP_ADP_SIGMA_INTERCEPT": 11.13,
+                        "OPP_ADP_SIGMA_SLOPE": 0.161},
+}
+MODES = {"default": {"USE_WINDOW_VONA": False},
+         "window VONA": {"USE_WINDOW_VONA": True}}
+NUM_TEAMS = 10
+
+_players = None
 
 
-def run(num_sims: int, seed: int | None) -> None:
-    players = load_players()
-    if not players:
-        print("ERROR: No players found in database. Run data sync first.")
-        sys.exit(1)
+def _load():
+    global _players
+    from backend.simulation.player_pool import load_players
+    _players = load_players()
 
-    num_teams = 10
-    sims_per_slot = max(1, num_sims // num_teams)
-    num_teams_arg = num_teams
 
-    results: list[tuple[str, list[float]]] = []
-    for label, use_variable, intercept, slope in CANDIDATES:
-        config = SimConfig(
-            USE_VARIABLE_SIGMA=use_variable,
-            **({"ADP_SIGMA_INTERCEPT": intercept, "ADP_SIGMA_SLOPE": slope}
-               if use_variable else {}),
-        )
-        streaming = compute_streaming_zscores(players, config)
-        wins: list[float] = []
-        started = time.time()
-        # Every candidate sees the identical sequence of drafts: same seed, same
-        # slot order. Without that, the difference between two candidates is
-        # swamped by which drafts each happened to get.
-        for slot in range(num_teams):
-            for sim in range(sims_per_slot):
-                rng = random.Random(
-                    None if seed is None else seed + slot * 1000 + sim)
-                draft = simulate_draft(players, slot, config, rng)
-                evaluation = evaluate_draft(draft, num_teams_arg, config=config,
-                                            streaming_zscores=streaming)
-                wins.append(evaluation["expected_wins"])
-        results.append((label, wins))
-        print(f"  {label:44} mean={statistics.mean(wins):6.3f} "
-              f"({time.time() - started:5.1f}s)")
+def config_for(mode: str, league: str, candidate: tuple) -> SimConfig:
+    _, use_variable, intercept, slope = candidate
+    ours = ({"USE_VARIABLE_SIGMA": True, "ADP_SIGMA_INTERCEPT": intercept,
+             "ADP_SIGMA_SLOPE": slope} if use_variable
+            else {"USE_VARIABLE_SIGMA": False})
+    return SimConfig(**MODES[mode], **LEAGUES[league], **ours)
 
-    print(f"\n{len(results[0][1])} drafts per candidate, seed={seed}\n")
-    print(f"  {'candidate':44} {'wins':>7} {'sd':>6} {'se':>6} {'vs shipped':>11}")
-    baseline = statistics.mean(results[0][1])
-    for label, wins in results:
-        mean = statistics.mean(wins)
-        sd = statistics.stdev(wins) if len(wins) > 1 else 0.0
-        se = sd / (len(wins) ** 0.5)
-        # Paired difference: same seeds, so compare draft by draft.
-        paired = [a - b for a, b in zip(wins, results[0][1])]
-        delta_se = (statistics.stdev(paired) / (len(paired) ** 0.5)
-                    if len(paired) > 1 and any(paired) else 0.0)
-        verdict = ""
-        if label != results[0][0]:
-            delta = mean - baseline
-            verdict = f"{delta:+.3f}"
-            if delta_se:
-                verdict += (" *" if abs(delta) > 1.96 * delta_se else "  ns")
-        print(f"  {label:44} {mean:>7.3f} {sd:>6.3f} {se:>6.3f} {verdict:>11}")
 
-    print("\n  * = outside a 95% paired interval; ns = inside it, i.e. no effect.")
-    print("  Paired on seed, so the comparison is draft-by-draft rather than "
-          "mean-vs-mean.")
+def run_one(job: tuple) -> tuple:
+    from backend.simulation.draft_engine import simulate_draft
+    from backend.simulation.evaluate import compute_streaming_zscores, evaluate_draft
+
+    mode, league, candidate, slot, sim, seed = job
+    config = config_for(mode, league, candidate)
+    streaming = compute_streaming_zscores(_players, config)
+    # Same seed and slot for every candidate, so they are compared draft by draft.
+    rng = random.Random(seed + slot * 1000 + sim)
+    draft = simulate_draft(_players, slot, config, rng)
+    wins = evaluate_draft(draft, NUM_TEAMS, config=config,
+                          streaming_zscores=streaming)["expected_wins"]
+    return mode, league, candidate[0], slot, sim, wins
+
+
+def summarize(results: dict, mode: str, league: str) -> list[dict]:
+    keyed = results[(mode, league)]
+    base = keyed[BASELINE]
+    keys = sorted(base)
+    rows = []
+    for label, _, _, _ in CANDIDATES:
+        wins = [keyed[label][k] for k in keys]
+        paired = [keyed[label][k] - base[k] for k in keys]
+        delta = statistics.mean(paired)
+        se = statistics.stdev(paired) / len(paired) ** 0.5 if any(paired) else 0.0
+        rows.append({
+            "candidate": label, "n": len(wins),
+            "mean_wins": round(statistics.mean(wins), 4),
+            "delta_vs_old_board": round(delta, 4),
+            "delta_se": round(se, 4),
+            "significant": bool(se and abs(delta) > 1.96 * se),
+        })
+    return rows
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--sims", type=int, default=200)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--workers", type=int, default=10)
+    parser.add_argument("--modes", nargs="+", default=list(MODES), choices=list(MODES))
+    parser.add_argument("--out", type=Path, default=None,
+                        help="Optional JSON file for the summary")
     args = parser.parse_args()
-    run(args.sims, args.seed)
+
+    sims_per_slot = max(1, args.sims // NUM_TEAMS)
+    jobs = [(mode, league, candidate, slot, sim, args.seed)
+            for mode in args.modes for league in LEAGUES
+            for candidate in CANDIDATES
+            for slot in range(NUM_TEAMS) for sim in range(sims_per_slot)]
+    print(f"{len(jobs)} drafts on {args.workers} workers...")
+
+    results: dict = {}
+    started = time.time()
+    with ProcessPoolExecutor(args.workers, initializer=_load) as pool:
+        for mode, league, label, slot, sim, wins in pool.map(run_one, jobs, chunksize=4):
+            results.setdefault((mode, league), {}).setdefault(label, {})[(slot, sim)] = wins
+    print(f"done in {time.time() - started:.0f}s\n")
+
+    summary = {}
+    for mode in args.modes:
+        for league in LEAGUES:
+            rows = summarize(results, mode, league)
+            summary[f"{mode} | {league}"] = rows
+            print(f"{mode} scoring, {league} league "
+                  f"({rows[0]['n']} drafts, paired on seed)")
+            for row in rows:
+                verdict = ("" if row["candidate"] == BASELINE else
+                           f"{row['delta_vs_old_board']:+.3f} ± {1.96 * row['delta_se']:.3f}"
+                           f"{' *' if row['significant'] else ''}")
+                print(f"  {row['candidate']:38} {row['mean_wins']:7.3f}  {verdict}")
+            print()
+    print("Deltas are against the old board formula, with 95% paired intervals; "
+          "* = outside it.")
+    if args.out:
+        args.out.write_text(json.dumps(summary, indent=2) + "\n")
     return 0
 
 

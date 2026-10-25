@@ -678,19 +678,14 @@ confidence:
    reorders a pool. Hitters rank against hitters exactly as before. It changes
    the hitter/pitcher interleave and the size of every value difference, which
    is what keeper surplus, VONA and urgency are built from.
-2. **Enable `USE_VARIABLE_SIGMA`** — re-run and now supported. The residual
-   spread law holds across six seasons (σ = 11.13 + 0.161 × adp against 2026's
-   6.55 + 0.158), and re-running the simulation that originally rejected it
-   reverses the verdict: all three variable models beat fixed 18 by ~0.10 wins,
-   outside a 95% paired interval. Even the formula rejected in 2026 now wins,
-   so that result was about the scoring model of the time — the Optuna
-   coefficients landed after it — rather than about sigma.
-
-   The three variable models sit within one standard error of each other, so
-   the experiment separates *variable from fixed* and not one coefficient pair
-   from another. Turn the flag on; the measured coefficients are the defensible
-   default because of the independent evidence, not because the simulation
-   prefers them. Detail in `SCORING_IMPROVEMENTS.md` §6.
+2. **Enable `USE_VARIABLE_SIGMA`** — done 2026-10-24, on calibration grounds.
+   The residual spread law holds across six seasons (σ = 11.13 + 0.161 × adp
+   against 2026's 6.55 + 0.158), and the board and simulator now use the 2026
+   fit. The simulated gain once reported here (~+0.10 wins) did not survive:
+   the flag also changed how the simulated opponents drafted, and with the
+   simulated league held fixed, sigma has no measurable effect on draft
+   outcomes. The case is that the board's availability percentages are now
+   calibrated. Detail in `SCORING_IMPROVEMENTS.md` §6.
 3. **Replace `expectedValueAtRound` with the fitted curve — modest, and easy to
    get backwards.** The baseline is too high in every season, so the app does
    understate keeper surplus, but on the shipped board the bias is ~0.26 SGP

@@ -121,7 +121,10 @@ Category win rates and draft composition are virtually identical across all thre
 
 ## 6. Opponent ADP sigma should vary by draft position
 
-**Status**: **Reversed 2026-08-23** — variable sigma helps. See the re-run below.
+**Status**: **Shipped 2026-10-24, on calibration grounds.** Both simulated
+verdicts below (rejected, then reversed) measured a change to the simulated
+league rather than to our model; with the league held fixed, sigma has no
+measurable effect on draft outcomes. See the 2026-10-24 re-run at the end.
 
 **Problem**: The opponent model and availability predictor both use a fixed sigma of 18 picks. In reality, early picks have less variance (consensus top 10) and late picks have much more (personal preference dominates).
 
@@ -169,14 +172,70 @@ to turn the flag on, not to prefer particular coefficients. The measured pair is
 the defensible default because it rests on independent evidence, not because
 the simulation prefers it.
 
-**Revised conclusion**: enable `USE_VARIABLE_SIGMA`. Effect is small (~+0.11
-wins on ~9.4, a bit over 1%) but consistent and independently motivated.
+**Revised conclusion** (superseded below): enable `USE_VARIABLE_SIGMA`. Effect
+is small (~+0.11 wins on ~9.4, a bit over 1%) but consistent and independently
+motivated.
 
 **Raw output**: `backend/data/fixtures/league_history/adp_sigma_sweep_2026-08-23.txt`
 
-**Infrastructure added**: `USE_VARIABLE_SIGMA` config flag, `variable_adp_sigma()` helper in `scoring_model.py`, `--variable-sigma` CLI flag. Available for future experimentation with different formulas.
+### Re-run 2026-10-24 — the August gain was the simulated league, not sigma
 
-**Files**: `backend/simulation/config.py`, `backend/simulation/draft_engine.py`, `backend/simulation/scoring_model.py`
+`USE_VARIABLE_SIGMA` switched two things at once. It changed our availability
+model, and it changed how far the *simulated opponents* stray from ADP: flat
+18 became a hardcoded `10 + 0.1 × ADP` in `draft_engine._opponent_pick`. So
+every variable candidate above was scored in a different league from the fixed
+baseline, which is why the three sat within a standard error of each other.
+They shared the league change, and that was the effect. The original rejection
+has the same flaw; its own explanation ("makes the simulated opponents more
+'correct'") is about the league.
+
+Opponent noise now has its own settings (`OPP_USE_VARIABLE_SIGMA`,
+`OPP_ADP_SIGMA_INTERCEPT`, `OPP_ADP_SIGMA_SLOPE`, defaulting to the flat 18 the
+simulator has always used). `sweep_adp_sigma.py` holds the league fixed and
+varies only our model. 200 drafts per cell, paired on seed, Δ against the live
+board's formula with 95% paired intervals:
+
+| Our availability σ | Default, flat-18 league | Default, measured-spread league | Window VONA, flat-18 | Window VONA, measured |
+|---|---|---|---|---|
+| Live board `6 + 0.024 × ADP` | 9.323 | 9.618 | 9.391 | 9.670 |
+| Flat 18 | +0.010 ± 0.036 | +0.012 ± 0.029 | +0.006 ± 0.020 | +0.001 ± 0.020 |
+| `6.55 + 0.158 × ADP` (2026) | +0.021 ± 0.044 | +0.003 ± 0.030 | −0.004 ± 0.020 | +0.010 ± 0.021 |
+| `11.13 + 0.161 × ADP` (2017–25) | +0.028 ± 0.044 | −0.003 ± 0.036 | −0.013 ± 0.025 | +0.010 ± 0.024 |
+
+Nothing clears its interval, in either league or either scoring mode. The
+simulated league itself is the big lever: moving opponents to the measured
+spread lifts every candidate by about 0.3 wins, ten times any difference
+between candidates. The draft score uses availability only through a 12%
+discount and, with window VONA, the expected replacement, and its picks are
+insensitive to sigma.
+
+**Conclusion**: shipped anyway, on calibration rather than simulation. The board
+shows each player's chance of lasting to your next pick, and against the real
+2026 draft its old formula was twice too confident in the 50–100 band and three
+to four times from pick 100 on. A player at ADP 120 who is 20 picks past ADP showed ~1%; the draft says
+~22%. That number drives a human decision the simulator does not model, and the
+simulator shows the fix costs the automated picks nothing. Coefficients are
+the 2026 fit, which was measured on draft-day ADP, the input the board reads;
+the 2017–2025 fit used ESPN rankings as a proxy, which inflates the intercept,
+and the simulation cannot tell the two apart.
+
+The same change fixed the normal CDF both implementations used. It applied
+Abramowitz & Stegun 7.1.26, an approximation to erf, without the √2 rescaling,
+so it was up to 0.037 off and understated tail availability by about a fifth.
+
+Open question, not acted on: the simulator's league is flat 18, which the 2026
+draft says is too tight early and far too loose late. The Optuna coefficients
+were tuned in that league, and the league moves absolute wins by 0.3.
+
+**Raw output**: `backend/data/fixtures/league_history/adp_sigma_sweep_2026-10-24.txt`
+
+**Infrastructure added**: `USE_VARIABLE_SIGMA` config flag (on since 2026-10-24),
+`variable_adp_sigma()` and `player_availability()` in `scoring_model.py`, the
+`OPP_*` sigma settings, `availabilitySigma()` in `src/lib/pick-predictor.ts`, an
+availability case in the parity fixture, and `--no-variable-sigma` on
+`simulate_draft.py`.
+
+**Files**: `backend/simulation/config.py`, `backend/simulation/draft_engine.py`, `backend/simulation/scoring_model.py`, `src/lib/draft-model-config.ts`, `src/lib/pick-predictor.ts`
 
 ---
 

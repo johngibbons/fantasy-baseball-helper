@@ -1,0 +1,32 @@
+# sweep_adp_sigma.py --sims 200 --seed 42, run 2026-10-24 on the shipped code
+# (opponent noise held fixed per league; normal CDF corrected). "live board" is the board formula
+# before this change. See SCORING_IMPROVEMENTS.md section 6.
+
+3200 drafts on 10 workers...
+done in 1565s
+
+default scoring, flat 18 league (200 drafts, paired on seed)
+  live board: 6 + 0.024*adp                9.323  
+  flat 18 (simulator default)              9.333  +0.010 ± 0.036
+  measured 2026: 6.55 + 0.158*adp          9.344  +0.021 ± 0.044
+  measured 2017-25: 11.13 + 0.161*adp      9.351  +0.028 ± 0.044
+
+default scoring, measured spread league (200 drafts, paired on seed)
+  live board: 6 + 0.024*adp                9.618  
+  flat 18 (simulator default)              9.630  +0.012 ± 0.029
+  measured 2026: 6.55 + 0.158*adp          9.621  +0.003 ± 0.030
+  measured 2017-25: 11.13 + 0.161*adp      9.616  -0.003 ± 0.036
+
+window VONA scoring, flat 18 league (200 drafts, paired on seed)
+  live board: 6 + 0.024*adp                9.391  
+  flat 18 (simulator default)              9.397  +0.006 ± 0.020
+  measured 2026: 6.55 + 0.158*adp          9.386  -0.004 ± 0.020
+  measured 2017-25: 11.13 + 0.161*adp      9.377  -0.013 ± 0.025
+
+window VONA scoring, measured spread league (200 drafts, paired on seed)
+  live board: 6 + 0.024*adp                9.670  
+  flat 18 (simulator default)              9.671  +0.001 ± 0.020
+  measured 2026: 6.55 + 0.158*adp          9.680  +0.010 ± 0.021
+  measured 2017-25: 11.13 + 0.161*adp      9.680  +0.010 ± 0.024
+
+Deltas are against the live board's formula, with 95% paired intervals; * = outside it.

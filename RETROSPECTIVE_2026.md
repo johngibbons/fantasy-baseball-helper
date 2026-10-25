@@ -38,9 +38,10 @@ ten; we finished sixth in the regular season and third after the playoffs.
 
 What to change for 2027, in order of confidence:
 
-1. **Turn on variable ADP sigma** and make the live draft board use the same
-   formula. Measured in 2026, replicated across six seasons, and the simulation
-   that once rejected it now favours it. Not yet shipped.
+1. **Variable ADP sigma — shipped 2026-10-24.** The board and the simulator
+   now use the measured `6.55 + 0.158 × adp`. The case is calibration: the
+   board's availability percentages were two to four times overconfident past
+   the top 50. The simulation shows no effect on draft outcomes either way.
 2. **Stay on a commercial projection source** (THE BAT X or Steamer). The
    in-house `trend` and `statcast_adjusted` models are clearly behind, and
    blending does not help.
@@ -309,13 +310,18 @@ Residual spread by ADP band, over 200 picks with genuine draft-day ADP:
 Uncertainty grows sixfold from the top of the board to the middle rounds. The
 best fit is `σ = 6.55 + 0.158 × adp`.
 
-The formula the live draft board uses has the right shape but tops out near 12
-where reality reaches 40. Since August, the multi-season backtest found the same
-slope across six seasons (`σ = 11.13 + 0.161 × adp`), and re-running the
-simulation that rejected variable sigma reversed the verdict: all three variable
-models beat fixed 18 by about 0.1 wins, outside a 95% paired interval
-(`SCORING_IMPROVEMENTS.md` §6). `USE_VARIABLE_SIGMA` is still `False` in
-`backend/simulation/config.py`.
+The formula the live draft board used had the right shape but topped out near
+12 where reality reaches 40. Since August, the multi-season backtest found the
+same slope across six seasons (`σ = 11.13 + 0.161 × adp`).
+
+**Shipped 2026-10-24.** `USE_VARIABLE_SIGMA` is on, with this fit, in both the
+simulator and the board, and the parity fixture now covers availability. A
+simulated gain of ~0.1 wins, reported in August, turned out to measure a change
+to the simulated opponents rather than to our model; with the league held
+fixed, sigma makes no measurable difference to simulated drafts
+(`SCORING_IMPROVEMENTS.md` §6). It shipped because the percentages the board
+shows are now calibrated against a real draft. The same change fixed a normal
+CDF that understated tail availability by about a fifth.
 
 ### The keeper adjustment is about three-quarters right
 
@@ -399,12 +405,12 @@ of what we assumed going in.
 
 **Do**
 
-1. **Enable `USE_VARIABLE_SIGMA`, and make the live draft board agree.** The
-   availability model is the only part of the draft machinery with a measured,
-   replicated error and a simulation showing the fix helps (~+0.1 wins). The
-   live board's `6 + adp/250*6` is the worst of the three formulas tested; the
-   parity fixture (`backend/data/fixtures/draft_scoring_parity.json`) will hold
-   the two implementations together once they match.
+1. **Enable `USE_VARIABLE_SIGMA`, and make the live draft board agree.**
+   *Done 2026-10-24.* The availability model had the only measured, replicated
+   error in the draft machinery, and the live board's `6 + adp/250*6` was the
+   worst of the three formulas tested. Both now use `6.55 + 0.158 × adp`, held
+   together by the parity fixture. The simulated benefit reported in August did
+   not survive a corrected experiment; the fix is a calibration fix.
 2. **Keep using THE BAT X or Steamer; retire `trend` and `statcast_adjusted`
    from valuation.** They are meaningfully worse and add nothing to a blend.
    THE BAT X is the better of the two for pitchers.
