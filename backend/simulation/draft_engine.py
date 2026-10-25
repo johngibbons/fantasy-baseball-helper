@@ -348,7 +348,7 @@ def simulate_draft(
 
         else:
             # === OPPONENT PICK: ADP + noise + roster need ===
-            opp_sigma = -1.0 if config.USE_VARIABLE_SIGMA else config.ADP_SIGMA
+            opp_sigma = -1.0 if config.OPP_USE_VARIABLE_SIGMA else config.ADP_SIGMA
             chosen = _opponent_pick(
                 available_list, available_set, player_by_id,
                 rosters[team_idx], rng, opp_sigma,
@@ -356,6 +356,8 @@ def simulate_draft(
                 team_totals=team_totals[team_idx],
                 scarcity_bonus=config.OPP_SCARCITY_BONUS,
                 cat_need_bonus=config.OPP_CAT_NEED_BONUS,
+                sigma_intercept=config.OPP_ADP_SIGMA_INTERCEPT,
+                sigma_slope=config.OPP_ADP_SIGMA_SLOPE,
             )
             if chosen is None:
                 continue
@@ -421,6 +423,8 @@ def _opponent_pick(
     team_totals: dict[str, float] | None = None,
     scarcity_bonus: float = 15.0,
     cat_need_bonus: float = 4.0,
+    sigma_intercept: float = 10.0,
+    sigma_slope: float = 0.1,
 ) -> Player | None:
     """Opponent picks by ADP + noise, with positional scarcity and category need bonuses.
 
@@ -433,7 +437,8 @@ def _opponent_pick(
         if p.mlb_id not in available_set:
             continue
         adp = p.blended_adp if p.blended_adp is not None else 999.0
-        effective_sigma = (10.0 + 0.1 * adp) if adp_sigma < 0 else adp_sigma
+        effective_sigma = ((sigma_intercept + sigma_slope * adp)
+                           if adp_sigma < 0 else adp_sigma)
         noisy_adp = adp + rng.gauss(0, effective_sigma)
 
         # Bench penalty or positional scarcity bonus

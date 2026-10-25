@@ -1,5 +1,91 @@
 {
   "cases": {
+    "compute_availability": [
+      {
+        "adp": 1.0,
+        "current_pick": 0,
+        "expected": 0.11651195194528552,
+        "kept_below_adp": 0,
+        "picks_until_mine": 9
+      },
+      {
+        "adp": 12.5,
+        "current_pick": 5,
+        "expected": 0.2228916900967699,
+        "kept_below_adp": 0,
+        "picks_until_mine": 14
+      },
+      {
+        "adp": 30.0,
+        "current_pick": 20,
+        "expected": 0.5352898112805082,
+        "kept_below_adp": 0,
+        "picks_until_mine": 9
+      },
+      {
+        "adp": 60.0,
+        "current_pick": 30,
+        "expected": 0.642829418670499,
+        "kept_below_adp": 15,
+        "picks_until_mine": 10
+      },
+      {
+        "adp": 73.0,
+        "current_pick": 61,
+        "expected": 0.28332223200637774,
+        "kept_below_adp": 4,
+        "picks_until_mine": 18
+      },
+      {
+        "adp": 122.0,
+        "current_pick": 110,
+        "expected": 0.4081432270101262,
+        "kept_below_adp": 0,
+        "picks_until_mine": 18
+      },
+      {
+        "adp": 172.5,
+        "current_pick": 150,
+        "expected": 0.4079822599043381,
+        "kept_below_adp": 10,
+        "picks_until_mine": 20
+      },
+      {
+        "adp": 240.0,
+        "current_pick": 230,
+        "expected": 0.5447609346138498,
+        "kept_below_adp": 0,
+        "picks_until_mine": 5
+      },
+      {
+        "adp": 100.0,
+        "current_pick": 5,
+        "expected": 0.9999717211850625,
+        "kept_below_adp": 0,
+        "picks_until_mine": 5
+      },
+      {
+        "adp": 10.0,
+        "current_pick": 50,
+        "expected": 3.887989930007052e-10,
+        "kept_below_adp": 0,
+        "picks_until_mine": 10
+      },
+      {
+        "adp": 50.0,
+        "current_pick": 25,
+        "expected": 0.49999999949999996,
+        "kept_below_adp": 0,
+        "picks_until_mine": 25
+      },
+      {
+        "adp": 300.0,
+        "current_pick": 240,
+        "expected": 0.591321920467109,
+        "kept_below_adp": 40,
+        "picks_until_mine": 9
+      }
+    ],
     "compute_desperation_bonus": [
       {
         "cap": 0.0,
@@ -2179,6 +2265,8 @@
   },
   "config": {
     "ADP_SIGMA": 18.0,
+    "ADP_SIGMA_INTERCEPT": 6.55,
+    "ADP_SIGMA_SLOPE": 0.158,
     "AVAILABILITY_DISCOUNT": 0.12,
     "BENCH_PENALTY_RATE": 0.95,
     "CAT_FLOOR_PENALTY": 0.0,
@@ -2195,9 +2283,12 @@
     "MCW_WEIGHT": 7.47,
     "NUM_ROUNDS": 25,
     "NUM_TEAMS": 10,
+    "OPP_ADP_SIGMA_INTERCEPT": 10.0,
+    "OPP_ADP_SIGMA_SLOPE": 0.1,
     "OPP_BENCH_ADP_PENALTY": 15.0,
     "OPP_CAT_NEED_BONUS": 4.0,
     "OPP_SCARCITY_BONUS": 15.0,
+    "OPP_USE_VARIABLE_SIGMA": false,
     "PITCHER_BENCH_CONTRIBUTION": 0.95,
     "PLAYOFF_SPOTS": 6,
     "RESTRICT_NORM_POOL": true,
@@ -2217,7 +2308,7 @@
     "USE_ROLLOUT": false,
     "USE_SLOT_SCARCITY": false,
     "USE_SURPLUS_VALUE": true,
-    "USE_VARIABLE_SIGMA": false,
+    "USE_VARIABLE_SIGMA": true,
     "USE_WINDOW_VONA": false,
     "VONA_WEIGHT_BPA": 1.0,
     "VONA_WEIGHT_MCW": 0.24

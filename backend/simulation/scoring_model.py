@@ -33,6 +33,11 @@ def _normalize_position(pos: str) -> str:
 # ── Normal CDF (from pick-predictor.ts) ──
 
 def _normal_cdf(x: float) -> float:
+    """Abramowitz & Stegun 7.1.26, which approximates erf, at x / sqrt(2).
+
+    Max error ~7e-8. An earlier version scaled only the exponential, which put
+    it up to 0.037 off and understated tail availability by about a fifth.
+    """
     if x < -8:
         return 0.0
     if x > 8:
@@ -44,9 +49,9 @@ def _normal_cdf(x: float) -> float:
     a5 = 1.061405429
     p = 0.3275911
     sign = -1.0 if x < 0 else 1.0
-    abs_x = abs(x)
+    abs_x = abs(x) / math.sqrt(2)
     t = 1.0 / (1.0 + p * abs_x)
-    y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * math.exp(-abs_x * abs_x / 2)
+    y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * math.exp(-abs_x * abs_x)
     return 0.5 * (1.0 + sign * y)
 
 
@@ -80,6 +85,19 @@ def compute_availability(espn_adp: float, current_pick: int, picks_until_mine: i
     target_pick = current_pick + picks_until_mine
     z = (target_pick - espn_adp) / sigma
     return max(0.0, min(1.0, 1.0 - _normal_cdf(z)))
+
+
+def player_availability(adp: float, current_pick: int, picks_until_mine: int,
+                        config: SimConfig) -> float:
+    """P(a player is still there at our next pick), with the configured sigma.
+
+    `adp` is already keeper-adjusted. This is computeAvailability in
+    src/lib/pick-predictor.ts; the parity fixture holds the two together.
+    """
+    sigma = (variable_adp_sigma(adp, config.ADP_SIGMA_INTERCEPT,
+                                config.ADP_SIGMA_SLOPE)
+             if config.USE_VARIABLE_SIGMA else config.ADP_SIGMA)
+    return compute_availability(adp, current_pick, picks_until_mine, sigma)
 
 
 # ── Core ranking functions (from draft-optimizer.ts) ──
@@ -671,10 +689,7 @@ def full_player_score(
             avail_adp = player.blended_adp - count_kept_below_adp(player.blended_adp, keeper_adps_sorted)
         else:
             avail_adp = player.blended_adp
-        avail_sigma = (variable_adp_sigma(avail_adp, config.ADP_SIGMA_INTERCEPT,
-                                          config.ADP_SIGMA_SLOPE)
-                       if config.USE_VARIABLE_SIGMA else config.ADP_SIGMA)
-        avail = compute_availability(avail_adp, current_pick, picks_until_mine, avail_sigma)
+        avail = player_availability(avail_adp, current_pick, picks_until_mine, config)
         score *= 1 - avail * config.AVAILABILITY_DISCOUNT
 
     # Bench penalty — pitcher-aware with streaming economics

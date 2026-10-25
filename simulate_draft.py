@@ -102,8 +102,9 @@ def main() -> None:
                         help="Scale BPA urgency weight by draft progress (reduces early-round urgency)")
     parser.add_argument("--slot-scarcity", action="store_true",
                         help="Use slot scarcity gradient for roster fit instead of binary")
-    parser.add_argument("--variable-sigma", action="store_true",
-                        help="Use ADP-dependent sigma (10 + 0.1*ADP) instead of fixed 18")
+    parser.add_argument("--no-variable-sigma", action="store_true",
+                        help="Use the flat ADP_SIGMA (18) for availability instead of "
+                             "the measured ADP-dependent sigma (on by default)")
     parser.add_argument("--window-vona", action="store_true",
                         help="Use window VONA (availability-weighted replacement)")
     parser.add_argument("--no-surplus-value", action="store_true",
@@ -185,8 +186,8 @@ def main() -> None:
         overrides["SCALE_BPA_URGENCY"] = True
     if args.slot_scarcity:
         overrides["USE_SLOT_SCARCITY"] = True
-    if args.variable_sigma:
-        overrides["USE_VARIABLE_SIGMA"] = True
+    if args.no_variable_sigma:
+        overrides["USE_VARIABLE_SIGMA"] = False
     if args.window_vona:
         overrides["USE_WINDOW_VONA"] = True
     if args.no_surplus_value:

@@ -25,6 +25,7 @@ from backend.simulation.scoring_model import (
     compute_mcw,
     compute_rank,
     detect_strategy,
+    player_availability,
     standings_confidence,
     win_prob_from_rank,
 )
@@ -53,6 +54,10 @@ class TestFixtureIntegrity:
         assert parity["config"]["CONFIDENCE_START"] == SimConfig().CONFIDENCE_START
         assert parity["config"]["CONFIDENCE_END"] == SimConfig().CONFIDENCE_END
 
+    def test_fixture_availability_model_matches_shipped_defaults(self, parity):
+        for key in ("USE_VARIABLE_SIGMA", "ADP_SIGMA_INTERCEPT", "ADP_SIGMA_SLOPE"):
+            assert parity["config"][key] == getattr(SimConfig(), key), key
+
     def test_fixture_covers_every_strategy_branch(self, parity):
         seen = {
             entry["strategy"]
@@ -75,6 +80,13 @@ class TestScoringParity:
                 case["confidence"], case["draft_progress"], config,
             )
             assert actual == pytest.approx(case["expected"], abs=TOLERANCE)
+
+    def test_player_availability(self, parity, config):
+        for case in parity["cases"]["compute_availability"]:
+            actual = player_availability(
+                case["adp"] - case["kept_below_adp"], case["current_pick"],
+                case["picks_until_mine"], config)
+            assert actual == pytest.approx(case["expected"], abs=TOLERANCE), case
 
     def test_compute_rank(self, parity):
         for case in parity["cases"]["compute_rank"]:

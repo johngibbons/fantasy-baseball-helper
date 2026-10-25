@@ -1,15 +1,13 @@
 /**
- * Characterization tests for the pick availability model.
+ * Tests for the pick availability model.
  *
- * This is the sigma the season retrospective will check against the real 2026
- * draft: the board uses a variable sigma (6 + adp/250 * 6) while
- * backend/simulation/config.py ships USE_VARIABLE_SIGMA = False and a flat
- * ADP_SIGMA of 18. The two disagree, and neither has ever been measured against
- * an actual draft — see Phase 5 of the retrospective plan. These tests pin
- * today's behaviour so that comparison starts from a known baseline.
+ * The sigma comes from DRAFT_MODEL_CONFIG and was measured against the real
+ * 2026 draft (RETROSPECTIVE_2026.md, Layer C). The simulator computes the same
+ * thing; draft-scoring-parity.test.ts holds the two implementations together.
  */
 
-import { computeAvailability } from '@/lib/pick-predictor'
+import { DRAFT_MODEL_CONFIG } from '@/lib/draft-model-config'
+import { availabilitySigma, computeAvailability } from '@/lib/pick-predictor'
 
 describe('computeAvailability', () => {
   it('is near certain well before a player is on the clock', () => {
@@ -66,12 +64,20 @@ describe('computeAvailability', () => {
     })
 
     it('grows sigma linearly with ADP', () => {
-      // sigma = 6 + adp/250 * 6, so one sigma past ADP is always ~15.9% available.
+      const { ADP_SIGMA_INTERCEPT, ADP_SIGMA_SLOPE } = DRAFT_MODEL_CONFIG
       for (const adp of [50, 150, 250]) {
-        const sigma = 6 + (adp / 250) * 6
-        const oneSigmaPast = computeAvailability(adp, Math.round(adp + sigma), 0)
-        expect(oneSigmaPast).toBeCloseTo(0.159, 1)
+        expect(availabilitySigma(adp))
+          .toBeCloseTo(ADP_SIGMA_INTERCEPT + ADP_SIGMA_SLOPE * adp, 9)
+        // One sigma past ADP is always about 15.9% available.
+        const oneSigmaPast = computeAvailability(adp, adp + availabilitySigma(adp), 0)
+        expect(oneSigmaPast).toBeCloseTo(0.159, 2)
       }
+    })
+
+    it('keeps a mid-round player 20 picks past ADP a real possibility', () => {
+      // In the 2026 draft players around ADP 120 went with a spread of ~32
+      // picks. The old formula (sigma ~9 here) put this at about 1%.
+      expect(computeAvailability(120, 140, 0)).toBeGreaterThan(0.15)
     })
   })
 })

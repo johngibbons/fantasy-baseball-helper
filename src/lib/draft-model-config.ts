@@ -44,7 +44,15 @@ export const DRAFT_MODEL_CONFIG = {
   DESPERATION_MULTI_CAT: 0.25,
   DESPERATION_MAX: 0.0,
 
-  /** Opponent pick model. */
+  /**
+   * Availability model: how far actual picks stray from ADP, in picks.
+   * sigma = ADP_SIGMA_INTERCEPT + ADP_SIGMA_SLOPE × keeper-adjusted ADP, or the
+   * flat ADP_SIGMA when USE_VARIABLE_SIGMA is off. Measured against the real
+   * 2026 draft; the slope replicates across 2017–2025. See computeAvailability.
+   */
+  USE_VARIABLE_SIGMA: true,
+  ADP_SIGMA_INTERCEPT: 6.55,
+  ADP_SIGMA_SLOPE: 0.158,
   ADP_SIGMA: 18.0,
 
   /** League settings. */

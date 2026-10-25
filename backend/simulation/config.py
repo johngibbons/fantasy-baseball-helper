@@ -35,7 +35,8 @@ class SimConfig:
     STREAMING_SP_THRESHOLD: int = 202      # overall_rank above which a bench SP is "streamable"
     STREAMING_REPL_SP_STARTS: int = 18     # replacement SP projected starts (~100 IP / 5.5)
 
-    # Opponent model
+    # Opponent model. ADP_SIGMA is also our availability sigma when
+    # USE_VARIABLE_SIGMA is off.
     ADP_SIGMA: float = 18.0
     OPP_BENCH_ADP_PENALTY: float = 15.0  # ADP penalty for bench-only picks
     OPP_SCARCITY_BONUS: float = 15.0     # Max ADP bonus for scarce position need
@@ -47,15 +48,27 @@ class SimConfig:
     # Slot scarcity: use 1/remaining_capacity instead of binary roster fit
     USE_SLOT_SCARCITY: bool = False
 
-    # Variable ADP sigma: sigma = intercept + slope * ADP instead of fixed 18.
-    # The defaults are the pair SCORING_IMPROVEMENTS.md section 6 tested and
-    # rejected. The multi-season backtest measured sigma = 11.13 + 0.161 * ADP
-    # over 2017-2025 and 6.55 + 0.158 * ADP in 2026 -- roughly the same slope
-    # from two independent measurements, and much steeper than 0.1 -- so the
-    # coefficients are swept rather than assumed. See sweep_adp_sigma.py.
-    USE_VARIABLE_SIGMA: bool = False
-    ADP_SIGMA_INTERCEPT: float = 10.0
-    ADP_SIGMA_SLOPE: float = 0.1
+    # Our availability model: sigma = intercept + slope * keeper-adjusted ADP,
+    # instead of the flat ADP_SIGMA. Measured against the real 2026 draft
+    # (6.55 + 0.158 * ADP, on draft-day ADP, which is what the board reads).
+    # The 2017-2025 backtest found the same slope (0.161) using ESPN rankings
+    # as a stand-in for ADP; its higher intercept (11.13) is what a noisier
+    # proxy would produce. The live board uses the same values from
+    # src/lib/draft-model-config.ts, held together by the parity fixture.
+    # On for calibration: with the simulated league held fixed, sigma has no
+    # measurable effect on draft outcomes (SCORING_IMPROVEMENTS.md section 6).
+    USE_VARIABLE_SIGMA: bool = True
+    ADP_SIGMA_INTERCEPT: float = 6.55
+    ADP_SIGMA_SLOPE: float = 0.158
+
+    # How far the simulated opponents stray from ADP. This is part of the
+    # simulated league, not of our decision model, so it has its own switch.
+    # It used to follow USE_VARIABLE_SIGMA, which meant any test of our
+    # availability model also changed the league it was tested in. Flat
+    # ADP_SIGMA unless enabled.
+    OPP_USE_VARIABLE_SIGMA: bool = False
+    OPP_ADP_SIGMA_INTERCEPT: float = 10.0
+    OPP_ADP_SIGMA_SLOPE: float = 0.1
 
     # Window VONA: use availability-weighted replacement instead of literal next-best
     USE_WINDOW_VONA: bool = False

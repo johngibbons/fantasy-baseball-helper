@@ -24,6 +24,7 @@ import {
   type CategoryAnalysis,
 } from '@/lib/draft-optimizer'
 import { DRAFT_MODEL_CONFIG } from '@/lib/draft-model-config'
+import { computeAvailability } from '@/lib/pick-predictor'
 
 const FIXTURE_PATH = path.join(
   process.cwd(),
@@ -71,6 +72,9 @@ describe('draft scoring parity with the Python simulator', () => {
     expect(DRAFT_MODEL_CONFIG.DESPERATION_WEIGHT).toBe(fixture.config.DESPERATION_WEIGHT)
     expect(DRAFT_MODEL_CONFIG.DESPERATION_MULTI_CAT).toBe(fixture.config.DESPERATION_MULTI_CAT)
     expect(DRAFT_MODEL_CONFIG.ADP_SIGMA).toBe(fixture.config.ADP_SIGMA)
+    expect(DRAFT_MODEL_CONFIG.USE_VARIABLE_SIGMA).toBe(fixture.config.USE_VARIABLE_SIGMA)
+    expect(DRAFT_MODEL_CONFIG.ADP_SIGMA_INTERCEPT).toBe(fixture.config.ADP_SIGMA_INTERCEPT)
+    expect(DRAFT_MODEL_CONFIG.ADP_SIGMA_SLOPE).toBe(fixture.config.ADP_SIGMA_SLOPE)
     expect(DRAFT_MODEL_CONFIG.NUM_TEAMS).toBe(fixture.config.NUM_TEAMS)
     expect(DRAFT_MODEL_CONFIG.PLAYOFF_SPOTS).toBe(fixture.config.PLAYOFF_SPOTS)
   })
@@ -79,6 +83,16 @@ describe('draft scoring parity with the Python simulator', () => {
     for (const testCase of fixture.cases.standings_confidence) {
       expect(standingsConfidence(testCase.total_picks_made))
         .toBeCloseTo(testCase.expected, TOLERANCE)
+    }
+  })
+
+  it('computeAvailability matches', () => {
+    for (const testCase of fixture.cases.compute_availability) {
+      const actual = computeAvailability(
+        testCase.adp, testCase.current_pick, testCase.picks_until_mine,
+        testCase.kept_below_adp,
+      )
+      expect(actual).toBeCloseTo(testCase.expected, TOLERANCE)
     }
   })
 
