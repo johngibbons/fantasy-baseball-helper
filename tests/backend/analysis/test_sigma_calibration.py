@@ -156,38 +156,114 @@ class TestComputeBetweenTeamSigma:
         assert result["OBP"] == pytest.approx(math.sqrt(0.0018), rel=1e-6)
 
 
-class TestPoolSigma:
+class TestPoolVariance:
     def test_equal_sizes_average_the_variances(self):
-        from backend.analysis.sigma_calibration import pool_sigma
-        result = pool_sigma([({"R": 3.0}, 10), ({"R": 4.0}, 10)])
-        # sqrt((9 + 16) / 2), not the mean of 3 and 4
-        assert result["R"] == pytest.approx(math.sqrt(12.5), rel=1e-9)
+        from backend.analysis.sigma_calibration import pool_variance
+        result = pool_variance([({"R": 9.0}, 10), ({"R": 16.0}, 10)])
+        assert result["R"] == pytest.approx(12.5, rel=1e-9)
 
     def test_weights_by_degrees_of_freedom(self):
-        from backend.analysis.sigma_calibration import pool_sigma
-        result = pool_sigma([({"R": 3.0}, 3), ({"R": 6.0}, 5)])
+        from backend.analysis.sigma_calibration import pool_variance
+        result = pool_variance([({"R": 9.0}, 3), ({"R": 36.0}, 5)])
         # (2 * 9 + 4 * 36) / 6 = 27
-        assert result["R"] == pytest.approx(math.sqrt(27.0), rel=1e-9)
+        assert result["R"] == pytest.approx(27.0, rel=1e-9)
 
-    def test_matches_stddev_of_seasons_centred_on_themselves(self):
-        """Pooling σs equals the stddev of the raw samples, each season de-meaned."""
-        from backend.analysis.sigma_calibration import pool_sigma
+    def test_matches_variance_of_seasons_centred_on_themselves(self):
+        """Pooling equals the variance of the raw samples, each season de-meaned."""
+        from backend.analysis.sigma_calibration import pool_variance
         rng = random.Random(3)
         seasons = [[rng.gauss(mu, 2.0) for _ in range(10)] for mu in (50.0, 58.0)]
 
-        def sd(xs):
+        def var(xs):
             m = sum(xs) / len(xs)
-            return math.sqrt(sum((x - m) ** 2 for x in xs) / (len(xs) - 1))
+            return sum((x - m) ** 2 for x in xs) / (len(xs) - 1)
 
-        pooled = pool_sigma([({"R": sd(xs)}, len(xs)) for xs in seasons])
+        pooled = pool_variance([({"R": var(xs)}, len(xs)) for xs in seasons])
         squares = sum((x - sum(xs) / len(xs)) ** 2 for xs in seasons for x in xs)
         dof = sum(len(xs) - 1 for xs in seasons)
-        assert pooled["R"] == pytest.approx(math.sqrt(squares / dof), rel=1e-9)
+        assert pooled["R"] == pytest.approx(squares / dof, rel=1e-9)
 
-    def test_single_season_is_unchanged(self):
-        from backend.analysis.sigma_calibration import pool_sigma
-        assert pool_sigma([({"R": 2.5, "ERA": 0.2}, 10)]) == pytest.approx(
-            {"R": 2.5, "ERA": 0.2})
+    def test_negative_estimates_pool_before_truncation(self):
+        from backend.analysis.sigma_calibration import pool_variance
+        result = pool_variance([({"ERA": -0.03}, 10), ({"ERA": 0.02}, 10)])
+        assert result["ERA"] == pytest.approx(-0.005, rel=1e-9)
+
+
+def _season(rng, n_teams, n_periods, true_sd, noise_sd, mean=50.0):
+    """Synthetic league: each team's true weekly mean plus independent weekly noise."""
+    truth = {t: rng.gauss(mean, true_sd) for t in range(n_teams)}
+    periods = {t: [(pid, 7, truth[t] + rng.gauss(0.0, noise_sd))
+                   for pid in range(1, n_periods + 1)] for t in truth}
+    return periods
+
+
+class TestTrueBetweenTeamVariance:
+    def test_subtracts_mean_noise_of_a_season_average(self):
+        from backend.analysis.sigma_calibration import true_between_team_variance
+        result = true_between_team_variance(
+            between_sigma={"R": 3.0}, within_sigma={"R": 6.0},
+            periods_per_team=[18, 18, 9],
+        )
+        # noise = mean(36/18, 36/18, 36/9) = 8/3; 9 - 8/3
+        assert result["R"] == pytest.approx(9.0 - 8.0 / 3.0, rel=1e-9)
+
+    def test_goes_negative_when_spread_is_all_noise(self):
+        from backend.analysis.sigma_calibration import true_between_team_variance
+        result = true_between_team_variance(
+            between_sigma={"ERA": 0.2}, within_sigma={"ERA": 1.2},
+            periods_per_team=[19] * 10,
+        )
+        assert result["ERA"] < 0
+
+    def test_recovers_true_spread_that_observed_spread_overstates(self):
+        from backend.analysis.sigma_calibration import (
+            compute_between_team_sigma, compute_category_sigma, true_between_team_variance,
+        )
+        rng = random.Random(11)
+        periods = _season(rng, n_teams=400, n_periods=19, true_sd=2.0, noise_sd=6.0)
+        rates = {t: {"R": sum(v for _, _, v in ps) / (7 * len(ps))} for t, ps in periods.items()}
+        observations = [CountStatObservation(team_id=t, period_id=pid, period_days=d,
+                                             cat="R", observed=v)
+                        for t, ps in periods.items() for pid, d, v in ps]
+        between = compute_between_team_sigma(rates, ["R"], {"R": "count"})
+        within = compute_category_sigma(observations, rates, ["R"], {"R": "count"})
+        corrected = true_between_team_variance(between, within, [19] * 400)
+        # Observed variance is about 4 + 36/19 = 5.9; the truth is 4.
+        assert between["R"] ** 2 == pytest.approx(4.0 + 36.0 / 19.0, rel=0.15)
+        assert corrected["R"] == pytest.approx(4.0, rel=0.15)
+
+
+class TestSplitHalfBetweenVariance:
+    def test_covariance_of_odd_and_even_averages(self):
+        from backend.analysis.sigma_calibration import split_half_between_variance
+        periods = {
+            1: [(1, 7, 7.0), (2, 7, 21.0)],   # odd 7, even 21
+            2: [(1, 7, 21.0), (2, 7, 35.0)],  # odd 21, even 35
+        }
+        # cov((7, 21), (21, 35)) = 98
+        assert split_half_between_variance(periods, "count") == pytest.approx(98.0)
+
+    def test_rate_stats_average_without_period_scaling(self):
+        from backend.analysis.sigma_calibration import split_half_between_variance
+        periods = {
+            1: [(1, 5, 3.0), (2, 9, 5.0)],
+            2: [(1, 5, 4.0), (2, 9, 7.0)],
+        }
+        # odd (3, 4), even (5, 7): cov = (−0.5)(−1) + (0.5)(1) = 1.0
+        assert split_half_between_variance(periods, "rate") == pytest.approx(1.0)
+
+    def test_pure_noise_has_no_persistent_spread(self):
+        from backend.analysis.sigma_calibration import split_half_between_variance
+        rng = random.Random(5)
+        periods = _season(rng, n_teams=400, n_periods=19, true_sd=0.0, noise_sd=6.0)
+        # Observed variance of a season average would be ~36/19 = 1.9
+        assert abs(split_half_between_variance(periods, "rate")) < 0.4
+
+    def test_recovers_true_spread(self):
+        from backend.analysis.sigma_calibration import split_half_between_variance
+        rng = random.Random(8)
+        periods = _season(rng, n_teams=400, n_periods=19, true_sd=2.0, noise_sd=6.0)
+        assert split_half_between_variance(periods, "rate") == pytest.approx(4.0, rel=0.2)
 
 
 import json
@@ -198,7 +274,10 @@ from backend.scripts.calibrate_category_sigma import (
     CAT_KINDS,
     FIXTURES_DIR,
     compute_team_rates_per_day,
+    load_fixture,
     pooled_between_sigma,
+    pooled_between_variance,
+    pooled_split_half_variance,
     records_to_observations,
 )
 from backend.data.espn_history import MatchupRecord
@@ -331,3 +410,23 @@ def test_matchup_between_sigma_constants_are_the_pooled_seasons():
             f"but pooling {POOLED_SEASONS} gives {pooled[cat]}. Re-run "
             f"calibrate_category_sigma --pool-seasons and update."
         )
+
+
+def test_noise_correction_agrees_with_the_odd_even_split():
+    """The two estimates of true spread, one from a noise model and one without,
+    agree on the committed seasons; in ERA and WHIP both find little or none."""
+    corrected = pooled_between_variance(POOLED_SEASONS)
+    split_half = pooled_split_half_variance(POOLED_SEASONS)
+    observed = {
+        cat: sum(load_fixture(season)["computed_between_sigma"][cat] ** 2
+                 for season in POOLED_SEASONS) / len(POOLED_SEASONS)
+        for cat in CAT_KEYS
+    }
+    for cat in CAT_KEYS:
+        if cat in ("ERA", "WHIP"):
+            assert corrected[cat] < 0, cat
+            # Under a fifth of the observed variance persists from odd weeks to even.
+            assert split_half[cat] < 0.2 * observed[cat], cat
+            continue
+        assert math.sqrt(corrected[cat]) == pytest.approx(
+            math.sqrt(split_half[cat]), rel=0.10), cat

@@ -59,24 +59,28 @@ CATEGORY_SIGMA: dict[str, float] = {
 }
 
 
-# σ_between: spread of teams' typical-period totals around the league mean.
-# Used by empirical Bayes shrinkage in the playoff odds simulator. Pooled over
-# 2025 and 2026 (sigma_calibration_<season>.json): one season of ten teams is
-# a noisy estimate, and 2026 came out 22-76% wider than 2025 in seven
-# categories. Regenerate with
+# σ_between: spread of teams' true typical-period means around the league
+# mean. Used by empirical Bayes shrinkage in the playoff odds simulator.
+# Pooled over 2025 and 2026 (sigma_calibration_<season>.json), since 2026 came
+# out 22-76% wider than 2025 in seven categories, with each season's weekly
+# noise removed: a season average over 19 weeks still carries
+# CATEGORY_SIGMA² / 19 of luck, which was 9-33% of the observed variance and
+# all of it in ERA and WHIP. A split of odd and even weeks, which needs no
+# noise model, agrees within 6% in the other eight. ERA and WHIP are zero, so
+# the playoff odds use the projection alone there. Regenerate with
 #   python3 -m backend.scripts.calibrate_category_sigma --pool-seasons 2025 2026
 # CATEGORY_SIGMA above stays on 2025 alone; 2026 moved it 11% or less.
 CATEGORY_BETWEEN_SIGMA: dict[str, float] = {
-    "R":     3.02199,
-    "TB":    7.00914,
-    "RBI":   2.81132,
-    "SB":    1.31144,
-    "OBP":   0.0116576,
-    "K":    12.0226,
-    "QS":    1.15907,
-    "ERA":   0.240249,
-    "WHIP":  0.0402088,
-    "SVHD":  1.31454,
+    "R":     2.69287,
+    "TB":    6.02361,
+    "RBI":   2.30803,
+    "SB":    1.15977,
+    "OBP":   0.00961573,
+    "K":    11.4955,
+    "QS":    1.07712,
+    "ERA":   0.0,
+    "WHIP":  0.0,
+    "SVHD":  1.25505,
 }
 
 

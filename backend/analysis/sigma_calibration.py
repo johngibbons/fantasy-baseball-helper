@@ -97,14 +97,67 @@ def compute_between_team_sigma(
     return out
 
 
-def pool_sigma(estimates: list[tuple[dict[str, float], int]]) -> dict[str, float]:
-    """Combine per-season σ estimates: sqrt(Σ(n−1)·σ² / Σ(n−1)) per category.
+def true_between_team_variance(
+    between_sigma: dict[str, float],
+    within_sigma: dict[str, float],
+    periods_per_team: list[int],
+) -> dict[str, float]:
+    """Variance of teams' true typical-period means, per category.
 
-    Each estimate is (cat → σ, sample size). Every season's σ is a sample
-    stddev around that season's own mean, so this is the σ of all samples
-    together with each season centred on itself. Pooling the raw records
-    directly would not work: team IDs repeat across seasons, so each team's
-    two seasons would merge into one.
+    compute_between_team_sigma measures the spread of each team's season
+    average, and every average carries its own weekly noise: σ_within² / n
+    for a team with n periods. Subtracting the mean of that noise is the
+    method-of-moments estimate of the spread of true means. It comes out
+    negative when the observed spread is no wider than noise alone would
+    make it, and is left that way so seasons can be pooled before truncating.
+    """
+    noise = {
+        cat: sum(within_sigma[cat] ** 2 / n for n in periods_per_team) / len(periods_per_team)
+        for cat in between_sigma
+    }
+    return {cat: between_sigma[cat] ** 2 - noise[cat] for cat in between_sigma}
+
+
+def split_half_between_variance(
+    periods_by_team: dict[int, list[tuple[int, int, float]]],
+    kind: str,
+    typical_period_days: int = TYPICAL_PERIOD_DAYS,
+) -> float:
+    """Covariance across teams of odd-period and even-period averages.
+
+    `periods_by_team` maps team → [(period_id, period_days, observed)]. Weekly
+    noise is independent between the two halves, so it drops out of the
+    covariance and only what persists from week to week is left: an estimate
+    of the true between-team variance that does not use σ_within at all.
+    """
+    def average(periods: list[tuple[int, int, float]]) -> float:
+        if kind == "count":
+            days = sum(d for _, d, _ in periods)
+            return sum(v for _, _, v in periods) / days * typical_period_days
+        return sum(v for _, _, v in periods) / len(periods)
+
+    odd, even = [], []
+    for periods in periods_by_team.values():
+        odd_periods = [p for p in periods if p[0] % 2]
+        even_periods = [p for p in periods if not p[0] % 2]
+        if odd_periods and even_periods:
+            odd.append(average(odd_periods))
+            even.append(average(even_periods))
+    if len(odd) < 2:
+        return 0.0
+    mean_odd, mean_even = sum(odd) / len(odd), sum(even) / len(even)
+    return sum((a - mean_odd) * (b - mean_even)
+               for a, b in zip(odd, even)) / (len(odd) - 1)
+
+
+def pool_variance(estimates: list[tuple[dict[str, float], int]]) -> dict[str, float]:
+    """Combine per-season variance estimates: Σ(n−1)·v / Σ(n−1) per category.
+
+    Each estimate is (cat → variance, sample size), centred on that season's
+    own mean, so this is the variance of all samples together with each
+    season centred on itself. Negative estimates pool like any other.
+    Pooling the raw records directly would not work: team IDs repeat across
+    seasons, so each team's two seasons would merge into one.
     """
     cats = estimates[0][0].keys() if estimates else []
     out: dict[str, float] = {}
@@ -113,6 +166,5 @@ def pool_sigma(estimates: list[tuple[dict[str, float], int]]) -> dict[str, float
         if dof <= 0:
             out[cat] = 0.0
             continue
-        pooled_var = sum((n - 1) * sigmas[cat] ** 2 for sigmas, n in estimates if n > 1)
-        out[cat] = math.sqrt(pooled_var / dof)
+        out[cat] = sum((n - 1) * v[cat] for v, n in estimates if n > 1) / dof
     return out

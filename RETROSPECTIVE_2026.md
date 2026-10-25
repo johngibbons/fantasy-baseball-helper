@@ -450,24 +450,36 @@ Nothing is blocked any more. Loose ends for whoever picks this up next:
 
 - **The team model's scale** (slope 0.33, [above](#the-team-model-against-the-real-season))
   matters only if the Optuna coefficients are re-tuned.
-- **A second season of σ — between-team σ pooled 2026-10-24.**
+- **Between-team σ: pooled, and weekly noise removed — done 2026-10-24.**
   `sigma_calibration_2026.json` sits beside the 2025 fixture. Within-week σ,
   which drives in-season win probabilities, moved 11% or less per category and
   stays on 2025. Between-team σ, used only by the playoff-odds shrinkage, came
   out 22–76% wider in 2026 in seven categories, so one season was a noisy
-  estimate. `matchup.py` now ships the two pooled
-  (`calibrate_category_sigma --pool-seasons 2025 2026`), and a test ties the
-  constants to both fixtures.
-- **Between-team σ measures observed spread, not true spread.** It is the
-  spread of teams' season averages, and each average carries its own weekly
-  noise: about σ_within²/19 of variance. On the pooled values that noise
-  accounts for 8–32% of the observed variance in eight categories, and all of
-  it in ERA and WHIP. The shrinkage wants the spread of true team means around
-  the projection, which is smaller still. Both errors make σ_between too
-  large, so playoff odds trust a team's observed weeks more than they should,
-  most of all in ERA and WHIP. Pooling raised σ_between in nine categories,
-  which leans the same way. Subtracting the noise term (floored above zero)
-  would correct it; nothing was changed here.
+  estimate; `matchup.py` now ships the two seasons pooled.
+
+  It was also measuring the wrong thing. It was the spread of teams' season
+  averages, and a 19-week average still carries σ_within²/19 of weekly luck:
+  9–33% of the observed variance in eight categories, and all of it in ERA and
+  WHIP. The shipped values subtract that noise before pooling. An odd/even-week
+  split, which needs no noise model, agrees within 6% in the eight, and in ERA
+  and WHIP keeps under a fifth of the observed variance. ERA and WHIP are now
+  zero, so the playoff odds use the projection alone there; the odd/even
+  figure would have given observed weeks about an eighth of the weight by
+  week 18. Elsewhere, against the 2025-only values, observed weeks lose 1–8
+  points of weight in TB, RBI, OBP and K and gain 2–14 in R, SB, QS and SVHD,
+  at 5, 10 and 18 weeks in.
+  `calibrate_category_sigma --pool-seasons 2025 2026` prints both estimates,
+  and the tests hold the constants to the fixtures and the two estimates to
+  each other.
+- **The spread the shrinkage needs is around the projection, not the league
+  mean.** The shrinkage treats σ_between as how far a team's true level sits
+  from its projection, which is narrower than the spread between teams if the
+  projections tell teams apart well, and wider if they over-separate them.
+  The team model's slope of 0.33 on draft-day rosters hints at the latter, but
+  rosters churn and the playoff odds project current ones. Measuring it needs
+  each team's projection as the playoff odds saw it during the season. Nothing
+  stores that, though the automatic projection snapshots and ESPN's weekly
+  rosters might rebuild it.
 
 ---
 

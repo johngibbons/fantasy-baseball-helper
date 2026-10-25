@@ -8,7 +8,8 @@ Usage:
 Prints calibrated σ values and writes a fixture JSON to
 backend/data/fixtures/sigma_calibration_<season>.json for regression testing.
 
-To pool σ_between across seasons already calibrated (what matchup.py ships):
+To pool σ_between across seasons already calibrated, with weekly noise
+removed (what matchup.py ships):
     python3 -m backend.scripts.calibrate_category_sigma --pool-seasons 2025 2026
 """
 
@@ -16,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -24,7 +26,9 @@ from backend.analysis.sigma_calibration import (
     CountStatObservation,
     compute_category_sigma,
     compute_between_team_sigma,
-    pool_sigma,
+    pool_variance,
+    split_half_between_variance,
+    true_between_team_variance,
 )
 from backend.data.espn_history import (
     ESPN_STAT_ID_TO_CAT,
@@ -122,15 +126,62 @@ def write_fixture(
         json.dump(payload, f, indent=2, sort_keys=True)
 
 
-def pooled_between_sigma(seasons: list[int]) -> dict[str, float]:
-    """σ_between pooled across the committed fixtures for *seasons*."""
+def load_fixture(season: int) -> dict:
+    with (FIXTURES_DIR / f"sigma_calibration_{season}.json").open() as f:
+        return json.load(f)
+
+
+def _periods_per_team(fixture: dict) -> dict[int, int]:
+    counts: dict[int, int] = defaultdict(int)
+    for r in fixture["records"]:
+        counts[r["team_id"]] += 1
+    return counts
+
+
+def pooled_between_variance(seasons: list[int]) -> dict[str, float]:
+    """Variance of teams' true typical-period means, pooled over *seasons*.
+
+    Each season's observed σ_between has its weekly noise removed, then the
+    seasons are pooled. May be negative; see pooled_between_sigma.
+    """
     estimates = []
     for season in seasons:
-        with (FIXTURES_DIR / f"sigma_calibration_{season}.json").open() as f:
-            fixture = json.load(f)
-        n_teams = len({r["team_id"] for r in fixture["records"]})
-        estimates.append((fixture["computed_between_sigma"], n_teams))
-    return pool_sigma(estimates)
+        fixture = load_fixture(season)
+        periods = list(_periods_per_team(fixture).values())
+        estimates.append((true_between_team_variance(
+            fixture["computed_between_sigma"], fixture["computed_sigma"], periods,
+        ), len(periods)))
+    return pool_variance(estimates)
+
+
+def pooled_between_sigma(seasons: list[int]) -> dict[str, float]:
+    """σ_between for matchup.py: pooled_between_variance, truncated at zero.
+
+    Zero means the observed spread is no wider than weekly noise alone would
+    produce, and the playoff-odds shrinkage then uses the projection alone.
+    """
+    return {cat: math.sqrt(max(0.0, v))
+            for cat, v in pooled_between_variance(seasons).items()}
+
+
+def pooled_split_half_variance(seasons: list[int]) -> dict[str, float]:
+    """The odd/even-period cross-check, pooled the same way."""
+    estimates = []
+    for season in seasons:
+        fixture = load_fixture(season)
+        by_cat = {}
+        for cat in CAT_KEYS:
+            periods_by_team: dict[int, list[tuple[int, int, float]]] = defaultdict(list)
+            for r in fixture["records"]:
+                periods_by_team[r["team_id"]].append(
+                    (r["matchup_period_id"], r["period_days"], r["cats"][cat]))
+            by_cat[cat] = split_half_between_variance(periods_by_team, CAT_KINDS[cat])
+        estimates.append((by_cat, len(_periods_per_team(fixture))))
+    return pool_variance(estimates)
+
+
+def _signed_sqrt(v: float) -> float:
+    return math.copysign(math.sqrt(abs(v)), v)
 
 
 def main() -> int:
@@ -147,14 +198,29 @@ def main() -> int:
     )
     parser.add_argument(
         "--pool-seasons", type=int, nargs="+", default=None,
-        help="Skip ESPN; pool σ_between across these seasons' committed fixtures",
+        help="Skip ESPN; pool noise-corrected σ_between across these seasons' fixtures",
     )
     args = parser.parse_args()
 
     if args.pool_seasons:
+        observed = pool_variance([
+            ({cat: s ** 2 for cat, s in load_fixture(season)["computed_between_sigma"].items()},
+             len(_periods_per_team(load_fixture(season))))
+            for season in args.pool_seasons
+        ])
+        corrected = pooled_between_variance(args.pool_seasons)
+        split_half = pooled_split_half_variance(args.pool_seasons)
+        print("σ_between by category: observed spread of season averages, with weekly")
+        print("noise removed, and the odd/even-period cross-check (negative = below noise).")
+        print(f"  {'cat':5} {'observed':>10} {'corrected':>10} {'odd/even':>10}")
+        for cat in CAT_KEYS:
+            print(f"  {cat:5} {math.sqrt(observed[cat]):10.4g} "
+                  f"{_signed_sqrt(corrected[cat]):10.4g} {_signed_sqrt(split_half[cat]):10.4g}")
+        print()
+
         pooled = pooled_between_sigma(args.pool_seasons)
         seasons = " and ".join(str(s) for s in args.pool_seasons)
-        print(f"CATEGORY_BETWEEN_SIGMA pooled over {seasons} "
+        print(f"CATEGORY_BETWEEN_SIGMA pooled over {seasons}, noise removed "
               "(paste into backend/analysis/matchup.py):")
         print("CATEGORY_BETWEEN_SIGMA: dict[str, float] = {")
         for cat in CAT_KEYS:
